@@ -1,0 +1,57 @@
+vcvarsall OK 
+MSBuild version 17.14.23+b0019275e for .NET Framework
+Build started 2/25/2026 12:56:05 AM.
+
+Project "D:\recomp\pc\bw\vendor\SafeDiscLoader2\version-proxy.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+InitializeBuildStatus:
+  Creating "version-proxy\Release\version-proxy.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Touching "version-proxy\Release\version-proxy.tlog\unsuccessfulbuild".
+VcpkgTripletSelection:
+  Using triplet "x86-windows" from "C:\vcpkg\installed\x86-windows\"
+  Using normalized configuration "Release"
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x86\CL.exe /c /I"C:\vcpkg\installed\x86-windows\include" /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D VERSIONPROXY_EXPORTS /D _WINDOWS /D _USRDLL /D _WINDLL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"version-proxy\Release\\" /Fd"version-proxy\Release\vc143.pdb" /external:W3 /Gd /TP /analyze- /FC /errorReport:queue src\version.cpp
+  version.cpp
+  All outputs are up-to-date.
+ResourceCompile:
+  All outputs are up-to-date.
+Link:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX86\x86\link.exe /ERRORREPORT:QUEUE /OUT:"D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\vcpkg\installed\x86-windows\lib" /LIBPATH:"C:\vcpkg\installed\x86-windows\lib\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "C:\vcpkg\installed\x86-windows\lib\*.lib" /DEF:"src/version.def" /MANIFEST /MANIFESTUAC:NO /manifest:embed /PDB:"D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /LTCGOUT:"version-proxy\Release\version.iobj" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.lib" /MACHINE:X86 /SAFESEH /DLL "version-proxy\Release\version-proxy.res"
+  "version-proxy\Release\Config.obj"
+  "version-proxy\Release\dllmain.obj"
+  "version-proxy\Release\buffer.obj"
+  "version-proxy\Release\hde32.obj"
+  "version-proxy\Release\hde64.obj"
+  "version-proxy\Release\hook.obj"
+  "version-proxy\Release\trampoline.obj"
+  "version-proxy\Release\SafeDisc2Decrypt.obj"
+  "version-proxy\Release\secdrv_ioctl.obj"
+  "version-proxy\Release\tiny-json.obj"
+  "version-proxy\Release\Utils.obj"
+  "version-proxy\Release\version.obj"
+     Creating library D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.lib and object D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.exp
+  Generating code
+  2 of 384 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    28 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  version-proxy.vcxproj -> D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.dll
+AppLocalFromInstalled:
+  pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.dll" "C:\vcpkg\installed\x86-windows\bin" "version-proxy\Release\version-proxy.tlog\version-proxy.write.1u.tlog" "version-proxy\Release\vcpkg.applocal.log"
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
+  The command "pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.dll" "C:\vcpkg\installed\x86-windows\bin" "version-proxy\Release\version-proxy.tlog\version-proxy.write.1u.tlog" "version-proxy\Release\vcpkg.applocal.log"" exited with code 9009.
+  "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "C:\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "D:\recomp\pc\bw\vendor\SafeDiscLoader2\Release\version.dll" "C:\vcpkg\installed\x86-windows\bin" "version-proxy\Release\version-proxy.tlog\version-proxy.write.1u.tlog" "version-proxy\Release\vcpkg.applocal.log"
+FinalizeBuildStatus:
+  Deleting file "version-proxy\Release\version-proxy.tlog\unsuccessfulbuild".
+  Touching "version-proxy\Release\version-proxy.tlog\version-proxy.lastbuildstate".
+Done Building Project "D:\recomp\pc\bw\vendor\SafeDiscLoader2\version-proxy.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.80
+MSBUILD_EXIT=0 

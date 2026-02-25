@@ -27,6 +27,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] Acquire original game files
 - [x] Unpack and inventory game data (textures, models, scripts, audio)
 - [x] Identify executable format and protections
+- [x] **Strip SafeDisc 2.10.030 copy protection** (TEA decryption, import table restoration, OEP recovery)
 - [ ] Initial disassembly / decompilation pass (Ghidra / IDA)
 - [x] Map out major subsystems (renderer, physics, AI, scripting, audio)
 - [ ] Document the original engine architecture
@@ -69,20 +70,22 @@ We cracked open the disc image and extracted 1,011 files from the InstallShield 
 | Size | 8.2 MB |
 | Built | March 9, 2001 at 2:56 PM (crunch time energy) |
 | Image base | `0x400000` |
-| Entry point | `0xAE61FD` |
+| Entry point | `0xAE61FD` (SafeDisc stub) → Real OEP: `0x337B8E` (WinMainCRTStartup) |
 | .text section | 4.0 MB of code |
 | .data section | 5.9 MB virtual (2.5 MB on disk) |
 | Total image size | 10.9 MB |
 
-**The kicker:** Only **6 imports** from 2 DLLs (`KERNEL32.dll` and `USER32.dll`). The functions are `GetModuleHandleA`, `GetProcAddress`, `GlobalAlloc`, `GlobalFree`, `ExitProcess`, and `MessageBoxA`. That's it. The game loads everything else at runtime via `GetProcAddress`. This is almost entirely statically linked — the whole engine is in this one EXE.
+**The kicker:** The protected binary only shows **6 imports** from 2 DLLs. But after stripping SafeDisc, the real import table was revealed — **19 DLLs** including DirectDraw, DirectInput, Bink Video, and all the Lionhead satellite libraries. The game loads additional functionality via `GetProcAddress` at runtime, but the core is almost entirely statically linked in this one massive EXE.
 
-**Copy Protection:** SafeDisc v1. The telltale signs:
+**Copy Protection:** SafeDisc **2.10.030**. The telltale signs:
 - `SELFMOD` section — self-modifying code for anti-debug
 - `stxt774` and `stxt371` sections — encrypted code stubs
-- `BoG_` signature at offset `0xFD4`
+- `BoG_` signature at offset `0xFD4`, version bytes at `0xFF4`
 - `secdrv.sys` driver on disc
+- Entire 4.0 MB `.text` section encrypted with TEA (Tiny Encryption Algorithm) in ECB mode
+- 732 KB overlay data containing encrypted `dplayerx.dll`
 
-SafeDisc is well-understood and its encryption has been thoroughly documented. The protection needs to be bypassed/removed before meaningful disassembly can begin, but this is a solved problem.
+**STATUS: STRIPPED.** We built a custom dump tool on top of [SafeDiscLoader2](https://github.com/TheRogueArchivist/SafeDiscLoader2), injected it at runtime, waited for the TEA decryption to complete, and dumped the fully decrypted binary. The real import table (19 DLLs) has been restored and the entry point fixed to the original `WinMainCRTStartup` at RVA `0x337B8E`. The clean binary is ready for Ghidra.
 
 ### Runtime DLL Dependencies
 
@@ -217,7 +220,11 @@ bw/
 ├── .gitignore
 ├── tools/              ← Asset extraction & analysis utilities
 │   ├── bin2iso.js      ← BIN/CUE to ISO converter
-│   └── extract_all_v4.js ← InstallShield CAB extractor
+│   ├── extract_all_v4.js ← InstallShield CAB extractor
+│   └── inject_and_run.c ← SafeDisc DLL injector for process dumping
+├── vendor/             ← Third-party tools
+│   └── SafeDiscLoader2/ ← Modified SafeDisc bypass + process dumper
+├── work/clean/         ← Decrypted, clean binary for analysis
 ├── docs/               ← Research notes, file format specs (coming soon)
 ├── src/                ← Recompiled source code (coming soon)
 └── game_data/          ← Extracted game data (not checked in — bring your own disc!)
@@ -250,11 +257,12 @@ This is early days. If you:
 
 ## Next Steps
 
-1. **Strip SafeDisc protection** from `runblack.exe` to get a clean binary for disassembly
-2. **Load into Ghidra** and begin function identification (the 6-import stub makes this interesting)
-3. **Document file formats** — L3D (3D models), LND (landscapes), SAD (audio), the .zzz archives
-4. **Build a script parser** for the level definition files
-5. **Prototype a renderer** — get terrain rendering with modern D3D11/Vulkan
+1. ~~**Strip SafeDisc protection** from `runblack.exe`~~ **DONE!** Clean binary at `work/clean/runblack_decrypted.exe`
+2. **Load into Ghidra** and begin function identification across ~4 MB of code
+3. **Identify WinMain and subsystem init functions** — map the startup sequence
+4. **Document file formats** — L3D (3D models), LND (landscapes), SAD (audio), the .zzz archives
+5. **Build a script parser** for the level definition files
+6. **Prototype a renderer** — get terrain rendering with modern D3D11/Vulkan
 
 ## Legal
 
@@ -271,4 +279,4 @@ This is a clean-room-ish effort — we're studying the binary to understand beha
 
 ---
 
-*"We cracked it open. We know what's inside. Now we rebuild it."*
+*"We cracked it open. We stripped its armor. We read its soul. Now we rebuild it."*

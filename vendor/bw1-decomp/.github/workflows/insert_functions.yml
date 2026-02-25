@@ -1,0 +1,107 @@
+name: Insert Functions
+
+on:
+  issues:
+    types: [opened, edited]  # Trigger when a new issue is created or edited
+
+jobs:
+  insert-functions:
+    if: contains(github.event.issue.labels.*.name, 'function-insert')
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for CSV code block in issue body
+      id: extract_csv
+      shell: bash
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}
+      run: |
+        echo "Checking issue body for CSV code block..."
+
+        csv_block=$(printf '%s\n' "$ISSUE_BODY" | awk '/```csv/{flag=1;next}/```/{flag=0}flag')
+
+        if [ -z "$csv_block" ]; then
+          echo "❌ No CSV code block found in issue body."
+          exit 1
+        fi
+
+        printf '%s\n' "$csv_block" > "manual_analysis_functions.csv"
+
+        echo "✅ Saved CSV to $workspace_path"
+        head -n 10 "manual_analysis_functions.csv"
+
+    - uses: ./.github/actions/python_prep
+
+    - uses: ./.github/actions/clang_prep
+
+    - name: Run analyze_headers.py script
+      run: python scripts/headers/analyze_headers.py
+
+    - name: Run insert_functions.py
+      run: python scripts/insert_functions.py manual_analysis_functions.csv extracted_reversing_data_bw_141.json
+
+    - name: Run generate_headers.py script
+      run: python scripts/headers/bw1_decomp_gen/generate_headers.py
+
+    - run: git diff
+
+    - uses: ./.github/actions/clang_build
+
+    - name: Commit and create pull request
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+      run: |
+        git config user.name "${ISSUE_AUTHOR}"
+        git config user.email "${ISSUE_AUTHOR}@users.noreply.github.com"
+
+        # Stage changes to header and asm files, ignore other changes
+        git add -u
+        git reset manual_analysis_functions.csv extracted_reversing_data_bw_141.json globals.h libs/ifc/README.md || true
+
+        # Exit if nothing to commit
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        branch="insert-funcs-issue-${ISSUE_NUMBER}"
+        git checkout -b "$branch"
+
+        # Get a clean PR title from the issue title
+        clean_title=$(echo "${ISSUE_TITLE}" | sed -E 's/^\[INSERT[[:space:]_]*FUNCTIONS\][[:space:]]*//I')
+
+        git commit -m "Insert functions from issue #${ISSUE_NUMBER}: ${clean_title}"
+        git push --force origin "$branch"
+
+        # Try to create the PR — handle if it already exists
+        if gh pr view "$branch" --repo "${GITHUB_REPOSITORY}" &>/dev/null; then
+          echo "ℹ️ PR already exists for branch '$branch'. Updating body and labels..."
+
+          gh pr edit "$branch" \
+            --title "Insert functions: ${clean_title}" \
+            --body "Automatically updated from [#${ISSUE_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}) by @${ISSUE_AUTHOR}
+
+        Closes #${ISSUE_NUMBER}" \
+            --add-label "auto-pr" \
+            --repo "${GITHUB_REPOSITORY}"
+        else
+          echo "🚀 Creating new pull request..."
+          gh pr create \
+            --title "Insert functions: ${clean_title}" \
+            --body "Automatically generated from [#${ISSUE_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}) by @${ISSUE_AUTHOR}
+
+        Closes #${ISSUE_NUMBER}" \
+            --head "$branch" \
+            --base main \
+            --repo "${GITHUB_REPOSITORY}" \
+            --label "auto-pr" \
+            --assignee "${ISSUE_AUTHOR}" \
+            --draft=false
+        fi

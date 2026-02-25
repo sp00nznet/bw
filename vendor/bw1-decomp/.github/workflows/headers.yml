@@ -1,0 +1,30 @@
+name: Headers
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - uses: ./.github/actions/python_prep
+
+    - name: Run unit tests
+      run: python -m unittest discover -v -s ./scripts/headers -p '*test.py'
+
+    - name: Run analyze_headers.py script
+      run: python scripts/headers/analyze_headers.py
+
+    - name: Run generate_headers.py script
+      run: python scripts/headers/bw1_decomp_gen/generate_headers.py
+
+    - run: git diff
+
+    - name: Upload generated database as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bw1_decomp_gen_database
+        path: extracted_reversing_data_bw_141.json

@@ -28,6 +28,23 @@ game_files/
 game_full/
 game_extracted/
 disc_image/
+disc_contents/
+
+# Ghidra installation (too large, download separately)
+tools/ghidra_12.0.3_PUBLIC/
+tools/ghidra.zip
+
+# Ghidra project database (binary, regenerable)
+work/ghidra_project/BlackAndWhite.rep/
+
+# Decrypted binary (bring your own disc + run SafeDisc stripper)
+work/clean/
+work/safedisc_strip/
+
+# Vendor build artifacts
+vendor/SafeDiscLoader2/Release/
+vendor/SafeDiscLoader2/.git/
+vendor/bw1-decomp/.git/
 
 # Claude Code local settings
 .claude/
