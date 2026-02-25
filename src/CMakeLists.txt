@@ -17,6 +17,7 @@ include_directories(
 
 # Core entity hierarchy (Phase 3 - first subsystem)
 add_library(bw_core STATIC
+    # Base hierarchy (root → positioned → 3D → mobile → alive)
     core/Base.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
@@ -24,6 +25,14 @@ add_library(bw_core STATIC
     core/Mobile.cpp
     core/MobileWallHug.cpp
     core/Living.cpp
+    # Fixed object branch (non-moving map objects)
+    core/Fixed.cpp
+    core/SingleMapFixed.cpp
+    core/Tree.cpp
+    # Living-derived entities
+    core/Villager.cpp
+    core/Animal.cpp
+    core/Creature.cpp
 )
 
 # Future subsystems (uncomment as implemented):
