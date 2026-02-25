@@ -22,6 +22,13 @@ out/
 *.user
 *.sln.docstates
 
+# Game data (extracted — not checked in, bring your own disc)
+game_data/
+game_files/
+game_full/
+game_extracted/
+disc_image/
+
 # Claude Code local settings
 .claude/
 
