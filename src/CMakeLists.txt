@@ -19,6 +19,11 @@ include_directories(
 add_library(bw_core STATIC
     core/Base.cpp
     core/GameThing.cpp
+    core/GameThingWithPos.cpp
+    core/Object.cpp
+    core/Mobile.cpp
+    core/MobileWallHug.cpp
+    core/Living.cpp
 )
 
 # Future subsystems (uncomment as implemented):

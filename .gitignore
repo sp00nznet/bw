@@ -50,6 +50,9 @@ vendor/bw1-decomp/.git/
 # Large regenerable analysis data (vtable_matches.csv is huge)
 work/vtable_matches.csv
 
+# Creature Isle expansion (extracted, bring your own disc)
+work/creature_isle/
+
 # Claude Code local settings
 .claude/
 
