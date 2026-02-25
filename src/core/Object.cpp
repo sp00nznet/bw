@@ -59,6 +59,11 @@ bool Object::IsReachable() {
     return IsAvailable();
 }
 
+// IsMoving: checks if XZ position differs from stored obj_coords
+bool Object::IsMoving() const {
+    return coords.x != obj_coords.x || coords.z != obj_coords.z;
+}
+
 bool Object::BlocksTownClearArea() const {
     return false;
 }
@@ -193,7 +198,10 @@ float Object::GetProjectileSpeed() { return 0.0f; }
 bool Object::CanBePickedUp() { return false; }
 bool32_t Object::CanBeCrushed() { return 0; }
 float Object::GetTopPos() { return 0.0f; }
-float Object::GetVillagerHugRadius() { return 0.0f; }
+float Object::GetVillagerHugRadius() {
+    // Original: GetScale() * 1.05 + 0.0005
+    return GetScale() * 1.05f + 0.0005f;
+}
 float Object::GetWeight() { return 0.0f; }
 void Object::GetWorldMatrix(LHMatrix*) {}
 bool Object::CanBeSuckedIntoVortex(LandscapeVortex*) { return false; }
@@ -236,7 +244,11 @@ void Object::SetPoisoned(int) {}
 // ============================================================================
 
 bool Object::IsLockedInInteract() { return false; }
-bool Object::SetDying() { return false; }
+bool Object::SetDying() {
+    // Original: calls SetLife(0.0f) then returns true
+    SetLife(0.0f);
+    return true;
+}
 bool Object::IsAttackable(Object*) { return false; }
 bool Object::IsAllied(Object*) { return false; }
 bool Object::IsTouching_1(MapCoords*, MapCoords*) const { return false; }

@@ -73,6 +73,9 @@ struct LH3DColor {
 };
 
 struct Object : public GameThingWithPos {
+    // === Overrides of GameThingWithPos virtuals ===
+    bool IsMoving() const override;
+
     // === Virtual methods extending GameThingWithPos's vtable ===
     // These add ~215 new virtual slots (0x500 through 0x858)
 

@@ -8,6 +8,20 @@
 #include "Object.h"
 
 struct Fixed : public Object {
+    // === Overrides of inherited virtuals ===
+    bool32_t CanBeSetOnFire(Creature*) override;
+    bool32_t CanBePickedUpByCreature(Creature*) override;
+    bool32_t CanBeFrighteningToCreature(Creature*) override;
+    bool32_t CanBeSleptNextToByCreature(Creature*) override;
+    bool32_t CanBeDestroyedByStoning(Creature*) override;
+    bool32_t CanBeCrushed() override;
+    bool32_t VillagerMustAvoid(Villager*) override;
+    GameThing* GetTownArtifact() override;
+    bool32_t IsTownArtifact() override;
+    bool32_t NetworkFriendlyStartLockedSelect(GInterfaceStatus*) override;
+    bool32_t ValidForLockedSelectProcess(GInterfaceStatus*) override;
+    float GetHowMuchCreatureWantsToLookAtMe() override;
+
     // === New virtual methods (vtable 0x85C-0x860) ===
     virtual void InsertMapObjectToCellAssumeFixed();
     virtual bool IsObjectFullyInMap();

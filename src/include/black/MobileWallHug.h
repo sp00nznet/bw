@@ -48,12 +48,12 @@ static_assert(sizeof(CircleHugInfo) == 0x8, "CircleHugInfo size mismatch");
 
 struct MobileWallHug : public Mobile {
     // === New virtual methods (vtable 0x85C-0x870) ===
-    virtual bool AreWeThere();
+    virtual bool AreWeThere(const MapCoords& target, float tolerance);
     virtual MapCoords* GetDestPos();
-    virtual void SetSpeed(float speed);
-    virtual void SetTowardsAngle();
+    virtual void SetSpeed(int speed);
+    virtual void SetTowardsAngle(uint16_t angle);
     virtual void MoveTo3D();
-    virtual void SetNewWander();
+    virtual void SetNewWander(const MapCoords& target, int param2, int param3);
 
     // === Fields ===
     int16_t  turns_until_next_state_change; // 0x58
