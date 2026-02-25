@@ -1,0 +1,1881 @@
+=== Vtable Addresses Found ===
+  GBaseInfo -> 0x00803e9c
+  GObjectInfo -> 0x0086e2dc
+  GAbodeInfo -> 0x007eb91c
+  Base -> 0x007eb968
+  GameThing -> 0x0083dda4
+  GameThingWithPos -> 0x00802b88
+  Object -> 0x0086e31c
+  Fixed -> 0x00819e68
+  MultiMapFixed -> 0x0081a6d0
+  Abode -> 0x007eb988
+  PlannedMultiMapFixed -> 0x00830fb0
+  PlannedAbode -> 0x007ec2e0
+  Windmill -> 0x007ec80c
+  GAlignmentInfo -> 0x007ed578
+  EditorIconBase -> 0x00817104
+  EditorIconShow -> 0x0081705c
+  ?$EditorIconSlider@M -> 0x007ed5b8
+  GAnimalInfo -> 0x007ed62c
+  GAnimalStateTableInfo -> 0x007ed66c
+  Mobile -> 0x0080d614
+  MobileWallHug -> 0x0080cd9c
+  Living -> 0x0080c25c
+  Animal -> 0x007ed69c
+  Pot -> 0x0082446c
+  StoragePit -> 0x00834e8c
+  WorshipTotem -> 0x008d445c
+  PieceVillager -> 0x007ee2f8
+  Cow -> 0x007eef28
+  Sheep -> 0x007efb50
+  PieceSheep -> 0x007f0778
+  Goat -> 0x007f13a0
+  Horse -> 0x007f1fc8
+  Zebra -> 0x007f2bf0
+  Pig -> 0x007f3818
+  Tortoise -> 0x007f4440
+  Dove -> 0x007f5080
+  SpellDove -> 0x007f5cb0
+  Crow -> 0x007f68e0
+  Swallow -> 0x007f7510
+  Pigeon -> 0x007f8140
+  Seagull -> 0x007f8d70
+  Bat -> 0x007f99a0
+  SpellBat -> 0x007fa5d0
+  Vulture -> 0x007fb200
+  Lion -> 0x007fca68
+  Leopard -> 0x007fbe38
+  PieceLion -> 0x007fd694
+  SpellWolf -> 0x007fe2e8
+  Tiger -> 0x007fef20
+  Wolf -> 0x007ffb50
+  PieceWolf -> 0x0080077c
+  GFeatureInfo -> 0x00817364
+  GAnimatedStaticInfo -> 0x008013ac
+  Feature -> 0x00801d08
+  AnimatedStatic -> 0x008013f8
+  GArena -> 0x00802680
+  ArenaSpellIcon -> 0x00803098
+  GMobileObjectInfo -> 0x0086de94
+  GArrowInfo -> 0x00803900
+  MobileObject -> 0x0082cb84
+  TownArtifact -> 0x00803954
+  GAudio -> 0x00803a64
+  Villager -> 0x008357bc
+  ThingMusicInfo -> 0x00803b94
+  GLeashSelectorInfo -> 0x00803ca8
+  LHFile -> 0x00803e94
+  LHReleasedFile -> 0x00803e8c
+  GMagicForestInfo -> 0x00803d70
+  GMagicTeleportInfo -> 0x00803db4
+  LHReleasedOSFile -> 0x00803e80
+  GMagicObjectInfo -> 0x00804020
+  GMagicResourceInfo -> 0x00803d2c
+  GMagicHealInfo -> 0x00803df8
+  GMagicInfo -> 0x00803e3c
+  GMagicRadiusSpellInfo -> 0x00804064
+  GMagicStormAndTornadoInfo -> 0x00803ce8
+  GMagicShieldInfo -> 0x00803ecc
+  GMagicWaterInfo -> 0x00803f10
+  GMagicFlockFlyingInfo -> 0x00803f54
+  GMagicFlockGroundInfo -> 0x00803f98
+  GMagicCreatureSpellInfo -> 0x00803fdc
+  GBallInfo -> 0x008040b4
+  Ball -> 0x008040f4
+  GBeliefInfo -> 0x00804978
+  GBigForestInfo -> 0x008049d0
+  BigForest -> 0x00804a1c
+  MobileStatic -> 0x00825f1c
+  Rock -> 0x0081ff68
+  Bonfire -> 0x00805334
+  CameraMode -> 0x00806784
+  CameraModeNew3 -> 0x00806acc
+  BuildingSite -> 0x00805c88
+  CitadelBuildingSite -> 0x00805ddc
+  StandardBuildingSite -> 0x00805f10
+  WorkshopBuildingSite -> 0x00806040
+  BWGameSpy -> 0x00806178
+  MPFEMessageObject -> 0x008061b8
+  BWLan -> 0x008061cc
+  GCamera -> 0x0080621c
+  CameraModePath -> 0x00806be0
+  CameraModeFree -> 0x008069a4
+  CameraModeFollow -> 0x008068d0
+  CameraModeCtrInteract -> 0x008067d8
+  CameraModeDance -> 0x00806838
+  CameraModeScript -> 0x00806c2c
+  CameraModeFollowHeading -> 0x00806950
+  CameraModeTwoObjects -> 0x00806ca0
+  GContainerInfo -> 0x0080a820
+  GCitadelInfo -> 0x00806d08
+  Container -> 0x0080a850
+  Citadel -> 0x00806d38
+  CitadelPart -> 0x008099d0
+  CitadelHeart -> 0x00807bd0
+  CreaturePen -> 0x0080f4c4
+  PlannedCreaturePen -> 0x0080fdd4
+  GCitadelHeartInfo -> 0x00807324
+  LeashObj -> 0x00807370
+  PlannedCitadelPart -> 0x0080a2e0
+  PlannedCitadelHeart -> 0x008084e0
+  UR_PlasmaInf -> 0x00808a04
+  PSysBase -> 0x00808b04
+  PlannedTownCitadelHeart -> 0x00808c1c
+  CitadelEntrance -> 0x00809164
+  HandStateInvisible -> 0x0080ad84
+  CHand -> 0x0080ad9c
+  Morphable -> 0x0080adc8
+  Creature -> 0x0080b6dc
+  CPUCheck -> 0x0080ae04
+  CreatureInfo -> 0x0080b628
+  DifferentCreatureInfo -> 0x0080b668
+  CreaturePlan -> 0x0080b69c
+  GAlignment -> 0x0080b6bc
+  CreatureSubActionAgenda -> 0x0080c21c
+  CreatureSubAction -> 0x0080c23c
+  Town -> 0x008d0c5c
+  SubArgumentPoint -> 0x0080de9c
+  SubArgumentPointAndFloat -> 0x0080deb0
+  SubArgumentObject -> 0x0080ded4
+  LH3DCreature -> 0x0080df64
+  TownCentre -> 0x00822a64
+  Fragment -> 0x008d1bd8
+  CreatureActionInfo -> 0x0080e064
+  CreatureInitialDesireInfo -> 0x0080e094
+  CreatureDesireActionEntry -> 0x0080e0c4
+  CreatureDesireAttributeEntry -> 0x0080e0f4
+  SubArgumentInteger -> 0x0080e124
+  SubArgumentIntegerAndFloat -> 0x0080e138
+  SubArgumentObjectAndFloat -> 0x0080e14c
+  SubArgumentObjectAndInteger -> 0x0080e16c
+  SubArgumentPointIntegerFloatAndSpell -> 0x0080e180
+  SubArgumentObjectIntegerFloatAndSpell -> 0x0080e198
+  ShowNeedsVisuals -> 0x0082a914
+  SubArgumentFloat -> 0x0080e1ac
+  WorshipSite -> 0x0083069c
+  Tree -> 0x0082715c
+  FishFarm -> 0x0081950c
+  CreatureAttitudeToPlayer -> 0x0080e274
+  AttributeOnFire -> 0x0080e2e8
+  AttributeOrigin -> 0x0080e4e0
+  AttributeAllegiance -> 0x0080e518
+  AttributeCreatureType -> 0x0080e400
+  CreatureLearningEpisode -> 0x0080e2c8
+  AttributeIsHarderThanMe -> 0x0080e438
+  AttributePlayerNumber -> 0x0080e470
+  AttributeSex -> 0x0080e390
+  AttributeVillagerJob -> 0x0080e358
+  AttributeLife -> 0x0080e320
+  AttributeType -> 0x0080e3c8
+  Attribute -> 0x0080e550
+  AttributeAnimate -> 0x0080e4a8
+  AttributeWhatTownNeedsMost -> 0x0080e5c0
+  AttributeTownReligiousBeliefInYou -> 0x0080e588
+  AttributeTribe -> 0x0080e630
+  AttributeTownSize -> 0x0080e5f8
+  TotemStatue -> 0x0081e108
+  ShowNeeds -> 0x0082a814
+  ?$EditorIconButton@VCreatureLessonChooser@@ -> 0x0080e688
+  CreatureContext -> 0x0080e6d8
+  CreatureVisionState -> 0x0080e718
+  CreatureMentalDebug -> 0x0080e764
+  CreatureMental -> 0x0080e744
+  CreatureBeliefs -> 0x0080e784
+  CreatureBeliefList -> 0x0080e7a4
+  CreatureCommandState -> 0x0080e80c
+  CreatureAgenda -> 0x0080e7ec
+  Forest -> 0x0081cb64
+  AttributeAbodeBeingBuilt -> 0x0080e850
+  AttributeForestSize -> 0x0080e8f8
+  AttributeCreatureWhatHeIsCarrying -> 0x0080e930
+  AttributeAbodeType -> 0x0080e888
+  AttributeCreatureSpellKnowledge -> 0x0080e968
+  AttributeMobileObjectType -> 0x0080e8c0
+  AttributeCreatureHeight -> 0x0080e9a0
+  AttributeCreatureDominantDesire -> 0x0080e9d8
+  CreatureBeliefAboutTown -> 0x0080ec50
+  CreatureBeliefAboutVillager -> 0x0080eb78
+  CreatureBeliefAboutForest -> 0x0080ec08
+  CreatureBeliefSmall -> 0x0080ea10
+  CreatureBeliefAboutCreature -> 0x0080ebc0
+  CreatureBeliefAboutCitadel -> 0x0080eae8
+  CreatureBeliefAboutFlock -> 0x0080ea58
+  CreatureBeliefAboutContext -> 0x0080eaa0
+  CreatureBelief -> 0x0080ecb0
+  CreatureBeliefAboutAbode -> 0x0080eb30
+  AllocatedBeliefList -> 0x0080ecf8
+  CreatureDesireDependency -> 0x0080ed34
+  CreatureDesireForType -> 0x0080ed64
+  CreatureDevelopmentPhaseEntry -> 0x0080ed94
+  CreatureDevelopmentDurationEntry -> 0x0080edc4
+  CreatureDesires -> 0x0080edf4
+  CreatureDesireSourceTable -> 0x0080ee28
+  CreatureInitialSourceInfo -> 0x0080ee58
+  CreatureSourceBoundsInfo -> 0x0080ee88
+  CreatureExplorationRegionEntry -> 0x0080ef18
+  CreatureGlobalExplorationMap -> 0x0080eef8
+  CreatureExplorationMap -> 0x0080ef38
+  CreaturePreviousLesson -> 0x0080f288
+  CreatureLearning -> 0x0080f268
+  CreatureLearningContext -> 0x0080f2a8
+  CreatureActionsKnownAbout -> 0x0080f2d4
+  CreatureActionKnownAbout -> 0x0080f2f4
+  CreatureActionKnownAboutEntry -> 0x0080f320
+  CreatureMagicActionKnownAboutEntry -> 0x0080f350
+  CreatureObjectsInspected -> 0x0080f380
+  CreatureMimicInfo -> 0x0080f3f8
+  CreatureMimicState -> 0x0080f428
+  GCreaturePenInfo -> 0x0080f478
+  CreaturePhysical -> 0x00810308
+  CreatureDamageMap -> 0x00810328
+  TownDesireFlags -> 0x008279d4
+  CreaturePreviousActions -> 0x0081037c
+  Spell -> 0x008b7728
+  GInterfaceStatus -> 0x00868ae0
+  MagicTeleport -> 0x00869edc
+  GroupBehaviour -> 0x0083e214
+  Dance -> 0x00812778
+  PuzzleTotem -> 0x0082b9ec
+  SubArgumentObjectIntegerPosFloatAndSpell -> 0x00810494
+  Creche -> 0x008104d4
+  Creed -> 0x00810e0c
+  GDanceInfo -> 0x00812748
+  GFootpathLink -> 0x00812c98
+  DanceGroup -> 0x00812dc4
+  DanceKeyAction -> 0x00812ee8
+  DanceKeyFrame -> 0x00812fe8
+  GData -> 0x00814924
+  DeadTree -> 0x00814954
+  FelledTree -> 0x0081526c
+  DialogBoxBase -> 0x00816eb8
+  DialogBoxKeyBinding -> 0x00816e90
+  DialogBoxOptions -> 0x00816f0c
+  DialogBoxImmersion -> 0x00816f34
+  MiniDialogBoxOptions -> 0x00816f5c
+  DialogBoxSaveMessage -> 0x00816f88
+  HandStateCreature -> 0x0083e8c8
+  SpecialVillager -> 0x0081f420
+  EditorIconBool -> 0x008170ac
+  EditorIconPDM -> 0x0081715c
+  ?$EditorIconSlider@K -> 0x008171c4
+  PDMStrip -> 0x0081721c
+  GEffectInfo -> 0x0081729c
+  GMagicEffectInfo -> 0x008172cc
+  EffectValues -> 0x008172fc
+  CreatureFalling -> 0x0081732c
+  PlannedFeature -> 0x008173b0
+  GFlowersInfo -> 0x008178d0
+  Flowers -> 0x0081791c
+  GFieldInfo -> 0x00818238
+  GFieldTypeInfo -> 0x00818284
+  Field -> 0x008182d0
+  FireFly -> 0x00818c44
+  GFishFarmInfo -> 0x008194c0
+  GSingleMapFixedInfo -> 0x00819e28
+  SingleMapFixed -> 0x0081afe0
+  Flock -> 0x0081b854
+  GFootballPositionInfo -> 0x0081bd64
+  Football -> 0x0081bd94
+  GFootpathNode -> 0x0081c704
+  GFootpath -> 0x0081c804
+  GFootpathLinkSave -> 0x0081c90c
+  GFootpathFinder -> 0x0081ca28
+  GForestInfo -> 0x0081cb34
+  SetupOnlineLandscapes -> 0x0081d1d4
+  ProfileEditor -> 0x0081d364
+  LobbyBox -> 0x0081d29c
+  SetupMultiplayerMain -> 0x0081d1ac
+  HistoryBox -> 0x0081d0bc
+  RegisterBox -> 0x0081d2c4
+  GatheringBox -> 0x0081d224
+  TattooEditor -> 0x0081d2ec
+  MainMenu -> 0x0081d33c
+  StartGameBox -> 0x0081d0e4
+  GSLobbyBox -> 0x0081d274
+  EditingDebugBox -> 0x0081d184
+  LoadingBox -> 0x0081d24c
+  CDBox -> 0x0081d1fc
+  SkirmishGameBox -> 0x0081d094
+  NewProfileBox -> 0x0081d314
+  ChannelBox -> 0x0081d15c
+  EndGameBox -> 0x0081d10c
+  StatsBox -> 0x0081d134
+  LoginBox -> 0x0081d390
+  SetupLandscapeBox -> 0x0081d40c
+  SpellSetupBox -> 0x0081d434
+  GFurnitureInfo -> 0x0081d464
+  GlobalGameLists -> 0x0081d5c8
+  GGame -> 0x0081d4c8
+  GKeyBuffer -> 0x0081d5e8
+  GSoundMap -> 0x0081d608
+  GestureSystemDataList -> 0x0081d628
+  GestureSystemData -> 0x0081d648
+  GestureSystem -> 0x0081d668
+  GTerrainMap -> 0x0081d688
+  TerrainMapInfo -> 0x0081d6d8
+  TerrainMapTypeInfo -> 0x0081d6a8
+  GPlayerInfo -> 0x0081d708
+  TempleRoom -> 0x008d516c
+  WorldRoom -> 0x008d522c
+  GameArea -> 0x0081d750
+  GGameInfo -> 0x0081d790
+  GameOSFile -> 0x0081d7cc
+  PuzzleSheep -> 0x0082f56c
+  Poo -> 0x008215e0
+  PuzzleGame -> 0x00830194
+  PileFood -> 0x0086f004
+  PuzzleGrain -> 0x0082b174
+  PuzzleLion -> 0x0082dd1c
+  GStreetLantern -> 0x00828740
+  GStreetLight -> 0x00828fa0
+  Scaffold -> 0x00823394
+  SpellForest -> 0x00832e40
+  SpellWater -> 0x00833398
+  GComputerSpellCast -> 0x00821e40
+  PotStructure -> 0x00836c24
+  PileResource -> 0x0086f87c
+  PileWood -> 0x00823bf4
+  Reaction -> 0x008314d0
+  GWaterfall -> 0x00829fb4
+  GStream -> 0x008299b0
+  PlannedTownCentre -> 0x00822544
+  InfluenceRing -> 0x00828234
+  SpellFlockFlying -> 0x00833e5c
+  Mist -> 0x008294a8
+  WeatherThing -> 0x00829ab0
+  ScriptMarker -> 0x0081ef1c
+  SpellResource -> 0x00834934
+  GParticleContainer -> 0x0082087c
+  GComputerPlayer -> 0x00822040
+  FieldCrop -> 0x00820d80
+  Graveyard -> 0x0082682c
+  Wonder -> 0x0081d7d8
+  SpellHeal -> 0x008328e8
+  ScriptTimer -> 0x0081ea18
+  SpellTeleport -> 0x00831e30
+  OneOffSpellSeed -> 0x008315d0
+  HanoiBlock -> 0x0082c324
+  SpellFlock -> 0x008343c8
+  SpellFlockGround -> 0x008338f0
+  GComputerSeen -> 0x00821f40
+  SpellIcon -> 0x00836304
+  TownSpellIcon -> 0x008255fc
+  TownCentreSpellIcon -> 0x00824cdc
+  SpellWithObjects -> 0x0083238c
+  BaseInfo -> 0x00828738
+  PuzzleVillager -> 0x0082e944
+  Totem -> 0x0082d3e4
+  GBaseOnly -> 0x00837494
+  VortexObjectInfo -> 0x00837cf4
+  GClimate -> 0x00837df4
+  PlayerSubActionArgument -> 0x00837ef4
+  PlayerSubAction -> 0x00837ff4
+  PlayerActionState -> 0x008380f4
+  GComputerAttitudeToPlayer -> 0x008385f8
+  PSysInterface -> 0x00838830
+  GJPSysInterface -> 0x008386f8
+  RenderParticle -> 0x00838a94
+  Particle3DPnt -> 0x00838968
+  RenderParticleGameObjectRef -> 0x008742a4
+  RenderParticleGoldenShower -> 0x00838bc0
+  Particle3DSprite -> 0x00838cec
+  ParticleChainJoint -> 0x00838e18
+  BaseAtomModifierData -> 0x00839144
+  AtomData@UR_SimpleBeam -> 0x00838f44
+  BaseCollectionModifierData -> 0x00839244
+  SubCollectionData@UR_SimpleBeam -> 0x00839044
+  SubCollectionData@UR_Plasma -> 0x00839344
+  AtomData@UR_Plasma -> 0x00839444
+  SpellPointInf -> 0x00839544
+  AtomData@UR_ManaPathNew -> 0x00839644
+  AtomData@UR_BeliefSprite -> 0x00839744
+  CollectionData@UR_LightSheetOnObject -> 0x00839844
+  AtomData@AR_FadeOutOnceConditionTrue -> 0x00839944
+  AtomData@AddSoundToAtom -> 0x00839a44
+  AtomData@RemoveSoundFromAtom -> 0x00839b44
+  AtomData@AttatchFireBallToAtom -> 0x00839c44
+  AtomDataRipple@UpdateRuleGravityWithFloor -> 0x00839d44
+  AtomData@UR_BankedTurning -> 0x00839e44
+  CollectionData@UR_HandSprinkle -> 0x00839f44
+  CollectionData@UR_AddDefensiveSphere -> 0x0083a044
+  AtomData@UpdateRuleShieldSpark -> 0x0083a144
+  AtomData@UR_SphereSurfaceTracer -> 0x0083a244
+  AtomData@UR_ForestPath -> 0x0083a344
+  AtomData@UR_VapourEndEffect -> 0x0083a444
+  AtomData@AddSubCollectionsToAtom -> 0x0083a544
+  AtomData@CreateNewBaseAtom -> 0x0083a644
+  AtomData@CheckShieldDeflections -> 0x0083a744
+  CollectionData@EmitterRule -> 0x0083a844
+  CollectionData@EmitterRuleLightningSprite -> 0x0083a944
+  CollectionData@UR_WillowWisp -> 0x0083aa44
+  CollectionData@ER_BurstFromParentAtom -> 0x0083ab44
+  ParentAtomData@ER_GlintsOnTarget -> 0x0083ac44
+  AtomData@ER_GlintsOnTarget -> 0x0083ad44
+  CollectionData@ER_EmitFromParentAtom -> 0x0083ae44
+  AtomData@UR_SideSpin -> 0x0083af44
+  AtomData@UR_InitialSpin -> 0x0083b044
+  CollectionData@UR_FollowTargets -> 0x0083b144
+  AtomData@UR_FollowTargets -> 0x0083b244
+  CollectionData@UR_Trail -> 0x0083b344
+  CollectionData@LightningForkFlicker -> 0x0083b444
+  AtomData@RemoveRuleAfterConditionTrue -> 0x0083b544
+  AtomData@UR_OrientSpriteWithRandomAngle -> 0x0083b644
+  AtomData@UR_OrientWithVelocity -> 0x0083b744
+  CollectionData@UR_CreatureSpell -> 0x0083b844
+  CollectionData@UR_CreatureSpellItch -> 0x0083b944
+  CollectionData@UR_CreatureSpellFreeze -> 0x0083ba44
+  CollectionData@UR_CreatureSpellGeneric -> 0x0083bb44
+  AtomData@UR_CreatureSpellGeneric -> 0x0083bc44
+  CollectionData@UR_CreatureSpellCompassion -> 0x0083bd44
+  CollectionData@UR_Tornado -> 0x0083be44
+  DebrisCollectionData@UR_Tornado -> 0x0083bf44
+  FlyingCollectionData@UR_Tornado -> 0x0083c044
+  FlyingAtomData@UR_Tornado -> 0x0083c144
+  CollectionData@UR_CloudGather -> 0x0083c244
+  AtomData@UR_CloudGather -> 0x0083c344
+  CollectionData@UR_CloudMoverNew -> 0x0083c444
+  AtomData@UR_VortexAttract -> 0x0083c544
+  AtomData@UR_Explosion -> 0x0083c644
+  AtomData@UR_OrientSpriteWithVelocity -> 0x0083c744
+  CollectionData@UR_AtomsAtEPTarget -> 0x0083c844
+  CollectionData@UR_Flocking -> 0x0083c944
+  Whale -> 0x0083ca44
+  PuzzleMobileObject -> 0x0083d2a4
+  GComputerPlayerQueue -> 0x0083db04
+  GameStats -> 0x0083dc18
+  Persistent -> 0x0083dffc
+  ?$basic_ostream@DU?$char_traits@D@std@@@std -> 0x0083e068
+  ?$basic_istream@DU?$char_traits@D@std@@@std -> 0x0083e060
+  ?$basic_iostream@DU?$char_traits@D@std@@@std -> 0x0083e070
+  ?$basic_stringstream@DU?$char_traits@D@std@@V?$allocator@D@2@@std -> 0x0083dfdc
+  ?$basic_streambuf@DU?$char_traits@D@std@@@std -> 0x0083e028
+  ?$basic_stringbuf@DU?$char_traits@D@std@@V?$allocator@D@2@@std -> 0x0083dfa4
+  ios_base@std -> 0x0083e010
+  ?$basic_ios@DU?$char_traits@D@std@@@std -> 0x0083dfe4
+  PersistentOwner -> 0x008701d4
+  PSysFileData -> 0x008701bc
+  exception -> 0x008d648c
+  bad_cast@std -> 0x0083e018
+  facet@locale@std -> 0x0083e0a8
+  ?$num_put@DV?$ostreambuf_iterator@DU?$char_traits@D@std@@@std@@@std -> 0x0083e088
+  ?$numpunct@D@std -> 0x0083e0b0
+  FloatProperty -> 0x00872bf0
+  FloatValueProperty -> 0x0083e0dc
+  IntegerProperty -> 0x00872b40
+  IntegerValueProperty -> 0x0083e0f4
+  SoundActionProperty -> 0x0083e10c
+  StringProperty -> 0x0083e11c
+  FileNameProperty -> 0x0083e12c
+  BoolProperty -> 0x0083e13c
+  MeshEnumProperty -> 0x0083e14c
+  AnimEnumProperty -> 0x0083e16c
+  ?$ctype@D@std -> 0x0083e18c
+  ?$num_get@DV?$istreambuf_iterator@DU?$char_traits@D@std@@@std@@@std -> 0x0083e1b4
+  DancePathInfo -> 0x0083e730
+  HandStateCamera -> 0x0083e870
+  HandStateCitadel -> 0x0083e89c
+  HandStateHolding -> 0x0083e958
+  HandStateGrain -> 0x0083e918
+  HandStateMultiPickUp -> 0x0083e984
+  HandStateNormal -> 0x0083e9b8
+  LandscapeVortex -> 0x0086cc4c
+  HandStatePlayAnim -> 0x0083e9dc
+  HandStateTotem -> 0x0083e9fc
+  HandStateTug -> 0x0083ea34
+  LocalBase -> 0x0083eb34
+  HelpProfile -> 0x00853268
+  HelpSpiritInfo -> 0x00853288
+  HelpSpirit -> 0x008532c8
+  HelpSystemInfo -> 0x0086825c
+  HelpSystem -> 0x0086828c
+  GToolTipsInfo -> 0x008682f8
+  Workshop -> 0x008d2bf0
+  HelpText -> 0x00868330
+  GInfluenceInfo -> 0x00868370
+  GInterfaceMessageBuffer -> 0x008688b4
+  InterfaceHandState -> 0x008688f4
+  GInterface -> 0x008683b0
+  GInterfaceFlags -> 0x00868914
+  GInterfaceCollide -> 0x008688d4
+  CImmMouse -> 0x00868980
+  GLeashStatus -> 0x008689e0
+  IPSpecialDialog -> 0x00868ff0
+  GJobInfo -> 0x00869048
+  GKeyInput -> 0x00869078
+  GLanguage -> 0x0086915c
+  LHLobby -> 0x008691c8
+  LHSession -> 0x008691dc
+  DataPath -> 0x00869210
+  DataForScriptRemind -> 0x00869314
+  MagicFood -> 0x008694f0
+  GMagicHand -> 0x00869d8c
+  GMagicLivingInfo -> 0x00869e8c
+  MagicTree -> 0x0086a7fc
+  GVortexInfo -> 0x0086b0c4
+  LandscapeVortexVolc -> 0x0086b0f4
+  LandscapeVortexIn -> 0x0086ba10
+  LandscapeVortexOut -> 0x0086c32c
+  MagicWood -> 0x0086d570
+  GMap -> 0x0086ddfc
+  WorshipSpellIcon -> 0x008d3b18
+  GSpeedThreshold -> 0x0086de5c
+  GMobileStaticInfo -> 0x0086ded4
+  MPFEDownloads -> 0x0086e0fc
+  MPFEThumbDownload -> 0x0086df7c
+  MPFEPublicChatMessage -> 0x0086dfa4
+  MPFEPrivateChatMessage -> 0x0086dfb0
+  MPFEAskJoinMessage -> 0x0086dfbc
+  MPFEReplyToJoinMessage -> 0x0086dfc8
+  MPFEInviteToTeamMessage -> 0x0086dfd4
+  MPFEReplyToInviteMessage -> 0x0086dfe0
+  MPFECancelStartMessage -> 0x0086dfec
+  MPFEKickMessageRequest -> 0x0086dff8
+  MPFEKickMessage -> 0x0086e004
+  MPFEDatabaseID -> 0x0086e010
+  MPFEChannelSelector -> 0x0086e024
+  MPFECreateGame -> 0x0086e04c
+  MPFEChooseConnection -> 0x0086e07c
+  MPFEClanList -> 0x0086e0b4
+  MPFEChangeClanRequest -> 0x0086e0c0
+  MPFEResetClan -> 0x0086e0cc
+  MPFEDatabase -> 0x0086e0f0
+  MPFEMapDownload -> 0x0086e114
+  MPFEFileTransferMessage -> 0x0086e150
+  MPFEFindGame -> 0x0086e164
+  MPFEStartGameOkayToStartMessage -> 0x0086e19c
+  MPFEStartGameReadyMessage -> 0x0086e1a8
+  MPFEStartGameTransferFilesMessage -> 0x0086e1b4
+  MPFEStartGameNowMessage -> 0x0086e1c0
+  MPFEDisconnectNowMessage -> 0x0086e1cc
+  MPFEStopGameStartMessage -> 0x0086e1d8
+  MPFELogin -> 0x0086e1ec
+  MPFELoginDatabase -> 0x0086e214
+  MPFEChangedMapMessage -> 0x0086e220
+  MPFEMapErrorMessage -> 0x0086e22c
+  MPFEChangedTeamRequestMessage -> 0x0086e238
+  MPFEUserTeamList -> 0x0086e244
+  MPFEAskForTeamDetailsMessage -> 0x0086e250
+  MultiplayerDatabase -> 0x0086e270
+  CreatureDatabase -> 0x0086e27c
+  StatsDatabase -> 0x0086e288
+  GSpotVisualInfo -> 0x0086ebb8
+  GPBallInfo -> 0x0086ebe8
+  Heap -> 0x0086ecc8
+  HeapStore -> 0x0086ecbc
+  GPFootballInfo -> 0x0086ece0
+  GPFootballPositionInfo -> 0x0086ed2c
+  PhysicsObject -> 0x0086ed64
+  GPlayer -> 0x0086edb8
+  CPDesireNodeInfo -> 0x0086eef0
+  GPlaytimeInfo -> 0x0086ef88
+  GPotInfo -> 0x0086efc4
+  PowerSpinRunner -> 0x008700f4
+  GPrayerSiteInfo -> 0x00870124
+  GPrayerIconInfo -> 0x00870170
+  ParticleCreator -> 0x00872958
+  FloatProvider -> 0x00872fd8
+  AtomCollectionModifier -> 0x008704fc
+  PSysManager -> 0x008701ec
+  AtomCore -> 0x008702f8
+  AtomCollection -> 0x008703f8
+  AtomCreateRule -> 0x008705a4
+  UR_SimpleBeam -> 0x00870528
+  UR_Plasma -> 0x0087054c
+  UR_CreatureSpell -> 0x00870580
+  UR_Explosion -> 0x0087061c
+  CollectionData@UR_Explosion -> 0x00870640
+  GMagicFireBallInfo -> 0x00870748
+  MagicFireBall -> 0x00870788
+  AttatchFireBallToAtom -> 0x00873834
+  UR_Flocking -> 0x00870ff4
+  CollectionData@UR_Rope -> 0x00871024
+  CollectionData@UR_Articulate -> 0x00871124
+  AtomData@UR_Articulate -> 0x00871224
+  CollectionData@ZR_SurfRevol -> 0x00871344
+  ZR_SurfRevol -> 0x00871444
+  TestFunnel -> 0x00871478
+  TestDisk -> 0x00871480
+  TestFunnelSpout -> 0x00871470
+  TestFunnelParab -> 0x00871468
+  CollectionData@UR_RingSpin -> 0x0087149c
+  AtomData@UR_GesturingRecognised -> 0x008715ac
+  UR_GesturingRecognised -> 0x008716ac
+  ZR_ChainGesture -> 0x008716d8
+  ParentCollectionData@ZR_ChainGesture -> 0x008716fc
+  AtomData@ZR_ChainGesture -> 0x008717fc
+  Band@PHandFX -> 0x0087194c
+  PHandFX -> 0x00871a4c
+  UR_Lightning_CollectionData -> 0x00871aa0
+  UR_Lightning -> 0x00871ba0
+  AtomData@UR_ObjectArcer -> 0x00871bcc
+  UR_LightningStrike -> 0x00871ccc
+  AtomData@UR_LightningStrike -> 0x00871cf0
+  CollectionData@UR_TownCentreBelief -> 0x00871e20
+  AtomData@UR_TownCentreBelief -> 0x00871f20
+  AtomData@UR_LightSheetOnObject -> 0x00872020
+  UR_LightSheetOnObject -> 0x00872120
+  AtomData@UR_VolFXOnObject -> 0x00872144
+  UR_VolFXOnObject -> 0x00872244
+  CreateWithInitialDirection -> 0x008722d4
+  OnceOnlyCreateRule -> 0x008722f8
+  UpdateRuleGravity -> 0x008724e0
+  CreateRuleAnAtom -> 0x0087232c
+  UR_FireWorkSimple -> 0x00872350
+  UR_HandSprinkle -> 0x00872374
+  UR_HealSpellChakra -> 0x00872398
+  AtomData@UR_HealSpellChakra -> 0x008723bc
+  UpdateRuleGravityWithFloor -> 0x008724bc
+  UpdateRuleShieldSpark -> 0x00872504
+  UR_ForestPath -> 0x0087252c
+  UR_Trail -> 0x00872550
+  UR_KPStretchHeight -> 0x00872574
+  ER_GlintsOnTarget -> 0x00872598
+  ER_BurstFromParentAtom -> 0x008725bc
+  ER_EmitFromParentAtom -> 0x008725e0
+  UR_KPMoveAtoms -> 0x00872604
+  UR_WillowWisp -> 0x00872628
+  ER_MultiPickup -> 0x0087264c
+  CollectionData@ER_MultiPickup -> 0x00872670
+  AtomData@ER_MultiPickup -> 0x00872770
+  ParticleBaseMeshCreator -> 0x00872878
+  ParticleMeshCreator -> 0x008728a4
+  ParticleMeshCreatorAnimTextured -> 0x008728d0
+  ParticleGJMeshCreator -> 0x00872900
+  ParticleAnimCreator -> 0x0087292c
+  ParticleAnimWithCameraCreator -> 0x00872984
+  ParticleLightMapCreator -> 0x008729b0
+  ParticleSpriteCreator -> 0x008729dc
+  ParticleSymbolSpriteCreator -> 0x00872a08
+  ParticleMistCreator -> 0x00872a34
+  ParticleChainCreator -> 0x00872a60
+  ParticleGoodEvilCreator -> 0x00872a94
+  ParticleVolBlendMeshCreator -> 0x00872ac0
+  ?$TemplateBoolArrayProperty@VPSysFileData@@ -> 0x00872af4
+  TPointerProperty -> 0x00872c68
+  ?$PointerProperty@VTEventCondition@@ -> 0x00872b0c
+  ?$GetSetIntegerProperty@VUR_Flocking@@ -> 0x00872b28
+  ?$GetSetFloatProperty@VUpdateRuleGravity@@ -> 0x00872b58
+  ?$GetSetIntegerProperty@VUpdateRuleRotatePrincipalAxis@@ -> 0x00872b70
+  ?$PointerProperty@VFloatProvider@@ -> 0x00872b88
+  ?$PointerProperty@VParticleCreator@@ -> 0x00872ba4
+  ?$TemplateFloatArrayProperty@VUR_KPStretchHeight@@ -> 0x00872bc0
+  ?$GetSetFloatProperty@VUR_MoveAtom@@ -> 0x00872bd8
+  ?$TemplateFloatArrayProperty@VUR_KPMoveAtoms@@ -> 0x00872c08
+  ?$TemplateFloatArrayProperty@VUR_ForestPath@@ -> 0x00872c20
+  ?$TemplateIntegerArrayProperty@VAddSubCollectionsToAtom@@ -> 0x00872c38
+  ?$TemplateIntegerArrayProperty@VAtomCreateRule@@ -> 0x00872c50
+  ?$TemplateFloatArrayProperty@VUR_HandSprinkle@@ -> 0x00872c84
+  ParticlePointCreator -> 0x00872c9c
+  EventConditionAtomHasBeenDeflected -> 0x00872f98
+  EventConditionAtomBelowSpeed -> 0x00872f74
+  EventConditionAtomInUse -> 0x00872f50
+  EventConditionFireBallSteam -> 0x00872f2c
+  EventConditionAtomCloseWater -> 0x00872f08
+  EC_AtomAlphaAbove -> 0x00872ee4
+  EventConditionAtomBelowHeight -> 0x00872ec0
+  EventConditionFrameTime -> 0x00872e9c
+  EventConditionParentFrameTime -> 0x00872e78
+  EventConditionRandom -> 0x00872e54
+  EventConditionAtomLimitedTime -> 0x00872e30
+  EventConditionAtomNearVillagers -> 0x00872e0c
+  EventConditionAtomDelay -> 0x00872de8
+  EventConditionCollectionLimitedTime -> 0x00872dc4
+  EventConditionNever -> 0x00872da0
+  EC_DeflectionInCollectionsHierarchy -> 0x00872d7c
+  EC_CollectionShouldBeEmitting -> 0x00872d58
+  EC_DeflectionInAtomsHierarchy -> 0x00872d34
+  EventConditionTrueWhenEnabled -> 0x00872d10
+  EventConditionTrueOnCloseDown -> 0x00872cec
+  EventConditionCollectionDelay -> 0x00872cc8
+  RenderHandScaleTimesStrengthFloatProvider -> 0x00873080
+  RenderHandScaleFloatProvider -> 0x00873064
+  MagnitudeTimesStrengthFloatProvider -> 0x00873048
+  MagnitudeFloatProvider -> 0x0087302c
+  StrengthFloatProvider -> 0x00873010
+  FloatProvider_ParentAtomScale -> 0x00872ff4
+  ConstFloatProvider -> 0x00872fbc
+  AddSubCollectionsToAtom -> 0x00873660
+  SetInitialRandomOrientations -> 0x00873bcc
+  UR_ObjectArcer -> 0x00873ac0
+  UR_Rope -> 0x00873a9c
+  UR_TownCentreBelief -> 0x00873a78
+  UR_BeliefSprite -> 0x00873a54
+  UR_ManaPathNew -> 0x00873a30
+  UR_FollowLocalHand -> 0x00873780
+  UR_FollowCastPosn -> 0x0087375c
+  UR_FollowParent -> 0x00873958
+  UR_FollowTargets -> 0x0087397c
+  UR_CreatureSpellCompassion -> 0x00873a0c
+  UR_CreatureSpellGeneric -> 0x008739e8
+  UR_CreatureSpellFreeze -> 0x008739c4
+  UR_CreatureSpellItch -> 0x008739a0
+  LightningForkFlicker -> 0x00873934
+  CreateRule_GameObjectRef -> 0x00873910
+  CreateRuleFusedSphericalExplode -> 0x008738ec
+  UR_MoveAtomToBaseGroup -> 0x00873810
+  UR_ExplodeObject2 -> 0x008737ec
+  UR_ExplodeObject -> 0x008737c8
+  UR_AtomsAtEPTarget -> 0x00873738
+  UR_VapourEndEffect -> 0x00873618
+  UR_HealInHand -> 0x008735d0
+  UR_SphereSurfaceTracer -> 0x008735f4
+  UR_ChangeStretchHeight -> 0x00873564
+  UR_ChangeScaleXYZ -> 0x00873540
+  UR_ChangeScale -> 0x0087351c
+  UR_CloudGather -> 0x00875314
+  UR_VortexAttract -> 0x008752cc
+  UR_StormCast -> 0x008734f8
+  UR_Tornado -> 0x008752a4
+  FollowOrigin -> 0x0087336c
+  UR_GustyWind -> 0x00873348
+  UR_Articulate -> 0x008730c0
+  UR_RingSpin -> 0x0087309c
+  CheckShieldDeflections -> 0x0087363c
+  UR_AddDefensiveSphere -> 0x008735ac
+  SetAtomHasBeenDeflected -> 0x00873420
+  SetPSysCloseDown -> 0x008733fc
+  AR_SetAnimPlay -> 0x00873198
+  RemoveSoundFromAtom -> 0x00873174
+  StartStopSoundOnCondition -> 0x00873150
+  AddSoundToAtom -> 0x00873108
+  EventAlways -> 0x008732b8
+  LandscapeCollide -> 0x00873ba8
+  RemoveRuleAfterConditionTrue -> 0x00873b80
+  RemoveRuleAfterCloseDown -> 0x00873b58
+  RemoveRuleProb -> 0x00873b30
+  RemoveRuleOldAgeOnly -> 0x00873b08
+  CreateRuleMakeChain -> 0x008737a4
+  CreateRuleSphere -> 0x0087387c
+  CreateNewBaseAtom -> 0x00873858
+  EmitterRuleConical -> 0x00873714
+  SpreadingDiskEmitter -> 0x008736f0
+  DiskEmitter -> 0x008736cc
+  EmitterRuleLightningSprite -> 0x008736a8
+  EmitterRuleSimple -> 0x00873684
+  UR_CloudMoverNew -> 0x008752f0
+  UR_InitialSpin -> 0x008738c8
+  UR_SideSpin -> 0x008738a4
+  UR_MoveAtom -> 0x00873588
+  ForceLandscapeHeight -> 0x008734b0
+  ForceMinimumHeight -> 0x0087348c
+  ForceConstantHeight -> 0x00873468
+  ForceConstantAltitude -> 0x00873444
+  UR_OrientSpriteWithRandomAngle -> 0x00873324
+  UR_OrientSpriteWithVelocity -> 0x00873300
+  UR_OrientWithVelocity -> 0x008732dc
+  UR_UpdatePosnFromVelocity -> 0x00873294
+  UpdateRuleRotatePrincipalAxis -> 0x008734d4
+  UR_ScaleByCameraDist -> 0x00873ae4
+  SetAtomAlpha -> 0x008733d8
+  SetCollectionAlpha -> 0x008733b4
+  SetScale -> 0x00873390
+  AppearanceRuleTumble -> 0x00873270
+  AppearanceRuleFadeOut -> 0x008730e4
+  AR_GetColorFromParent -> 0x0087324c
+  AR_FadeAlphaWithHeightAboveLandscape -> 0x00873228
+  AR_FadeOutOnceConditionTrue -> 0x00873204
+  AR_FadeCollectionAlpha -> 0x008731e0
+  AR_FadeAlpha -> 0x008731bc
+  AppearanceUpdateRule -> 0x0087312c
+  DrawOffset -> 0x00873c08
+  DrawOffsetLT -> 0x00873d10
+  DrawOffsetDecay -> 0x00873e18
+  Particle3DObj -> 0x00873f20
+  Particle3DObjAnimTextured -> 0x0087404c
+  RenderParticleCreatureRef -> 0x00874178
+  Particle3DAnim -> 0x008743d0
+  Particle3DAnimWithCamera -> 0x008744fc
+  Chain -> 0x00874628
+  RenderParticleGJMesh -> 0x00874728
+  RenderParticleGJMeshRotatingUV -> 0x00874854
+  RenderParticleMist -> 0x00874980
+  ParticlePlayerSymbol -> 0x00874aac
+  RenderParticleGameObject -> 0x00874bd8
+  ParticleLightMap -> 0x00874d04
+  RenderParticleVolBlendMesh -> 0x00874e30
+  DefensiveShield -> 0x00874f6c
+  DefensiveSphere -> 0x0087507c
+  PSysSound -> 0x00875198
+  SpellStormAndTornado -> 0x008bb954
+  CollectionData@UR_StormCast -> 0x00875340
+  AtomData@UR_StormCast -> 0x00875440
+  PuzzleTortoise -> 0x00876464
+  PuzzleCow -> 0x0087708c
+  PuzzlePig -> 0x0087583c
+  PuzzleHorse -> 0x00877cb4
+  GSquadInfo -> 0x008788f8
+  GRankInfo -> 0x00878928
+  ReactionInfo -> 0x00878968
+  GRewardInfo -> 0x008789a0
+  GRewardProgress -> 0x008789e0
+  Reward -> 0x00878a10
+  GScaffoldInfo -> 0x008792a4
+  GScript -> 0x008792f0
+  GScriptOpposingCreature -> 0x00879348
+  ScriptDLL -> 0x00879378
+  ScriptHighlight -> 0x00879404
+  GScriptHighlightInfo -> 0x008793c4
+  ScriptManage -> 0x00879c90
+  SecretCreature -> 0x0088e3e4
+  GShowNeedsInfo -> 0x0088e440
+  GConfirmation -> 0x008a2b84
+  GHelpSpritesGuidance -> 0x008b75f4
+  GGuidance -> 0x008b7624
+  GSoundInfo -> 0x008b7660
+  SoundTag -> 0x008b76b0
+  GSpecialVillagerInfo -> 0x008b76e0
+  SpellCreature -> 0x008b7c8c
+  SpellDispenser -> 0x008b81f0
+  GSpellIconInfo -> 0x008b8bd0
+  SpellSeedGraphic -> 0x008b8c20
+  SpellSeed -> 0x008b9138
+  GSpellSystemInfo -> 0x008b99ac
+  GSpellSeedInfo -> 0x008b99dc
+  SpellShield -> 0x008b9a50
+  GMapShieldInfo -> 0x008b9fac
+  MapShield -> 0x008b9fec
+  MagicShield -> 0x008ba864
+  PhysicalShield -> 0x008bb0dc
+  GSpookyVoiceInfo -> 0x008d0740
+  GSpookyVoices -> 0x008d0770
+  FireEffect -> 0x008d084c
+  FireGraphic -> 0x008d094c
+  SpritePos@FireGraphic -> 0x008d0a4c
+  GTerrainMaterialInfo -> 0x008d0b5c
+  GTotemStatueInfo -> 0x008d0bc0
+  GTownInfo -> 0x008d0c2c
+  GBelief -> 0x008d1164
+  TownStats -> 0x008d1184
+  TownCreatureInfo -> 0x008d11b8
+  GTownDesireInfo -> 0x008d1204
+  TownDesire -> 0x008d1234
+  GTreeInfo -> 0x008d128c
+  GTribeInfo -> 0x008d12f8
+  GVillagerInfo -> 0x008d1524
+  MissionaryControl -> 0x008d1564
+  GVillagerStateTableInfo -> 0x008d1b64
+  GVirtualInfluence -> 0x008d1bb0
+  VortexSave -> 0x008d24ec
+  WayPoint -> 0x008d25ec
+  GWeatherInfo -> 0x008d2af8
+  GWeather -> 0x008d2b28
+  GClimateInfo -> 0x008d2b40
+  GClimateRainInfo -> 0x008d2b8c
+  GWorshipSiteInfo -> 0x008d3548
+  PlannedWorshipSite -> 0x008d3594
+  GWorshipSiteUpgradeInfo -> 0x008d3ac4
+  PictureRoomBase -> 0x008d5018
+  ChallengeRoom -> 0x008d4d78
+  CreatureRoom -> 0x008d4dd0
+  CreatureCitadel -> 0x008d4e70
+  CreditsRoom -> 0x008d4ee0
+  GameOptionsRoom -> 0x008d4f30
+  SubOptionEntry -> 0x008d4f78
+  SubOptionEntryButton -> 0x008d4f88
+  SubOptionEntryCheckBoxUnChecked -> 0x008d4f98
+  SubOptionEntryCheckBoxChecked -> 0x008d4fa8
+  SubOptionEntrySlider -> 0x008d4fb8
+  SubOptionEntryPicture -> 0x008d4fc8
+  SubOptionEntryScroll -> 0x008d4fd8
+  SubOptionEntryText -> 0x008d4fe8
+  SubOptionEntryListBox -> 0x008d4ff8
+  SubOptionEntryFrame -> 0x008d5008
+  SaveGameRoom -> 0x008d509c
+  UniverseRoom -> 0x008d51d8
+  logic_error@std -> 0x008d551c
+  length_error@std -> 0x008d54fc
+  out_of_range@std -> 0x008d552c
+  runtime_error@std -> 0x008d55a0
+  failure@ios_base@std -> 0x008d555c
+  _Locimp@locale@std -> 0x008d55b4
+  ?$basic_filebuf@DU?$char_traits@D@std@@@std -> 0x008d55bc
+  ?$basic_ios@GU?$char_traits@G@std@@@std -> 0x008d5604
+  ?$basic_istream@GU?$char_traits@G@std@@@std -> 0x008d55f4
+  ?$basic_ostream@GU?$char_traits@G@std@@@std -> 0x008d55fc
+  ?$basic_filebuf@GU?$char_traits@G@std@@@std -> 0x008d561c
+  ?$basic_streambuf@GU?$char_traits@G@std@@@std -> 0x008d5654
+  type_info -> 0x008d63ec
+  bad_typeid -> 0x008d6424
+  __non_rtti_object -> 0x008d6418
+  bad_cast -> 0x008d6450
+
+=== Classes in binary WITH bw1-decomp vtable data ===
+  GBaseInfo (11 entries)
+  GameThingWithPos (320 entries)
+  Fixed (537 entries)
+  MultiMapFixed (579 entries)
+  PlannedMultiMapFixed (327 entries)
+  GAlignmentInfo (11 entries)
+  EditorIconBase (8 entries)
+  EditorIconShow (2 entries)
+  ?$EditorIconNumber@MM (4 entries)
+  ?$EditorIconSlider@M (4 entries)
+  GAnimalInfo (15 entries)
+  GAnimalStateTableInfo (11 entries)
+  Mobile (535 entries)
+  MobileWallHug (541 entries)
+  Living (720 entries)
+  Animal (720 entries)
+  Pot (537 entries)
+  StoragePit (547 entries)
+  PieceVillager (719 entries)
+  Cow (720 entries)
+  Sheep (720 entries)
+  PieceSheep (719 entries)
+  Goat (720 entries)
+  Horse (720 entries)
+  PieceHorse (719 entries)
+  Zebra (720 entries)
+  Pig (720 entries)
+  PiecePig (720 entries)
+  Tortoise (720 entries)
+  PieceTortoise (719 entries)
+  Dove (714 entries)
+  SpellDove (714 entries)
+  Crow (714 entries)
+  Swallow (714 entries)
+  Pigeon (714 entries)
+  Seagull (714 entries)
+  Bat (714 entries)
+  SpellBat (714 entries)
+  Vulture (713 entries)
+  Lion (718 entries)
+  Leopard (718 entries)
+  PieceLion (718 entries)
+  SpellWolf (718 entries)
+  Tiger (718 entries)
+  Wolf (718 entries)
+  PieceWolf (718 entries)
+  GFeatureInfo (18 entries)
+  GAnimatedStaticInfo (18 entries)
+  Feature (551 entries)
+  AnimatedStatic (551 entries)
+  GArena (320 entries)
+  ArenaSpellIcon (534 entries)
+  GArrowInfo (15 entries)
+  MobileObject (535 entries)
+  TownArtifact (62 entries)
+  GAudio (63 entries)
+  ThingMusicInfo (63 entries)
+  GLeashSelectorInfo (15 entries)
+  LHFile (1 entries)
+  LHReleasedFile (1 entries)
+  GMagicForestInfo (11 entries)
+  GMagicTeleportInfo (11 entries)
+  LHReleasedOSFile (2 entries)
+  GMagicObjectInfo (11 entries)
+  GMagicResourceInfo (11 entries)
+  GMagicHealInfo (11 entries)
+  GMagicInfo (11 entries)
+  GMagicRadiusSpellInfo (11 entries)
+  GMagicStormAndTornadoInfo (11 entries)
+  GMagicShieldInfo (11 entries)
+  GMagicWaterInfo (11 entries)
+  GMagicFlockFlyingInfo (11 entries)
+  GMagicFlockGroundInfo (11 entries)
+  GMagicCreatureSpellInfo (11 entries)
+  GBallInfo (15 entries)
+  Ball (535 entries)
+  GBeliefInfo (11 entries)
+  GBigForestInfo (18 entries)
+  BigForest (542 entries)
+  MobileStatic (543 entries)
+  Rock (548 entries)
+  Bonfire (547 entries)
+  CameraMode (5 entries)
+  CameraModeNew3 (3 entries)
+  BuildingSite (72 entries)
+  CitadelBuildingSite (75 entries)
+  StandardBuildingSite (75 entries)
+  WorkshopBuildingSite (65 entries)
+  BWGameSpy (1 entries)
+  MPFEMessageObject (1 entries)
+  BWLan (11 entries)
+  GCamera (320 entries)
+  CameraModePath (3 entries)
+  CameraModeFree (4 entries)
+  CameraModeFollow (3 entries)
+  CameraModeCtrInteract (4 entries)
+  CameraModeDance (3 entries)
+  CameraModeScript (2 entries)
+  CameraModeFollowHeading (5 entries)
+  CameraModeTwoObjects (8 entries)
+  GContainerInfo (11 entries)
+  GCitadelInfo (11 entries)
+  Container (320 entries)
+  Citadel (320 entries)
+  CitadelPart (548 entries)
+  CitadelHeart (552 entries)
+  CreaturePen (546 entries)
+  PlannedCreaturePen (322 entries)
+  GCitadelHeartInfo (18 entries)
+  LeashObj (535 entries)
+  PlannedCitadelPart (327 entries)
+  PlannedCitadelHeart (327 entries)
+  UR_PlasmaInf (63 entries)
+  PSysBase (63 entries)
+  PlannedTownCitadelHeart (327 entries)
+  CitadelEntrance (535 entries)
+  HandStateInvisible (5 entries)
+  CHand (9 entries)
+  Morphable (10 entries)
+  Creature (715 entries)
+  CPUCheck (1 entries)
+  CreatureInfo (15 entries)
+  DifferentCreatureInfo (11 entries)
+  CreaturePlan (7 entries)
+  GAlignment (7 entries)
+  CreatureSubActionAgenda (7 entries)
+  CreatureSubAction (7 entries)
+  SubArgumentPoint (4 entries)
+  SubArgumentPointAndFloat (1 entries)
+  SubArgumentObject (2 entries)
+  LH3DCreature (2 entries)
+  TownCentre (545 entries)
+  CreatureActionInfo (11 entries)
+  CreatureInitialDesireInfo (11 entries)
+  CreatureDesireActionEntry (11 entries)
+  CreatureDesireAttributeEntry (11 entries)
+  SubArgumentInteger (4 entries)
+  SubArgumentIntegerAndFloat (3 entries)
+  SubArgumentObjectAndFloat (2 entries)
+  SubArgumentObjectAndInteger (3 entries)
+  SubArgumentPointIntegerFloatAndSpell (1 entries)
+  SubArgumentObjectIntegerFloatAndSpell (2 entries)
+  ShowNeedsVisuals (535 entries)
+  SubArgumentFloat (3 entries)
+  WorshipSite (557 entries)
+  Tree (539 entries)
+  FishFarm (548 entries)
+  CreatureAttitudeToPlayer (7 entries)
+  AttributeOnFire (7 entries)
+  AttributeOrigin (7 entries)
+  AttributeAllegiance (7 entries)
+  AttributeCreatureType (7 entries)
+  CreatureLearningEpisode (7 entries)
+  AttributeIsHarderThanMe (7 entries)
+  AttributePlayerNumber (7 entries)
+  AttributeSex (7 entries)
+  AttributeVillagerJob (7 entries)
+  AttributeLife (7 entries)
+  AttributeType (7 entries)
+  Attribute (7 entries)
+  AttributeAnimate (7 entries)
+  AttributeWhatTownNeedsMost (7 entries)
+  AttributeTownReligiousBeliefInYou (7 entries)
+  AttributeTribe (7 entries)
+  AttributeTownSize (7 entries)
+  TotemStatue (549 entries)
+  ShowNeeds (63 entries)
+  ?$EditorIconButton@VCreatureLessonChooser@@ (4 entries)
+  CreatureContext (7 entries)
+  CreatureVisionState (7 entries)
+  CreatureMentalDebug (7 entries)
+  CreatureMental (7 entries)
+  CreatureBeliefs (7 entries)
+  CreatureBeliefList (7 entries)
+  CreatureCommandState (7 entries)
+  CreatureAgenda (7 entries)
+  Forest (320 entries)
+  AttributeAbodeBeingBuilt (7 entries)
+  AttributeForestSize (7 entries)
+  AttributeCreatureWhatHeIsCarrying (7 entries)
+  AttributeAbodeType (7 entries)
+  AttributeCreatureSpellKnowledge (7 entries)
+  AttributeMobileObjectType (7 entries)
+  AttributeCreatureHeight (7 entries)
+  AttributeCreatureDominantDesire (7 entries)
+  CreatureBeliefAboutTown (7 entries)
+  CreatureBeliefAboutVillager (7 entries)
+  CreatureBeliefAboutForest (7 entries)
+  CreatureBeliefSmall (7 entries)
+  CreatureBeliefAboutCreature (7 entries)
+  CreatureBeliefAboutCitadel (7 entries)
+  CreatureBeliefAboutFlock (7 entries)
+  CreatureBeliefAboutContext (7 entries)
+  CreatureBelief (7 entries)
+  CreatureBeliefAboutAbode (7 entries)
+  AllocatedBeliefList (7 entries)
+  CreatureDesireDependency (11 entries)
+  CreatureDesireForType (11 entries)
+  CreatureDevelopmentPhaseEntry (11 entries)
+  CreatureDevelopmentDurationEntry (11 entries)
+  CreatureDesires (7 entries)
+  CreatureDesireSourceTable (11 entries)
+  CreatureInitialSourceInfo (11 entries)
+  CreatureSourceBoundsInfo (11 entries)
+  CreatureExplorationRegionEntry (7 entries)
+  CreatureGlobalExplorationMap (7 entries)
+  CreatureExplorationMap (6 entries)
+  CreaturePreviousLesson (7 entries)
+  CreatureLearning (7 entries)
+  CreatureLearningContext (7 entries)
+  CreatureActionsKnownAbout (7 entries)
+  CreatureActionKnownAbout (7 entries)
+  CreatureActionKnownAboutEntry (11 entries)
+  CreatureMagicActionKnownAboutEntry (11 entries)
+  CreatureObjectsInspected (7 entries)
+  CreatureMimicInfo (11 entries)
+  CreatureMimicState (7 entries)
+  GCreaturePenInfo (18 entries)
+  CreaturePhysical (7 entries)
+  CreatureDamageMap (7 entries)
+  TownDesireFlags (535 entries)
+  CreaturePreviousActions (7 entries)
+  Dance (326 entries)
+  PuzzleTotem (539 entries)
+  SubArgumentObjectIntegerPosFloatAndSpell (0 entries)
+  Creche (536 entries)
+  Creed (535 entries)
+  GDanceInfo (11 entries)
+  GFootpathLink (63 entries)
+  DanceEditState (326 entries)
+  DanceGroup (63 entries)
+  DanceKeyAction (63 entries)
+  DanceKeyFrame (63 entries)
+  GData (7 entries)
+  DeadTree (546 entries)
+  FelledTree (542 entries)
+  DialogBoxBase (9 entries)
+  DialogBoxKeyBinding (9 entries)
+  DialogBoxOptions (9 entries)
+  DialogBoxImmersion (9 entries)
+  MiniDialogBoxOptions (9 entries)
+  DialogBoxSaveMessage (8 entries)
+  SpecialVillager (722 entries)
+  EditorIconBool (2 entries)
+  EditorIconPDM (2 entries)
+  ?$EditorIconSlider@K (4 entries)
+  PDMStrip (1 entries)
+  GEffectInfo (11 entries)
+  GMagicEffectInfo (11 entries)
+  EffectValues (7 entries)
+  CreatureFalling (2 entries)
+  PlannedFeature (323 entries)
+  GFlowersInfo (18 entries)
+  Flowers (546 entries)
+  GFieldInfo (18 entries)
+  GFieldTypeInfo (18 entries)
+  Field (540 entries)
+  FireFly (535 entries)
+  GFishFarmInfo (18 entries)
+  GSingleMapFixedInfo (15 entries)
+  SingleMapFixed (535 entries)
+  Flock (320 entries)
+  GFootballPositionInfo (11 entries)
+  Football (538 entries)
+  GFootpathNode (63 entries)
+  GFootpath (62 entries)
+  GFootpathLinkSave (61 entries)
+  GFootpathFinder (63 entries)
+  GForestInfo (11 entries)
+  SetupOnlineLandscapes (9 entries)
+  ProfileEditor (9 entries)
+  LobbyBox (9 entries)
+  SetupMultiplayerMain (9 entries)
+  HistoryBox (9 entries)
+  RegisterBox (9 entries)
+  GatheringBox (5 entries)
+  TattooEditor (9 entries)
+  MainMenu (9 entries)
+  StartGameBox (9 entries)
+  GSLobbyBox (9 entries)
+  EditingDebugBox (9 entries)
+  LoadingBox (9 entries)
+  CDBox (9 entries)
+  SkirmishGameBox (9 entries)
+  NewProfileBox (9 entries)
+  ChannelBox (9 entries)
+  EndGameBox (9 entries)
+  StatsBox (9 entries)
+  LoginBox (8 entries)
+  SetupLandscapeBox (9 entries)
+  SpellSetupBox (9 entries)
+  GFurnitureInfo (15 entries)
+  GlobalGameLists (7 entries)
+  GGame (63 entries)
+  GKeyBuffer (7 entries)
+  GSoundMap (7 entries)
+  GestureSystemDataList (7 entries)
+  GestureSystemData (7 entries)
+  GestureSystem (7 entries)
+  GTerrainMap (7 entries)
+  TerrainMapInfo (11 entries)
+  TerrainMapTypeInfo (11 entries)
+  GPlayerInfo (11 entries)
+  GameArea (7 entries)
+  GGameInfo (7 entries)
+  GameOSFile (2 entries)
+  PuzzleSheep (712 entries)
+  Poo (535 entries)
+  PuzzleGame (320 entries)
+  PuzzleGrain (537 entries)
+  PuzzleLion (710 entries)
+  GStreetLantern (535 entries)
+  GStreetLight (320 entries)
+  Scaffold (535 entries)
+  SpellForest (341 entries)
+  SpellWater (341 entries)
+  GComputerSpellCast (63 entries)
+  PileWood (538 entries)
+  Reaction (63 entries)
+  GWaterfall (535 entries)
+  GStream (63 entries)
+  PlannedTownCentre (322 entries)
+  InfluenceRing (320 entries)
+  SpellFlockFlying (341 entries)
+  Mist (320 entries)
+  WeatherThing (320 entries)
+  ScriptMarker (320 entries)
+  SpellResource (341 entries)
+  GParticleContainer (320 entries)
+  GComputerPlayer (320 entries)
+  FieldCrop (535 entries)
+  Graveyard (539 entries)
+  Wonder (538 entries)
+  SpellHeal (341 entries)
+  ScriptTimer (320 entries)
+  SpellTeleport (342 entries)
+  OneOffSpellSeed (535 entries)
+  HanoiBlock (535 entries)
+  SpellFlock (346 entries)
+  SpellFlockGround (341 entries)
+  GComputerSeen (63 entries)
+  TownSpellIcon (544 entries)
+  TownCentreSpellIcon (544 entries)
+  SpellWithObjects (342 entries)
+  BaseInfo (1 entries)
+  PuzzleVillager (711 entries)
+  Totem (537 entries)
+
+Matched: 347 / 936
+
+=== Classes in binary WITHOUT bw1-decomp data ===
+  GObjectInfo
+  GMultiMapFixedInfo
+  GAbodeInfo
+  Base
+  GameThing
+  Object
+  Abode
+  PlannedAbode
+  Windmill
+  GMobileInfo
+  GMobileWallHugInfo
+  GLivingInfo
+  WorshipTotem
+  GMobileObjectInfo
+  Villager
+  LHOSFile
+  DrawingObject
+  LayerCommunication
+  GCitadelPartInfo
+  HandState
+  Town
+  SubArgument
+  Fragment
+  Spell
+  GInterfaceStatus
+  MagicTeleport
+  GroupBehaviour
+  HandStateCreature
+  ?$EditorIconNumber@KK
+  TempleRoom
+  WorldRoom
+  PileFood
+  PotStructure
+  PileResource
+  SpellIcon
+  GBaseOnly
+  VortexObjectInfo
+  GClimate
+  PlayerSubActionArgument
+  PlayerSubAction
+  PlayerActionState
+  GComputerAttitudeToPlayer
+  PSysInterface
+  GJPSysInterface
+  RenderParticle
+  Particle3DPnt
+  RenderParticleGameObjectRef
+  RenderParticleGoldenShower
+  Particle3DSprite
+  ParticleChainJoint
+  BaseAtomModifierData
+  AtomData@UR_SimpleBeam
+  BaseCollectionModifierData
+  SubCollectionData@UR_SimpleBeam
+  SubCollectionData@UR_Plasma
+  AtomData@UR_Plasma
+  SpellPointInf
+  AtomData@UR_ManaPathNew
+  AtomData@UR_BeliefSprite
+  CollectionData@UR_LightSheetOnObject
+  AtomData@AR_FadeOutOnceConditionTrue
+  AtomData@AddSoundToAtom
+  AtomData@RemoveSoundFromAtom
+  AtomData@AttatchFireBallToAtom
+  AtomDataRipple@UpdateRuleGravityWithFloor
+  AtomData@UR_BankedTurning
+  CollectionData@UR_HandSprinkle
+  CollectionData@UR_AddDefensiveSphere
+  AtomData@UpdateRuleShieldSpark
+  AtomData@UR_SphereSurfaceTracer
+  AtomData@UR_ForestPath
+  AtomData@UR_VapourEndEffect
+  AtomData@AddSubCollectionsToAtom
+  AtomData@CreateNewBaseAtom
+  AtomData@CheckShieldDeflections
+  CollectionData@EmitterRule
+  CollectionData@EmitterRuleLightningSprite
+  CollectionData@UR_WillowWisp
+  CollectionData@ER_BurstFromParentAtom
+  ParentAtomData@ER_GlintsOnTarget
+  AtomData@ER_GlintsOnTarget
+  CollectionData@ER_EmitFromParentAtom
+  AtomData@UR_SideSpin
+  AtomData@UR_InitialSpin
+  CollectionData@UR_FollowTargets
+  AtomData@UR_FollowTargets
+  CollectionData@UR_Trail
+  CollectionData@LightningForkFlicker
+  AtomData@RemoveRuleAfterConditionTrue
+  AtomData@UR_OrientSpriteWithRandomAngle
+  AtomData@UR_OrientWithVelocity
+  CollectionData@UR_CreatureSpell
+  CollectionData@UR_CreatureSpellItch
+  CollectionData@UR_CreatureSpellFreeze
+  CollectionData@UR_CreatureSpellGeneric
+  AtomData@UR_CreatureSpellGeneric
+  CollectionData@UR_CreatureSpellCompassion
+  CollectionData@UR_Tornado
+  DebrisCollectionData@UR_Tornado
+  FlyingCollectionData@UR_Tornado
+  FlyingAtomData@UR_Tornado
+  CollectionData@UR_CloudGather
+  AtomData@UR_CloudGather
+  CollectionData@UR_CloudMoverNew
+  AtomData@UR_VortexAttract
+  AtomData@UR_Explosion
+  AtomData@UR_OrientSpriteWithVelocity
+  CollectionData@UR_AtomsAtEPTarget
+  CollectionData@UR_Flocking
+  Whale
+  PuzzleMobileObject
+  GComputerPlayerQueue
+  GameStats
+  Persistent
+  ?$basic_ostream@DU?$char_traits@D@std@@@std
+  ?$basic_istream@DU?$char_traits@D@std@@@std
+  ?$basic_iostream@DU?$char_traits@D@std@@@std
+  ?$basic_stringstream@DU?$char_traits@D@std@@V?$allocator@D@2@@std
+  ?$basic_streambuf@DU?$char_traits@D@std@@@std
+  ?$basic_stringbuf@DU?$char_traits@D@std@@V?$allocator@D@2@@std
+  ios_base@std
+  ?$basic_ios@DU?$char_traits@D@std@@@std
+  PersistentOwner
+  PSysFileData
+  exception
+  bad_cast@std
+  facet@locale@std
+  ?$num_put@DV?$ostreambuf_iterator@DU?$char_traits@D@std@@@std@@@std
+  ?$numpunct@D@std
+  Property
+  FloatProperty
+  FloatValueProperty
+  IntegerProperty
+  IntegerValueProperty
+  SoundActionProperty
+  StringProperty
+  FileNameProperty
+  BoolProperty
+  EnumProperty
+  MeshEnumProperty
+  AnimEnumProperty
+  ?$ctype@D@std
+  ?$num_get@DV?$istreambuf_iterator@DU?$char_traits@D@std@@@std@@@std
+  DancePathInfo
+  HandStateCamera
+  HandStateCitadel
+  HandStateHolding
+  HandStateGrain
+  HandStateMultiPickUp
+  HandStateNormal
+  LandscapeVortex
+  HandStatePlayAnim
+  HandStateTotem
+  HandStateTug
+  LocalBase
+  HelpProfile
+  HelpSpiritInfo
+  HelpSpirit
+  HelpSystemInfo
+  HelpSystem
+  GToolTipsInfo
+  Workshop
+  HelpText
+  GInfluenceInfo
+  GInterfaceMessageBuffer
+  InterfaceHandState
+  GInterface
+  GInterfaceFlags
+  GInterfaceCollide
+  CImmDevice
+  CImmMouse
+  GLeashStatus
+  IPSpecialDialog
+  GJobInfo
+  GKeyInput
+  GLanguage
+  LHConnection
+  LHLobby
+  LHSession
+  DataPath
+  DataForScriptRemind
+  MagicFood
+  GMagicHand
+  GMagicLivingInfo
+  MagicTree
+  GVortexInfo
+  LandscapeVortexVolc
+  LandscapeVortexIn
+  LandscapeVortexOut
+  MagicWood
+  GMap
+  WorshipSpellIcon
+  GSpeedThreshold
+  GMobileStaticInfo
+  MPFEDownloads
+  MPFEThumbDownload
+  MPFEPublicChatMessage
+  MPFEPrivateChatMessage
+  MPFEAskJoinMessage
+  MPFEReplyToJoinMessage
+  MPFEInviteToTeamMessage
+  MPFEReplyToInviteMessage
+  MPFECancelStartMessage
+  MPFEKickMessageRequest
+  MPFEKickMessage
+  MPFEDatabaseID
+  MPFEChannelSelector
+  MPFECreateGame
+  MPFEChooseConnection
+  MPFEClanList
+  MPFEChangeClanRequest
+  MPFEResetClan
+  MPFEDatabase
+  MPFEMapDownload
+  MPFEFileTransferMessage
+  MPFEFindGame
+  MPFEStartGameOkayToStartMessage
+  MPFEStartGameReadyMessage
+  MPFEStartGameTransferFilesMessage
+  MPFEStartGameNowMessage
+  MPFEDisconnectNowMessage
+  MPFEStopGameStartMessage
+  MPFELogin
+  MPFELoginDatabase
+  MPFEChangedMapMessage
+  MPFEMapErrorMessage
+  MPFEChangedTeamRequestMessage
+  MPFEUserTeamList
+  MPFEAskForTeamDetailsMessage
+  MultiplayerDatabase
+  CreatureDatabase
+  StatsDatabase
+  GSpotVisualInfo
+  GPBallInfo
+  Heap
+  HeapWithPools
+  UniqueKeyHeap
+  HeapStore
+  GPFootballInfo
+  GPFootballPositionInfo
+  PhysicsObject
+  GPlayer
+  CPDesireNodeInfo
+  GPlaytimeInfo
+  GPotInfo
+  PowerSpin
+  PowerSpinRunner
+  GPrayerSiteInfo
+  GPrayerIconInfo
+  TEventCondition
+  ParticleCreator
+  FloatProvider
+  AtomCollectionModifier
+  PSysManager
+  AtomCore
+  AtomCollection
+  AtomCreateRule
+  UR_SimpleBeam
+  UR_Plasma
+  UR_CreatureSpell
+  UR_Explosion
+  CollectionData@UR_Explosion
+  GMagicFireBallInfo
+  MagicFireBall
+  AttatchFireBallToAtom
+  UpdateRule
+  UR_Flocking
+  CollectionData@UR_Rope
+  CollectionData@UR_Articulate
+  AtomData@UR_Articulate
+  CollectionData@ZR_SurfRevol
+  ZR_SurfRevol
+  TestFunnel
+  TestDisk
+  TestFunnelSpout
+  FuncT
+  TestFunnelParab
+  CollectionData@UR_RingSpin
+  AtomData@UR_GesturingRecognised
+  UR_GesturingRecognised
+  ZR_ChainGesture
+  ParentCollectionData@ZR_ChainGesture
+  AtomData@ZR_ChainGesture
+  Band@PHandFX
+  PSysHandFX
+  PHandFX
+  UR_Lightning_CollectionData
+  UR_Lightning
+  AtomData@UR_ObjectArcer
+  UR_LightningStrike
+  AtomData@UR_LightningStrike
+  CollectionData@UR_TownCentreBelief
+  AtomData@UR_TownCentreBelief
+  AtomData@UR_LightSheetOnObject
+  UR_LightSheetOnObject
+  AtomData@UR_VolFXOnObject
+  UR_VolFXOnObject
+  CreateWithInitialDirection
+  OnceOnlyCreateRule
+  UpdateRuleGravity
+  CreateRuleAnAtom
+  UR_FireWorkSimple
+  UR_HandSprinkle
+  UR_HealSpellChakra
+  AtomData@UR_HealSpellChakra
+  UpdateRuleGravityWithFloor
+  UpdateRuleShieldSpark
+  UR_ForestPath
+  UR_Trail
+  UR_KPStretchHeight
+  ER_GlintsOnTarget
+  ER_BurstFromParentAtom
+  ER_EmitFromParentAtom
+  UR_KPMoveAtoms
+  UR_WillowWisp
+  ER_MultiPickup
+  CollectionData@ER_MultiPickup
+  AtomData@ER_MultiPickup
+  ParticleBaseMeshCreator
+  ParticleMeshCreator
+  ParticleMeshCreatorAnimTextured
+  ParticleGJMeshCreator
+  ParticleAnimCreator
+  ParticleAnimWithCameraCreator
+  ParticleLightMapCreator
+  ParticleSpriteCreator
+  ParticleSymbolSpriteCreator
+  ParticleMistCreator
+  ParticleBaseChainCreator
+  ParticleChainCreator
+  ParticleGoodEvilCreator
+  ParticleVolBlendMeshCreator
+  BoolArrayProperty
+  ?$TemplateBoolArrayProperty@VPSysFileData@@
+  TPointerProperty
+  ?$PointerProperty@VTEventCondition@@
+  ?$GetSetIntegerProperty@VUR_Flocking@@
+  ?$GetSetFloatProperty@VUpdateRuleGravity@@
+  ?$GetSetIntegerProperty@VUpdateRuleRotatePrincipalAxis@@
+  ?$PointerProperty@VFloatProvider@@
+  ?$PointerProperty@VParticleCreator@@
+  FloatArrayProperty
+  ?$TemplateFloatArrayProperty@VUR_KPStretchHeight@@
+  ?$GetSetFloatProperty@VUR_MoveAtom@@
+  ?$TemplateFloatArrayProperty@VUR_KPMoveAtoms@@
+  ?$TemplateFloatArrayProperty@VUR_ForestPath@@
+  IntegerArrayProperty
+  ?$TemplateIntegerArrayProperty@VAddSubCollectionsToAtom@@
+  ?$TemplateIntegerArrayProperty@VAtomCreateRule@@
+  ?$TemplateFloatArrayProperty@VUR_HandSprinkle@@
+  ParticlePointCreator
+  EventConditionAtomHasBeenDeflected
+  EventConditionAtomBelowSpeed
+  EventConditionAtomInUse
+  EventConditionFireBallSteam
+  EventConditionAtomCloseWater
+  EC_AtomAlphaAbove
+  EventConditionAtomBelowHeight
+  EventConditionFrameTime
+  EventConditionParentFrameTime
+  EventConditionRandom
+  EventConditionAtomLimitedTime
+  EventConditionAtomNearVillagers
+  EventConditionAtomDelay
+  EventConditionCollectionLimitedTime
+  EventConditionNever
+  EC_DeflectionInCollectionsHierarchy
+  EC_CollectionShouldBeEmitting
+  EC_DeflectionInAtomsHierarchy
+  EventConditionTrueWhenEnabled
+  EventConditionTrueOnCloseDown
+  EventConditionCollectionDelay
+  TCollectionEventCondition
+  TAtomEventCondition
+  RenderHandScaleTimesStrengthFloatProvider
+  RenderHandScaleFloatProvider
+  MagnitudeTimesStrengthFloatProvider
+  MagnitudeFloatProvider
+  StrengthFloatProvider
+  FloatProvider_ParentAtomScale
+  ConstFloatProvider
+  AddSubCollectionsToAtom
+  SetInitialRandomOrientations
+  UR_ObjectArcer
+  UR_Rope
+  UR_TownCentreBelief
+  UR_BeliefSprite
+  UR_ManaPathNew
+  UR_FollowLocalHand
+  UR_FollowCastPosn
+  UR_FollowParent
+  UR_FollowTargets
+  UR_CreatureSpellCompassion
+  UR_CreatureSpellGeneric
+  UR_CreatureSpellFreeze
+  UR_CreatureSpellItch
+  LightningForkFlicker
+  CreateRule_GameObjectRef
+  CreateRuleFusedSphericalExplode
+  UR_MoveAtomToBaseGroup
+  UR_ExplodeObject2
+  UR_ExplodeObject
+  UR_AtomsAtEPTarget
+  UR_VapourEndEffect
+  UR_HealInHand
+  UR_SphereSurfaceTracer
+  UR_ChangeStretchHeight
+  UR_ChangeScaleXYZ
+  UR_ChangeScale
+  UR_CloudGather
+  UR_VortexAttract
+  UR_StormCast
+  UR_Tornado
+  FollowOrigin
+  UR_GustyWind
+  UR_Articulate
+  UR_RingSpin
+  CheckShieldDeflections
+  UR_AddDefensiveSphere
+  SetAtomHasBeenDeflected
+  SetPSysCloseDown
+  AR_SetAnimPlay
+  RemoveSoundFromAtom
+  StartStopSoundOnCondition
+  AddSoundToAtom
+  EventAlways
+  LandscapeCollide
+  RemoveRuleAfterConditionTrue
+  RemoveRuleAfterCloseDown
+  RemoveRuleProb
+  RemoveRuleOldAgeOnly
+  CreateRuleMakeChain
+  CreateRuleSphere
+  CreateNewBaseAtom
+  EmitterRuleConical
+  SpreadingDiskEmitter
+  DiskEmitter
+  EmitterRuleLightningSprite
+  EmitterRuleSimple
+  UR_CloudMoverNew
+  UR_InitialSpin
+  UR_SideSpin
+  UR_MoveAtom
+  ForceLandscapeHeight
+  ForceMinimumHeight
+  ForceConstantHeight
+  ForceConstantAltitude
+  UR_OrientSpriteWithRandomAngle
+  UR_OrientSpriteWithVelocity
+  UR_OrientWithVelocity
+  UR_UpdatePosnFromVelocity
+  UpdateRuleRotatePrincipalAxis
+  UR_ScaleByCameraDist
+  SetAtomAlpha
+  SetCollectionAlpha
+  SetScale
+  AppearanceRuleTumble
+  AppearanceRuleFadeOut
+  AR_GetColorFromParent
+  AR_FadeAlphaWithHeightAboveLandscape
+  AR_FadeOutOnceConditionTrue
+  AR_FadeCollectionAlpha
+  AR_FadeAlpha
+  AppearanceUpdateRule
+  EmitterRule
+  RemoveRule
+  DrawOffset
+  DrawOffsetLT
+  DrawOffsetDecay
+  Particle3DObj
+  Particle3DObjAnimTextured
+  RenderParticleCreatureRef
+  Particle3DAnim
+  Particle3DAnimWithCamera
+  Chain
+  RenderParticleGJMesh
+  RenderParticleGJMeshRotatingUV
+  RenderParticleMist
+  ParticlePlayerSymbol
+  RenderParticleGameObject
+  ParticleLightMap
+  RenderParticleVolBlendMesh
+  DefensiveShield
+  DefensiveSphere
+  PSysSound
+  SpellStormAndTornado
+  CollectionData@UR_StormCast
+  AtomData@UR_StormCast
+  PuzzleTortoise
+  PieceCow
+  PuzzleCow
+  PuzzlePig
+  PuzzleHorse
+  GSquadInfo
+  GRankInfo
+  ReactionInfo
+  GRewardInfo
+  GRewardProgress
+  Reward
+  GScaffoldInfo
+  GScript
+  GScriptOpposingCreature
+  LHDLL
+  ScriptDLL
+  ScriptHighlight
+  GScriptHighlightInfo
+  ScriptManage
+  SecretCreature
+  GShowNeedsInfo
+  GConfirmation
+  GHelpSpritesGuidance
+  GGuidance
+  GSoundInfo
+  SoundTag
+  GSpecialVillagerInfo
+  SpellCreature
+  SpellDispenser
+  GSpellIconInfo
+  SpellSeedGraphic
+  SpellSeed
+  GSpellSystemInfo
+  GSpellSeedInfo
+  SpellShield
+  GMapShieldInfo
+  MapShield
+  MagicShield
+  PhysicalShield
+  GSpookyVoiceInfo
+  GSpookyVoices
+  FireEffect
+  FireGraphic
+  SpritePos@FireGraphic
+  GTerrainMaterialInfo
+  GTotemStatueInfo
+  GTownInfo
+  GBelief
+  TownStats
+  TownCreatureInfo
+  GTownDesireInfo
+  TownDesire
+  GTreeInfo
+  GTribeInfo
+  GVillagerInfo
+  MissionaryControl
+  GVillagerStateTableInfo
+  GVirtualInfluence
+  VortexSave
+  WayPoint
+  GWeatherInfo
+  GWeather
+  GClimateInfo
+  GClimateRainInfo
+  GWorshipSiteInfo
+  PlannedWorshipSite
+  GWorshipSiteUpgradeInfo
+  PictureRoomBase
+  ChallengeRoom
+  CreatureRoom
+  CreatureCitadel
+  CreditsRoom
+  GameOptionsRoom
+  SubOptionEntry
+  SubOptionEntryButton
+  SubOptionEntryCheckBoxUnChecked
+  SubOptionEntryCheckBoxChecked
+  SubOptionEntrySlider
+  SubOptionEntryPicture
+  SubOptionEntryScroll
+  SubOptionEntryText
+  SubOptionEntryListBox
+  SubOptionEntryFrame
+  SaveGameRoom
+  UniverseRoom
+  logic_error@std
+  length_error@std
+  out_of_range@std
+  runtime_error@std
+  failure@ios_base@std
+  _Locimp@locale@std
+  ?$basic_filebuf@DU?$char_traits@D@std@@@std
+  ?$basic_ios@GU?$char_traits@G@std@@@std
+  ?$basic_istream@GU?$char_traits@G@std@@@std
+  ?$basic_ostream@GU?$char_traits@G@std@@@std
+  ?$basic_filebuf@GU?$char_traits@G@std@@@std
+  ?$basic_streambuf@GU?$char_traits@G@std@@@std
+  type_info
+  bad_typeid
+  __non_rtti_object
+  bad_cast
+
+=== Classes in bw1-decomp NOT found in binary ===
+  SetupButton
+  SetupSlider
+  SetupList
+  SetupMultiList
+  SetupEdit
+  SetupBigButton
+  SetupHLineGraph
+  SetupVBarGraph
+  SetupTabButton
+  SetupPicture
+  SetupColourPicker
+  SetupCheckBox
+  SetupStaticText
+  Arrow
+  ValueSpinner
+  GCameraEditor
+  CameraModeCitadel
+  CameraModeFlyAndClick
+  CameraModeNew1
+  CameraModeNew
+  CameraModeNew2
+  CreatureValueSpinner
+  CreatureCommand
+  CreatureBeliefAboutMobileObject
+  CreatureTimeToWait
+  CreatureSelect
+  SetupBox
+  AnimEdit
+  EditorHug
+  Prss
+  EditorIconTextBox
+  EditorIconRequester
+  EditorIconEditBox
+  EditorIconGraph
+  MultiplayerConditionBox
+  SkipBox
+  Furniture

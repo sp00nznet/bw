@@ -133,12 +133,50 @@ Base
 - Vtable layouts (virtual function order) should be identical
 - Struct definitions from bw1-decomp apply directly
 
-## 8. Recommended Phase 2 Approach
+## 8. Phase 2 Results — Vtable Matching & Function Naming
+
+### Vtable Matching Pipeline
+1. **Preprocessor** (`tools/parse_vtables.js`): Parsed bw1-decomp's `rdata.100-vftables.asm` → 384 vtable definitions with 68,297 function entries (3,910 unique symbols)
+2. **VtableMatcher.java**: Found RTTI → COL → vtable chain in our binary, matched 342 vtables, named 2,386 functions
+3. **LabelVtablesAndGlobals.java**: Applied 3,641 labels (936 TDs + 899 COLs + 899 vtables)
+4. **DecompileNamedFunctions.java**: Bulk decompiled all 2,616 named functions → 268 C source files (2.5 MB)
+
+### Updated Statistics (Post-Phase 2)
+
+| Metric | Phase 1 | Phase 2 | Change |
+|--------|---------|---------|--------|
+| Total functions | 13,073 | 14,626 | +1,553 |
+| Named functions | 234 (1.8%) | 2,616 (17.9%) | **+2,382** |
+| Unnamed (FUN_) | 12,389 | 11,537 | -852 |
+| Data labels | 0 | 3,641 | +3,641 |
+| Vtables mapped | 0 | 899 | +899 |
+| Decompiled source | 0 | 2.5 MB / 268 files | New |
+
+### Key Decompiled Classes (by function count)
+
+| Class | Functions | File Size | Notes |
+|-------|-----------|-----------|-------|
+| Object | 335 | 268 KB | Core entity with 3D, physics, effects |
+| Living | 157 | 101 KB | Villager/animal base class |
+| Villager | 134 | 98 KB | NPC behavior and state |
+| Creature | 109 | 95 KB | Pet creature AI and actions |
+| GameThingWithPos | 108 | 43 KB | Position, map, interaction |
+| MultiMapFixed | 70 | 39 KB | Buildings and structures |
+| GameThing | 58 | 23 KB | Entity base class |
+| Animal | 45 | 38 KB | Wildlife behavior |
+| Tree | 31 | 34 KB | Tree growth, felling, resources |
+| Spell | 31 | 22 KB | Magic system |
+
+### 37 Classes NOT in bw1-decomp (v1.20-only or renamed)
+SetupButton, SetupSlider, SetupList, Arrow, ValueSpinner, CameraModeCitadel, CameraModeNew*, CreatureCommand, CreatureBeliefAboutMobileObject, etc.
+
+## 9. Recommended Phase 3 Approach
 
 ### Immediate Actions
-1. **Import bw1-decomp headers into Ghidra** as data types (569 struct definitions)
-2. **Write a vtable matcher** that finds vtables in our binary using RTTI, then names virtual functions using bw1-decomp's vtable layouts
-3. **Apply globals mapping** — adapt bw1-decomp's globals.h addresses to v1.0 using RTTI anchor points
+1. **Apply bw1-decomp struct types** to Ghidra for better decompiler output (field names instead of offsets)
+2. **Cross-reference decompiled code** with bw1-decomp's C implementations (75 files in src/c/)
+3. **Identify WinMain** by tracing from entry point (0x737B8E → CRT startup → WinMain)
+4. **Find GGame pointer** — the central game state, referenced from most subsystems
 
 ### Subsystem Priority (by dependency)
 1. **GameThing hierarchy** — base entity system, everything inherits from this
@@ -154,12 +192,20 @@ Base
 - Port subsystem by subsystem, testing against original game data
 - Target modern API (D3D11 or Vulkan) instead of original DirectDraw/D3D7
 
-## 9. Files Produced This Session
+## 10. Files Produced
 
 | File | Contents |
 |------|----------|
-| work/functions.csv | 12,723 functions (addr, name, size, namespace) |
+| work/functions.csv | 14,626 functions (addr, name, size, namespace) |
 | work/rtti_classes.csv | 936 RTTI type descriptors (addr, class name) |
+| work/vtable_data.txt | 384 vtable definitions from bw1-decomp |
+| work/vtable_matches.csv | Detailed vtable match results per slot |
+| work/vtable_match_summary.txt | Class match/mismatch summary |
+| work/decompiled/*.c | 268 decompiled C files (2.5 MB total) |
 | work/scripts/ExportFunctions.java | Ghidra function export script |
 | work/scripts/FindRTTI.java | Ghidra RTTI finder script |
+| work/scripts/VtableMatcher.java | Vtable matching and function naming |
+| work/scripts/LabelVtablesAndGlobals.java | RTTI/vtable labeling |
+| work/scripts/DecompileNamedFunctions.java | Bulk decompilation |
+| tools/parse_vtables.js | bw1-decomp vtable ASM preprocessor |
 | vendor/bw1-decomp/ | Cloned decompilation project |

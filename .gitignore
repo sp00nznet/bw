@@ -44,7 +44,11 @@ work/safedisc_strip/
 # Vendor build artifacts
 vendor/SafeDiscLoader2/Release/
 vendor/SafeDiscLoader2/.git/
+vendor/SafeDiscLoader/.git/
 vendor/bw1-decomp/.git/
+
+# Large regenerable analysis data (vtable_matches.csv is huge)
+work/vtable_matches.csv
 
 # Claude Code local settings
 .claude/
