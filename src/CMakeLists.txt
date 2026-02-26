@@ -56,6 +56,9 @@ add_library(bw_core STATIC
     core/PFootball.cpp
     core/BigForest.cpp
     core/CitadelPart.cpp
+    core/CitadelHeart.cpp
+    core/TotemStatue.cpp
+    core/LandscapeVortex.cpp
     # Mobile-derived entities
     core/MobileObject.cpp
     core/Pot.cpp
@@ -77,8 +80,13 @@ add_library(bw_core STATIC
     core/HelpSpirit.cpp
     core/MagicFireBall.cpp
     core/SpellSeed.cpp
+    core/FireFly.cpp
+    core/Reward.cpp
     # GameThingWithPos-derived (non-Object)
     core/GStreetLight.cpp
+    core/Arena.cpp
+    # GameThing-derived (non-positional)
+    core/TownArtifact.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Citadel.cpp
