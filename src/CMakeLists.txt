@@ -113,6 +113,15 @@ add_library(bw_core STATIC
     core/SpellFlockFlying.cpp
     core/SpellFlockGround.cpp
     core/PlannedMultiMapFixed.cpp
+    core/PlannedAbode.cpp
+    core/PlannedFeature.cpp
+    core/PlannedCitadelPart.cpp
+    core/PlannedCitadelHeart.cpp
+    core/PlannedCreaturePen.cpp
+    core/PlannedWorshipSite.cpp
+    core/PlannedWorshipSiteUpgrade.cpp
+    core/PlannedTownCitadelHeart.cpp
+    core/PlannedTownCentre.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
     core/Playtime.cpp
