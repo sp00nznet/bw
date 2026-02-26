@@ -86,6 +86,7 @@ add_library(bw_core STATIC
     core/SpellIcon.cpp
     core/FishFarm.cpp
     core/Football.cpp
+    core/MapShield.cpp
     # GameThingWithPos-derived (non-Object)
     core/GStreetLight.cpp
     core/Arena.cpp
@@ -98,6 +99,8 @@ add_library(bw_core STATIC
     core/InfluenceRing.cpp
     core/GParticleContainer.cpp
     core/SpellSeedGraphic.cpp
+    core/Spell.cpp
+    core/PlannedMultiMapFixed.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
     core/Playtime.cpp
@@ -107,6 +110,7 @@ add_library(bw_core STATIC
     core/GFootpath.cpp
     core/GFootpathLink.cpp
     core/GFootpathNode.cpp
+    core/GFootpathLinkSave.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Citadel.cpp
