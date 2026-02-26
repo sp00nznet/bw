@@ -41,6 +41,9 @@ add_library(bw_core STATIC
     core/TownCentre.cpp
     core/Field.cpp
     core/Feature.cpp
+    core/Flowers.cpp
+    core/AnimatedStatic.cpp
+    core/PrayerSite.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
     core/Tree.cpp
@@ -48,6 +51,10 @@ add_library(bw_core STATIC
     core/MobileObject.cpp
     core/Pot.cpp
     core/Scaffold.cpp
+    core/Arrow.cpp
+    core/Poo.cpp
+    core/Whale.cpp
+    core/FieldCrop.cpp
     # Object-derived entities
     core/SpellSeed.cpp
     # Container branch (groups/collections)
