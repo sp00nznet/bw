@@ -45,6 +45,9 @@ add_library(bw_core STATIC
     core/AnimatedStatic.cpp
     core/PrayerSite.cpp
     core/WorshipSiteUpgrade.cpp
+    core/WorshipSite.cpp
+    core/WorshipSpellIcon.cpp
+    core/WorshipTotem.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
     core/Bonfire.cpp
