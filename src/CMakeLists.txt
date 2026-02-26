@@ -100,6 +100,13 @@ add_library(bw_core STATIC
     core/SpellSeedGraphic.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
+    core/Playtime.cpp
+    core/DancePathInfo.cpp
+    core/FireEffect.cpp
+    core/ShowNeeds.cpp
+    core/GFootpath.cpp
+    core/GFootpathLink.cpp
+    core/GFootpathNode.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Citadel.cpp
@@ -127,6 +134,9 @@ add_library(bw_core STATIC
     core/Vulture.cpp
     core/Bat.cpp
     core/Creature.cpp
+    # Base-derived (utility/data)
+    core/GAlignment.cpp
+    core/GBelief.cpp
     # Map system
     core/Map.cpp
     core/MapCoords.cpp
