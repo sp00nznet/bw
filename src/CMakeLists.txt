@@ -36,6 +36,8 @@ add_library(bw_core STATIC
     # Map system
     core/Map.cpp
     core/MapCoords.cpp
+    # Game state
+    core/Game.cpp
 )
 
 # Future subsystems (uncomment as implemented):
