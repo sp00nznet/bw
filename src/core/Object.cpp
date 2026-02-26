@@ -7,6 +7,7 @@
 // here and are overridden by Living, Villager, Tree, Abode, etc.
 
 #include <black/Object.h>
+#include <black/ObjectInfo.h>
 
 // ============================================================================
 // Orientation and scale (vtable 0x500-0x528)
@@ -108,6 +109,33 @@ bool32_t Object::CanBeExaminedByCreature(Creature*) {
     // Override: all Objects can be examined by creatures
     // Original at 0x00402a90
     return 1;
+}
+
+bool32_t Object::IsSuitableForCreatureAction() {
+    // Override: reads canCreatureInteractWithMe from GObjectInfo
+    // Original at 0x00402a20: mov eax,[ecx+0x28]; mov eax,[eax+0xC0]
+    return info->canCreatureInteractWithMe;
+}
+
+bool32_t Object::CanBeAttackedByCreature(Creature* creature) {
+    // Override: reads canCreatureAttackMe from GObjectInfo, also checks creature != this
+    // Original at 0x00402a40: checks info->canCreatureAttackMe && creature != this
+    if (info->canCreatureAttackMe && reinterpret_cast<void*>(creature) != reinterpret_cast<void*>(this)) {
+        return 1;
+    }
+    return 0;
+}
+
+bool32_t Object::CanBePlayedWithByCreature(Creature*) {
+    // Override: reads canCreaturePlayWithMe from GObjectInfo
+    // Original at 0x00402a60: mov eax,[ecx+0x28]; mov eax,[eax+0xC8]
+    return info->canCreaturePlayWithMe;
+}
+
+const char* Object::GetText() {
+    // Override: returns the debug string from GObjectInfo
+    // Original at 0x00402b40: mov eax,[ecx+0x28]; add eax,0x18; ret
+    return info->debugString;
 }
 
 bool Object::BlocksTownClearArea() const {
@@ -270,9 +298,22 @@ LH3DObject_ObjectType Object::Get3DType() { return LH3D_OBJECT_TYPE_DEFAULT; }
 // Food / resource (vtable 0x660-0x69C)
 // ============================================================================
 
-float Object::GetFoodValue(FOOD_TYPE) { return 0.0f; }
+float Object::GetFoodValue(FOOD_TYPE type) {
+    // Checks if requested food type matches this object's food type (bitmask test),
+    // then returns foodValue from GObjectInfo.
+    // Original at 0x004026d0: calls GetFoodType(), test type & result, reads info->foodValue
+    FOOD_TYPE my_type = GetFoodType();
+    if (static_cast<uint32_t>(type) & static_cast<uint32_t>(my_type)) {
+        return info->foodValue;
+    }
+    return 0.0f;
+}
 float Object::GetWoodValue() { return 0.0f; }
-FOOD_TYPE Object::GetFoodType() { return FOOD_TYPE_0; }
+FOOD_TYPE Object::GetFoodType() {
+    // Delegates to GObjectInfo's food_type field.
+    // Original at 0x00402700: reads info->vftable->GetFoodType(info) which returns food_type.
+    return static_cast<FOOD_TYPE>(info->food_type);
+}
 float Object::GetImpressiveValue_1() { return 0.0f; }
 bool Object::IsSpellSeedReturnPoint() const { return false; }
 bool32_t Object::IsABeliever() { return 0; }
