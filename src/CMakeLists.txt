@@ -35,6 +35,10 @@ add_library(bw_core STATIC
     core/Totem.cpp
     core/Workshop.cpp
     core/StoragePit.cpp
+    core/Creche.cpp
+    core/Graveyard.cpp
+    core/SpellDispenser.cpp
+    core/Feature.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
     core/Tree.cpp
