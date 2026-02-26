@@ -1,14 +1,15 @@
 // Creche class implementation
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
-// Cross-referenced with bw1-decomp (v1.20)
 
 #include <black/Creche.h>
 
-void Creche::ToBeDeleted(int /*param*/) {
-    // Original at 0x0050aa30 — complex
+void Creche::ToBeDeleted(int param) {
+    // Original at 0x0050aa30 — complex cleanup
+    Abode::ToBeDeleted(param);
 }
 
 char* Creche::GetDebugText() {
+    // Original at 0x0050a9f0
     static char text[] = "Creche";
     return text;
 }
@@ -19,13 +20,13 @@ uint32_t Creche::GetSaveType() {
 }
 
 MapCoords* Creche::GetArrivePos(MapCoords* out) {
-    // Original at 0x0050a990: calls GetDoorPos
-    return GetDoorPos(out);
+    // Original at 0x0050a990 — complex
+    return out;
 }
 
 bool32_t Creche::CanActAsAContainer(Creature* /*creature*/) {
     // Original at 0x0050a9b0
-    return 1;
+    return 0;
 }
 
 bool32_t Creche::IsStoragePit(Creature* /*creature*/) {
@@ -33,13 +34,14 @@ bool32_t Creche::IsStoragePit(Creature* /*creature*/) {
     return 0;
 }
 
-void Creche::ReduceLife(float /*value*/, GPlayer* /*player*/) {
+void Creche::ReduceLife(float value, GPlayer* player) {
     // Original at 0x0050ab90 — complex
+    Abode::ReduceLife(value, player);
 }
 
 LH3DObject_ObjectType Creche::Get3DType() {
     // Original at 0x0050a9d0
-    return LH3D_OBJECT_TYPE_DEFAULT;
+    return static_cast<LH3DObject_ObjectType>(0);
 }
 
 void Creche::DeleteDependancys() {

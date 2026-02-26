@@ -1,23 +1,12 @@
 // CitadelPart class implementation
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
-// Cross-referenced with bw1-decomp (v1.20)
-//
-// Trivial methods at 0x00464axx-0x00464bxx and 0x004694xx are packed 16 bytes apart.
-// Complex methods at 0x004695xx-0x004699xx.
 
 #include <black/CitadelPart.h>
 
-// ============================================================================
-// Overrides of Base virtuals
-// ============================================================================
-
-void CitadelPart::ToBeDeleted(int /*param*/) {
-    // Original at 0x00469540 — complex
+void CitadelPart::ToBeDeleted(int param) {
+    // Original at 0x00469540 — complex cleanup
+    MultiMapFixed::ToBeDeleted(param);
 }
-
-// ============================================================================
-// Overrides of GameThing virtuals
-// ============================================================================
 
 GPlayer* CitadelPart::GetPlayer() {
     // Original at 0x00469750 — complex
@@ -45,33 +34,25 @@ uint32_t CitadelPart::GetSaveType() {
     return 0;
 }
 
-// ============================================================================
-// Overrides of GameThingWithPos virtuals
-// ============================================================================
-
 uint32_t CitadelPart::GetCreatureBeliefType() {
     // Original at 0x00464aa0 — complex
     return 0;
 }
 
 Citadel* CitadelPart::GetCitadel() {
-    // Original at 0x00464a80: returns citadel field
+    // Original at 0x00464a80
     return citadel;
 }
 
 bool32_t CitadelPart::IsCitadelPart_0() {
-    // Original at 0x00464b00: returns 1
+    // Original at 0x00464b00
     return 1;
 }
 
 bool32_t CitadelPart::IsCitadelPart_1(Creature* /*creature*/) {
-    // Original at 0x00464b10: returns 1
+    // Original at 0x00464b10
     return 1;
 }
-
-// ============================================================================
-// Overrides of Object virtuals
-// ============================================================================
 
 void* CitadelPart::GetActualObjectToEffect(GPlayer* /*player*/, bool /*param2*/) {
     // Original at 0x00469780 — complex
@@ -89,22 +70,21 @@ uint32_t CitadelPart::Process() {
 }
 
 int CitadelPart::GetMesh() const {
-    // Original at 0x00464a90
+    // Original at 0x00464a90 — complex
     return 0;
 }
 
-void CitadelPart::CallVirtualFunctionsForCreation(const MapCoords& coords) {
+void CitadelPart::CallVirtualFunctionsForCreation(const MapCoords& /*coords*/) {
     // Original at 0x00469760 — complex
-    MultiMapFixed::CallVirtualFunctionsForCreation(coords);
 }
 
 LH3DObject_ObjectType CitadelPart::Get3DType() {
     // Original at 0x004694b0
-    return LH3D_OBJECT_TYPE_DEFAULT;
+    return static_cast<LH3DObject_ObjectType>(0);
 }
 
 bool32_t CitadelPart::CanBeDestroyedBySpell_1(Spell* /*param1*/) {
-    // Original at 0x004695d0 — complex
+    // Original at 0x004695d0
     return 0;
 }
 
@@ -118,13 +98,9 @@ size_t CitadelPart::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/
 }
 
 bool CitadelPart::ShouldFootpathsGoRound() {
-    // Original at 0x004694f0: returns true
+    // Original at 0x004694f0
     return true;
 }
-
-// ============================================================================
-// Overrides of MultiMapFixed virtuals
-// ============================================================================
 
 bool CitadelPart::IsRepaired() {
     // Original at 0x00464ab0 — complex
