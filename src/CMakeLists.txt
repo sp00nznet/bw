@@ -34,12 +34,15 @@ add_library(bw_core STATIC
     core/Wonder.cpp
     core/Totem.cpp
     core/Workshop.cpp
+    core/StoragePit.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
     core/Tree.cpp
     # Mobile-derived entities
     core/MobileObject.cpp
     core/Pot.cpp
+    # Object-derived entities
+    core/SpellSeed.cpp
     # Living-derived entities
     core/Villager.cpp
     core/Animal.cpp
