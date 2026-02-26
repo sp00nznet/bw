@@ -50,6 +50,8 @@ add_library(bw_core STATIC
     core/Bonfire.cpp
     core/Tree.cpp
     core/MagicTree.cpp
+    core/PFootball.cpp
+    core/BigForest.cpp
     # Mobile-derived entities
     core/MobileObject.cpp
     core/Pot.cpp
@@ -57,12 +59,18 @@ add_library(bw_core STATIC
     core/Arrow.cpp
     core/Poo.cpp
     core/PBall.cpp
+    core/HanoiBlock.cpp
     core/Whale.cpp
     core/FieldCrop.cpp
     # Object-derived entities
     core/Furniture.cpp
+    core/CitadelEntrance.cpp
     core/GWaterfall.cpp
+    core/GStreetLantern.cpp
+    core/ShowNeedsVisuals.cpp
     core/SpellSeed.cpp
+    # GameThingWithPos-derived (non-Object)
+    core/GStreetLight.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Citadel.cpp
@@ -73,6 +81,7 @@ add_library(bw_core STATIC
     core/Animal.cpp
     core/Lion.cpp
     core/Cow.cpp
+    core/Dove.cpp
     core/Creature.cpp
     # Map system
     core/Map.cpp
