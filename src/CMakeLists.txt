@@ -90,6 +90,9 @@ add_library(bw_core STATIC
     core/FishFarm.cpp
     core/Football.cpp
     core/MapShield.cpp
+    # Camera system
+    core/CameraMode.cpp
+    core/GCamera.cpp
     # GameThingWithPos-derived (non-Object)
     core/GStreetLight.cpp
     core/Arena.cpp
