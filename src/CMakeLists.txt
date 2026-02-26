@@ -29,6 +29,7 @@ add_library(bw_core STATIC
     core/Fixed.cpp
     core/SingleMapFixed.cpp
     core/MultiMapFixed.cpp
+    core/Abode.cpp
     core/Tree.cpp
     # Living-derived entities
     core/Villager.cpp
