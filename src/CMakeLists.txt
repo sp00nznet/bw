@@ -28,6 +28,7 @@ add_library(bw_core STATIC
     # Fixed object branch (non-moving map objects)
     core/Fixed.cpp
     core/SingleMapFixed.cpp
+    core/MultiMapFixed.cpp
     core/Tree.cpp
     # Living-derived entities
     core/Villager.cpp
