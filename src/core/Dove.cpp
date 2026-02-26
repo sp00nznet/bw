@@ -78,3 +78,43 @@ uint32_t Dove::StandAnimation() {
     // Original at 0x0041bd80 — complex
     return 0;
 }
+
+// ============================================================================
+// SpellDove
+// ============================================================================
+
+char* SpellDove::GetDebugText() {
+    // Original at 0x0041eb50
+    static char text[] = "SpellDove";
+    return text;
+}
+
+uint32_t SpellDove::Load(GameOSFile* /*file*/) {
+    // Original at 0x0041fad0 — complex serialization
+    return 0;
+}
+
+uint32_t SpellDove::Save(GameOSFile* /*file*/) {
+    // Original at 0x0041fb40 — complex serialization
+    return 0;
+}
+
+uint32_t SpellDove::GetSaveType() {
+    // Original at 0x0041eb40
+    return 0;
+}
+
+bool SpellDove::SetDying() {
+    // Original at 0x0041f5c0 — complex
+    return false;
+}
+
+uint32_t SpellDove::StandAnimation() {
+    // Original at 0x0041bde0 — complex
+    return 0;
+}
+
+uint32_t SpellDove::GetNumTurnsToDieOver() {
+    // Original at 0x0041f620 — complex
+    return 0;
+}

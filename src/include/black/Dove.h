@@ -28,3 +28,20 @@ struct Dove : public Animal {
     uint32_t StandAnimation() override;
 };
 static_assert(sizeof(Dove) == 0x148, "Dove size mismatch");
+
+// SpellDove — summoned dove (spell variant)
+struct SpellDove : public Dove {
+    // === Overrides of GameThing virtuals ===
+    char* GetDebugText() override;
+    uint32_t Load(GameOSFile* file) override;
+    uint32_t Save(GameOSFile* file) override;
+    uint32_t GetSaveType() override;
+
+    // === Overrides of Object virtuals ===
+    bool SetDying() override;
+    uint32_t StandAnimation() override;
+
+    // === Overrides of Living virtuals ===
+    uint32_t GetNumTurnsToDieOver() override;
+};
+static_assert(sizeof(SpellDove) == 0x148, "SpellDove size mismatch");

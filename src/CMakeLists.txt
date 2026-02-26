@@ -88,8 +88,23 @@ add_library(bw_core STATIC
     core/Villager.cpp
     core/Animal.cpp
     core/Lion.cpp
+    core/Leopard.cpp
+    core/Tiger.cpp
+    core/Wolf.cpp
     core/Cow.cpp
+    core/Horse.cpp
+    core/Sheep.cpp
+    core/Pig.cpp
+    core/Goat.cpp
+    core/Tortoise.cpp
+    core/Zebra.cpp
     core/Dove.cpp
+    core/Crow.cpp
+    core/Pigeon.cpp
+    core/Seagull.cpp
+    core/Swallow.cpp
+    core/Vulture.cpp
+    core/Bat.cpp
     core/Creature.cpp
     # Map system
     core/Map.cpp
