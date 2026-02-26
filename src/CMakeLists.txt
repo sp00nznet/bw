@@ -32,6 +32,8 @@ add_library(bw_core STATIC
     core/Abode.cpp
     core/Windmill.cpp
     core/Wonder.cpp
+    core/Totem.cpp
+    core/Workshop.cpp
     core/Tree.cpp
     # Living-derived entities
     core/Villager.cpp
