@@ -122,6 +122,11 @@ add_library(bw_core STATIC
     core/PlannedWorshipSiteUpgrade.cpp
     core/PlannedTownCitadelHeart.cpp
     core/PlannedTownCentre.cpp
+    # BuildingSite branch (GameThing-derived construction management)
+    core/BuildingSite.cpp
+    core/StandardBuildingSite.cpp
+    core/CitadelBuildingSite.cpp
+    core/WorkshopBuildingSite.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
     core/Playtime.cpp
