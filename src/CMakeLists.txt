@@ -33,6 +33,9 @@ add_library(bw_core STATIC
     core/Villager.cpp
     core/Animal.cpp
     core/Creature.cpp
+    # Map system
+    core/Map.cpp
+    core/MapCoords.cpp
 )
 
 # Future subsystems (uncomment as implemented):
