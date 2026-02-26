@@ -38,6 +38,7 @@ add_library(bw_core STATIC
     core/Creche.cpp
     core/Graveyard.cpp
     core/SpellDispenser.cpp
+    core/TownCentre.cpp
     core/Feature.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
@@ -47,6 +48,8 @@ add_library(bw_core STATIC
     core/Pot.cpp
     # Object-derived entities
     core/SpellSeed.cpp
+    # Container branch (groups/collections)
+    core/Container.cpp
     # Living-derived entities
     core/Villager.cpp
     core/Animal.cpp
