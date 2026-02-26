@@ -74,7 +74,13 @@ struct LH3DColor {
 
 struct Object : public GameThingWithPos {
     // === Overrides of GameThingWithPos virtuals ===
+    float GetLife() override;
+    float GetScale() override;
     bool IsMoving() const override;
+    bool32_t IsObject() override;
+    bool32_t CanBePoodOn(Creature* creature) override;
+    bool32_t CanBeHelpedByCreature(Creature* creature) override;
+    bool32_t CanBeExaminedByCreature(Creature* creature) override;
 
     // === Virtual methods extending GameThingWithPos's vtable ===
     // These add ~215 new virtual slots (0x500 through 0x858)

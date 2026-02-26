@@ -12,6 +12,28 @@
 // Orientation and scale (vtable 0x500-0x528)
 // ============================================================================
 
+// ============================================================================
+// Overrides of GameThingWithPos
+// ============================================================================
+
+float Object::GetLife() {
+    // Override: reads actual life field at offset 0x48
+    // (GameThingWithPos default returns 1.0f)
+    // Original at 0x00402600
+    return life;
+}
+
+float Object::GetScale() {
+    // Override: reads actual scale field at offset 0x50
+    // (GameThingWithPos default returns 0.0f)
+    // Original at 0x00402520
+    return scale;
+}
+
+// ============================================================================
+// Orientation and scale (vtable 0x500-0x528)
+// ============================================================================
+
 void Object::DestroyedByBeam() {}
 
 float Object::GetXAngle() {
@@ -62,6 +84,30 @@ bool Object::IsReachable() {
 // IsMoving: checks if XZ position differs from stored obj_coords
 bool Object::IsMoving() const {
     return coords.x != obj_coords.x || coords.z != obj_coords.z;
+}
+
+bool32_t Object::IsObject() {
+    // Override: Object and all derived classes return 1
+    // Original at 0x00402a14
+    return 1;
+}
+
+bool32_t Object::CanBePoodOn(Creature*) {
+    // Override: all Objects can be pood on by creatures
+    // Original at 0x00402a30
+    return 1;
+}
+
+bool32_t Object::CanBeHelpedByCreature(Creature*) {
+    // Override: all Objects can be helped by creatures
+    // Original at 0x00402a80
+    return 1;
+}
+
+bool32_t Object::CanBeExaminedByCreature(Creature*) {
+    // Override: all Objects can be examined by creatures
+    // Original at 0x00402a90
+    return 1;
 }
 
 bool Object::BlocksTownClearArea() const {
@@ -151,7 +197,10 @@ LH3DSprite* Object::GetBeliefSprite() {
 // Life and effects (vtable 0x5B0-0x5FC)
 // ============================================================================
 
-void Object::SetLife(float /*life*/) {}
+void Object::SetLife(float l) {
+    // Writes to life field at offset 0x48
+    life = l;
+}
 
 bool Object::IsAlive() {
     // Checks GetLife() > 0.0 && IsAvailable()
@@ -185,13 +234,17 @@ uint32_t Object::DestroyedByEffect(GPlayer*, float) { return 0; }
 // ============================================================================
 
 uint32_t Object::Process() { return 0; }
-uint32_t Object::ProcessBySpell(Spell*) { return 0; }
+uint32_t Object::ProcessBySpell(Spell*) { return 1; }
 void Object::ApplySingleEffect(EFFECT_TYPE, float, GameThing*, const MapCoords*) {}
 int Object::GetMesh() const { return 0; }
-int Object::GetDetailMesh(int) { return 0; }
+int Object::GetDetailMesh(int /*detail*/) {
+    // Default: delegates to GetMesh() through vtable
+    // Original at 0x00402660: call [eax + 0x608] = GetMesh
+    return GetMesh();
+}
 void Object::Draw() {}
 void Object::DrawOutOfMap(bool) {}
-bool Object::IsG3DObjectDrawnInHand() { return false; }
+bool Object::IsG3DObjectDrawnInHand() { return true; }
 void Object::GetDrawRegion(LHRegion*) {}
 uint32_t Object::ProcessState() { return 0; }
 float Object::GetProjectileSpeed() { return 0.0f; }
@@ -269,51 +322,51 @@ bool32_t Object::NetworkFriendlyStartLockedSelect(GInterfaceStatus*) {
     return 1;  // Network-friendly operations default to true
 }
 
-bool32_t Object::NetworkUnfriendlyStartLockedSelect() { return 0; }
-bool32_t Object::IsReadyForNetworkUnfriendlyLockedSelect() { return 0; }
-bool32_t Object::NetworkUnfriendlyLockedSelect(ControlHandUpdateInfo*) { return 0; }
-bool32_t Object::GetReadyForNetworkUnfriendlyEndLockedSelect() { return 0; }
-bool32_t Object::IsReadyForNetworkUnfriendlyEndLockedSelect() { return 0; }
-bool32_t Object::NetworkUnfriendlyEndLockedSelect() { return 0; }
+bool32_t Object::NetworkUnfriendlyStartLockedSelect() { return 1; }
+bool32_t Object::IsReadyForNetworkUnfriendlyLockedSelect() { return 1; }
+bool32_t Object::NetworkUnfriendlyLockedSelect(ControlHandUpdateInfo*) { return 1; }
+bool32_t Object::GetReadyForNetworkUnfriendlyEndLockedSelect() { return 1; }
+bool32_t Object::IsReadyForNetworkUnfriendlyEndLockedSelect() { return 1; }
+bool32_t Object::NetworkUnfriendlyEndLockedSelect() { return 1; }
 
 bool32_t Object::NetworkFriendlyEndLockedSelect(GInterfaceStatus*) {
     return 1;
 }
 
-bool32_t Object::ValidAsInterfaceTarget() { return 0; }
-bool32_t Object::ValidAsInterfaceLeashTarget() { return 0; }
+bool32_t Object::ValidAsInterfaceTarget() { return 1; }
+bool32_t Object::ValidAsInterfaceLeashTarget() { return 1; }
 bool32_t Object::SelectOnlyAfterRecSystem() { return 0; }
 bool32_t Object::ValidForPlaceInHand(GInterfaceStatus*) { return 0; }
 bool32_t Object::InterfaceSetInMagicHand(GInterfaceStatus*) { return 0; }
 bool32_t Object::InterfaceSetOutMagicHand(GInterfaceStatus*) { return 0; }
 bool32_t Object::ValidToRemoveFromHand(GInterfaceStatus*, const MapCoords*) { return 0; }
-uint32_t Object::RemoveFromHand(GInterfaceStatus*, const MapCoords*) { return 0; }
+uint32_t Object::RemoveFromHand(GInterfaceStatus*, const MapCoords*) { return 0x17; }
 bool32_t Object::ValidToShakeFromHand() { return 0; }
-bool32_t Object::InterfaceMustBeInInfluenceForInteraction() { return 0; }
+bool32_t Object::InterfaceMustBeInInfluenceForInteraction() { return 1; }
 bool32_t Object::IsTuggable() { return 0; }
 uint32_t Object::ValidToApplyThisToObject(GInterfaceStatus*, Object*) { return 0; }
 uint32_t Object::ApplyThisToObject(GInterfaceStatus*, Object*, GestureSystemPacketData*) { return 0; }
 uint32_t Object::ValidToApplyThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 0; }
 uint32_t Object::ApplyThisToMapCoord(GInterfaceStatus*, const MapCoords*, GestureSystemPacketData*) { return 0; }
 uint32_t Object::ValidForLockedApplyProcess(GInterfaceStatus*) { return 0; }
-uint32_t Object::ApplyUnlockProcess(GInterfaceStatus*) { return 0; }
+uint32_t Object::ApplyUnlockProcess(GInterfaceStatus*) { return 1; }
 uint32_t Object::IsInterfacePowerUpWhenInHand() const { return 0; }
 uint32_t Object::ApplyOnlyAfterRecSystem() { return 0; }
 uint32_t Object::ApplyOnlyAfterReleased() { return 0; }
 uint32_t Object::InterfaceValidToTap(GInterfaceStatus*) { return 0; }
 uint32_t Object::InterfaceTap(GInterfaceStatus*) { return 0; }
 uint32_t Object::InterfaceValidToGiveObject(GInterfaceStatus*, Object*) { return 0; }
-uint32_t Object::InterfaceGiveObject(GInterfaceStatus*, Object*) { return 0; }
+uint32_t Object::InterfaceGiveObject(GInterfaceStatus*, Object*) { return 0x16; }
 uint32_t Object::InterfaceValidToInteractAsMapCoordsObject(GInterfaceStatus*) { return 0; }
-uint32_t Object::InterfaceInteractAsMapCoordsObject(GInterfaceStatus*) { return 0; }
+uint32_t Object::InterfaceInteractAsMapCoordsObject(GInterfaceStatus*) { return 1; }
 uint32_t Object::ThrowObjectFromHand(GInterfaceStatus*, int) { return 0; }
 uint32_t Object::ValidToSelectFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 0; }
 uint32_t Object::ValidToApplyFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 0; }
-uint32_t Object::SelectFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 0; }
-uint32_t Object::ApplyFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 0; }
+uint32_t Object::SelectFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 1; }
+uint32_t Object::ApplyFightThisToMapCoord(GInterfaceStatus*, const MapCoords*) { return 1; }
 uint32_t Object::ValidToFightThisToObject(GInterfaceStatus*, const MapCoords*) { return 0; }
-uint32_t Object::FightThisToObject(GInterfaceStatus*, Object*) { return 0; }
-bool32_t Object::IsEffectReceiver(EffectValues*) { return 0; }
+uint32_t Object::FightThisToObject(GInterfaceStatus*, Object*) { return 1; }
+bool32_t Object::IsEffectReceiver(EffectValues*) { return 1; }
 bool32_t Object::CanBeDestroyedBySpell_1(Spell*) { return 0; }
 float Object::GetImportance() { return 0.0f; }
 
