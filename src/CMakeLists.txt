@@ -83,6 +83,9 @@ add_library(bw_core STATIC
     core/FireFly.cpp
     core/Reward.cpp
     core/TownDesireFlags.cpp
+    core/SpellIcon.cpp
+    core/FishFarm.cpp
+    core/Football.cpp
     # GameThingWithPos-derived (non-Object)
     core/GStreetLight.cpp
     core/Arena.cpp
@@ -93,6 +96,8 @@ add_library(bw_core STATIC
     core/WeatherThing.cpp
     core/Mist.cpp
     core/InfluenceRing.cpp
+    core/GParticleContainer.cpp
+    core/SpellSeedGraphic.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
     # Container branch (groups/collections)
