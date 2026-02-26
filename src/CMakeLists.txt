@@ -162,6 +162,11 @@ add_library(bw_core STATIC
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
+    core/TownStats.cpp
+    core/TownDesire.cpp
+    # Town spell icons
+    core/TownSpellIcon.cpp
+    core/TownCentreSpellIcon.cpp
     # Map system
     core/Map.cpp
     core/MapCoords.cpp
