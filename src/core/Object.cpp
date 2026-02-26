@@ -280,8 +280,8 @@ bool Object::CanBePickedUp() { return false; }
 bool32_t Object::CanBeCrushed() { return 0; }
 float Object::GetTopPos() { return 0.0f; }
 float Object::GetVillagerHugRadius() {
-    // Original: GetScale() * 1.05 + 0.0005
-    return GetScale() * 1.05f + 0.0005f;
+    // Original at 0x004026b0: call [eax+0x64] (Get2DRadius) * 1.05 + 0.0005
+    return Get2DRadius() * 1.05f + 0.0005f;
 }
 float Object::GetWeight() { return 0.0f; }
 void Object::GetWorldMatrix(LHMatrix*) {}
@@ -339,8 +339,8 @@ void Object::SetPoisoned(int) {}
 
 bool Object::IsLockedInInteract() { return false; }
 bool Object::SetDying() {
-    // Original: calls SetLife(0.0f) then returns true
-    SetLife(0.0f);
+    // Original at 0x004027a0: push 0; call [eax+0x0c] (ToBeDeleted); return true
+    ToBeDeleted(0);
     return true;
 }
 bool Object::IsAttackable(Object*) { return false; }
