@@ -100,6 +100,18 @@ add_library(bw_core STATIC
     core/GParticleContainer.cpp
     core/SpellSeedGraphic.cpp
     core/Spell.cpp
+    core/SpellWithObjects.cpp
+    core/SpellHeal.cpp
+    core/SpellForest.cpp
+    core/SpellResource.cpp
+    core/SpellCreature.cpp
+    core/SpellWater.cpp
+    core/SpellStormAndTornado.cpp
+    core/SpellShield.cpp
+    core/SpellTeleport.cpp
+    core/SpellFlock.cpp
+    core/SpellFlockFlying.cpp
+    core/SpellFlockGround.cpp
     core/PlannedMultiMapFixed.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
