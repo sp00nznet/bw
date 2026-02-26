@@ -30,6 +30,8 @@ add_library(bw_core STATIC
     core/SingleMapFixed.cpp
     core/MultiMapFixed.cpp
     core/Abode.cpp
+    core/Windmill.cpp
+    core/Wonder.cpp
     core/Tree.cpp
     # Living-derived entities
     core/Villager.cpp
