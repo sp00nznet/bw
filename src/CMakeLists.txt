@@ -82,9 +82,17 @@ add_library(bw_core STATIC
     core/SpellSeed.cpp
     core/FireFly.cpp
     core/Reward.cpp
+    core/TownDesireFlags.cpp
     # GameThingWithPos-derived (non-Object)
     core/GStreetLight.cpp
     core/Arena.cpp
+    core/Meeting.cpp
+    core/WayPoint.cpp
+    core/ScriptTimer.cpp
+    core/ScriptMarker.cpp
+    core/WeatherThing.cpp
+    core/Mist.cpp
+    core/InfluenceRing.cpp
     # GameThing-derived (non-positional)
     core/TownArtifact.cpp
     # Container branch (groups/collections)
