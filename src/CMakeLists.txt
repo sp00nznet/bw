@@ -44,18 +44,24 @@ add_library(bw_core STATIC
     core/Flowers.cpp
     core/AnimatedStatic.cpp
     core/PrayerSite.cpp
+    core/WorshipSiteUpgrade.cpp
     core/MobileStatic.cpp
     core/Rock.cpp
+    core/Bonfire.cpp
     core/Tree.cpp
+    core/MagicTree.cpp
     # Mobile-derived entities
     core/MobileObject.cpp
     core/Pot.cpp
     core/Scaffold.cpp
     core/Arrow.cpp
     core/Poo.cpp
+    core/PBall.cpp
     core/Whale.cpp
     core/FieldCrop.cpp
     # Object-derived entities
+    core/Furniture.cpp
+    core/GWaterfall.cpp
     core/SpellSeed.cpp
     # Container branch (groups/collections)
     core/Container.cpp
@@ -65,6 +71,8 @@ add_library(bw_core STATIC
     # Living-derived entities
     core/Villager.cpp
     core/Animal.cpp
+    core/Lion.cpp
+    core/Cow.cpp
     core/Creature.cpp
     # Map system
     core/Map.cpp
