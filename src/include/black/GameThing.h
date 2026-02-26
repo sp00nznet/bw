@@ -52,45 +52,91 @@ struct GameThing : public Base {
     // Inherited from Base: Serialise, ~dtor, Delete, ToBeDeleted, Get3DSoundPos,
     //   CleanUpForSerialisation, Dump
 
-    // New virtual methods (vtable slots 7-62):
+    // New virtual methods (vtable slots 7-62, offsets 0x1C-0xF8):
+
+    // --- Identity / influence (0x1C-0x28) ---
     virtual GPlayer* GetPlayer();
     virtual void SetPlayer(GPlayer* player);
     virtual float CalculateInfluence(const MapCoords& coords);
+
+    // --- Availability / dance (0x2C) ---
     virtual void RemoveDance();
     virtual bool IsAvailable();
+
+    // --- Creature type queries (0x30-0x38) ---
     virtual bool IsCreature(Creature* creature);
     virtual bool IsCreature();  // overload - no params
     virtual bool IsCreatureNotTooNear(Creature* creature);
+
+    // --- Drawing / alignment (0x3C-0x44) ---
     virtual float GetDrawImportance();
     virtual float GetMaxAlignmentChangePerGameTurn();
     virtual bool GetComputerSeen();
+
+    // --- Town / villager activity (0x48-0x54) ---
     virtual Town* GetTown();
     virtual float GetVillagerActivityDesire(Villager* villager);
     virtual void SetVillagerActivity(Villager* villager);
     virtual uint32_t UpdateVillagerActivityEffect(Villager* villager);
+
+    // --- Spell (0x58-0x5C) ---
     virtual void MaintainSpell(uint32_t param1, float param2);
     virtual void UpdateSpellInfo(Spell* spell, PSysProcessInfo* info);
+
+    // --- Geometry (0x60-0x64) ---
     virtual float GetRadius();
     virtual float Get2DRadius();
+
+    // --- Player tracking (0x68-0x6C) ---
     virtual GPlayer* GetPlayerWhoLastPickedMeUp();
     virtual GPlayer* GetPlayerWhoLastDroppedMe();
+
+    // --- Footpath (0x70-0x88) ---
     virtual bool IsFootpathLink();
     virtual GFootpathLink* GetFootpathLink();
     virtual void AddFootpathLink(GFootpath* footpath);
     virtual uint32_t GetNearestPathTo(const MapCoords& coords, float param2, int param3);
-    // UseFootpathIfNecessary, AddFootpath, RemoveFootpath
-    // JustAddResource, JustRemoveResource, JustGetResource, GetResource
-    // AddResource, RemoveResource
-    // CastCreature, CastPlayer, CastOneOffSpellSeed, CastAbode, CastMultiMapFixed
-    // CastSpellIcon, CastTree
+    virtual void UseFootpathIfNecessary(Living* living, const MapCoords* coords, uint8_t param3);
+    virtual uint32_t AddFootpath(GFootpath* footpath);
+    virtual uint32_t RemoveFootpath(GFootpath* footpath);
+
+    // --- Resource management (0x8C-0xA0) ---
+    virtual uint32_t JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool param3);
+    virtual uint32_t JustRemoveResource(RESOURCE_TYPE type, uint32_t amount, bool* param3);
+    virtual uint32_t JustGetResource(RESOURCE_TYPE type, uint32_t amount, bool* param3);
+    virtual uint32_t GetResource(RESOURCE_TYPE type);
+    virtual uint32_t AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool param4, const MapCoords& coords, int param6);
+    virtual uint32_t RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool* param4);
+
+    // --- Cast methods (0xA4-0xBC) ---
+    virtual Creature* CastCreature();
+    virtual GPlayer* CastPlayer();
+    virtual SpellSeed* CastOneOffSpellSeed();
+    virtual Abode* CastAbode();
+    virtual MultiMapFixed* CastMultiMapFixed();
+    virtual SpellIcon* CastSpellIcon();
+    virtual Tree* CastTree();
+
+    // --- Global list / artifact (0xC0-0xCC) ---
     virtual bool IsDeletedOnNewMap();
     virtual uint16_t GetNumberOfInstanceForGlobalList();
     virtual float GetTownArtifactValue();
     virtual bool CanBecomeArtifact();
+
+    // --- Interface / debug (0xD0-0xE4) ---
     virtual void DrawInHand(GInterfaceStatus* status);
     virtual bool IsFunctional();
-    // GetDebugText, GetSampleForAttack, GetGuidanceResourceType, GetShowNeedsPos
-    // Load, Save, GetSaveType, SaveExtraData, ResolveLoad
+    virtual char* GetDebugText();
+    virtual uint32_t GetSampleForAttack();
+    virtual uint32_t GetGuidanceResourceType();
+    virtual uint32_t GetShowNeedsPos(uint32_t param1, MapCoords* param2);
+
+    // --- Serialization (0xE8-0xF8) ---
+    virtual uint32_t Load(GameOSFile* file);
+    virtual uint32_t Save(GameOSFile* file);
+    virtual uint32_t GetSaveType();
+    virtual void SaveExtraData(GameOSFile* file);
+    virtual void ResolveLoad();
 
     // === Fields ===
     uint16_t field_0x8;   // 0x8 — possibly type flags

@@ -119,6 +119,70 @@ uint32_t GameThing::GetNearestPathTo(const MapCoords& /*coords*/, float /*param2
     return 0;
 }
 
+void GameThing::UseFootpathIfNecessary(Living* /*living*/, const MapCoords* /*coords*/, uint8_t /*param3*/) {
+    // Default: no-op
+}
+
+uint32_t GameThing::AddFootpath(GFootpath* /*footpath*/) {
+    return 0;
+}
+
+uint32_t GameThing::RemoveFootpath(GFootpath* /*footpath*/) {
+    return 0;
+}
+
+uint32_t GameThing::JustAddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool /*param3*/) {
+    return 0;
+}
+
+uint32_t GameThing::JustRemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool* /*param3*/) {
+    return 0;
+}
+
+uint32_t GameThing::JustGetResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool* /*param3*/) {
+    return 0;
+}
+
+uint32_t GameThing::GetResource(RESOURCE_TYPE /*type*/) {
+    return 0;
+}
+
+uint32_t GameThing::AddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool /*param4*/, const MapCoords& /*coords*/, int /*param6*/) {
+    return 0;
+}
+
+uint32_t GameThing::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool* /*param4*/) {
+    return 0;
+}
+
+Creature* GameThing::CastCreature() {
+    return nullptr;
+}
+
+GPlayer* GameThing::CastPlayer() {
+    return nullptr;
+}
+
+SpellSeed* GameThing::CastOneOffSpellSeed() {
+    return nullptr;
+}
+
+Abode* GameThing::CastAbode() {
+    return nullptr;
+}
+
+MultiMapFixed* GameThing::CastMultiMapFixed() {
+    return nullptr;
+}
+
+SpellIcon* GameThing::CastSpellIcon() {
+    return nullptr;
+}
+
+Tree* GameThing::CastTree() {
+    return nullptr;
+}
+
 bool GameThing::IsDeletedOnNewMap() {
     return true;
 }
@@ -144,4 +208,40 @@ bool GameThing::IsFunctional() {
     // Decompiled: mov eax, [ecx]; jmp [eax+0x2c]
     // 0x2c / 4 = vtable slot 11 = IsAvailable
     return IsAvailable();
+}
+
+char* GameThing::GetDebugText() {
+    return nullptr;
+}
+
+uint32_t GameThing::GetSampleForAttack() {
+    return 0;
+}
+
+uint32_t GameThing::GetGuidanceResourceType() {
+    return 0;
+}
+
+uint32_t GameThing::GetShowNeedsPos(uint32_t /*param1*/, MapCoords* /*param2*/) {
+    return 0;
+}
+
+uint32_t GameThing::Load(GameOSFile* /*file*/) {
+    return 0;
+}
+
+uint32_t GameThing::Save(GameOSFile* /*file*/) {
+    return 0;
+}
+
+uint32_t GameThing::GetSaveType() {
+    return 0;
+}
+
+void GameThing::SaveExtraData(GameOSFile* /*file*/) {
+    // Default: no-op
+}
+
+void GameThing::ResolveLoad() {
+    // Default: no-op
 }
