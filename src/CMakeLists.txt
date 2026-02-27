@@ -145,6 +145,7 @@ add_library(bw_core STATIC
     core/GFootpathLinkSave.cpp
     # Container branch (groups/collections)
     core/Container.cpp
+    core/Town.cpp
     core/Citadel.cpp
     core/Flock.cpp
     core/Forest.cpp

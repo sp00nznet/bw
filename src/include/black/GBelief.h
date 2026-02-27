@@ -16,7 +16,13 @@ static constexpr int BELIEF_MAX_PLAYERS = 8;
 static constexpr int NUM_REACTION_FUNCTIONS = 41;
 
 struct GBelief : public Base {
-    // No overrides besides implicit destructor
+    // === Static methods ===
+    static float DistanceChangeToBelief(float param1, float param2);  // 0x00438770
+
+    // === Non-virtual methods ===
+    float GetBeliefInPlayer(unsigned long index);                     // 0x00437e70
+    void SetBelief(unsigned long index, float value);                 // 0x004387d0
+    void SetBeliefInPlayerCap(GPlayer* player, float cap);            // 0x00438a00
 
     // === Fields ===
     float    belief_in_player[BELIEF_MAX_PLAYERS];      // 0x08
