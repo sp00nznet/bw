@@ -165,6 +165,10 @@ add_library(bw_core STATIC
     core/GFootpathLink.cpp
     core/GFootpathNode.cpp
     core/GFootpathLinkSave.cpp
+    # Computer player / AI system
+    core/PlayerComputer.cpp
+    core/GAudio.cpp
+    core/PlaytimeElement.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Town.cpp
