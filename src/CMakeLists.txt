@@ -184,6 +184,9 @@ add_library(bw_core STATIC
     core/SubArgument.cpp
     # Hand state system
     core/HandState.cpp
+    # Player/game subsystems
+    core/PlayerMessage.cpp
+    core/GroupBehaviour.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
