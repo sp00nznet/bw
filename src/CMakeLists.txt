@@ -176,6 +176,12 @@ add_library(bw_core STATIC
     core/CreatureBeliefs.cpp
     core/CreatureGlobalExplorationMap.cpp
     core/CreatureMental.cpp
+    core/Prss.cpp
+    core/CreatureSelect.cpp
+    core/MultiplayerDatabase.cpp
+    core/CreatureDatabase.cpp
+    core/CreaturePen.cpp
+    core/SubArgument.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
