@@ -182,6 +182,8 @@ add_library(bw_core STATIC
     core/CreatureDatabase.cpp
     core/CreaturePen.cpp
     core/SubArgument.cpp
+    # Hand state system
+    core/HandState.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
