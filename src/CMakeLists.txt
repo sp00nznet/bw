@@ -65,6 +65,12 @@ add_library(bw_core STATIC
     # Mobile-derived entities
     core/MobileObject.cpp
     core/Pot.cpp
+    core/PotStructure.cpp
+    core/PileResource.cpp
+    core/PileFood.cpp
+    core/PileWood.cpp
+    core/MagicFood.cpp
+    core/MagicWood.cpp
     core/Scaffold.cpp
     core/Arrow.cpp
     core/Poo.cpp
@@ -90,6 +96,8 @@ add_library(bw_core STATIC
     core/FishFarm.cpp
     core/Football.cpp
     core/MapShield.cpp
+    core/MagicShield.cpp
+    core/PhysicalShield.cpp
     # Object-derived entities (additional)
     core/ScriptHighlight.cpp
     core/FelledTree.cpp
