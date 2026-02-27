@@ -98,13 +98,30 @@ Zoomer (0x30) + Zoomer3d (0x90) header-only, CameraMode (0x8, 18 virtuals), GCam
 ### Batch 20: CameraMode subclasses (12 header-only types)
 CameraModeFree (0x18), CameraModeFollow (0x48), + 10 trivial 0x8-byte camera mode variants
 
+### Batch 21: Town class + prerequisites (3 types)
+EffectValues (0x40) header-only, PlayerTownInteract (0x80) inline, Town (0xF28, 30 virtual overrides + 35 non-virtual methods), GBelief methods updated
+
+### Batch 22: Player system (2 types)
+GPlayer (0xA60, 7 virtual overrides + 12 non-virtual methods + 3 static), GPlayerInfo (0x90) header-only, LH3DColor moved to types.h
+
+### Batch 23-25: Creature belief/info types (21 types)
+7 creature info types (all 0x10 GBaseInfo), CreatureBelief (0x4C) + 10 subclasses, CreatureBeliefList (0x14), AllocatedBeliefList (0x18), CreatureBeliefs (0x270)
+
+### Batch 26-31: Creature AI subsystem (42 types)
+Full mental model hierarchy: CreatureDesires (0x708), CreatureAgenda (0x1AF8), CreatureLearning (0x16168), CreatureAttitudeToPlayer (0x1DB4), CreatureExplorationMap (0x2018), DecisionTreeCollection (0x140), Attribute base + 23 subclasses, AttributeTest (0x94), CreaturePlan (0x30) + CreaturePlanState (0x830), CreatureContext (0x70), CreatureMental (0x20D40 — 135KB mega struct)
+
+## Current Stats (as of commit eb4cd27)
+- **245 headers** in `src/include/black/`
+- **158 .cpp files** in `src/core/`
+- **23,481 lines** of C++ total
+- **48 commits**, all pushed to GitHub
+- **~43% coverage** of 569 vendor types
+
 ## What's Next (priority order)
-1. **Town class** (0xF28) — largest class, central to gameplay
-2. **Player / PlayerList** — player state management
-3. **Creature AI subsystem** (~50 types) — CreatureMind, desires, learning, actions
-4. **Landscape/terrain** — map loading, heightfield
-5. **LHVM scripting engine** — virtual machine for level scripts
-6. **Mesh/rendering** — L3D/G3D loaders
+1. **Remaining creature types** — CreatureInfo (0x394), GLivingInfo, CreatureMorphInfo, etc.
+2. **Landscape/terrain** — map loading, heightfield
+3. **LHVM scripting engine** — virtual machine for level scripts
+4. **Mesh/rendering** — L3D/G3D loaders
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
