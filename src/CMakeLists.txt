@@ -148,6 +148,7 @@ add_library(bw_core STATIC
     core/DanceKeyFrame.cpp
     core/GStream.cpp
     core/GInterfaceMessageBuffer.cpp
+    core/VortexSave.cpp
     core/FireEffect.cpp
     core/ShowNeeds.cpp
     core/GFootpath.cpp
