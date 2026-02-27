@@ -90,6 +90,9 @@ add_library(bw_core STATIC
     core/FishFarm.cpp
     core/Football.cpp
     core/MapShield.cpp
+    # Object-derived entities (additional)
+    core/ScriptHighlight.cpp
+    core/FelledTree.cpp
     # Camera system
     core/CameraMode.cpp
     core/GCamera.cpp
@@ -137,6 +140,14 @@ add_library(bw_core STATIC
     core/TownArtifact.cpp
     core/Playtime.cpp
     core/DancePathInfo.cpp
+    core/GMagicHand.cpp
+    core/GClimate.cpp
+    core/Reaction.cpp
+    core/GLeashStatus.cpp
+    core/DanceGroup.cpp
+    core/DanceKeyFrame.cpp
+    core/GStream.cpp
+    core/GInterfaceMessageBuffer.cpp
     core/FireEffect.cpp
     core/ShowNeeds.cpp
     core/GFootpath.cpp
@@ -170,6 +181,7 @@ add_library(bw_core STATIC
     core/Swallow.cpp
     core/Vulture.cpp
     core/Bat.cpp
+    core/SpecialVillager.cpp
     core/Creature.cpp
     # Creature AI subsystem (belief/mental model)
     core/CreatureBeliefList.cpp
@@ -184,9 +196,10 @@ add_library(bw_core STATIC
     core/SubArgument.cpp
     # Hand state system
     core/HandState.cpp
-    # Player/game subsystems
+    # Dance/GroupBehaviour subsystem
     core/PlayerMessage.cpp
     core/GroupBehaviour.cpp
+    core/Dance.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
