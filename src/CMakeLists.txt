@@ -171,6 +171,9 @@ add_library(bw_core STATIC
     core/Vulture.cpp
     core/Bat.cpp
     core/Creature.cpp
+    # Creature AI subsystem (belief/mental model)
+    core/CreatureBeliefList.cpp
+    core/CreatureBeliefs.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
