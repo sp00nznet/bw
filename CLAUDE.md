@@ -24,12 +24,12 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 5a69ff5)
-- **190 headers** in `src/include/black/`
-- **152 .cpp files** in `src/core/`
-- **21,320 lines** of C++ total
-- **43 commits**, all pushed to GitHub
-- **~33% coverage** of 569 vendor types
+## Current Stats (as of commit 663dda7)
+- **309 headers** in `src/include/black/`
+- **165 .cpp files** in `src/core/`
+- **25,044 lines** of C++ total
+- **53 commits**, all pushed to GitHub
+- **~54% coverage** of 569 vendor types
 
 ## Architecture Patterns
 
@@ -110,17 +110,22 @@ GPlayer (0xA60, 7 virtual overrides + 12 non-virtual methods + 3 static), GPlaye
 ### Batch 26-31: Creature AI subsystem (42 types)
 Full mental model hierarchy: CreatureDesires (0x708), CreatureAgenda (0x1AF8), CreatureLearning (0x16168), CreatureAttitudeToPlayer (0x1DB4), CreatureExplorationMap (0x2018), DecisionTreeCollection (0x140), Attribute base + 23 subclasses, AttributeTest (0x94), CreaturePlan (0x30) + CreaturePlanState (0x830), CreatureContext (0x70), CreatureMental (0x20D40 — 135KB mega struct)
 
-## Current Stats (as of commit eb4cd27)
-- **245 headers** in `src/include/black/`
-- **158 .cpp files** in `src/core/`
-- **23,481 lines** of C++ total
-- **48 commits**, all pushed to GitHub
-- **~43% coverage** of 569 vendor types
+### Batch 32: CreatureInfo chain + subsystem deps (8 types)
+GMobileWallHugInfo (0x120), GLivingInfo (0x1F4), CreatureInfo (0x394), GCreaturePenInfo (0x134), CreatureCommandState (0x2C), CreatureMimicState (0x3C), CreatureSubAction (0x60) + CreatureSubActionAgenda (0xC50)
+
+### Batch 33: Creature peripherals + dependencies (17 types)
+CreaturePhysical (0x74) + CreatureDamageMap (0x10), CreatureHelpState (0x98), CreatureCommand (0x8), CreatureReceiveSpell (0x1D8), Prss (0x10, 7 virtuals), CreatureSelect (0x10), MultiplayerDatabase (0x10, 2 virtuals), CreatureDatabase (0x10), CreaturePen (0x8C), SubArgument (0x4, 4 virtuals) + 3 subclasses, SecretCreature (0x4), DifferentCreatureInfo + TownCreatureInfo + GMagicCreatureSpellInfo + LESSON_TYPE enum
+
+### Batch 34: Hand state system + entity info types (33 types)
+HandState (0x8, 5 virtuals) + 11 subclasses (Invisible/Normal/Camera/Tug/Holding/Totem/MultiPickUp/Creature/Grain/PlayAnim/Citadel), 21 info types (GAlignmentInfo, GAnimatedStaticInfo, GArrowInfo, GBallInfo, GBigForestInfo, GCitadelHeartInfo, GCitadelInfo, GFieldInfo, GFlowersInfo, GPFootballInfo, GForestInfo, GFurnitureInfo, GPrayerIconInfo, GPrayerSiteInfo, GRewardInfo, GScaffoldInfo, GFishFarmInfo, GWorshipSiteUpgradeInfo, GSpotVisualInfo, etc.)
+
+### Batch 35: Magic info hierarchy + data info types (23 types)
+GEffectInfo (0x34), GMagicEffectInfo (0x11C), 13 magic spell info types (GMagicFireBallInfo through GMagicWaterInfo), GBeliefInfo, GClimateInfo, GClimateRainInfo, GSpecialVillagerInfo (0x60), GVillagerInfo (0x3A4), HelpSpiritInfo (0x1F4)
 
 ## What's Next (priority order)
-1. **Remaining creature types** — CreatureInfo (0x394), GLivingInfo, CreatureMorphInfo, etc.
-2. **Landscape/terrain** — map loading, heightfield
-3. **LHVM scripting engine** — virtual machine for level scripts
+1. **Landscape/terrain** — map loading, heightfield
+2. **LHVM scripting engine** — virtual machine for level scripts
+3. **Remaining UI/dialog types** — SetupBox hierarchy, dialog boxes
 4. **Mesh/rendering** — L3D/G3D loaders
 
 ## Common Pitfalls (learned the hard way)
