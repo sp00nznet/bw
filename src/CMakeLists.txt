@@ -174,6 +174,8 @@ add_library(bw_core STATIC
     # Creature AI subsystem (belief/mental model)
     core/CreatureBeliefList.cpp
     core/CreatureBeliefs.cpp
+    core/CreatureGlobalExplorationMap.cpp
+    core/CreatureMental.cpp
     # Base-derived (utility/data)
     core/GAlignment.cpp
     core/GBelief.cpp
