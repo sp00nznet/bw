@@ -149,6 +149,8 @@ add_library(bw_core STATIC
     core/GStream.cpp
     core/GInterfaceMessageBuffer.cpp
     core/VortexSave.cpp
+    core/DataPath.cpp
+    core/GameStats.cpp
     core/FireEffect.cpp
     core/ShowNeeds.cpp
     core/GFootpath.cpp
