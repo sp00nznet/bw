@@ -179,6 +179,8 @@ add_library(bw_core STATIC
     # Town spell icons
     core/TownSpellIcon.cpp
     core/TownCentreSpellIcon.cpp
+    # Player system
+    core/Player.cpp
     # Map system
     core/Map.cpp
     core/MapCoords.cpp

@@ -67,11 +67,6 @@ enum LH3DObject_ObjectType : uint32_t {
     LH3D_OBJECT_TYPE_DEFAULT = 0,
 };
 
-// 3D color (ARGB packed)
-struct LH3DColor {
-    uint32_t color;
-};
-
 struct Object : public GameThingWithPos {
     // === Overrides of GameThingWithPos virtuals ===
     float GetLife() override;

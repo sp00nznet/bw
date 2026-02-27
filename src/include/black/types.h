@@ -76,6 +76,11 @@ struct JustWholeMapXZ {
 };
 static_assert(sizeof(JustWholeMapXZ) == 0x8, "JustWholeMapXZ size mismatch");
 
+// 3D color (ARGB packed)
+struct LH3DColor {
+    uint32_t color;
+};
+
 // Resource types used by GameThing resource management
 enum RESOURCE_TYPE : uint32_t {
     RESOURCE_TYPE_FOOD = 0,
