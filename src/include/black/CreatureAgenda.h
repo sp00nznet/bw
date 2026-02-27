@@ -4,28 +4,26 @@
 //
 // Size: 0x1AF8 bytes (inherits 0x8 from Base)
 // Contains embedded CreaturePlanState, plans, and sub-action state.
-// Some embedded types use opaque byte arrays until their headers are created.
 
 #include "Base.h"
 #include "CreaturePlan.h"
+#include "CreatureSubAction.h"
+#include "CreatureCommandState.h"
+#include "CreatureMimicState.h"
 
 struct Creature;
 struct CreatureBelief;
 struct CreatureInfo;
 
-// CreatureSubActionAgenda (0xC50) — opaque until separate header created
-// CreatureCommandState (0x2C) — opaque until separate header created
-// CreatureMimicState (0x3C) — opaque until separate header created
-
 struct CreatureAgenda : public Base {
-    CreaturePlanState plan_state;           // 0x08
-    CreaturePlan      plans[2];            // 0x838
-    uint8_t           sub_action_agenda[0xC50]; // 0x898 — CreatureSubActionAgenda
-    uint8_t           command_state[0x2C]; // 0x14E8 — CreatureCommandState
-    Creature*         creature;            // 0x1514
-    uint32_t          field_0x1518;        // 0x1518
-    uint32_t          field_0x151c;        // 0x151C
-    uint8_t           mimic_state[0x3C];   // 0x1520 — CreatureMimicState
+    CreaturePlanState      plan_state;           // 0x08
+    CreaturePlan           plans[2];             // 0x838
+    CreatureSubActionAgenda sub_action_agenda;   // 0x898
+    CreatureCommandState   command_state;        // 0x14E8
+    Creature*              creature;             // 0x1514
+    uint32_t               field_0x1518;         // 0x1518
+    uint32_t               field_0x151c;         // 0x151C
+    CreatureMimicState     mimic_state;          // 0x1520
     uint32_t          field_0x155c;        // 0x155C
     CreatureBelief*   belief;              // 0x1560
     uint32_t          field_0x1564;        // 0x1564
