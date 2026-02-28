@@ -13,6 +13,10 @@ struct LHPoint {
     float x, y, z;
 };
 
+struct Point2D {
+    float x, y;
+};
+
 // Map coordinate split: cell-local + map-global
 struct MapCoordsSplit {
     uint16_t cell;  // 0x0 — sub-cell position (fractional)
