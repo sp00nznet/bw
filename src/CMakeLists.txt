@@ -259,6 +259,13 @@ add_library(bw_core STATIC
     # Particle system hierarchy
     core/Chain.cpp
     core/DefensiveShield.cpp
+    core/FireGraphic.cpp
+    core/SpellPointInf.cpp
+    core/VortexObjectInfo.cpp
+    core/PSysSound.cpp
+    core/RenderParticle.cpp
+    core/PSysManager.cpp
+    core/PSysInterface.cpp
 )
 
 # Future subsystems (uncomment as implemented):
