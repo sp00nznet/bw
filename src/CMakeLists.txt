@@ -235,6 +235,10 @@ add_library(bw_core STATIC
     # UI option entry hierarchy
     core/SubOptionEntry.cpp
     core/FuncT.cpp
+    # Help system
+    core/HelpDude.cpp
+    # CPU detection
+    core/CPUCheck.cpp
 )
 
 # Future subsystems (uncomment as implemented):
