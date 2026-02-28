@@ -253,6 +253,12 @@ add_library(bw_core STATIC
     # Multiplayer/networking
     core/LayerCommunication.cpp
     core/MPFEMessageObject.cpp
+    core/MPFEMessages.cpp
+    core/BWGameSpy.cpp
+    core/BWLan.cpp
+    # Particle system hierarchy
+    core/Chain.cpp
+    core/DefensiveShield.cpp
 )
 
 # Future subsystems (uncomment as implemented):
