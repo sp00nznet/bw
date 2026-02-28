@@ -169,6 +169,8 @@ add_library(bw_core STATIC
     core/PlayerComputer.cpp
     core/GAudio.cpp
     core/PlaytimeElement.cpp
+    # Sound system
+    core/SoundTag.cpp
     # Container branch (groups/collections)
     core/Container.cpp
     core/Town.cpp
