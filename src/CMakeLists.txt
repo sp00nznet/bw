@@ -244,6 +244,15 @@ add_library(bw_core STATIC
     core/GWeather.cpp
     # Editor icons
     core/EditorIconBase.cpp
+    # Dialog/UI base types
+    core/DialogBoxBase.cpp
+    core/TempleRoom.cpp
+    core/InnerCamera.cpp
+    # Particle system base
+    core/PSysBase.cpp
+    # Multiplayer/networking
+    core/LayerCommunication.cpp
+    core/MPFEMessageObject.cpp
 )
 
 # Future subsystems (uncomment as implemented):
