@@ -239,6 +239,11 @@ add_library(bw_core STATIC
     core/HelpDude.cpp
     # CPU detection
     core/CPUCheck.cpp
+    # Weather system
+    core/LH3DStorm.cpp
+    core/GWeather.cpp
+    # Editor icons
+    core/EditorIconBase.cpp
 )
 
 # Future subsystems (uncomment as implemented):
