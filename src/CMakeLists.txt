@@ -266,6 +266,22 @@ add_library(bw_core STATIC
     core/RenderParticle.cpp
     core/PSysManager.cpp
     core/PSysInterface.cpp
+    # PSys modifiers + particle subtypes
+    core/PSysModifiers.cpp
+    core/ParticleCreator.cpp
+    core/ParticleTypes.cpp
+    core/DefensiveSphere.cpp
+    # Camera + editor types
+    core/CameraModeNew3.cpp
+    core/GCameraEditor.cpp
+    core/AnimEdit.cpp
+    core/EditorHug.cpp
+    # Temple rooms + cameras
+    core/CreatureRoom.cpp
+    core/CreatureRoomCamera.cpp
+    # Misc utility types
+    core/GRand.cpp
+    core/PhysicsSaveInfo.cpp
 )
 
 # Future subsystems (uncomment as implemented):

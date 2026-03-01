@@ -17,14 +17,14 @@ enum BINDABLE_ACTIONS : uint32_t;
 enum LH_KEY : uint32_t;
 
 enum TempleRoomsEnum : uint32_t {
-    WorldRoom       = 0x0,
-    CreatureRoom    = 0x1,
-    ChallengeRoom   = 0x2,
-    UniverseRoom    = 0x3,
-    GameOptionsRoom = 0x4,
-    SaveGameRoom    = 0x5,
-    CreditsRoom     = 0x6,
-    _TempleRoomsEnum_COUNT = 0x7
+    TEMPLE_ROOM_WORLD       = 0x0,
+    TEMPLE_ROOM_CREATURE    = 0x1,
+    TEMPLE_ROOM_CHALLENGE   = 0x2,
+    TEMPLE_ROOM_UNIVERSE    = 0x3,
+    TEMPLE_ROOM_OPTIONS     = 0x4,
+    TEMPLE_ROOM_SAVEGAME    = 0x5,
+    TEMPLE_ROOM_CREDITS     = 0x6,
+    _TempleRoomsEnum_COUNT  = 0x7
 };
 
 struct InnerRoom {
