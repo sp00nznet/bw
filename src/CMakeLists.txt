@@ -282,6 +282,18 @@ add_library(bw_core STATIC
     # Misc utility types
     core/GRand.cpp
     core/PhysicsSaveInfo.cpp
+    # PSys advanced types
+    core/PSysGeom.cpp
+    core/PSysHandFX.cpp
+    core/PSysAtomCore.cpp
+    core/PSysPCreator.cpp
+    core/PSysTornado.cpp
+    core/PSysEditor.cpp
+    # MPFE multiplayer frontend dialogs
+    core/MPFEDialogs.cpp
+    # Interface system
+    core/GInterface.cpp
+    core/GInterfaceStatus.cpp
 )
 
 # Future subsystems (uncomment as implemented):

@@ -1,6 +1,6 @@
 #pragma once
 #include "Base.h"
-#include "MapCoords.h"
+#include "types.h"
 
 struct Bubble;
 struct Leash;
