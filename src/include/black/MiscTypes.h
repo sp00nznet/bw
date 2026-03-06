@@ -93,3 +93,29 @@ struct GFlockInfo {
     uint8_t field_0x0;  // 0x00
 };
 static_assert(sizeof(GFlockInfo) == 0x1, "GFlockInfo size mismatch");
+
+// === SubCollideBlockPos (0x4) — collision block position ===
+// From MobileWallHug.h
+
+struct SubCollideBlockPos {
+    uint16_t x;  // 0x00
+    uint16_t z;  // 0x02
+};
+static_assert(sizeof(SubCollideBlockPos) == 0x4, "SubCollideBlockPos size mismatch");
+
+// === Small marker types (all 0x1 byte) ===
+
+struct Glocation { uint8_t field_0x0; };
+static_assert(sizeof(Glocation) == 0x1, "Glocation size mismatch");
+
+struct ClearAreaPoint { uint8_t field_0x0; };
+static_assert(sizeof(ClearAreaPoint) == 0x1, "ClearAreaPoint size mismatch");
+
+struct SortedObject { uint8_t field_0x0; };
+static_assert(sizeof(SortedObject) == 0x1, "SortedObject size mismatch");
+
+struct LivingMapCell { uint8_t field_0x0; };
+static_assert(sizeof(LivingMapCell) == 0x1, "LivingMapCell size mismatch");
+
+struct MistListNode { uint8_t field_0x0; };
+static_assert(sizeof(MistListNode) == 0x1, "MistListNode size mismatch");

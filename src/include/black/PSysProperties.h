@@ -224,3 +224,26 @@ static_assert(sizeof(ZR_ChainGesture__ParentCollectionData) == 0x14, "ZR_ChainGe
 struct ZR_SurfRevol__CollectionData : public BaseCollectionModifierData {};
 static_assert(sizeof(ZR_SurfRevol__CollectionData) == 0x14, "ZR_SurfRevol__CollectionData size mismatch");
 
+// === Additional PSys modifier data from PSysTornado.h and PSysAtomCore.h ===
+
+struct UR_Tornado__CollectionData : public BaseCollectionModifierData {};
+static_assert(sizeof(UR_Tornado__CollectionData) == 0x14, "UR_Tornado__CollectionData size mismatch");
+
+struct UR_Tornado__DebrisCollectionData : public BaseCollectionModifierData {};
+static_assert(sizeof(UR_Tornado__DebrisCollectionData) == 0x14, "UR_Tornado__DebrisCollectionData size mismatch");
+
+struct UR_Tornado__FlyingAtomData : public BaseAtomModifierData {};
+static_assert(sizeof(UR_Tornado__FlyingAtomData) == 0x14, "UR_Tornado__FlyingAtomData size mismatch");
+
+struct UR_Tornado__FlyingCollectionData : public BaseCollectionModifierData {};
+static_assert(sizeof(UR_Tornado__FlyingCollectionData) == 0x14, "UR_Tornado__FlyingCollectionData size mismatch");
+
+struct UR_GesturingRecognised__AtomData : public BaseAtomModifierData {};
+static_assert(sizeof(UR_GesturingRecognised__AtomData) == 0x14, "UR_GesturingRecognised__AtomData size mismatch");
+
+struct UR_Plasma__AtomData : public BaseAtomModifierData {};
+static_assert(sizeof(UR_Plasma__AtomData) == 0x14, "UR_Plasma__AtomData size mismatch");
+
+struct UR_Plasma__SubCollectionData : public BaseCollectionModifierData {};
+static_assert(sizeof(UR_Plasma__SubCollectionData) == 0x14, "UR_Plasma__SubCollectionData size mismatch");
+
