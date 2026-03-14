@@ -22,7 +22,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**190 headers | 152 implementations | 21,320 lines of C++ | 43 commits**
+**595 headers | 247 implementations | ~35,000 lines of C++ | 89 commits**
 
 ### Phase 0: Reconnaissance — COMPLETE
 
@@ -46,11 +46,11 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [ ] Input system (the iconic hand!)
 - [ ] Basic world loading and navigation
 
-### Phase 3: Entity Hierarchy — IN PROGRESS (~33% of vendor types covered)
+### Phase 3: Entity Hierarchy & Decompilation — IN PROGRESS (100% type coverage, ~180 method bodies)
 
-The complete class hierarchy from the decompiled binary is being rebuilt as idiomatic C++ with correct MSVC vtable layout. Working from 569 vendor reference headers in `bw1-decomp`.
+The complete class hierarchy from the decompiled binary has been rebuilt as idiomatic C++ with correct MSVC vtable layout. All 569 vendor reference types are covered. Method bodies are being translated from Ghidra decompilation output (268 files, 77K lines of raw C).
 
-**Implemented (190 types):**
+**Implemented (569+ types, 100% vendor coverage):**
 
 - [x] **Core hierarchy**: Base → GameThing → GameThingWithPos → Object → Mobile → MobileWallHug → Living (7 layers deep)
 - [x] **Fixed objects**: MultiMapFixed, SingleMapFixed, Abode, Windmill, Wonder, Totem, Workshop, StoragePit, Creche, Graveyard, SpellDispenser, TownCentre, Field, Feature, Flowers, AnimatedStatic, PrayerSite, Rock, Bonfire, Fragment, DeadTree, Tree, MagicTree, MagicTeleport, PFootball, BigForest
@@ -68,17 +68,20 @@ The complete class hierarchy from the decompiled binary is being rebuilt as idio
 - [x] **Utility/data**: GAlignment, GBelief, Map, MapCoords, Game, Zoomer, Zoomer3d
 - [x] **Footpath system**: GFootpath, GFootpathLink, GFootpathNode, GFootpathLinkSave
 - [x] **Miscellaneous**: ShowNeeds, FireEffect, DancePathInfo, Playtime, TownArtifact, GParticleContainer, SpellSeedGraphic, Arena, Meeting, WayPoint, ScriptTimer, ScriptMarker, WeatherThing, Mist, InfluenceRing, GStreetLight
+- [x] **Town system**: Town (0xF28), TownStats, TownDesire, GPlayer (0xA60), GPlayerInfo
+- [x] **Creature AI**: CreatureMental (0x20D40), CreatureDesires, CreatureLearning, CreatureAgenda, CreatureBeliefs, CreaturePlan, DecisionTreeCollection, 23 Attribute subclasses
+- [x] **Morphable hierarchy**: DrawingObject, Morphable (0x4834), LH3DCreature (0x57B8), CHand (0x49C4)
+- [x] **Engine infrastructure**: LHTimer, LHDLL, ScriptDLL, GDebug (0x2D2A8), GGlobal (0x2D500), GGame (0x24C600)
+- [x] **UI/Setup**: SetupBox + 16 widgets, 25+ dialogs, temple rooms, FrontEnd
+- [x] **PSys**: Full modifier data (78 types), PSysInterface, RenderParticle
+- [x] **Info types**: 50+ info structs (GBaseInfo → GObjectInfo → specialization chain)
+- [x] **Puzzle**: ChessPiece + 6 subclasses, 8 Piece* animals, 10 Puzzle* variants
 
-**Remaining (~379 types):**
-
-- [ ] Town (0xF28 — the largest class in the game)
-- [ ] Player, PlayerList, GSetupInfo
-- [ ] Creature AI subsystem (~50 types: CreatureMind, CreatureDesires, CreatureLearning, etc.)
-- [ ] Landscape/terrain system
-- [ ] Script/LHVM virtual machine
-- [ ] Mesh/rendering (L3D, G3D, LH3DIsland)
-- [ ] Particle effects, weather details
-- [ ] Remaining info structs and helper types
+**Method body status:**
+- ~180 method bodies translated from Ghidra raw offsets to typed C++ field accesses
+- ~75 GetSaveType values verified against v1.0 binary
+- ~317 remaining TODOs for complex methods (pathfinding, rendering, resource management)
+- These require deeper Ghidra analysis to resolve FUN_XXXXXXXX function calls
 
 ### Phase 4: Polish & Miracles
 - [ ] Audio engine
@@ -258,8 +261,13 @@ bw/
 │   └── bw1-decomp/black/  ← 569 decompiled struct headers (reference material)
 ├── src/                   ← Recompiled source code (active development)
 │   ├── CMakeLists.txt     ← Build system (VS2022, 32-bit x86)
-│   ├── include/black/     ← 190 C++ headers (classes with vtable layout)
-│   └── core/              ← 152 implementation files (method stubs)
+│   ├── include/black/     ← 595 C++ headers (classes with vtable layout)
+│   └── core/              ← 247 implementation files
+├── work/
+│   ├── decompiled/        ← 268 Ghidra auto-decompiled .c files (77K lines)
+│   ├── functions.csv      ← 14,277 function addresses
+│   ├── vtable_matches.csv ← 65K vtable entries
+│   └── ghidra_project/    ← Ghidra analysis database
 ├── work/clean/            ← Decrypted, clean binary for analysis
 └── game_data/             ← Extracted game data (not checked in — bring your own disc!)
     ├── *.h                ← Original Lionhead headers (gold dust)
@@ -292,13 +300,13 @@ This is early days. If you:
 ## Next Steps
 
 1. ~~**Strip SafeDisc protection** from `runblack.exe`~~ **DONE!**
-2. ~~**Set up build system and entity hierarchy**~~ **IN PROGRESS** — 190/569 types implemented (33%)
-3. **Implement Town class** (0xF28 bytes — the single largest class) and Player system
-4. **Creature AI subsystem** — ~50 types covering mind, desires, learning, actions
-5. **Landscape/terrain system** — map loading, heightfield, navigation mesh
-6. **LHVM scripting engine** — the virtual machine that runs level scripts
-7. **Mesh and rendering** — L3D/G3D loaders, terrain renderer (D3D11/Vulkan)
-8. **Fill in real method bodies** from Ghidra decompilation output
+2. ~~**Set up build system and entity hierarchy**~~ **DONE** — 569/569 types (100%)
+3. ~~**Ghidra method body translation (pass 1-5)**~~ **DONE** — ~180 methods translated
+4. **Resolve FUN_XXXXXXXX calls** — use functions.csv to name remaining unknown calls
+5. **Complex method decompilation** — pathfinding, resource management, building lifecycle
+6. **Landscape/terrain system** — map loading, heightfield, navigation mesh
+7. **LHVM scripting engine** — the virtual machine that runs level scripts
+8. **Mesh and rendering** — L3D/G3D loaders, terrain renderer (D3D11/Vulkan)
 
 ## Legal
 
