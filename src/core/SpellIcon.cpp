@@ -139,3 +139,8 @@ bool SpellIcon::IsBuilt() {
     // Original at 0x0055d3d0: returns true
     return true;
 }
+
+GSpellSeedInfo* SpellIcon::GetSpellSeedInfo() const {
+    // Original at 0x00726350 — portable from vendor
+    return seed_info;
+}

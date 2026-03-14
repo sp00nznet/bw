@@ -294,6 +294,8 @@ add_library(bw_core STATIC
     # Interface system
     core/GInterface.cpp
     core/GInterfaceStatus.cpp
+    # Script engine
+    core/GScript.cpp
 )
 
 # Future subsystems (uncomment as implemented):

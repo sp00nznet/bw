@@ -65,6 +65,9 @@ struct SpellIcon : public MultiMapFixed {
     bool IsRepaired() override;
     bool IsBuilt() override;
 
+    // === Non-virtual methods ===
+    GSpellSeedInfo* GetSpellSeedInfo() const;
+
     // === Fields ===
     SpellSeedGraphic*        graphic;        // 0x7C
     GSpellSeedInfo*          seed_info;      // 0x80

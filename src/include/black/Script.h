@@ -10,8 +10,13 @@
 #include "types.h"
 
 // Forward declarations
-struct ScriptDLL;
-struct Town;
+struct Abode;
+struct GameThingWithPos;
+
+enum VMType : uint32_t;
+enum VMScriptType : uint32_t;
+enum SCRIPT_OBJECT_TYPE : uint32_t;
+enum SCRIPT_INTERFACE_LEVEL : uint32_t;
 
 // Script feature command enum
 enum SCRIPT_FEATURE_COMMANDS : uint32_t {
@@ -20,22 +25,36 @@ enum SCRIPT_FEATURE_COMMANDS : uint32_t {
 
 struct GScript : public Base {
     // Fields are mostly opaque — internal VM state, task lists, etc.
-    // Key sub-structures include the ScriptDLL (0xDC bytes) which holds
-    // the actual bytecode interpreter and native function table.
     uint8_t field_0x8[0xB4];  // 0x08-0xBB — VM state
 
     // Non-virtual methods
-    void Create();
-    void StartScript(const char* name, int param2);
-    void LoadBinary(const char* filename);
+    GScript* Create();
+    void Reset(int param);
+    void LoadBinary(char* binary);
     void Process();
-    void ProcessFade();
-    void Reset();
-    void DeleteAllScriptCreatedGameThings();
-    void StopScriptsOfType(int type);
-    void SetupScreenFadeTo(float target, float speed);
+    void ProcessFade(bool param);
+    void SetupScreenFadeTo(uint8_t r, uint8_t g, uint8_t b, int8_t a);
     void CleanGameForScriptReboot();
-    void PUSH(int value);
-    Town* FindInTown(const MapCoords& coords);
+    void PUSH(void* value, VMType type);
+    void StopScriptsOfType(VMScriptType type);
+    void ScriptErrorMessage(char* msg);
+    void ScriptWarningMessage(char* msg);
+    Abode* FindInTown(GameThingWithPos* pos,
+        int (__cdecl* filter)(GameThingWithPos*, SCRIPT_OBJECT_TYPE, uint32_t),
+        SCRIPT_OBJECT_TYPE obj_type, uint32_t param);
+
+    // Static methods
+    static int StartScript(char* name);
+    static void SetInterfaceInteraction(SCRIPT_INTERFACE_LEVEL level);
+    static void DeleteAllScriptCreatedGameThings();
 };
 static_assert(sizeof(GScript) == 0xBC, "GScript size mismatch");
+
+// GScriptOpposingCreature — info type for opposing creature script data
+// Size: 0x10 bytes (GBaseInfo only)
+#include "GBaseInfo.h"
+
+struct GScriptOpposingCreature {
+    GBaseInfo super;  // 0x00
+};
+static_assert(sizeof(GScriptOpposingCreature) == 0x10, "GScriptOpposingCreature size mismatch");
