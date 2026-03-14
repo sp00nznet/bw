@@ -59,9 +59,12 @@ void MobileObject::PhysicsEditorCreate(int /*param1*/) {
 }
 
 uint32_t MobileObject::GetCreatureBeliefType() {
-    // Original at 0x00607430 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x005c2890: dispatches on info->subType at offset 0x104
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    if (sub_type == 4) return 0xe;
+    if (sub_type == 5) return 0xd;
+    return 0x13;
 }
 
 bool32_t MobileObject::CanBePlayedWithByCreature(Creature* /*creature*/) {

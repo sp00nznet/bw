@@ -26,8 +26,11 @@ void Abode::ToBeDeleted(int /*param*/) {
 // ============================================================================
 
 GPlayer* Abode::GetPlayer() {
-    // Original at 0x00405f70 — reads player from town
-    // TODO: implement when Town/GPlayer system is available
+    // Original at 0x00404600: if GetTown() != null, return GetTown()->GetPlayer()
+    Town* t = GetTown();
+    if (t) {
+        return reinterpret_cast<GameThing*>(t)->GetPlayer();
+    }
     return nullptr;
 }
 

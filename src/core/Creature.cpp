@@ -37,3 +37,19 @@ uint32_t Creature::GetScriptObjectType() {
     // Original at 0x005c2de0
     return 0xc;
 }
+
+// ============================================================================
+// Overrides of Living/MobileWallHug virtuals
+// ============================================================================
+
+MapCoords* Creature::GetDestPos() {
+    // Original at 0x0045f700: returns pointer to field_0x1214
+    return &field_0x1214;
+}
+
+MapCoords* Creature::GetFinalDestPos(MapCoords* out) {
+    // Original at 0x0045f710: copies dest pos to output
+    MapCoords* dest = GetDestPos();
+    *out = *dest;
+    return out;
+}

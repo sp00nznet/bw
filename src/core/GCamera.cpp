@@ -22,12 +22,12 @@ uint32_t GCamera::GetSaveType() { return 0x77; }
 
 // === Overrides of GameThingWithPos virtuals ===
 
-// 0x00441b00
-bool GCamera::IsMoving() const { return false; }
-// 0x00441af0
-const char* GCamera::GetText() { return "GCamera"; }
-// 0x00441b10
-float GCamera::GetHeight() { return 0.0f; }
+// 0x00439a20: returns camera_dirty field at 0x74
+bool GCamera::IsMoving() const { return camera_dirty != 0; }
+// 0x00439a10: returns "Camera"
+const char* GCamera::GetText() { return "Camera"; }
+// 0x00439a30: returns coords.altitude at offset 0x1c
+float GCamera::GetHeight() { return coords.altitude; }
 
 // === Non-virtual methods ===
 
