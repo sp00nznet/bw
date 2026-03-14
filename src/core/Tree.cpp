@@ -158,9 +158,9 @@ bool32_t Tree::HandShouldFeelWithMeshIntersect() {
 }
 
 int Tree::GetMesh() const {
-    // Original at 0x0055d8a0
-    // TODO: reads from GTreeInfo
-    return 0;
+    // Original at 0x0052ebd0: reads mesh ID from info at offset 0x100
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x100);
 }
 
 bool Tree::CanBePickedUp() {

@@ -7,10 +7,51 @@
 // logic lives in Villager, Creature, and Animal overrides.
 
 #include <black/Living.h>
+#include <black/ObjectInfo.h>
+
+// ============================================================================
+// Overrides of GameThing virtuals
+// ============================================================================
+
+bool Living::IsFunctional() {
+    // Original at 0x00413ed0: IsAvailable() && GetLife() != 0.0
+    if (IsAvailable()) {
+        if (GetLife() != 0.0f) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // ============================================================================
 // Overrides of GameThingWithPos virtuals
 // ============================================================================
+
+bool Living::IsStompable() {
+    // Original at 0x00413ec0: calls vtable 0xaf0 (IsDead from Living), returns !IsDead
+    return !IsDead();
+}
+
+bool32_t Living::CanBeAttackedByCreature(Creature* creature) {
+    // Original at 0x00413f00: !IsDead() && info->canCreatureAttackMe && creature != this
+    if (IsDead())
+        return 0;
+    if (info->canCreatureAttackMe && reinterpret_cast<void*>(creature) != reinterpret_cast<void*>(this))
+        return 1;
+    return 0;
+}
+
+bool32_t Living::CanBePlayedWithByCreature(Creature* /*creature*/) {
+    // Original at 0x00413f40: !IsDead() && info->canCreaturePlayWithMe
+    if (IsDead())
+        return 0;
+    return info->canCreaturePlayWithMe;
+}
+
+bool32_t Living::CanBeStompedOnByCreature(Creature* /*creature*/) {
+    // Original at 0x00413fa0: !IsDead()
+    return !IsDead() ? 1 : 0;
+}
 
 bool32_t Living::IsSkeleton() const {
     // Original at 0x00413e00: (status >> 6) & 1

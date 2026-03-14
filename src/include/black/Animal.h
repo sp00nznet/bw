@@ -17,6 +17,8 @@ struct Animal : public Living {
     uint32_t GetScriptObjectType() override;
 
     // === Overrides of Object virtuals ===
+    int GetMesh() const override;
+    int GetDetailMesh(int detail) override;
     HOLD_TYPE GetHoldType() override;
     float GetHoldLoweringMultiplier() override;
     uint32_t GetTastiness() override;

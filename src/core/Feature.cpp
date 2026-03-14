@@ -50,8 +50,9 @@ uint32_t Feature::GetScriptObjectType() {
 }
 
 int Feature::GetMesh() const {
-    // Original at 0x004220d0
-    return 0;
+    // Original at 0x004220d0: reads mesh from GFeatureInfo at offset 0x120
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x120);
 }
 
 void Feature::Draw() {

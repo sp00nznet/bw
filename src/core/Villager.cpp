@@ -50,6 +50,18 @@ uint32_t Villager::GetTastiness() {
     return 2;
 }
 
+int Villager::GetMesh() const {
+    // Original at 0x0052e190: reads mesh ID from info struct at offset 0x214
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x214);
+}
+
+int Villager::GetDetailMesh(int detail) {
+    // Original at 0x0052e1a0: reads detail mesh from info at 0x210 + detail * 4
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x210 + detail * 4);
+}
+
 // ============================================================================
 // New virtual methods (vtable 0xB40-0xB44)
 // ============================================================================

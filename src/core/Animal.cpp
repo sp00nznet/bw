@@ -38,6 +38,18 @@ uint32_t Animal::GetScriptObjectType() {
 // Overrides of Object virtuals
 // ============================================================================
 
+int Animal::GetMesh() const {
+    // Original at 0x00413fd0: reads mesh ID from info at offset 0x200
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x200);
+}
+
+int Animal::GetDetailMesh(int detail) {
+    // Original at 0x00413fe0: reads detail mesh from info at 0x1fc + detail * 4
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x1fc + detail * 4);
+}
+
 HOLD_TYPE Animal::GetHoldType() {
     // Original at 0x004159d0
     return static_cast<HOLD_TYPE>(7);

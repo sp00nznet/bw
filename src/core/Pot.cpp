@@ -109,8 +109,8 @@ bool32_t Pot::IsPoisoned() {
 }
 
 bool32_t Pot::IsSpeedUp() {
-    // Original at 0x0055d4f0: reads flag from field_0x74
-    return (field_0x74 & 0x02) ? 1 : 0;
+    // Original at 0x0055d4f0: reads bit 4 from field_0x74
+    return (field_0x74 >> 4) & 1;
 }
 
 bool32_t Pot::IsPot() {
@@ -271,9 +271,8 @@ size_t Pot::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
 }
 
 bool Pot::IsAPotFromABuildingSite() {
-    // Original at 0x0055d590
-    // TODO: verify return value
-    return false;
+    // Original at 0x0055d590: reads bit 3 from field_0x74
+    return (field_0x74 >> 3) & 1;
 }
 
 // ============================================================================
