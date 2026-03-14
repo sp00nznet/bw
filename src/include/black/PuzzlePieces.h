@@ -79,19 +79,30 @@ static_assert(sizeof(PieceWolf) == 0x148, "PieceWolf size mismatch");
 
 // === Puzzle* types — extend Piece*/other base types ===
 
-struct PuzzleCow : public PieceCow {};
+struct PuzzleCow : public PieceCow {
+    uint32_t GetSaveType() override;
+    uint32_t StandAnimation() override;
+};
 static_assert(sizeof(PuzzleCow) == 0x148, "PuzzleCow size mismatch");
 
-struct PuzzleHorse : public PieceHorse {};
+struct PuzzleHorse : public PieceHorse {
+    uint32_t GetSaveType() override;
+};
 static_assert(sizeof(PuzzleHorse) == 0x148, "PuzzleHorse size mismatch");
 
-struct PuzzleLion : public PieceWolf {};
+struct PuzzleLion : public PieceWolf {
+    uint32_t GetSaveType() override;
+};
 static_assert(sizeof(PuzzleLion) == 0x148, "PuzzleLion size mismatch");
 
-struct PuzzlePig : public PiecePig {};
+struct PuzzlePig : public PiecePig {
+    uint32_t GetSaveType() override;
+};
 static_assert(sizeof(PuzzlePig) == 0x148, "PuzzlePig size mismatch");
 
-struct PuzzleSheep : public PieceSheep {};
+struct PuzzleSheep : public PieceSheep {
+    uint32_t GetSaveType() override;
+};
 static_assert(sizeof(PuzzleSheep) == 0x148, "PuzzleSheep size mismatch");
 
 struct PuzzleTortoise : public PieceTortoise {};

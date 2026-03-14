@@ -202,6 +202,7 @@ add_library(bw_core STATIC
     core/PieceVillager.cpp
     core/PuzzleVillager.cpp
     core/PuzzleGame.cpp
+    core/PuzzleAnimals.cpp
     core/Creature.cpp
     # Creature AI subsystem (belief/mental model)
     core/CreatureBeliefList.cpp

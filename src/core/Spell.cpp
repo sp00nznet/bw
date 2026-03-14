@@ -9,8 +9,8 @@ void Spell::ToBeDeleted(int param) {
 }
 
 GPlayer* Spell::GetPlayer() {
-    // Original at 0x0055cdf0 — complex
-    return nullptr;
+    // Original at 0x0052e4e0: return *(this + 0xa4)
+    return reinterpret_cast<GPlayer*>(field_0xa4);
 }
 
 bool Spell::IsFunctional() {
@@ -60,12 +60,15 @@ uint32_t Spell::GetOrigin() {
 }
 
 float Spell::GetLife() {
-    // Original at 0x0055cdb0 — complex
-    return 0.0f;
+    // Original at 0x0052e4a0: return *(float*)(this + 0x38)
+    return *reinterpret_cast<const float*>(&field_0x38);
 }
 
-void Spell::GetMovementDirection(LHPoint* /*pos*/) {
-    // Original at 0x00721340 — complex
+void Spell::GetMovementDirection(LHPoint* pos) {
+    // Original at 0x006672a0: copies 3 floats from offset 0x2c-0x34
+    pos->x = field_0x2c;
+    pos->y = *reinterpret_cast<const float*>(&field_0x30);
+    pos->z = *reinterpret_cast<const float*>(&field_0x34);
 }
 
 IMPRESSIVE_TYPE Spell::GetImpressiveType() {
@@ -138,8 +141,9 @@ float Spell::GetReactionPower() {
     return 0.0f;
 }
 
-void Spell::GetSpellCastPos(MapCoords* /*outPos*/) {
-    // Original at 0x0055cd80 — copies field_0xc0 to outPos
+void Spell::GetSpellCastPos(MapCoords* outPos) {
+    // Original at 0x0052e470: copies field_0xcc to output
+    *outPos = field_0xcc;
 }
 
 void Spell::ProcessSpellSeed() {
