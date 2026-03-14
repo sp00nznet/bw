@@ -59,4 +59,9 @@ const char* Villager::GetVillagerName() {
     return nullptr;
 }
 
+float Villager::GetHowMuchCreatureWantsToLookAtMe() {
+    // Original at 0x004d1b40
+    return 0.5f;
+}
+
 void Villager::DrawVillagerInfo() {}

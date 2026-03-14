@@ -21,7 +21,7 @@ uint32_t PlannedMultiMapFixed::Save(GameOSFile* /*file*/) {
 
 uint32_t PlannedMultiMapFixed::GetSaveType() {
     // Original at 0x0055cbd0
-    return 0;
+    return 0x38;
 }
 
 float PlannedMultiMapFixed::GetScale() {

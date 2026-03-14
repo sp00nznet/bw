@@ -20,8 +20,8 @@ void Flock::ToBeDeleted(int /*param*/) {
 // ============================================================================
 
 Town* Flock::GetTown() {
-    // Original at 0x0052f870: returns nullptr
-    return nullptr;
+    // Original at 0x0052fb00: return *(this + 0x34)
+    return reinterpret_cast<Town*>(field_0x34);
 }
 
 char* Flock::GetDebugText() {
@@ -40,8 +40,8 @@ uint32_t Flock::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Flock::GetSaveType() {
-    // Original at 0x0052f900
-    return 0;
+    // Original at 0x005059e0
+    return 0x7e;
 }
 
 // ============================================================================
@@ -49,8 +49,8 @@ uint32_t Flock::GetSaveType() {
 // ============================================================================
 
 uint32_t Flock::GetCreatureBeliefType() {
-    // Original at 0x0052f8a0
-    return 0;
+    // Original at 0x0066f560
+    return 0x16;
 }
 
 uint32_t Flock::GetCreatureBeliefListType() {
@@ -94,8 +94,8 @@ const char* Flock::GetText() {
 }
 
 uint32_t Flock::GetScriptObjectType() {
-    // Original at 0x00530490 — complex
-    return 0;
+    // Original at 0x006fc980
+    return 0xb;
 }
 
 // ============================================================================

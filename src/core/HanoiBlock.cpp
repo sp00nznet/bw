@@ -29,7 +29,7 @@ uint32_t HanoiBlock::Save(GameOSFile* /*file*/) {
 
 uint32_t HanoiBlock::GetSaveType() {
     // Original at 0x00561830
-    return 0;
+    return 0x30;
 }
 
 // ============================================================================

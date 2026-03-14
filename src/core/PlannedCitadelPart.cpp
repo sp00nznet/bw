@@ -26,5 +26,5 @@ uint32_t PlannedCitadelPart::Save(GameOSFile* /*file*/) {
 
 uint32_t PlannedCitadelPart::GetSaveType() {
     // Original at 0x00465580
-    return 0;
+    return 0x37;
 }

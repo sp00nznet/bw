@@ -39,8 +39,8 @@ uint32_t Football::GetSaveType() {
 }
 
 uint32_t Football::GetCreatureBeliefType() {
-    // Original at 0x00531180 — complex
-    return 0;
+    // Original at 0x00531180
+    return 0x45;
 }
 
 bool32_t Football::IsFootball() {

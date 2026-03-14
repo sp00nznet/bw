@@ -11,7 +11,7 @@ char* Feature::GetDebugText() {
 
 uint32_t Feature::GetSaveType() {
     // Original at 0x00422e70
-    return 0;
+    return 0x74;
 }
 
 uint32_t Feature::GetCreatureBeliefType() {

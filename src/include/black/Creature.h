@@ -56,6 +56,9 @@ struct Creature : public Living {
     char* GetDebugText() override;
     uint32_t GetSaveType() override;
 
+    // === Overrides of GameThingWithPos virtuals ===
+    uint32_t GetScriptObjectType() override;
+
     // === Fields ===
     char16_t name[0x40];                   // 0xE0 — creature name (64 UTF-16 chars, 128 bytes)
     CreaturePhysical* physical;            // 0x160 — physical body state

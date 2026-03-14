@@ -30,7 +30,7 @@ uint32_t GParticleContainer::Save(GameOSFile* /*file*/) {
 
 uint32_t GParticleContainer::GetSaveType() {
     // Original at 0x00560f60
-    return 0;
+    return 0x6e;
 }
 
 void GParticleContainer::SetScale(float /*scale*/) {

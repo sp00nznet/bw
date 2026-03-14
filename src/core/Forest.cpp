@@ -69,8 +69,8 @@ uint32_t Forest::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Forest::GetSaveType() {
-    // Original at 0x00539b00
-    return 0;
+    // Original at 0x0050e130
+    return 0x4e;
 }
 
 // ============================================================================

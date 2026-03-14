@@ -21,6 +21,7 @@ struct Villager : public Living {
     bool32_t IsVillager(Creature*) override;
     bool CanBePickedUp() override;
     uint32_t GetTastiness() override;
+    float GetHowMuchCreatureWantsToLookAtMe() override;
 
     // === New virtual methods (vtable 0xB40-0xB44) ===
     virtual const char* GetVillagerName();

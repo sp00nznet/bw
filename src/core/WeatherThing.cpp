@@ -26,7 +26,7 @@ uint32_t WeatherThing::Save(GameOSFile* /*file*/) {
 
 uint32_t WeatherThing::GetSaveType() {
     // Original at 0x0055df40
-    return 0;
+    return 0x43;
 }
 
 void WeatherThing::SetPos(const MapCoords& /*coords*/) {

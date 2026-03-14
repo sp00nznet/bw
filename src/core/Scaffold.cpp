@@ -53,7 +53,7 @@ uint32_t Scaffold::Save(GameOSFile* /*file*/) {
 
 uint32_t Scaffold::GetSaveType() {
     // Original at 0x0055e130
-    return 0;
+    return 0x5f;
 }
 
 void Scaffold::ResolveLoad() {
@@ -105,8 +105,8 @@ bool32_t Scaffold::IsScaffold() {
 }
 
 uint32_t Scaffold::GetScriptObjectType() {
-    // Original at 0x006eab60 — complex
-    return 0;
+    // Original at 0x006eab60
+    return 0x27;
 }
 
 // ============================================================================

@@ -31,7 +31,7 @@ uint32_t TownDesireFlags::Save(GameOSFile* /*file*/) {
 
 uint32_t TownDesireFlags::GetSaveType() {
     // Original at 0x0055dac0
-    return 0;
+    return 0x4c;
 }
 
 bool32_t TownDesireFlags::IsTownDesireFlag() {

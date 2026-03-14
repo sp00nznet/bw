@@ -37,7 +37,7 @@ uint32_t GWaterfall::Save(GameOSFile* /*file*/) {
 
 uint32_t GWaterfall::GetSaveType() {
     // Original at 0x0055de40
-    return 0;
+    return 0x40;
 }
 
 // ============================================================================

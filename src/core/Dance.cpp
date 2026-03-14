@@ -7,7 +7,7 @@ uint32_t Dance::RemoveFootpath(GFootpath*) { return 0; }
 char*    Dance::GetDebugText() { return "Dance"; }
 uint32_t Dance::Load(GameOSFile* file) { return 0; }
 uint32_t Dance::Save(GameOSFile* file) { return 0; }
-uint32_t Dance::GetSaveType() { return 0; }
+uint32_t Dance::GetSaveType() { return 0x27; }
 
 // GameThingWithPos overrides
 MapCoords* Dance::GetArrivePos(MapCoords* out) { return out; }

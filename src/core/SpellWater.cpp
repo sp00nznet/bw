@@ -21,7 +21,7 @@ uint32_t SpellWater::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellWater::GetSaveType() {
     // Original at 0x0055d000
-    return 0;
+    return 0xc;
 }
 
 uint32_t SpellWater::Process() {

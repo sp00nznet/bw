@@ -18,7 +18,7 @@ uint32_t GCamera::Load(GameOSFile* /*file*/) { return 0; }
 // 0x004430e0
 uint32_t GCamera::Save(GameOSFile* /*file*/) { return 0; }
 // 0x00441b20
-uint32_t GCamera::GetSaveType() { return 0; }
+uint32_t GCamera::GetSaveType() { return 0x77; }
 
 // === Overrides of GameThingWithPos virtuals ===
 

@@ -21,7 +21,7 @@ uint32_t SpellFlockFlying::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellFlockFlying::GetSaveType() {
     // Original at 0x0055d280
-    return 0;
+    return 0xd;
 }
 
 void SpellFlockFlying::GetParticleType() {

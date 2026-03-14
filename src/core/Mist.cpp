@@ -31,7 +31,7 @@ uint32_t Mist::Save(GameOSFile* /*file*/) {
 
 uint32_t Mist::GetSaveType() {
     // Original at 0x0055ebb0
-    return 0;
+    return 0x48;
 }
 
 void Mist::ResolveLoad() {
@@ -59,6 +59,6 @@ const char* Mist::GetText() {
 }
 
 uint32_t Mist::GetScriptObjectType() {
-    // Original at 0x00606910 — complex
-    return 0;
+    // Original at 0x00606910
+    return 0x1d;
 }

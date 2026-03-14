@@ -36,5 +36,5 @@ uint32_t ShowNeeds::Save(GameOSFile* /*file*/) {
 
 uint32_t ShowNeeds::GetSaveType() {
     // Original at 0x0055dd20
-    return 0;
+    return 0x3e;
 }

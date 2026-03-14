@@ -36,7 +36,7 @@ uint32_t InfluenceRing::Save(GameOSFile* /*file*/) {
 
 uint32_t InfluenceRing::GetSaveType() {
     // Original at 0x0055ec50
-    return 0;
+    return 0x49;
 }
 
 void InfluenceRing::SetPos(const MapCoords& /*coords*/) {
@@ -54,6 +54,6 @@ bool32_t InfluenceRing::IsInfluenceRing() {
 }
 
 uint32_t InfluenceRing::GetScriptObjectType() {
-    // Original at 0x005cdc50 — complex
-    return 0;
+    // Original at 0x005cdc50
+    return 0xe;
 }

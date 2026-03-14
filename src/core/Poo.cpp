@@ -13,12 +13,12 @@ char* Poo::GetDebugText() {
 
 uint32_t Poo::GetSaveType() {
     // Original at 0x0055d0a0
-    return 0;
+    return 0x6b;
 }
 
 uint32_t Poo::GetScriptObjectType() {
     // Original at 0x006083c0
-    return 0;
+    return 0x19;
 }
 
 void Poo::InsertMapObject() {

@@ -28,3 +28,12 @@ uint32_t Creature::GetSaveType() {
     // Original at 0x0045e850
     return 0x69;
 }
+
+// ============================================================================
+// Overrides of GameThingWithPos virtuals
+// ============================================================================
+
+uint32_t Creature::GetScriptObjectType() {
+    // Original at 0x005c2de0
+    return 0xc;
+}

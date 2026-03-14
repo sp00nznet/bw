@@ -21,7 +21,7 @@ uint32_t SpellFlockGround::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellFlockGround::GetSaveType() {
     // Original at 0x0055d2d0
-    return 0;
+    return 0xe;
 }
 
 void SpellFlockGround::GetParticleType() {

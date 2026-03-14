@@ -11,7 +11,7 @@ uint32_t StandardBuildingSite::Load(GameOSFile* /*file*/) { return 0; }
 // 0x0043d850
 uint32_t StandardBuildingSite::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0043d700
-uint32_t StandardBuildingSite::GetSaveType() { return 0; }
+uint32_t StandardBuildingSite::GetSaveType() { return 0x5c; }
 
 // === Overrides of BuildingSite virtuals ===
 

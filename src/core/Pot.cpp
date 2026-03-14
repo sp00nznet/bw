@@ -85,8 +85,7 @@ uint32_t Pot::Save(GameOSFile* /*file*/) {
 
 uint32_t Pot::GetSaveType() {
     // Original at 0x0055d5a0
-    // TODO: verify return value
-    return 0;
+    return 0x58;
 }
 
 // ============================================================================
@@ -95,8 +94,7 @@ uint32_t Pot::GetSaveType() {
 
 uint32_t Pot::GetCreatureBeliefType() {
     // Original at 0x0055d580
-    // TODO: verify return value
-    return 0;
+    return 0x10;
 }
 
 uint32_t Pot::GetOverwriteInteractableToolTip() {
@@ -121,9 +119,8 @@ bool32_t Pot::IsPot() {
 }
 
 uint32_t Pot::GetScriptObjectType() {
-    // Original at 0x0066f530 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x0066f530
+    return 0x10;
 }
 
 // ============================================================================

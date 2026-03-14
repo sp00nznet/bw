@@ -47,7 +47,7 @@ uint32_t OneOffSpellSeed::Save(GameOSFile* /*file*/) {
 
 uint32_t OneOffSpellSeed::GetSaveType() {
     // Original at 0x0055d150
-    return 0;
+    return 0x25;
 }
 
 // ============================================================================

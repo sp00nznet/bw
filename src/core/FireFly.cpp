@@ -34,7 +34,7 @@ uint32_t FireFly::Save(GameOSFile* /*file*/) {
 
 uint32_t FireFly::GetSaveType() {
     // Original at 0x0052a2f0
-    return 0;
+    return 0x2a;
 }
 
 // ============================================================================

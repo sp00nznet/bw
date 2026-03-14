@@ -31,7 +31,7 @@ char* FieldCrop::GetDebugText() {
 
 uint32_t FieldCrop::GetSaveType() {
     // Original at 0x0055d0f0
-    return 0;
+    return 0x6c;
 }
 
 // ============================================================================

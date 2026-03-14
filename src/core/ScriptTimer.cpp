@@ -21,7 +21,7 @@ uint32_t ScriptTimer::Save(GameOSFile* /*file*/) {
 
 uint32_t ScriptTimer::GetSaveType() {
     // Original at 0x00561310
-    return 0;
+    return 0x7d;
 }
 
 bool32_t ScriptTimer::IsDeletedWhenReleasedFromScript() {

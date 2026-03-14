@@ -42,7 +42,7 @@ uint32_t ShowNeedsVisuals::Save(GameOSFile* /*file*/) {
 
 uint32_t ShowNeedsVisuals::GetSaveType() {
     // Original at 0x0055ddb0
-    return 0;
+    return 0x3d;
 }
 
 void ShowNeedsVisuals::ResolveLoad() {

@@ -26,7 +26,7 @@ uint32_t ScriptMarker::Save(GameOSFile* /*file*/) {
 
 uint32_t ScriptMarker::GetSaveType() {
     // Original at 0x00561050
-    return 0;
+    return 0x7c;
 }
 
 void ScriptMarker::PhysicsEditorCreate(int /*param1*/) {

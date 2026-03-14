@@ -22,7 +22,7 @@ uint32_t CitadelBuildingSite::Load(GameOSFile* /*file*/) { return 0; }
 // 0x0043d5e0
 uint32_t CitadelBuildingSite::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0043d190
-uint32_t CitadelBuildingSite::GetSaveType() { return 0; }
+uint32_t CitadelBuildingSite::GetSaveType() { return 0x5d; }
 
 // === Overrides of BuildingSite virtuals ===
 
