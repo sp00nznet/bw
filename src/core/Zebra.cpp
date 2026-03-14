@@ -11,7 +11,7 @@ char* Zebra::GetDebugText() {
 
 uint32_t Zebra::GetSaveType() {
     // Original at 0x0041d900
-    return 0;
+    return 0x86;
 }
 
 uint32_t Zebra::StandAnimation() {

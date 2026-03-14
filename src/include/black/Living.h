@@ -103,6 +103,18 @@ static_assert(sizeof(LivingAction) == 0x6, "LivingAction size mismatch");
 // ============================================================================
 
 struct Living : public MobileWallHug {
+    // === Overrides of GameThingWithPos virtuals ===
+    bool32_t IsSkeleton() const override;
+    bool32_t IsPoisoned() override;
+    void SetSkeleton(int index) override;
+
+    // === Overrides of Object virtuals ===
+    void SetSpecularColor(LH3DColor color) override;
+    LH3DColor GetSpecularColor() override;
+    void SetPoisoned(int param1) override;
+    bool CanBePickedUp() override;
+    IMMERSION_EFFECT_TYPE GetInHandImmersionTexture() override;
+
     // === New virtual methods (vtable 0x874-0xB3C, 179 methods) ===
 
     // --- State / movement queries (0x874-0x8CC) ---

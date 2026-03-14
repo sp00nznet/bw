@@ -33,8 +33,8 @@ uint32_t Ball::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Ball::GetSaveType() {
-    // Original at 0x00435ac0
-    return 0;
+    // Original at 0x00435ac0: returns 0x44
+    return 0x44;
 }
 
 // ============================================================================
@@ -57,8 +57,8 @@ bool32_t Ball::IsToyBall(Creature* /*creature*/) {
 }
 
 uint32_t Ball::GetScriptObjectType() {
-    // Original at 0x00436100 — complex
-    return 0;
+    // Original at 0x00436100: returns 0x1c
+    return 0x1c;
 }
 
 // ============================================================================

@@ -11,7 +11,7 @@ char* Vulture::GetDebugText() {
 
 uint32_t Vulture::GetSaveType() {
     // Original at 0x0041f0b0
-    return 0;
+    return 0x96;
 }
 
 bool32_t Vulture::CanBeFrighteningToCreature(Creature* /*creature*/) {

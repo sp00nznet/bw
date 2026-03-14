@@ -211,7 +211,9 @@ bool GameThing::IsFunctional() {
 }
 
 char* GameThing::GetDebugText() {
-    return nullptr;
+    // Original at 0x00420020: returns "GameThing Unknown"
+    static char text[] = "GameThing Unknown";
+    return text;
 }
 
 uint32_t GameThing::GetSampleForAttack() {

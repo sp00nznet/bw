@@ -11,7 +11,7 @@ char* Seagull::GetDebugText() {
 
 uint32_t Seagull::GetSaveType() {
     // Original at 0x0041ee40
-    return 0;
+    return 0x93;
 }
 
 uint32_t Seagull::StandAnimation() {

@@ -29,7 +29,7 @@ uint32_t Dove::Save(GameOSFile* /*file*/) {
 
 uint32_t Dove::GetSaveType() {
     // Original at 0x0041dd80
-    return 0;
+    return 0x8e;
 }
 
 // ============================================================================

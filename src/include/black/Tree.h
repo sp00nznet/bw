@@ -37,6 +37,13 @@ struct Tree : public SingleMapFixed {
     uint32_t GetCreatureMimicType() override;
     float GetReactionPower() override;
 
+    // === Overrides of GameThing virtuals (inherited) ===
+    char* GetDebugText() override;
+    uint32_t GetSaveType() override;
+
+    // === Overrides of Fixed virtuals ===
+    float GetHowMuchCreatureWantsToLookAtMe() override;
+
     // === Overrides of Object virtuals ===
     bool BlocksTownClearArea() const override;
     HOLD_TYPE GetHoldType() override;

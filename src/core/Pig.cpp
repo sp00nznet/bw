@@ -11,10 +11,10 @@ char* Pig::GetDebugText() {
 
 uint32_t Pig::GetSaveType() {
     // Original at 0x0041d9b0
-    return 0;
+    return 0x87;
 }
 
 uint32_t Pig::StandAnimation() {
-    // Original at 0x0041cd90 — complex
-    return 0;
+    // Original at 0x0041cd90
+    return 0x7e;
 }

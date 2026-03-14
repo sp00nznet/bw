@@ -6,5 +6,8 @@
 
 struct PuzzleGame : public GameThingWithPos {
     uint8_t field_0x28[0x560];  // 0x28
+
+    uint32_t GetSaveType() override;
+    const char* GetText() override;
 };
 static_assert(sizeof(PuzzleGame) == 0x588, "PuzzleGame size mismatch");

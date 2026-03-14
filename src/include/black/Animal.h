@@ -10,6 +10,18 @@
 struct Animal : public Living {
     // No new virtual methods — inherits Living's vtable
 
+    // === Overrides of GameThingWithPos virtuals ===
+    uint32_t GetCreatureBeliefType() override;
+    uint32_t GetCreatureMimicType() override;
+    float GetHowMuchCreatureWantsToLookAtMe() override;
+    uint32_t GetScriptObjectType() override;
+
+    // === Overrides of Object virtuals ===
+    HOLD_TYPE GetHoldType() override;
+    float GetHoldLoweringMultiplier() override;
+    uint32_t GetTastiness() override;
+    uint32_t GetPhysicsConstantsType() override;
+
     // === Fields ===
     uint8_t  field_0xe0[0x2C];   // 0xE0 — various state data (44 bytes)
     uint8_t  death_reason;        // 0x10C

@@ -41,8 +41,8 @@ uint32_t GStreetLight::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t GStreetLight::GetSaveType() {
-    // Original at 0x00561400
-    return 0;
+    // Original at 0x00561400: returns 0xff
+    return 0xff;
 }
 
 void GStreetLight::ResolveLoad() {

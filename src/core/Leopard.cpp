@@ -11,10 +11,10 @@ char* Leopard::GetDebugText() {
 
 uint32_t Leopard::GetSaveType() {
     // Original at 0x0041fc80
-    return 0;
+    return 0x8a;
 }
 
 uint32_t Leopard::StandAnimation() {
-    // Original at 0x0041c2e0 — complex
-    return 0;
+    // Original at 0x0041c2e0
+    return 0x50;
 }

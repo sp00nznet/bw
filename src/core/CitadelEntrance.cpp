@@ -18,8 +18,8 @@ char* CitadelEntrance::GetDebugText() {
 }
 
 uint32_t CitadelEntrance::GetSaveType() {
-    // Original at 0x00468e60
-    return 0;
+    // Original at 0x00468e60: returns 0x110
+    return 0x110;
 }
 
 void CitadelEntrance::ResolveLoad() {

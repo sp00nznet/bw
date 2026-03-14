@@ -93,13 +93,37 @@ bool32_t Tree::CanBeThrownInTheSeaPlayfully(Creature*) {
 }
 
 uint32_t Tree::GetCreatureMimicType() {
-    // Original at 0x0055d960
-    return 2;
+    // Original at 0x0052e220 (v1.0)
+    return 6;
 }
 
 float Tree::GetReactionPower() {
     // Original at 0x0055d8d0
     return 0.0f;
+}
+
+// ============================================================================
+// Overrides of GameThing virtuals
+// ============================================================================
+
+char* Tree::GetDebugText() {
+    // Original at 0x0052ec10
+    static char text[] = "Tree";
+    return text;
+}
+
+uint32_t Tree::GetSaveType() {
+    // Original at 0x0052ec00
+    return 0x4f;
+}
+
+// ============================================================================
+// Overrides of Fixed virtuals
+// ============================================================================
+
+float Tree::GetHowMuchCreatureWantsToLookAtMe() {
+    // Original at 0x004b5370
+    return 0.3f;
 }
 
 // ============================================================================
@@ -113,8 +137,8 @@ bool Tree::BlocksTownClearArea() const {
 }
 
 HOLD_TYPE Tree::GetHoldType() {
-    // Original at 0x0074b600
-    return HOLD_TYPE_DEFAULT;
+    // Original at 0x00418100
+    return static_cast<HOLD_TYPE>(5);
 }
 
 float Tree::GetHoldRadius() {

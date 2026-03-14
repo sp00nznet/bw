@@ -18,8 +18,8 @@ char* Lion::GetDebugText() {
 }
 
 uint32_t Lion::GetSaveType() {
-    // Original at 0x0041fd70
-    return 0;
+    // Original at 0x0041ad90
+    return 0x89;
 }
 
 // ============================================================================
@@ -36,6 +36,6 @@ bool32_t Lion::CanBeFrighteningToCreature(Creature* /*creature*/) {
 // ============================================================================
 
 uint32_t Lion::StandAnimation() {
-    // Original at 0x0041c1a0 — complex
-    return 0;
+    // Original at 0x004182e0
+    return 0x6a;
 }

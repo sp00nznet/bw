@@ -11,10 +11,10 @@ char* Pigeon::GetDebugText() {
 
 uint32_t Pigeon::GetSaveType() {
     // Original at 0x0041ed80
-    return 0;
+    return 0x92;
 }
 
 uint32_t Pigeon::StandAnimation() {
-    // Original at 0x0041bf80 — complex
-    return 0;
+    // Original at 0x0041bf80
+    return 0x11;
 }

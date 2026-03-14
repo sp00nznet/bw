@@ -9,6 +9,55 @@
 #include <black/Living.h>
 
 // ============================================================================
+// Overrides of GameThingWithPos virtuals
+// ============================================================================
+
+bool32_t Living::IsSkeleton() const {
+    // Original at 0x00413e00: (status >> 6) & 1
+    return (status >> 6) & 1;
+}
+
+bool32_t Living::IsPoisoned() {
+    // Original at 0x00413dc0: (status >> 1) & 1
+    return (status >> 1) & 1;
+}
+
+void Living::SetSkeleton(int value) {
+    // Original at 0x00413e10: sets bit 6 of status field at 0xB4
+    status = (static_cast<uint16_t>(value) & 1) << 6 | (status & 0xFFBF);
+}
+
+// ============================================================================
+// Overrides of Object virtuals
+// ============================================================================
+
+void Living::SetSpecularColor(LH3DColor color) {
+    // Original at 0x00413fb0: *(this + 0xD0) = color
+    specular_color = color;
+}
+
+LH3DColor Living::GetSpecularColor() {
+    // Original at 0x00413fc0: return *(this + 0xD0)
+    return specular_color;
+}
+
+void Living::SetPoisoned(int value) {
+    // Original at 0x00413dd0: sets bit 1 of status field at 0xB4
+    status = (static_cast<uint16_t>(value) & 1) << 1 | (status & 0xFFFD);
+}
+
+bool Living::CanBePickedUp() {
+    // Original at 0x00413eb0: returns inverted bit 13 of field_0x24
+    // Bit 13 set means NOT pickable (IsCannotBePickedUp flag)
+    return (field_0x24 & 0x2000) == 0;
+}
+
+IMMERSION_EFFECT_TYPE Living::GetInHandImmersionTexture() {
+    // Original at 0x004181c0
+    return static_cast<IMMERSION_EFFECT_TYPE>(0x16);
+}
+
+// ============================================================================
 // State / movement queries (vtable 0x874-0x8CC)
 // ============================================================================
 
@@ -82,7 +131,10 @@ int Living::ExitPlayAnim(VILLAGER_STATES) { return 0; }
 // ============================================================================
 
 bool Living::IsScriptState(VILLAGER_STATES) const { return false; }
-bool Living::IsScriptInterruptableState(VILLAGER_STATES) const { return false; }
+bool Living::IsScriptInterruptableState(VILLAGER_STATES state) const {
+    // Original at 0x00413e60: return state == 0x18
+    return state == VILLAGER_STATE_IN_HAND;
+}
 bool Living::IsStateForInterface(VILLAGER_STATES) const { return false; }
 bool Living::IsStateExitFunctionSameAs(VILLAGER_STATES) const { return false; }
 bool Living::IsDeathState(VILLAGER_STATES) const { return false; }

@@ -13,8 +13,8 @@ struct SpellWolf : public Lion {
     virtual GPlayer* GetPlayer() override { return nullptr; }
     virtual void     SetPlayer(GPlayer*) override {}
     virtual uint32_t GetSaveType() override { return 0; }
-    virtual uint32_t Load(void* file) override { return 0; }
-    virtual uint32_t Save(void* file) override { return 0; }
+    virtual uint32_t Load(GameOSFile* file) override { return 0; }
+    virtual uint32_t Save(GameOSFile* file) override { return 0; }
     virtual void     Draw() override {}
     virtual void     CallVirtualFunctionsForCreation(const MapCoords&) override {}
     virtual bool     SetDying() override { return false; }

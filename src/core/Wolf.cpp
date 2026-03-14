@@ -77,7 +77,7 @@ char* Wolf::GetDebugText() {
 
 uint32_t Wolf::GetSaveType() {
     // Original at 0x00421660
-    return 0;
+    return 0x8c;
 }
 
 uint32_t Wolf::StandAnimation() {

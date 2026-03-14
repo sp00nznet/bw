@@ -11,10 +11,10 @@ char* Tortoise::GetDebugText() {
 
 uint32_t Tortoise::GetSaveType() {
     // Original at 0x0041db40
-    return 0;
+    return 0x88;
 }
 
 uint32_t Tortoise::StandAnimation() {
-    // Original at 0x0041ce80 — complex
-    return 0;
+    // Original at 0x0041ce80
+    return 0xab;
 }

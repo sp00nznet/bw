@@ -11,7 +11,7 @@ char* Swallow::GetDebugText() {
 
 uint32_t Swallow::GetSaveType() {
     // Original at 0x0041ecc0
-    return 0;
+    return 0x91;
 }
 
 uint32_t Swallow::StandAnimation() {

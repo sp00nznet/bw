@@ -11,7 +11,7 @@ char* Goat::GetDebugText() {
 
 uint32_t Goat::GetSaveType() {
     // Original at 0x0041d6c0
-    return 0;
+    return 0x84;
 }
 
 uint32_t Goat::StandAnimation() {

@@ -36,8 +36,8 @@ uint32_t GStreetLantern::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t GStreetLantern::GetSaveType() {
-    // Original at 0x00561450
-    return 0;
+    // Original at 0x00561450: returns 0xfe
+    return 0xfe;
 }
 
 // ============================================================================

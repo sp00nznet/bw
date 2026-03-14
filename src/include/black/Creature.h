@@ -51,6 +51,11 @@ struct CreatureSubActionAgenda {
 struct Creature : public Living {
     // No new virtual methods — uses Living's vtable (0xB40)
 
+    // === Overrides of GameThing virtuals ===
+    GPlayer* GetPlayer() override;
+    char* GetDebugText() override;
+    uint32_t GetSaveType() override;
+
     // === Fields ===
     char16_t name[0x40];                   // 0xE0 — creature name (64 UTF-16 chars, 128 bytes)
     CreaturePhysical* physical;            // 0x160 — physical body state

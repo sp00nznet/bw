@@ -68,7 +68,10 @@ static_assert(sizeof(PieceSheep) == 0x148, "PieceSheep size mismatch");
 struct PieceTortoise : public Tortoise {};
 static_assert(sizeof(PieceTortoise) == 0x148, "PieceTortoise size mismatch");
 
-struct PieceVillager : public Animal {};
+struct PieceVillager : public Animal {
+    uint32_t GetSaveType() override;
+    uint32_t StandAnimation() override;
+};
 static_assert(sizeof(PieceVillager) == 0x148, "PieceVillager size mismatch");
 
 struct PieceWolf : public Wolf {};
@@ -94,7 +97,9 @@ static_assert(sizeof(PuzzleSheep) == 0x148, "PuzzleSheep size mismatch");
 struct PuzzleTortoise : public PieceTortoise {};
 static_assert(sizeof(PuzzleTortoise) == 0x148, "PuzzleTortoise size mismatch");
 
-struct PuzzleVillager : public PieceVillager {};
+struct PuzzleVillager : public PieceVillager {
+    uint32_t GetSaveType() override;
+};
 static_assert(sizeof(PuzzleVillager) == 0x148, "PuzzleVillager size mismatch");
 
 struct PuzzleGrain : public PileFood {};

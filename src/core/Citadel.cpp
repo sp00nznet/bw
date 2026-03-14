@@ -35,8 +35,8 @@ uint32_t Citadel::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Citadel::GetSaveType() {
-    // Original at 0x00462ac0
-    return 0;
+    // Original at 0x0044e3b0
+    return 0x35;
 }
 
 // ============================================================================

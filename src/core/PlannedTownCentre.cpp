@@ -10,6 +10,6 @@ char* PlannedTownCentre::GetDebugText() {
 }
 
 uint32_t PlannedTownCentre::GetSaveType() {
-    // Original at 0x0055dbf0
-    return 0;
+    // Original at 0x0055dbf0: returns 0x62
+    return 0x62;
 }

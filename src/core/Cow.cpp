@@ -17,8 +17,8 @@ char* Cow::GetDebugText() {
 }
 
 uint32_t Cow::GetSaveType() {
-    // Original at 0x0041d0f0
-    return 0;
+    // Original at 0x00418a10
+    return 0x82;
 }
 
 // ============================================================================

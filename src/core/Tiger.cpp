@@ -11,10 +11,10 @@ char* Tiger::GetDebugText() {
 
 uint32_t Tiger::GetSaveType() {
     // Original at 0x00421420
-    return 0;
+    return 0x8b;
 }
 
 uint32_t Tiger::StandAnimation() {
-    // Original at 0x0041c430 — complex
-    return 0;
+    // Original at 0x0041c430
+    return 0xa4;
 }

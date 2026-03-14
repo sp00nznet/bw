@@ -18,8 +18,8 @@ bool GGame::IsAvailable() {
 }
 
 char* GGame::GetDebugText() {
-    // Original at 0x0054b9c0
-    static char text[] = "GGame";
+    // Original at 0x0051ec70: returns "Game"
+    static char text[] = "Game";
     return text;
 }
 
@@ -34,8 +34,8 @@ uint32_t GGame::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t GGame::GetSaveType() {
-    // Original at 0x0054b9b0
-    return 0;
+    // Original at 0x0051ec60
+    return 0x6a;
 }
 
 void GGame::ResolveLoad() {

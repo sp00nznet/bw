@@ -10,11 +10,11 @@ char* Horse::GetDebugText() {
 }
 
 uint32_t Horse::GetSaveType() {
-    // Original at 0x0041d770
-    return 0;
+    // Original at 0x00418ed0
+    return 0x85;
 }
 
 uint32_t Horse::StandAnimation() {
-    // Original at 0x0041cb40 — complex
-    return 0;
+    // Original at 0x00418800
+    return 0x39;
 }

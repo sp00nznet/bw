@@ -11,10 +11,10 @@ char* Sheep::GetDebugText() {
 
 uint32_t Sheep::GetSaveType() {
     // Original at 0x0041d530
-    return 0;
+    return 0x83;
 }
 
 uint32_t Sheep::StandAnimation() {
-    // Original at 0x0041c8e0 — complex
-    return 0;
+    // Original at 0x0041c8e0
+    return 0x8e;
 }

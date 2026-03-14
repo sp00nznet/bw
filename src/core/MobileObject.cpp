@@ -45,9 +45,8 @@ uint32_t MobileObject::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t MobileObject::GetSaveType() {
-    // Original at 0x00425bd0
-    // TODO: verify return value
-    return 0;
+    // Original at 0x0041fed0
+    return 0x53;
 }
 
 // ============================================================================
@@ -77,15 +76,19 @@ bool32_t MobileObject::CanBeStompedOnByCreature(Creature* /*creature*/) {
 }
 
 bool32_t MobileObject::IsMushroom(Creature* /*creature*/) {
-    // Original at 0x004e4ce0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x004c5fe0: reads info->subType at offset 0x104
+    // Returns true if subType is 0x12 or 0x13 (mushroom variants)
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x12 || sub_type == 0x13) ? 1 : 0;
 }
 
 bool32_t MobileObject::CanBeUsedToHoldWater(Creature* /*creature*/) {
-    // Original at 0x00425b70: small method
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x0041feb0: reads info->subType at offset 0x104
+    // Returns true if subType == 6 (pot that can hold water)
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return sub_type == 6 ? 1 : 0;
 }
 
 bool32_t MobileObject::CanBeThrownInTheSeaPlayfully(Creature* /*creature*/) {
@@ -94,9 +97,8 @@ bool32_t MobileObject::CanBeThrownInTheSeaPlayfully(Creature* /*creature*/) {
 }
 
 uint32_t MobileObject::GetCreatureMimicType() {
-    // Original at 0x00425b60
-    // TODO: verify return value
-    return 0;
+    // Original at 0x0041fea0
+    return 8;
 }
 
 bool32_t MobileObject::IsMobileObject() {
@@ -127,9 +129,9 @@ float MobileObject::GetXAngle() {
 }
 
 float MobileObject::GetZAngle() {
-    // Original at 0x00425b20: reads from field area
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x0041fe90: return *(float*)(this + 0x60)
+    // field_0x60 stores z-angle as a float bit pattern in uint32_t
+    return *reinterpret_cast<const float*>(&field_0x60);
 }
 
 void MobileObject::SetXYZAngles(float /*x*/, float /*y*/, float /*z*/) {
@@ -251,9 +253,8 @@ void MobileObject::AddToRoutePlan(RPHolder* /*p1*/, Creature* /*p2*/, int /*p3*/
 }
 
 uint32_t MobileObject::GetTastiness() {
-    // Original at 0x00425b50: small method
-    // TODO: verify return value
-    return 0;
+    // Original at 0x00425b50
+    return 2;
 }
 
 size_t MobileObject::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {

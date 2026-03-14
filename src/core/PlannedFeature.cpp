@@ -20,8 +20,8 @@ uint32_t PlannedFeature::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t PlannedFeature::GetSaveType() {
-    // Original at 0x00527480
-    return 0;
+    // Original at 0x00527480: returns 0x73
+    return 0x73;
 }
 
 MultiMapFixed* PlannedFeature::CreatePlanned(float /*param1*/) {

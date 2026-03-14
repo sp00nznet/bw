@@ -25,8 +25,8 @@ uint32_t PlannedTownCitadelHeart::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t PlannedTownCitadelHeart::GetSaveType() {
-    // Original at 0x00467e40
-    return 0;
+    // Original at 0x00467e40: returns 0x39
+    return 0x39;
 }
 
 bool32_t PlannedTownCitadelHeart::IsWonder() {

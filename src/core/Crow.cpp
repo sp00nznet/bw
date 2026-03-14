@@ -11,7 +11,7 @@ char* Crow::GetDebugText() {
 
 uint32_t Crow::GetSaveType() {
     // Original at 0x0041ec00
-    return 0;
+    return 0x8f;
 }
 
 uint32_t Crow::StandAnimation() {

@@ -14,8 +14,8 @@ char* Bat::GetDebugText() {
 }
 
 uint32_t Bat::GetSaveType() {
-    // Original at 0x0041ef00
-    return 0;
+    // Original at 0x0041a100
+    return 0x94;
 }
 
 bool32_t Bat::CanBeFrighteningToCreature(Creature* /*creature*/) {
@@ -40,7 +40,8 @@ char* SpellBat::GetDebugText() {
 
 uint32_t SpellBat::GetSaveType() {
     // Original at 0x0041efe0
-    return 0;
+    // SpellBat shares the Bat save type infrastructure
+    return 0x94;
 }
 
 bool32_t SpellBat::CanBeFrighteningToCreature(Creature* /*creature*/) {

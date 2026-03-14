@@ -52,6 +52,6 @@ uint32_t TownArtifact::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t TownArtifact::GetSaveType() {
-    // Original at 0x00425d70
-    return 0;
+    // Original at 0x00425d70: returns 0x103
+    return 0x103;
 }
