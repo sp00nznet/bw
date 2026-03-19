@@ -183,6 +183,14 @@ static void SetupGL() {
     glEnable(GL_NORMALIZE);
     glClearColor(0.15f, 0.15f, 0.2f, 1.0f);
 
+    // Alpha test for DXT3 cutout transparency (fences, leaves, etc.)
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.5f);
+
+    // Blending for smooth alpha edges
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     float light_pos[]  = { 1.0f, 2.0f, 1.5f, 0.0f };
     float light_amb[]  = { 0.25f, 0.25f, 0.25f, 1.0f };
     float light_diff[] = { 0.85f, 0.85f, 0.85f, 1.0f };
