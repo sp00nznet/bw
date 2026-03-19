@@ -267,6 +267,45 @@ bool LoadG3D(const std::string& path, G3DArchive& out) {
         fprintf(stderr, "G3D: No MESHES block found\n");
     }
 
+    // Parse texture blocks
+    // Each numbered block (hex name like "6e") contains: G3DTextureHeader(16) + DdsHeader(124) + texels
+    uint32_t tex_loaded = 0;
+    for (auto& [name, block] : out.blocks) {
+        // Skip non-texture blocks
+        if (name == "INFO" || name == "MESHES" || name.substr(0, 3) == "LOW")
+            continue;
+
+        // Check if this is a hex-named texture block
+        if (block.data.size() < 16 + 124) continue;
+
+        const auto* thdr = reinterpret_cast<const G3DTextureHeader*>(block.data.data());
+        if (thdr->type != 1 && thdr->type != 2) continue; // 1=DXT1, 2=DXT3
+
+        // DDS header starts at offset 16 (after G3DTextureHeader)
+        // DDS header is 124 bytes; first field is size (should be 124)
+        uint32_t dds_header_size = *reinterpret_cast<const uint32_t*>(block.data.data() + 16);
+        if (dds_header_size != 124) continue;
+
+        uint32_t width  = *reinterpret_cast<const uint32_t*>(block.data.data() + 16 + 12); // offset 12 in DDS header
+        uint32_t height = *reinterpret_cast<const uint32_t*>(block.data.data() + 16 + 8);  // offset 8 in DDS header
+
+        // Texel data starts after G3DTextureHeader(16) + DdsHeader(124) = 140 bytes
+        size_t texel_offset = 16 + 124;
+        if (texel_offset >= block.data.size()) continue;
+
+        G3DTexture tex;
+        tex.id = thdr->id;
+        tex.type = thdr->type;
+        tex.width = width;
+        tex.height = height;
+        tex.texel_data.assign(block.data.data() + texel_offset,
+                              block.data.data() + block.data.size());
+
+        out.textures[tex.id] = std::move(tex);
+        tex_loaded++;
+    }
+    printf("G3D: Loaded %u textures\n", tex_loaded);
+
     fflush(stdout);
     return !out.meshes.empty();
 }

@@ -306,6 +306,7 @@ add_library(bw_core STATIC
 add_executable(bw_viewer
     viewer/main.cpp
     viewer/l3d_loader.cpp
+    viewer/g3d_loader.cpp
 )
 target_link_libraries(bw_viewer PRIVATE opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES
