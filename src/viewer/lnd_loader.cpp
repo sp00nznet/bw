@@ -36,13 +36,32 @@ void Landscape::BuildMesh() {
     min_x = min_y = min_z =  std::numeric_limits<float>::max();
     max_x = max_y = max_z = -std::numeric_limits<float>::max();
 
+    // Build grid position lookup: block index → (grid_col, grid_row)
+    int block_grid_col[256] = {};
+    int block_grid_row[256] = {};
+    for (int row = 0; row < 32; ++row) {
+        for (int col = 0; col < 32; ++col) {
+            uint8_t idx = index_grid[row][col];
+            if (idx > 0 && idx < 256) {
+                block_grid_col[idx] = col;
+                block_grid_row[idx] = row;
+            }
+        }
+    }
+
     uint32_t vert_offset = 0;
     for (uint32_t bi = 0; bi < block_count && bi < blocks.size(); ++bi) {
         const auto& blk = blocks[bi];
 
-        // Block world position
-        float bx = blk.map_x;
-        float bz = blk.map_y; // map_y is actually Z in world space
+        // Skip block 0 (ocean/empty)
+        if (bi == 0) {
+            // Still need to add vertices for index consistency, but skip rendering
+        }
+
+        // Block world position from grid coordinates
+        // Each block is 16 cells wide, each cell is CELL_SIZE apart
+        float bx = block_grid_col[bi] * 16.0f * CELL_SIZE;
+        float bz = block_grid_row[bi] * 16.0f * CELL_SIZE;
 
         // Generate vertices for this block's 17x17 grid
         for (int row = 0; row < 17; ++row) {
@@ -162,21 +181,44 @@ bool LoadLND(const std::string& path, Landscape& out) {
            hdr.country_count, hdr.lowres_texture_count);
     fflush(stdout);
 
-    // Skip low-resolution textures
-    for (uint32_t i = 0; i < hdr.lowres_texture_count; ++i) {
-        uint32_t tex_size;
-        if (fread(&tex_size, 4, 1, f) != 1) break;
-        fseek(f, tex_size, SEEK_CUR);
-    }
+    // Find land blocks by scanning for the block pattern (idx=0 followed by idx=1)
+    // The data between header and blocks varies by game version
+    {
+        long scan_start = ftell(f);
+        long block_start = -1;
+        std::vector<uint8_t> scan_buf(file_size - scan_start);
+        fread(scan_buf.data(), 1, scan_buf.size(), f);
 
-    printf("LND: Reading %u land blocks at offset 0x%lX...\n",
-           hdr.block_count, ftell(f));
-    fflush(stdout);
+        for (size_t off = 0; off + sizeof(LNDBlock) * 2 <= scan_buf.size(); ++off) {
+            auto* b0 = reinterpret_cast<const LNDBlock*>(scan_buf.data() + off);
+            auto* b1 = reinterpret_cast<const LNDBlock*>(scan_buf.data() + off + sizeof(LNDBlock));
+            if (b0->index == 0 && b1->index == 1 &&
+                b0->block_x < 50 && b0->block_y < 50 &&
+                b1->block_x < 50 && b1->block_y < 50) {
+                block_start = scan_start + static_cast<long>(off);
+                break;
+            }
+        }
+
+        if (block_start < 0) {
+            fprintf(stderr, "LND: Could not find land blocks\n");
+            fclose(f);
+            return false;
+        }
+
+        fseek(f, block_start, SEEK_SET);
+        printf("LND: Found blocks at offset 0x%lX (skipped %ld bytes after header)\n",
+               block_start, block_start - scan_start);
+        fflush(stdout);
+    }
 
     // Read land blocks
     out.block_count = hdr.block_count;
     out.material_count = hdr.material_count;
     out.country_count = hdr.country_count;
+
+    // Copy index grid (32x32, maps grid position to block index)
+    memcpy(out.index_grid, hdr.index_block, 1024);
     out.blocks.resize(hdr.block_count);
 
     size_t blocks_read = fread(out.blocks.data(),

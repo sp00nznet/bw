@@ -80,6 +80,7 @@ struct TerrainVertex {
 // Parsed landscape
 struct Landscape {
     std::vector<LNDBlock>       blocks;
+    uint8_t                     index_grid[32][32]; // grid position → block index
     uint32_t                    block_count;
     uint32_t                    material_count;
     uint32_t                    country_count;
