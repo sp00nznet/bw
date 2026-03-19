@@ -302,6 +302,25 @@ add_library(bw_core STATIC
     core/GScript.cpp
 )
 
+# L3D mesh viewer — standalone Win32 + OpenGL application
+add_executable(bw_viewer
+    viewer/main.cpp
+    viewer/l3d_loader.cpp
+)
+target_link_libraries(bw_viewer PRIVATE opengl32 glu32)
+set_target_properties(bw_viewer PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# L3D loader test — console-only, no window
+add_executable(test_loader
+    viewer/test_loader.cpp
+    viewer/l3d_loader.cpp
+)
+set_target_properties(test_loader PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 # Future subsystems (uncomment as implemented):
 # add_library(bw_script STATIC script/LHVM.cpp)
 # add_library(bw_terrain STATIC terrain/Landscape.cpp)
