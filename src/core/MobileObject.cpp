@@ -163,9 +163,9 @@ void MobileObject::InsertMapObjectToCell(MapCell* /*cell*/) {
     // TODO: implement properly
 }
 
-void MobileObject::RemoveMapObjectFromCell(MapCell* /*cell*/) {
-    // Original at 0x00607260 — complex
-    // TODO: implement properly
+void MobileObject::RemoveMapObjectFromCell(MapCell* cell) {
+    // Original at 0x00505600: delegates to Object base class
+    Object::RemoveMapObjectFromCell(cell);
 }
 
 HOLD_TYPE MobileObject::GetHoldType() {
@@ -175,9 +175,9 @@ HOLD_TYPE MobileObject::GetHoldType() {
 }
 
 float MobileObject::GetHoldLoweringMultiplier() {
-    // Original at 0x00607130 — complex
-    // TODO: implement properly
-    return 1.0f;
+    // Original at 0x005c2600: depends on hold type
+    if (GetHoldType() == 6) return 0.7f;
+    return -0.3f;
 }
 
 int MobileObject::GetMesh() const {
@@ -208,8 +208,12 @@ void MobileObject::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 RESOURCE_TYPE MobileObject::GetResourceType() {
-    // Original at 0x00607c20 — complex
-    // TODO: implement properly
+    // Original at 0x005c3020: mushroom types (0x11, 0x12, 0x13) are food, others invalid
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    if (sub_type != 0x11 && sub_type != 0x12 && sub_type != 0x13) {
+        return static_cast<RESOURCE_TYPE>(0xFFFFFFFF);  // RESOURCE_TYPE_NONE
+    }
     return RESOURCE_TYPE_FOOD;
 }
 

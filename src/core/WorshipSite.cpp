@@ -9,8 +9,8 @@ void WorshipSite::ToBeDeleted(int /*param*/) {}
 
 // === Overrides of GameThing virtuals ===
 
-// 0x0055dc50
-void WorshipSite::RemoveDance() {}
+// 0x0052ed20: clears dance pointer
+void WorshipSite::RemoveDance() { dance = nullptr; }
 // 0x0077bd80
 uint32_t WorshipSite::GetResource(RESOURCE_TYPE /*type*/) { return 0; }
 // 0x0077c5f0
@@ -65,8 +65,8 @@ LHPoint* WorshipSite::GetDefaultFireCentrePos(LHPoint* /*pos*/) { return nullptr
 float WorshipSite::GetDefaultFireRadius() { return 0.0f; }
 // 0x0077b1d0
 uint32_t WorshipSite::Process() { return 0; }
-// 0x0055dcc0
-int WorshipSite::GetMesh() const { return 0; }
+// 0x00704310: returns 1
+int WorshipSite::GetMesh() const { return 1; }
 // 0x005193d0
 void WorshipSite::Draw() {}
 // 0x0077de70

@@ -7,6 +7,8 @@
 // connectivity, resource management, and collision.
 
 #include <black/MultiMapFixed.h>
+#include <black/BuildingSite.h>
+#include <black/GMultiMapFixedInfo.h>
 
 // ============================================================================
 // Overrides of GameThing virtuals
@@ -53,15 +55,19 @@ uint32_t MultiMapFixed::RemoveFootpath(GFootpath* /*footpath*/) {
     return 0;
 }
 
-uint32_t MultiMapFixed::AddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool /*param4*/, const MapCoords& /*coords*/, int /*param6*/) {
-    // Original at 0x0052f180 — complex resource system
-    // TODO: implement when resource system is available
+uint32_t MultiMapFixed::AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool param4, const MapCoords& coords, int /*param6*/) {
+    // Original at 0x00505350: delegates to building_site->AddResource
+    if (building_site != nullptr) {
+        return building_site->AddResource(type, amount, status, param4, coords, 0);
+    }
     return 0;
 }
 
-uint32_t MultiMapFixed::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool* /*param4*/) {
-    // Original at 0x0052f1c0 — complex resource system
-    // TODO: implement when resource system is available
+uint32_t MultiMapFixed::RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool* param4) {
+    // Original at 0x00505390: delegates to building_site->RemoveResource
+    if (building_site != nullptr) {
+        return building_site->RemoveResource(type, amount, status, param4);
+    }
     return 0;
 }
 
@@ -71,9 +77,13 @@ MultiMapFixed* MultiMapFixed::CastMultiMapFixed() {
 }
 
 bool MultiMapFixed::IsFunctional() {
-    // Original at 0x0052ef70 — complex (checks built/repaired state)
-    // TODO: implement properly
-    return false;
+    // Original at 0x00505140
+    // Checks: available, built, and repair above threshold
+    if (!IsAvailable()) return false;
+    if (!IsBuilt()) return false;
+    float repaired = GetPercentRepaired();
+    float threshold = GetPercentRepairedForNonFunctional();
+    return threshold < repaired;
 }
 
 uint32_t MultiMapFixed::Load(GameOSFile* /*file*/) {
@@ -118,10 +128,12 @@ bool32_t MultiMapFixed::NeedsRepair(Creature* /*creature*/) {
     return IsRepaired() ? 0 : 1;
 }
 
-bool32_t MultiMapFixed::IsBuildingWhichIsBeingBuilt(Creature* creature) {
-    // Original at 0x004e41c0 — complex
-    // TODO: implement properly
-    return IsBeingBuilt(creature);
+bool32_t MultiMapFixed::IsBuildingWhichIsBeingBuilt(Creature* /*creature*/) {
+    // Original at 0x004c5600
+    // Building under construction: either not fully built, or damaged and not fully repaired
+    if (GetPercentBuilt() < 1.0f) return 1;
+    if ((field_0x58 & 4) && GetLife() < 1.0f) return 1;
+    return 0;
 }
 
 bool32_t MultiMapFixed::IsWonder() {
@@ -168,14 +180,16 @@ int MultiMapFixed::MoveMapObject(const MapCoords& /*coords*/) {
 }
 
 void MultiMapFixed::ReduceLife(float /*value*/, GPlayer* /*player*/) {
-    // Original at 0x0052f5e0 — complex
-    // TODO: implement properly
+    // Original at 0x00505790 — complex (delegates between building_site and Object)
+    // TODO: implement properly — requires multiple vtable calls and base delegation
 }
 
 uint32_t MultiMapFixed::Process() {
-    // Original at 0x0052f700 — complex building process loop
-    // TODO: implement properly
-    return 0;
+    // Original at 0x005058a0: delegates to building_site->Process()
+    if (building_site != nullptr) {
+        building_site->Process();
+    }
+    return 1;
 }
 
 void MultiMapFixed::Draw() {
@@ -199,10 +213,9 @@ MultiMapFixed* MultiMapFixed::AsMultiMapFixed() {
     return this;
 }
 
-bool MultiMapFixed::IsResourceStore(RESOURCE_TYPE /*type*/) {
-    // Original at 0x0052f1f0 — complex
-    // TODO: implement properly
-    return false;
+bool MultiMapFixed::IsResourceStore(RESOURCE_TYPE type) {
+    // Original at 0x005053c0: returns true only for wood when building_site exists
+    return (type == RESOURCE_TYPE_WOOD) && (building_site != nullptr);
 }
 
 bool MultiMapFixed::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*param2*/) {
@@ -223,9 +236,10 @@ void MultiMapFixed::StartOnFire() {
 }
 
 bool MultiMapFixed::InteractsWithPhysicsObjects() {
-    // Original at 0x0052f3d0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x005055a0: interacts when built enough and alive enough
+    float built = GetPercentBuilt();
+    float life = GetLife();
+    return (built > 0.1f) && (life > 0.01f);
 }
 
 bool MultiMapFixed::CreatureMustAvoid(Creature* /*param1*/) {
@@ -272,9 +286,11 @@ MapCoords* MultiMapFixed::GetDoorPos(MapCoords* pos) {
 }
 
 float MultiMapFixed::GetInfluence() {
-    // Original at 0x0052eca0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00504ef0: product of build/scale/life/info values
+    float built = GetPercentBuilt();
+    float scale = GetScale();
+    float life = GetLife();
+    return life * (scale * built) * static_cast<const GMultiMapFixedInfo*>(info)->influence;
 }
 
 bool MultiMapFixed::IsPlaytimeStructure() {
@@ -317,33 +333,43 @@ float MultiMapFixed::GetPercentRepaired() {
 }
 
 float MultiMapFixed::GetPercentRepairedFromWhenDamaged() {
-    // Original at 0x0052f010 — complex
-    // TODO: implement properly
+    // Original at 0x005051e0: calculates repair progress relative to damage start
+    if (!IsBuilt()) return 1.0f;
+    if (GetDestructionMesh() == nullptr || building_site == nullptr) {
+        return GetPercentRepaired() * 0.98f;
+    }
+    float damage_start = building_site->life;
+    float range = 1.0f - damage_start;
+    float progress = GetPercentRepaired() - damage_start;
+    if (range != 0.0f && progress != 0.0f) {
+        return progress / range;
+    }
     return 0.0f;
 }
 
 bool MultiMapFixed::IsRepaired() {
-    // Original at 0x00438d70 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00438d70 — stub, overridden in Abode etc.
+    // Base implementation: not damaged means repaired
+    return (field_0x58 & 4) == 0;
 }
 
 bool MultiMapFixed::IsBuilt() {
-    // Original at 0x00438d80 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x0052e850 (misnamed BuildBy in Ghidra mangling)
+    // Checks: construction flag not set, and build progress >= 100%
+    if ((field_0x58 & 2) == 2) return false;
+    return GetPercentBuilt() >= 1.0f;
 }
 
 float MultiMapFixed::GetPercentRepairedForNonFunctional() {
-    // Original at 0x0052efc0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00505190: constant threshold
+    return 0.75f;
 }
 
 float MultiMapFixed::GetPercentForDrawBuilding() {
-    // Original at 0x0052efd0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x005051a0: returns the lesser of build and repair progress
+    float repaired = GetPercentRepairedFromWhenDamaged();
+    float built = GetPercentBuilt();
+    return (repaired < built) ? repaired : built;
 }
 
 float MultiMapFixed::GetPercentAbodeFullWithAdults() {
@@ -359,21 +385,30 @@ float MultiMapFixed::GetPercentAbodeFullWithChildren() {
 }
 
 bool MultiMapFixed::IsDrawBuilding() {
-    // Original at 0x0052f0c0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00505290: true when a building site exists
+    return building_site != nullptr;
 }
 
 bool MultiMapFixed::Built() {
-    // Original at 0x0052ebb0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00504e10 — complex (notifies town, player, etc.)
+    // TODO: implement full notification chain (IsCivic, GetAbodeType, GetTown, etc.)
+    if (building_site != nullptr) {
+        building_site->ToBeDeleted(0);
+    }
+    // Clear "under construction" (bit 1), set "fully built" (bit 3)
+    field_0x58 = (field_0x58 & ~2) | 8;
+    percent_built = 1.0f;
+    return true;
 }
 
 bool MultiMapFixed::Repaired() {
-    // Original at 0x0052ec70 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00504ec0: notify building site, remove damage state
+    if (building_site != nullptr) {
+        building_site->ToBeDeleted(0);
+    }
+    RemoveDamage();
+    field_0x58 &= ~4;  // Clear damaged bit
+    return true;
 }
 
 uint32_t MultiMapFixed::GetBuildingSiteWood(uint32_t* /*param1*/) {
@@ -433,9 +468,13 @@ MapCoords* MultiMapFixed::GetResourceNearestEdge(MapCoords* /*coords*/, RESOURCE
 }
 
 float MultiMapFixed::GetDesireToBeRepaired() {
-    // Original at 0x0052ece0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00504f30: desire scales with damage, clamped to [0, 1]
+    if (IsRepaired()) return 0.0f;
+    float repaired = GetPercentRepaired();
+    float desire = ((1.0f - repaired) * 0.5f + 0.5f) *
+                   static_cast<const GMultiMapFixedInfo*>(info)->desireToBeRepaired;
+    if (desire >= 1.0f) return 1.0f;
+    return desire;
 }
 
 void MultiMapFixed::AddToPlayer() {
@@ -468,9 +507,11 @@ void MultiMapFixed::SetTown(Town* /*town*/) {
     // TODO: implement properly
 }
 
-void MultiMapFixed::RemovePotFromStructure(PotStructure* /*structure*/) {
-    // Original at 0x0052f160 — complex
-    // TODO: implement properly
+void MultiMapFixed::RemovePotFromStructure(PotStructure* structure) {
+    // Original at 0x00505330: delegates to building_site
+    if (building_site != nullptr) {
+        building_site->RemovePotFromStructure(structure);
+    }
 }
 
 bool MultiMapFixed::GetShouldNotBeAddedToPlanned() {
@@ -484,9 +525,25 @@ void MultiMapFixed::SetShouldNotBeAddedToPlanned(bool /*value*/) {
     // TODO: implement properly
 }
 
-void MultiMapFixed::BuildBy(float /*param1*/) {
-    // Original at 0x0052ed40 — complex
-    // TODO: implement properly
+void MultiMapFixed::BuildBy(float amount) {
+    // Original at 0x00504f90: increments build or repair progress
+    if (!IsBuilt()) {
+        // Building phase: advance percent_built
+        float current = percent_built;
+        percent_built = amount + current;
+        if (percent_built < 0.0f) {
+            percent_built = 0.0f;
+        }
+        if (percent_built >= 1.0f) {
+            Built();
+        }
+    } else if (!IsRepaired()) {
+        // Repair phase: increase life toward 1.0
+        IncreaseLife(amount);
+        if (GetLife() >= 1.0f) {
+            Repaired();
+        }
+    }
 }
 
 PlannedMultiMapFixed* MultiMapFixed::ConvertToPlanned() {

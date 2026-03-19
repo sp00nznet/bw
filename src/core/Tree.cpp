@@ -142,13 +142,13 @@ HOLD_TYPE Tree::GetHoldType() {
 }
 
 float Tree::GetHoldRadius() {
-    // Original at 0x0074b610
-    return 0.0f;
+    // Original at 0x006dcb20: proportional to tree health
+    return GetLife() * 0.2f;
 }
 
 float Tree::GetHoldLoweringMultiplier() {
-    // Original at 0x0074b620
-    return 0.0f;
+    // Original at 0x006dcb30
+    return 0.1f;
 }
 
 bool32_t Tree::HandShouldFeelWithMeshIntersect() {

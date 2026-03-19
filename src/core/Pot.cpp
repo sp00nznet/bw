@@ -144,9 +144,8 @@ void Pot::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 float Pot::GetFoodValue(FOOD_TYPE /*type*/) {
-    // Original at 0x0066f570 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x006190f0: returns resource count as float
+    return static_cast<float>(GetResource(RESOURCE_TYPE_FOOD));
 }
 
 bool Pot::IsResourceStore(RESOURCE_TYPE /*type*/) {
@@ -162,9 +161,8 @@ bool Pot::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*pa
 }
 
 float Pot::GetRadiusMultiplierForApplyingPotToPos() {
-    // Original at 0x0066f520
-    // TODO: verify return value
-    return 1.0f;
+    // Original at 0x006190c0
+    return 2.0f;
 }
 
 RESOURCE_TYPE Pot::GetResourceType() {
@@ -178,14 +176,14 @@ int Pot::GetDefaultResource() {
     return 0;
 }
 
-void Pot::SetPoisonedResource(RESOURCE_TYPE /*type*/, int /*param2*/) {
-    // Original at 0x0055d550 — complex
-    // TODO: implement properly
+void Pot::SetPoisonedResource(RESOURCE_TYPE /*type*/, int param2) {
+    // Original at 0x0052e940: sets/clears bit 0 of field_0x74 based on param2
+    field_0x74 = static_cast<uint8_t>((field_0x74 & ~1) | (param2 & 1));
 }
 
-void Pot::SetPoisoned(int /*param1*/) {
-    // Original at 0x0055d510: sets flag in field_0x74
-    // TODO: verify exact implementation
+void Pot::SetPoisoned(int param1) {
+    // Original at 0x0052e900: sets/clears bit 0 of field_0x74
+    field_0x74 = static_cast<uint8_t>((field_0x74 & ~1) | (param1 & 1));
 }
 
 void Pot::StartOnFire() {
@@ -238,9 +236,13 @@ uint32_t Pot::InitialisePhysicsFromHand(LHPoint* /*p1*/, LHPoint* /*p2*/,
 }
 
 uint32_t Pot::GetPhysicsConstantsType() {
-    // Original at 0x0066cef0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00616c20: returns 5 if mesh is 0x143 (food bowl), else 4
+    if (info != nullptr) {
+        int mesh = *reinterpret_cast<const int*>(
+            reinterpret_cast<const char*>(info) + 0x2C);
+        if (mesh == 0x143) return 5;
+    }
+    return 4;
 }
 
 void Pot::EndPhysics(PhysicsObject* /*param1*/, bool /*param2*/) {
