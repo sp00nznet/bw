@@ -210,7 +210,7 @@ bool LoadL3D(const std::string& path, L3DModel& out) {
 
                         for (uint32_t b = 0; b < shdr->num_bones; ++b) {
                             const auto& bn = bones[b];
-                            // Local transform: 3x3 rotation + translation
+                            // Local transform: 3x3 orientation (row-major) + translation
                             Mat4 local;
                             local.m[ 0] = bn.orientation[0]; local.m[ 1] = bn.orientation[1]; local.m[ 2] = bn.orientation[2]; local.m[ 3] = 0;
                             local.m[ 4] = bn.orientation[3]; local.m[ 5] = bn.orientation[4]; local.m[ 6] = bn.orientation[5]; local.m[ 7] = 0;
@@ -218,14 +218,14 @@ bool LoadL3D(const std::string& path, L3DModel& out) {
                             local.m[12] = bn.px;             local.m[13] = bn.py;             local.m[14] = bn.pz;             local.m[15] = 1;
 
                             if (bn.parent != 0xFFFFFFFF && bn.parent < shdr->num_bones) {
-                                // Multiply parent * local
+                                // Multiply local * parent
                                 const float* P = bone_world[bn.parent].m;
                                 const float* L = local.m;
                                 float* R = bone_world[b].m;
                                 for (int r = 0; r < 4; ++r) {
                                     for (int c = 0; c < 4; ++c) {
-                                        R[r*4+c] = P[r*4+0]*L[0*4+c] + P[r*4+1]*L[1*4+c] +
-                                                   P[r*4+2]*L[2*4+c] + P[r*4+3]*L[3*4+c];
+                                        R[r*4+c] = L[r*4+0]*P[0*4+c] + L[r*4+1]*P[1*4+c] +
+                                                   L[r*4+2]*P[2*4+c] + L[r*4+3]*P[3*4+c];
                                     }
                                 }
                             } else {
