@@ -29,6 +29,7 @@
 
 #include "l3d_loader.h"
 #include "g3d_loader.h"
+#include "lnd_loader.h"
 #include "mesh_names.h"
 
 #pragma comment(lib, "opengl32.lib")
@@ -50,7 +51,9 @@ static PFNGLCOMPRESSEDTEXIMAGE2DPROC pfnGlCompressedTexImage2D = nullptr;
 
 static bw::L3DModel   g_single_model;
 static bw::G3DArchive g_archive;
+static bw::Landscape  g_landscape;
 static bool            g_archive_mode = false;
+static bool            g_terrain_mode = false;
 static int             g_current_mesh = 0;
 static bw::L3DModel*  g_active_model = nullptr;
 
@@ -121,6 +124,15 @@ static void UploadTextures(const bw::G3DArchive& archive) {
 // ============================================================================
 
 static void ResetCamera() {
+    if (g_terrain_mode) {
+        g_cam_x = (g_landscape.min_x + g_landscape.max_x) * 0.5f;
+        g_cam_y = (g_landscape.min_y + g_landscape.max_y) * 0.5f + g_landscape.GetExtent() * 0.1f;
+        g_cam_z = (g_landscape.min_z + g_landscape.max_z) * 0.5f;
+        g_cam_dist = g_landscape.GetExtent() * 0.5f;
+        g_cam_yaw = 30.0f;
+        g_cam_pitch = 30.0f;
+        return;
+    }
     if (!g_active_model) return;
     g_cam_x = (g_active_model->min_x + g_active_model->max_x) * 0.5f;
     g_cam_y = (g_active_model->min_y + g_active_model->max_y) * 0.5f;
@@ -256,6 +268,22 @@ static void RenderModel(const bw::L3DModel& model) {
     glDisable(GL_TEXTURE_2D);
 }
 
+static void RenderTerrain(const bw::Landscape& land) {
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glBegin(GL_TRIANGLES);
+    for (size_t i = 0; i < land.indices.size(); i += 3) {
+        for (int k = 0; k < 3; ++k) {
+            const auto& v = land.vertices[land.indices[i + k]];
+            glColor3f(v.r, v.g, v.b);
+            glNormal3f(v.nx, v.ny, v.nz);
+            glVertex3f(v.x, v.y, v.z);
+        }
+    }
+    glEnd();
+}
+
 static void RenderGrid(float extent) {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -281,13 +309,13 @@ static void RenderGrid(float extent) {
 }
 
 static void Display() {
-    if (!g_active_model) return;
+    if (!g_active_model && !g_terrain_mode) return;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     float aspect = static_cast<float>(g_width) / static_cast<float>(g_height);
-    gluPerspective(45.0, aspect, 0.01 * g_cam_dist, 100.0 * g_cam_dist);
+    gluPerspective(45.0, aspect, 0.1 * g_cam_dist, 200.0 * g_cam_dist);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -299,17 +327,22 @@ static void Display() {
     float eye_z = g_cam_z + g_cam_dist * cosf(rad_pitch) * cosf(rad_yaw);
     gluLookAt(eye_x, eye_y, eye_z, g_cam_x, g_cam_y, g_cam_z, 0.0, 1.0, 0.0);
 
-    float light_pos[] = { eye_x + 1.0f, eye_y + 2.0f, eye_z + 1.5f, 0.0f };
+    float light_pos[] = { 0.5f, 1.0f, 0.3f, 0.0f }; // Directional sunlight
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-    float extent = g_active_model->GetExtent();
-    if (extent < 1.0f) extent = 1.0f;
+    if (g_terrain_mode) {
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        RenderTerrain(g_landscape);
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else if (g_active_model) {
+        float extent = g_active_model->GetExtent();
+        if (extent < 1.0f) extent = 1.0f;
+        RenderGrid(extent);
 
-    RenderGrid(extent);
-
-    if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    RenderModel(*g_active_model);
-    if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        RenderModel(*g_active_model);
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 // ============================================================================
@@ -422,7 +455,14 @@ int main(int argc, char* argv[]) {
     std::string ext = path.substr(path.find_last_of('.') + 1);
     for (auto& c : ext) c = static_cast<char>(tolower(c));
 
-    if (ext == "g3d") {
+    if (ext == "lnd") {
+        // Terrain mode
+        g_terrain_mode = true;
+        if (!bw::LoadLND(path, g_landscape)) {
+            fprintf(stderr, "Failed to load LND: %s\n", path.c_str());
+            return 1;
+        }
+    } else if (ext == "g3d") {
         // Archive mode
         g_archive_mode = true;
         if (!bw::LoadG3D(path, g_archive)) {
