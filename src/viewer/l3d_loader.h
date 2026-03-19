@@ -93,6 +93,21 @@ struct L3DTriangle {
 };
 static_assert(sizeof(L3DTriangle) == 6, "L3DTriangle size mismatch");
 
+struct L3DBone {
+    uint32_t parent;          // 0x00: parent bone index (0xFFFFFFFF = root)
+    uint32_t first_child;     // 0x04
+    uint32_t right_sibling;   // 0x08
+    float    orientation[9];  // 0x0C: 3x3 rotation matrix (row-major)
+    float    px, py, pz;      // 0x30: position
+};
+static_assert(sizeof(L3DBone) == 0x3C, "L3DBone size mismatch");
+
+struct L3DVertexGroup {
+    uint16_t vertex_count;
+    uint16_t bone_index;
+};
+static_assert(sizeof(L3DVertexGroup) == 4, "L3DVertexGroup size mismatch");
+
 #pragma pack(pop)
 
 // Parsed mesh data ready for rendering

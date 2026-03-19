@@ -175,9 +175,90 @@ bool LoadL3D(const std::string& path, L3DModel& out) {
                 }
             }
 
+            // Read vertex groups (bone assignments)
+            std::vector<L3DVertexGroup> groups;
+            if (phdr->num_groups > 0 && phdr->groups_offset > 0 &&
+                phdr->groups_offset != 0xFFFFFFFF) {
+                size_t end = static_cast<size_t>(phdr->groups_offset) +
+                             phdr->num_groups * sizeof(L3DVertexGroup);
+                if (end <= data.size()) {
+                    groups.resize(phdr->num_groups);
+                    memcpy(groups.data(), data.data() + phdr->groups_offset,
+                           phdr->num_groups * sizeof(L3DVertexGroup));
+                }
+            }
+
             if (!pg.vertices.empty() && !pg.triangles.empty()) {
                 printf("    prim[%u]: %zu verts, %zu tris, skin=%u, mat=%u\n",
                        p, pg.vertices.size(), pg.triangles.size(), pg.skin_id, pg.material_type);
+
+                // Apply bone transforms if we have bones and vertex groups
+                if (shdr->num_bones > 0 && shdr->bones_offset > 0 &&
+                    shdr->bones_offset != 0xFFFFFFFF && !groups.empty()) {
+                    // Read bone data
+                    std::vector<L3DBone> bones(shdr->num_bones);
+                    size_t bone_end = static_cast<size_t>(shdr->bones_offset) +
+                                     shdr->num_bones * sizeof(L3DBone);
+                    if (bone_end <= data.size()) {
+                        memcpy(bones.data(), data.data() + shdr->bones_offset,
+                               shdr->num_bones * sizeof(L3DBone));
+
+                        // Build cumulative bone transforms (bone → model space)
+                        // Each bone has a 3x3 orientation + position, relative to parent
+                        struct Mat4 { float m[16]; };
+                        std::vector<Mat4> bone_world(shdr->num_bones);
+
+                        for (uint32_t b = 0; b < shdr->num_bones; ++b) {
+                            const auto& bn = bones[b];
+                            // Local transform: 3x3 rotation + translation
+                            Mat4 local;
+                            local.m[ 0] = bn.orientation[0]; local.m[ 1] = bn.orientation[1]; local.m[ 2] = bn.orientation[2]; local.m[ 3] = 0;
+                            local.m[ 4] = bn.orientation[3]; local.m[ 5] = bn.orientation[4]; local.m[ 6] = bn.orientation[5]; local.m[ 7] = 0;
+                            local.m[ 8] = bn.orientation[6]; local.m[ 9] = bn.orientation[7]; local.m[10] = bn.orientation[8]; local.m[11] = 0;
+                            local.m[12] = bn.px;             local.m[13] = bn.py;             local.m[14] = bn.pz;             local.m[15] = 1;
+
+                            if (bn.parent != 0xFFFFFFFF && bn.parent < shdr->num_bones) {
+                                // Multiply parent * local
+                                const float* P = bone_world[bn.parent].m;
+                                const float* L = local.m;
+                                float* R = bone_world[b].m;
+                                for (int r = 0; r < 4; ++r) {
+                                    for (int c = 0; c < 4; ++c) {
+                                        R[r*4+c] = P[r*4+0]*L[0*4+c] + P[r*4+1]*L[1*4+c] +
+                                                   P[r*4+2]*L[2*4+c] + P[r*4+3]*L[3*4+c];
+                                    }
+                                }
+                            } else {
+                                bone_world[b] = local;
+                            }
+                        }
+
+                        // Apply bone transforms to vertices via vertex groups
+                        uint32_t vert_idx = 0;
+                        for (const auto& grp : groups) {
+                            if (grp.bone_index < shdr->num_bones) {
+                                const float* M = bone_world[grp.bone_index].m;
+                                for (uint16_t vi = 0; vi < grp.vertex_count && vert_idx < pg.vertices.size(); ++vi, ++vert_idx) {
+                                    auto& v = pg.vertices[vert_idx];
+                                    float ox = v.px, oy = v.py, oz = v.pz;
+                                    v.px = M[0]*ox + M[4]*oy + M[ 8]*oz + M[12];
+                                    v.py = M[1]*ox + M[5]*oy + M[ 9]*oz + M[13];
+                                    v.pz = M[2]*ox + M[6]*oy + M[10]*oz + M[14];
+                                    // Also transform normals (rotation only)
+                                    float onx = v.nx, ony = v.ny, onz = v.nz;
+                                    v.nx = M[0]*onx + M[4]*ony + M[ 8]*onz;
+                                    v.ny = M[1]*onx + M[5]*ony + M[ 9]*onz;
+                                    v.nz = M[2]*onx + M[6]*ony + M[10]*onz;
+                                }
+                            } else {
+                                vert_idx += grp.vertex_count;
+                            }
+                        }
+                        printf("      (applied %u bone transforms to %zu vertex groups)\n",
+                               shdr->num_bones, groups.size());
+                    }
+                }
+
                 psub.primitives.push_back(std::move(pg));
             }
         }
