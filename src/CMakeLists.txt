@@ -321,6 +321,16 @@ set_target_properties(test_loader PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
+# G3D archive loader test
+add_executable(test_g3d
+    viewer/test_g3d.cpp
+    viewer/g3d_loader.cpp
+    viewer/l3d_loader.cpp
+)
+set_target_properties(test_g3d PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 # Future subsystems (uncomment as implemented):
 # add_library(bw_script STATIC script/LHVM.cpp)
 # add_library(bw_terrain STATIC terrain/Landscape.cpp)
