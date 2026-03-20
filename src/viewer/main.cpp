@@ -132,6 +132,15 @@ static void UploadTextures(const bw::G3DArchive& archive) {
 // ============================================================================
 
 static void ResetCamera() {
+    if (g_game_mode) {
+        g_cam_x = (g_game.terrain.min_x + g_game.terrain.max_x) * 0.5f;
+        g_cam_y = (g_game.terrain.min_y + g_game.terrain.max_y) * 0.5f + g_game.terrain.GetExtent() * 0.1f;
+        g_cam_z = (g_game.terrain.min_z + g_game.terrain.max_z) * 0.5f;
+        g_cam_dist = g_game.terrain.GetExtent() * 0.3f;
+        g_cam_yaw = 30.0f;
+        g_cam_pitch = 30.0f;
+        return;
+    }
     if (g_terrain_mode) {
         g_cam_x = (g_landscape.min_x + g_landscape.max_x) * 0.5f;
         g_cam_y = (g_landscape.min_y + g_landscape.max_y) * 0.5f + g_landscape.GetExtent() * 0.1f;
@@ -587,14 +596,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Failed to init game: %s\n", path.c_str());
             return 1;
         }
-        g_cam_x = g_game.cam_x;
-        g_cam_y = g_game.cam_y;
-        g_cam_z = g_game.cam_z;
-        g_cam_yaw = g_game.cam_yaw;
-        g_cam_pitch = g_game.cam_pitch;
-        g_cam_dist = g_game.cam_dist;
-        // Use game's texture/mesh data for rendering
-        // (g_gl_textures populated below after GL init)
+        // Camera will be set by ResetCamera() after window creation
     } else if (ext == "txt") {
         // World viewer mode: load script + terrain + meshes (read-only)
         g_world_mode = true;
@@ -689,6 +691,7 @@ int main(int argc, char* argv[]) {
         UploadTextures(g_game.meshes);
     }
 
+    ResetCamera();
     UpdateTitle();
     printf("Ready. Controls: LMB=orbit, RMB=zoom, WASD=pan, Tab=wireframe, R=reset");
     if (g_archive_mode) printf(", Left/Right=browse, PgUp/PgDn=skip 10");
