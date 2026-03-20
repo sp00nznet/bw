@@ -192,7 +192,19 @@ void GameState::DropEntity() {
     if (hand.held_entity < 0) return;
     auto& e = entities[hand.held_entity];
     e.selected = false;
-    e.y = GetTerrainHeight(e.x, e.z);
+
+    // If hand was moving, fling the entity
+    float speed = sqrtf(hand.vel_x * hand.vel_x + hand.vel_z * hand.vel_z);
+    if (speed > 50.0f) {
+        e.physics_active = true;
+        e.vx = hand.vel_x * 0.3f;
+        e.vy = speed * 0.15f; // Arc upward proportional to speed
+        e.vz = hand.vel_z * 0.3f;
+        printf("Game: Flung %s (speed=%.0f)\n", e.name.c_str(), speed);
+    } else {
+        e.y = GetTerrainHeight(e.x, e.z);
+    }
+
     hand.held_entity = -1;
 }
 
@@ -255,6 +267,12 @@ void GameState::UpdateHand(int mouse_x, int mouse_y, int screen_w, int screen_h)
             hand.is_over_land = hand.y > 2.0f;
         }
     }
+
+    // Track hand velocity for fling/throw
+    hand.vel_x = (hand.x - hand.prev_x) / delta_time;
+    hand.vel_z = (hand.z - hand.prev_z) / delta_time;
+    hand.prev_x = hand.x;
+    hand.prev_z = hand.z;
 
     // Update hover entity
     hand.hover_entity = FindEntityAt(hand.x, hand.z, PICK_RADIUS);

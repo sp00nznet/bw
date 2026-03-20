@@ -49,6 +49,8 @@ enum EntityType : uint32_t {
 struct HandState {
     float    x, y, z;          // World position (projected from mouse)
     float    screen_x, screen_y; // Screen coordinates
+    float    prev_x, prev_z;   // Previous frame position (for velocity)
+    float    vel_x, vel_z;     // Smoothed hand velocity
     float    height;           // Height above terrain
     int      held_entity;      // Index of held entity (-1 = none)
     bool     is_over_land;     // Mouse is over terrain (not sky)
