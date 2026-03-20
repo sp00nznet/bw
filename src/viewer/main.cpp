@@ -30,6 +30,7 @@
 #include "l3d_loader.h"
 #include "g3d_loader.h"
 #include "lnd_loader.h"
+#include "script_parser.h"
 #include "mesh_names.h"
 
 #pragma comment(lib, "opengl32.lib")
@@ -49,11 +50,13 @@ static PFNGLCOMPRESSEDTEXIMAGE2DPROC pfnGlCompressedTexImage2D = nullptr;
 // Globals
 // ============================================================================
 
-static bw::L3DModel   g_single_model;
-static bw::G3DArchive g_archive;
-static bw::Landscape  g_landscape;
+static bw::L3DModel    g_single_model;
+static bw::G3DArchive  g_archive;
+static bw::Landscape   g_landscape;
+static bw::LevelScript g_script;
 static bool            g_archive_mode = false;
 static bool            g_terrain_mode = false;
+static bool            g_world_mode   = false;
 static int             g_current_mesh = 0;
 static bw::L3DModel*  g_active_model = nullptr;
 
@@ -284,6 +287,41 @@ static void RenderTerrain(const bw::Landscape& land) {
     glEnd();
 }
 
+static float GetTerrainHeight(float wx, float wz) {
+    // Simple height lookup from terrain vertices (nearest vertex)
+    if (g_landscape.vertices.empty()) return 0;
+    float best_dist = 1e30f;
+    float best_y = 0;
+    // Sample a subset for performance
+    size_t step = std::max<size_t>(1, g_landscape.vertices.size() / 10000);
+    for (size_t i = 0; i < g_landscape.vertices.size(); i += step) {
+        const auto& v = g_landscape.vertices[i];
+        float dx = v.x - wx, dz = v.z - wz;
+        float d = dx*dx + dz*dz;
+        if (d < best_dist) { best_dist = d; best_y = v.y; }
+    }
+    return best_y;
+}
+
+static void RenderWorldEntities() {
+    for (const auto& ent : g_script.entities) {
+        if (ent.mesh_id < 0 || ent.mesh_id >= static_cast<int>(g_archive.meshes.size()))
+            continue;
+        const auto& model = g_archive.meshes[ent.mesh_id];
+        if (model.submeshes.empty()) continue;
+
+        float y = GetTerrainHeight(ent.x, ent.z);
+
+        glPushMatrix();
+        glTranslatef(ent.x, y, ent.z);
+        if (ent.angle != 0) glRotatef(ent.angle * 180.0f / 3.14159265f, 0, 1, 0);
+        if (ent.scale != 1.0f && ent.scale > 0) glScalef(ent.scale, ent.scale, ent.scale);
+
+        RenderModel(model);
+        glPopMatrix();
+    }
+}
+
 static void RenderGrid(float extent) {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -330,9 +368,10 @@ static void Display() {
     float light_pos[] = { 0.5f, 1.0f, 0.3f, 0.0f }; // Directional sunlight
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-    if (g_terrain_mode) {
+    if (g_world_mode || g_terrain_mode) {
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         RenderTerrain(g_landscape);
+        if (g_world_mode) RenderWorldEntities();
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     } else if (g_active_model) {
         float extent = g_active_model->GetExtent();
@@ -455,7 +494,36 @@ int main(int argc, char* argv[]) {
     std::string ext = path.substr(path.find_last_of('.') + 1);
     for (auto& c : ext) c = static_cast<char>(tolower(c));
 
-    if (ext == "lnd") {
+    if (ext == "txt") {
+        // World mode: load script + terrain + meshes
+        g_world_mode = true;
+        g_terrain_mode = true;
+
+        // Parse the script file
+        if (!bw::ParseLevelScript(path, g_script)) {
+            fprintf(stderr, "Failed to parse script: %s\n", path.c_str());
+            return 1;
+        }
+
+        // Derive terrain and mesh paths from script path
+        std::string dir = path.substr(0, path.find_last_of("/\\") + 1);
+        // Try to find matching .lnd file (Land1.txt → Land1.lnd)
+        std::string base = path.substr(0, path.find_last_of('.'));
+        std::string lnd_path = base + ".lnd";
+        std::string g3d_path = dir + "AllMeshes.g3d";
+
+        printf("World: Loading terrain from %s\n", lnd_path.c_str());
+        if (!bw::LoadLND(lnd_path, g_landscape)) {
+            fprintf(stderr, "Failed to load terrain: %s\n", lnd_path.c_str());
+            return 1;
+        }
+
+        printf("World: Loading meshes from %s\n", g3d_path.c_str());
+        if (!bw::LoadG3D(g3d_path, g_archive)) {
+            fprintf(stderr, "Failed to load meshes: %s\n", g3d_path.c_str());
+            return 1;
+        }
+    } else if (ext == "lnd") {
         // Terrain mode
         g_terrain_mode = true;
         if (!bw::LoadLND(path, g_landscape)) {
@@ -513,8 +581,8 @@ int main(int argc, char* argv[]) {
     SetupGL();
     glViewport(0, 0, g_width, g_height);
 
-    // Upload textures if in archive mode
-    if (g_archive_mode) {
+    // Upload textures if we have a G3D archive loaded
+    if (g_archive_mode || g_world_mode) {
         UploadTextures(g_archive);
     }
 

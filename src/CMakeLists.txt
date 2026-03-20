@@ -308,6 +308,7 @@ add_executable(bw_viewer
     viewer/l3d_loader.cpp
     viewer/g3d_loader.cpp
     viewer/lnd_loader.cpp
+    viewer/script_parser.cpp
 )
 target_link_libraries(bw_viewer PRIVATE opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES
