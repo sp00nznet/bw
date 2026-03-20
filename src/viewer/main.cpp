@@ -312,6 +312,9 @@ static void RenderWorldEntities() {
 
         float y = GetTerrainHeight(ent.x, ent.z);
 
+        // Skip entities in water (altitude near zero = ocean)
+        if (y < 2.0f) continue;
+
         glPushMatrix();
         glTranslatef(ent.x, y, ent.z);
         if (ent.angle != 0) glRotatef(ent.angle * 180.0f / 3.14159265f, 0, 1, 0);

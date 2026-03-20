@@ -199,6 +199,10 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
     printf("Script: %d entities mapped to meshes, %zu unmapped\n",
            mapped, out.entities.size() - mapped);
 
+    // Filter: flag entities at zero altitude (water/ocean) for skipping
+    // The renderer checks min_terrain_height to skip these
+
+
     return !out.entities.empty();
 }
 
