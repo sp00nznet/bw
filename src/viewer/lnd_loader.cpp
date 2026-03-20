@@ -37,6 +37,8 @@ void Landscape::BuildMesh() {
     max_x = max_y = max_z = -std::numeric_limits<float>::max();
 
     // Build grid position lookup: block index → (grid_col, grid_row)
+    // Block indices in the grid are 1-based (0 = ocean/empty)
+    // blocks[] array is 0-based: blocks[0] = file block with index 1
     int block_grid_col[256] = {};
     int block_grid_row[256] = {};
     for (int row = 0; row < 32; ++row) {
@@ -53,15 +55,13 @@ void Landscape::BuildMesh() {
     for (uint32_t bi = 0; bi < block_count && bi < blocks.size(); ++bi) {
         const auto& blk = blocks[bi];
 
-        // Skip block 0 (ocean/empty)
-        if (bi == 0) {
-            // Still need to add vertices for index consistency, but skip rendering
-        }
+        // blocks[bi] corresponds to grid index (bi+1) since block 0 is not stored
+        uint32_t grid_idx = bi + 1;
 
         // Block world position from grid coordinates
         // Each block is 16 cells wide, each cell is CELL_SIZE apart
-        float bx = block_grid_col[bi] * 16.0f * CELL_SIZE;
-        float bz = block_grid_row[bi] * 16.0f * CELL_SIZE;
+        float bx = block_grid_col[grid_idx] * 16.0f * CELL_SIZE;
+        float bz = block_grid_row[grid_idx] * 16.0f * CELL_SIZE;
 
         // Generate vertices for this block's 17x17 grid
         for (int row = 0; row < 17; ++row) {
@@ -77,12 +77,6 @@ void Landscape::BuildMesh() {
                 v.r = cell.r / 255.0f;
                 v.g = cell.g / 255.0f;
                 v.b = cell.b / 255.0f;
-
-                // Apply luminance
-                float lum = cell.luminance / 255.0f;
-                v.r *= lum;
-                v.g *= lum;
-                v.b *= lum;
 
                 // Normal placeholder (computed below)
                 v.nx = 0; v.ny = 1; v.nz = 0;
@@ -181,54 +175,37 @@ bool LoadLND(const std::string& path, Landscape& out) {
            hdr.country_count, hdr.lowres_texture_count);
     fflush(stdout);
 
-    // Find land blocks by scanning for the block pattern (idx=0 followed by idx=1)
-    // The data between header and blocks varies by game version
+    // Skip low-resolution textures
+    // The per-texture header structure varies by game version; use blockSize to compute
+    // total lowres section size: file - header - blocks*(blockCount-1) - countries - materials - bump - noise
     {
-        long scan_start = ftell(f);
-        long block_start = -1;
-        std::vector<uint8_t> scan_buf(file_size - scan_start);
-        fread(scan_buf.data(), 1, scan_buf.size(), f);
-
-        for (size_t off = 0; off + sizeof(LNDBlock) * 2 <= scan_buf.size(); ++off) {
-            auto* b0 = reinterpret_cast<const LNDBlock*>(scan_buf.data() + off);
-            auto* b1 = reinterpret_cast<const LNDBlock*>(scan_buf.data() + off + sizeof(LNDBlock));
-            if (b0->index == 0 && b1->index == 1 &&
-                b0->block_x < 50 && b0->block_y < 50 &&
-                b1->block_x < 50 && b1->block_y < 50) {
-                block_start = scan_start + static_cast<long>(off);
-                break;
-            }
-        }
-
-        if (block_start < 0) {
-            fprintf(stderr, "LND: Could not find land blocks\n");
-            fclose(f);
-            return false;
-        }
-
-        fseek(f, block_start, SEEK_SET);
-        printf("LND: Found blocks at offset 0x%lX (skipped %ld bytes after header)\n",
-               block_start, block_start - scan_start);
-        fflush(stdout);
+        long expected_block_bytes = static_cast<long>(hdr.block_count - 1) * hdr.block_size;
+        long expected_other = static_cast<long>(hdr.country_count) * hdr.country_size +
+                              static_cast<long>(hdr.material_count) * hdr.material_size +
+                              65536 + 65536; // bump + noise
+        long lowres_size = file_size - sizeof(LNDHeader) - expected_block_bytes - expected_other;
+        if (lowres_size < 0) lowres_size = 0;
+        printf("LND: Skipping %ld bytes of lowres texture data\n", lowres_size);
+        fseek(f, lowres_size, SEEK_CUR);
     }
 
-    // Read land blocks
-    out.block_count = hdr.block_count;
+    // Read land blocks — block 0 is NOT stored in the file (ocean/null)
+    uint32_t stored_blocks = hdr.block_count - 1;
+    out.block_count = stored_blocks;
     out.material_count = hdr.material_count;
     out.country_count = hdr.country_count;
 
     // Copy index grid (32x32, maps grid position to block index)
     memcpy(out.index_grid, hdr.index_block, 1024);
-    out.blocks.resize(hdr.block_count);
+    out.blocks.resize(stored_blocks);
 
     size_t blocks_read = fread(out.blocks.data(),
-                                sizeof(LNDBlock), hdr.block_count, f);
+                                sizeof(LNDBlock), stored_blocks, f);
     fclose(f);
 
-    if (blocks_read != hdr.block_count) {
+    if (blocks_read != stored_blocks) {
         fprintf(stderr, "LND: Only read %zu / %u blocks\n",
-                blocks_read, hdr.block_count);
-        // Continue with what we got
+                blocks_read, stored_blocks);
         out.block_count = static_cast<uint32_t>(blocks_read);
         out.blocks.resize(blocks_read);
     }
