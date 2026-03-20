@@ -437,17 +437,11 @@ static void Display() {
     float light_pos[] = { 0.5f, 1.0f, 0.3f, 0.0f }; // Directional sunlight
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-    if (g_game_mode) {
-        // Game mode: use game state camera
-        // (camera already set up from g_cam_* which game updates)
-        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        RenderTerrain(g_game.terrain);
-        RenderGameEntities();
-        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    } else if (g_world_mode || g_terrain_mode) {
+    if (g_world_mode || g_terrain_mode) {
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         RenderTerrain(g_landscape);
-        if (g_world_mode) RenderWorldEntities();
+        if (g_world_mode && !g_game_mode) RenderWorldEntities();
+        if (g_game_mode) RenderGameEntities();
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     } else if (g_active_model) {
         float extent = g_active_model->GetExtent();
@@ -592,11 +586,16 @@ int main(int argc, char* argv[]) {
     if (ext == "txt" && argc >= 3 && std::string(argv[2]) == "--play") {
         // Game mode: interactive with hand + entity interaction
         g_game_mode = true;
+        g_world_mode = true;
+        g_terrain_mode = true;
         if (!g_game.Init(path)) {
             fprintf(stderr, "Failed to init game: %s\n", path.c_str());
             return 1;
         }
-        // Camera will be set by ResetCamera() after window creation
+        // Copy game data to the globals used by the renderer
+        g_landscape = g_game.terrain;
+        g_archive = g_game.meshes;
+        g_script = g_game.script;
     } else if (ext == "txt") {
         // World viewer mode: load script + terrain + meshes (read-only)
         g_world_mode = true;
