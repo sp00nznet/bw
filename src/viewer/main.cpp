@@ -364,27 +364,37 @@ static void RenderGameEntities() {
         glPopMatrix();
     }
 
-    // Render hand cursor (simple sphere at hand position)
+    // Render hand
     if (g_game.hand.is_over_land) {
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_LIGHTING);
         float hx = g_game.hand.x;
-        float hy = g_game.hand.y + 5.0f;
+        float hy = g_game.hand.y + 15.0f;
         float hz = g_game.hand.z;
 
-        // Draw hand indicator (crosshair on ground)
-        float sz = 5.0f;
-        if (g_game.hand.hover_entity >= 0) {
-            glColor3f(0.0f, 1.0f, 0.0f); // Green when over entity
-            sz = 8.0f;
-        } else {
-            glColor3f(1.0f, 1.0f, 1.0f); // White normally
+        // Try to render the actual hand mesh
+        if (g_game.hand_mesh_id >= 0 &&
+            g_game.hand_mesh_id < static_cast<int>(g_game.meshes.meshes.size()) &&
+            !g_game.meshes.meshes[g_game.hand_mesh_id].submeshes.empty()) {
+            glPushMatrix();
+            glTranslatef(hx, hy, hz);
+            glScalef(3.0f, 3.0f, 3.0f); // Scale hand up for visibility
+            // Point hand downward
+            glRotatef(-90.0f, 1, 0, 0);
+            RenderModel(g_game.meshes.meshes[g_game.hand_mesh_id]);
+            glPopMatrix();
         }
+
+        // Also draw a ground crosshair for precision
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_LIGHTING);
+        float gz = g_game.hand.y + 0.5f; // Just above ground
+        float sz = (g_game.hand.hover_entity >= 0) ? 8.0f : 5.0f;
+        glColor3f(g_game.hand.hover_entity >= 0 ? 0.0f : 1.0f,
+                  1.0f,
+                  g_game.hand.hover_entity >= 0 ? 0.0f : 1.0f);
         glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glVertex3f(hx - sz, hy, hz); glVertex3f(hx + sz, hy, hz);
-        glVertex3f(hx, hy, hz - sz); glVertex3f(hx, hy, hz + sz);
-        glVertex3f(hx, hy - sz, hz); glVertex3f(hx, hy + sz, hz);
+        glVertex3f(hx - sz, gz, hz); glVertex3f(hx + sz, gz, hz);
+        glVertex3f(hx, gz, hz - sz); glVertex3f(hx, gz, hz + sz);
         glEnd();
         glLineWidth(1.0f);
         glEnable(GL_LIGHTING);

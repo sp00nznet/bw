@@ -61,6 +61,51 @@ static const std::map<std::string, int> g_abode_meshes = {
     {"JAPANESE_ABODE_WORKSHOP", 144},
 };
 
+// Villager type name → mesh ID
+static const std::map<std::string, int> g_villager_meshes = {
+    {"NORSE_FORESTER", 501},     // MSH_P_NORS_M_A_1
+    {"NORSE_HOUSEWIFE", 498},    // MSH_P_NORS_F_A_1
+    {"NORSE_SHEPHERD", 502},     // MSH_P_NORS_M_A_2
+    {"NORSE_FISHERMAN", 503},    // MSH_P_NORS_M_A_3
+    {"CELTIC_FORESTER", 438},    // MSH_P_CELT_M_A_1
+    {"CELTIC_HOUSEWIFE", 435},   // MSH_P_CELT_F_A_1
+    {"AZTEC_FORESTER", 425},     // MSH_P_AZTC_M_A_1
+    {"AZTEC_HOUSEWIFE", 421},    // MSH_P_AZTC_F_A_1
+    {"AZTEC_FISHERMAN", 427},    // MSH_P_AZTC_M_A_3
+    {"AZTEC_SHEPHERD", 426},     // MSH_P_AZTC_M_A_2
+    {"JAPANESE_FORESTER", 460},  // MSH_P_JAPN_M_A_1
+    {"JAPANESE_HOUSEWIFE", 457}, // MSH_P_JAPN_F_A_1
+};
+
+// Animal type ID → mesh ID (CREATE_NEW_ANIMAL second parameter)
+static const int g_animal_meshes[] = {
+    16,  // 0: cow
+    19,  // 1: horse
+    22,  // 2: leopard
+    25,  // 3: lion
+    28,  // 4: pig
+    32,  // 5: sheep
+    35,  // 6: tiger
+    38,  // 7: tortoise
+    41,  // 8: wolf
+    44,  // 9: zebra
+    16,  // 10: cow (default/farm)
+    7,   // 11: pigeon
+    3,   // 12: crow
+};
+static const int g_animal_mesh_count = sizeof(g_animal_meshes) / sizeof(g_animal_meshes[0]);
+
+// Mobile static type ID → mesh ID
+static const int g_mobile_static_meshes[] = {
+    253,  // 0: MSH_BOULDER1_CHALK
+    254,  // 1: MSH_BOULDER1_LIME
+    352,  // 2: MSH_O_CHAMPI (mushroom)
+    356,  // 3: MSH_O_FLATROCK_CHALK
+    357,  // 4: MSH_O_FLATROCK_LIMESTONE
+    358,  // 5: MSH_O_FLATROCK_SANDSTONE
+};
+static const int g_mobile_static_mesh_count = sizeof(g_mobile_static_meshes) / sizeof(g_mobile_static_meshes[0]);
+
 // Tree types (CREATE_NEW_TREE third parameter) → mesh ID
 // Based on TREE_INFO enum order
 static const int g_tree_meshes[] = {
@@ -171,6 +216,78 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
                 }
             }
         }
+        // CREATE_VILLAGER_POS("spawn_x,z", "home_x,z", "TYPE", age)
+        else if (strstr(line, "CREATE_VILLAGER_POS")) {
+            int pos = 0;
+            char coord[64], home[64], type[128];
+            if (NextQuoted(line, pos, coord, sizeof(coord)) &&
+                NextQuoted(line, pos, home, sizeof(home)) &&
+                NextQuoted(line, pos, type, sizeof(type))) {
+                ScriptEntity e;
+                if (ParseCoord(coord, e.x, e.z)) {
+                    e.type_name = type;
+                    e.angle = 0;
+                    e.scale = 0.4f; // Villagers are small relative to buildings
+                    auto it = g_villager_meshes.find(type);
+                    e.mesh_id = (it != g_villager_meshes.end()) ? it->second : 501;
+                    out.entities.push_back(e);
+                }
+            }
+        }
+        // CREATE_NEW_ANIMAL("x,z", type, ?, ?, age)
+        else if (strstr(line, "CREATE_NEW_ANIMAL")) {
+            int pos = 0;
+            char coord[64];
+            if (NextQuoted(line, pos, coord, sizeof(coord))) {
+                ScriptEntity e;
+                if (ParseCoord(coord, e.x, e.z)) {
+                    int animal_type = 0;
+                    const char* after = strchr(line + pos, ',');
+                    if (after) sscanf(after, ", %d", &animal_type);
+                    e.type_name = "ANIMAL";
+                    e.angle = 0;
+                    e.scale = 1.0f;
+                    e.mesh_id = (animal_type >= 0 && animal_type < g_animal_mesh_count) ?
+                                g_animal_meshes[animal_type] : 16;
+                    out.entities.push_back(e);
+                }
+            }
+        }
+        // CREATE_BONFIRE("x,z", size, ?, ?)
+        else if (strstr(line, "CREATE_BONFIRE")) {
+            int pos = 0;
+            char coord[64];
+            if (NextQuoted(line, pos, coord, sizeof(coord))) {
+                ScriptEntity e;
+                if (ParseCoord(coord, e.x, e.z)) {
+                    e.type_name = "BONFIRE";
+                    e.angle = 0;
+                    e.scale = 1.0f;
+                    e.mesh_id = 345; // MSH_O_BELLTOWER as placeholder
+                    out.entities.push_back(e);
+                }
+            }
+        }
+        // CREATE_MOBILE_STATIC("x,z", type, scale, ?, angle, ?, scale2)
+        else if (strstr(line, "CREATE_MOBILE_STATIC")) {
+            int pos = 0;
+            char coord[64];
+            if (NextQuoted(line, pos, coord, sizeof(coord))) {
+                ScriptEntity e;
+                if (ParseCoord(coord, e.x, e.z)) {
+                    int ms_type = 0;
+                    float scale = 1.0f, angle = 0;
+                    const char* after = strchr(line + pos, ',');
+                    if (after) sscanf(after, ", %d, %f, %*f, %f, %*f, %*f", &ms_type, &scale, &angle);
+                    e.type_name = "MOBILE_STATIC";
+                    e.angle = angle;
+                    e.scale = scale;
+                    e.mesh_id = (ms_type >= 0 && ms_type < g_mobile_static_mesh_count) ?
+                                g_mobile_static_meshes[ms_type] : 253;
+                    out.entities.push_back(e);
+                }
+            }
+        }
         // CREATE_TOWN_CENTRE(town, "x,z", ...)
         else if (strstr(line, "CREATE_TOWN_CENTRE")) {
             int pos = 0;
@@ -198,9 +315,6 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
         if (e.mesh_id >= 0) mapped++;
     printf("Script: %d entities mapped to meshes, %zu unmapped\n",
            mapped, out.entities.size() - mapped);
-
-    // Filter: flag entities at zero altitude (water/ocean) for skipping
-    // The renderer checks min_terrain_height to skip these
 
 
     return !out.entities.empty();

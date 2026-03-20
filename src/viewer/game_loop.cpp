@@ -66,7 +66,7 @@ bool GameState::Init(const std::string& script_path) {
     hand = {};
     hand.held_entity = -1;
     hand.hover_entity = -1;
-    hand_mesh_id = -1; // TODO: find hand mesh in AllMeshes
+    hand_mesh_id = 250; // MSH_B_SPELLHAND
 
     // Init camera at script's camera position
     cam_x = script.camera_x;
@@ -111,6 +111,15 @@ void GameState::SpawnEntitiesFromScript() {
             e.type = ENTITY_ABODE;
         } else if (se.type_name == "TREE") {
             e.type = ENTITY_TREE;
+        } else if (se.type_name.find("FORESTER") != std::string::npos ||
+                   se.type_name.find("HOUSEWIFE") != std::string::npos ||
+                   se.type_name.find("SHEPHERD") != std::string::npos ||
+                   se.type_name.find("FISHERMAN") != std::string::npos) {
+            e.type = ENTITY_VILLAGER;
+        } else if (se.type_name == "ANIMAL") {
+            e.type = ENTITY_ANIMAL;
+        } else if (se.type_name == "MOBILE_STATIC") {
+            e.type = ENTITY_MOBILE;
         } else {
             e.type = ENTITY_FEATURE;
         }
@@ -179,8 +188,8 @@ void GameState::PickUpEntity(int index) {
     if (hand.held_entity >= 0) return; // Already holding something
 
     auto& e = entities[index];
-    // Only pick up trees and small objects, not buildings
-    if (e.type == ENTITY_ABODE) return;
+    // Can pick up anything except buildings
+    if (e.type == ENTITY_ABODE || e.type == ENTITY_FEATURE) return;
 
     e.selected = true;
     e.physics_active = false;
