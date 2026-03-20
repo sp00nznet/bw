@@ -73,10 +73,31 @@ void Landscape::BuildMesh() {
                 v.y = cell.altitude * HEIGHT_SCALE;
                 v.z = bz + row * CELL_SIZE;
 
-                // Vertex color from cell (normalize 0-255 to 0-1)
-                v.r = cell.r / 255.0f;
-                v.g = cell.g / 255.0f;
-                v.b = cell.b / 255.0f;
+                // Vertex color: cell RGB is often all-zero in v1.0,
+                // so generate from altitude gradient + luminance
+                float lum = cell.luminance / 255.0f;
+                float alt_frac = cell.altitude / 255.0f;
+                if (cell.r == 0 && cell.g == 0 && cell.b == 0) {
+                    // Height-based color: water→sand→grass→rock→snow
+                    if (alt_frac < 0.05f) {
+                        v.r = 0.2f; v.g = 0.3f; v.b = 0.5f; // water blue
+                    } else if (alt_frac < 0.15f) {
+                        v.r = 0.76f; v.g = 0.70f; v.b = 0.50f; // sand
+                    } else if (alt_frac < 0.5f) {
+                        v.r = 0.25f; v.g = 0.55f; v.b = 0.20f; // grass green
+                    } else if (alt_frac < 0.75f) {
+                        v.r = 0.45f; v.g = 0.40f; v.b = 0.30f; // rock brown
+                    } else {
+                        v.r = 0.8f; v.g = 0.8f; v.b = 0.75f; // snow/peak
+                    }
+                    v.r *= (0.5f + 0.5f * lum);
+                    v.g *= (0.5f + 0.5f * lum);
+                    v.b *= (0.5f + 0.5f * lum);
+                } else {
+                    v.r = cell.r / 255.0f;
+                    v.g = cell.g / 255.0f;
+                    v.b = cell.b / 255.0f;
+                }
 
                 // Normal placeholder (computed below)
                 v.nx = 0; v.ny = 1; v.nz = 0;
