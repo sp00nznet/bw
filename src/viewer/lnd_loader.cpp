@@ -175,18 +175,38 @@ bool LoadLND(const std::string& path, Landscape& out) {
            hdr.country_count, hdr.lowres_texture_count);
     fflush(stdout);
 
-    // Skip low-resolution textures
-    // The per-texture header structure varies by game version; use blockSize to compute
-    // total lowres section size: file - header - blocks*(blockCount-1) - countries - materials - bump - noise
+    // Find land blocks by scanning for consecutive valid indices (1, 2, 3, ...)
+    // The lowres texture section varies by game version, so we scan instead of computing
     {
-        long expected_block_bytes = static_cast<long>(hdr.block_count - 1) * hdr.block_size;
-        long expected_other = static_cast<long>(hdr.country_count) * hdr.country_size +
-                              static_cast<long>(hdr.material_count) * hdr.material_size +
-                              65536 + 65536; // bump + noise
-        long lowres_size = file_size - sizeof(LNDHeader) - expected_block_bytes - expected_other;
-        if (lowres_size < 0) lowres_size = 0;
-        printf("LND: Skipping %ld bytes of lowres texture data\n", lowres_size);
-        fseek(f, lowres_size, SEEK_CUR);
+        std::vector<uint8_t> scan_buf(file_size);
+        fseek(f, 0, SEEK_SET);
+        fread(scan_buf.data(), 1, file_size, f);
+
+        long block_start = -1;
+        uint32_t bs = hdr.block_size;
+        for (size_t start = sizeof(LNDHeader); start + bs * 5 < scan_buf.size(); ++start) {
+            bool valid = true;
+            for (int i = 0; i < 5; ++i) {
+                size_t idx_off = start + i * bs + 0x908;
+                if (idx_off + 4 > scan_buf.size()) { valid = false; break; }
+                uint32_t idx = *reinterpret_cast<const uint32_t*>(scan_buf.data() + idx_off);
+                if (idx != static_cast<uint32_t>(i + 1)) { valid = false; break; }
+            }
+            if (valid) {
+                block_start = static_cast<long>(start);
+                break;
+            }
+        }
+
+        if (block_start < 0) {
+            fprintf(stderr, "LND: Could not find land blocks\n");
+            fclose(f);
+            return false;
+        }
+
+        fseek(f, block_start, SEEK_SET);
+        printf("LND: Found blocks at offset 0x%lX\n", block_start);
+        fflush(stdout);
     }
 
     // Read land blocks — block 0 is NOT stored in the file (ocean/null)
