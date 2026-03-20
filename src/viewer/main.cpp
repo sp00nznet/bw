@@ -31,6 +31,7 @@
 #include "g3d_loader.h"
 #include "lnd_loader.h"
 #include "script_parser.h"
+#include "game_loop.h"
 #include "mesh_names.h"
 
 #pragma comment(lib, "opengl32.lib")
@@ -54,11 +55,15 @@ static bw::L3DModel    g_single_model;
 static bw::G3DArchive  g_archive;
 static bw::Landscape   g_landscape;
 static bw::LevelScript g_script;
+static bw::GameState   g_game;
 static bool            g_archive_mode = false;
 static bool            g_terrain_mode = false;
 static bool            g_world_mode   = false;
+static bool            g_game_mode    = false;
 static int             g_current_mesh = 0;
 static bw::L3DModel*  g_active_model = nullptr;
+static int             g_mouse_x = 0, g_mouse_y = 0;
+static bool            g_lmb_down = false, g_rmb_down = false;
 
 static std::map<uint32_t, GLuint> g_gl_textures; // skin_id → GL texture
 
@@ -325,6 +330,58 @@ static void RenderWorldEntities() {
     }
 }
 
+static void RenderGameEntities() {
+    for (size_t i = 0; i < g_game.entities.size(); ++i) {
+        const auto& ent = g_game.entities[i];
+        if (!ent.alive) continue;
+        if (ent.mesh_id < 0 || ent.mesh_id >= static_cast<int>(g_game.meshes.meshes.size()))
+            continue;
+        const auto& model = g_game.meshes.meshes[ent.mesh_id];
+        if (model.submeshes.empty()) continue;
+
+        glPushMatrix();
+        glTranslatef(ent.x, ent.y, ent.z);
+        if (ent.angle != 0) glRotatef(ent.angle * 180.0f / 3.14159265f, 0, 1, 0);
+        if (ent.scale != 1.0f && ent.scale > 0) glScalef(ent.scale, ent.scale, ent.scale);
+
+        // Highlight selected/hovered entities
+        if (ent.selected) {
+            glColor3f(1.0f, 1.0f, 0.5f); // Yellow tint for held
+        } else if (static_cast<int>(i) == g_game.hand.hover_entity) {
+            glColor3f(0.8f, 1.0f, 0.8f); // Green tint for hover
+        }
+
+        RenderModel(model);
+        glPopMatrix();
+    }
+
+    // Render hand cursor (simple sphere at hand position)
+    if (g_game.hand.is_over_land) {
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_LIGHTING);
+        float hx = g_game.hand.x;
+        float hy = g_game.hand.y + 5.0f;
+        float hz = g_game.hand.z;
+
+        // Draw hand indicator (crosshair on ground)
+        float sz = 5.0f;
+        if (g_game.hand.hover_entity >= 0) {
+            glColor3f(0.0f, 1.0f, 0.0f); // Green when over entity
+            sz = 8.0f;
+        } else {
+            glColor3f(1.0f, 1.0f, 1.0f); // White normally
+        }
+        glLineWidth(2.0f);
+        glBegin(GL_LINES);
+        glVertex3f(hx - sz, hy, hz); glVertex3f(hx + sz, hy, hz);
+        glVertex3f(hx, hy, hz - sz); glVertex3f(hx, hy, hz + sz);
+        glVertex3f(hx, hy - sz, hz); glVertex3f(hx, hy + sz, hz);
+        glEnd();
+        glLineWidth(1.0f);
+        glEnable(GL_LIGHTING);
+    }
+}
+
 static void RenderGrid(float extent) {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -371,7 +428,14 @@ static void Display() {
     float light_pos[] = { 0.5f, 1.0f, 0.3f, 0.0f }; // Directional sunlight
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-    if (g_world_mode || g_terrain_mode) {
+    if (g_game_mode) {
+        // Game mode: use game state camera
+        // (camera already set up from g_cam_* which game updates)
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        RenderTerrain(g_game.terrain);
+        RenderGameEntities();
+        if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else if (g_world_mode || g_terrain_mode) {
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         RenderTerrain(g_landscape);
         if (g_world_mode) RenderWorldEntities();
@@ -418,21 +482,40 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
 
     case WM_LBUTTONDOWN:
-        g_dragging = true;
-        g_last_mx = LOWORD(lp); g_last_my = HIWORD(lp);
-        SetCapture(hwnd);
+        g_lmb_down = true;
+        if (g_game_mode && g_game.hand.hover_entity >= 0 && g_game.hand.held_entity < 0) {
+            g_game.PickUpEntity(g_game.hand.hover_entity);
+        } else {
+            g_dragging = true;
+            g_last_mx = LOWORD(lp); g_last_my = HIWORD(lp);
+            SetCapture(hwnd);
+        }
         return 0;
     case WM_RBUTTONDOWN:
-        g_zooming = true;
-        g_last_my = HIWORD(lp);
-        SetCapture(hwnd);
+        g_rmb_down = true;
+        if (g_game_mode && g_game.hand.held_entity >= 0) {
+            // Throw held entity in camera forward direction
+            float rad_yaw = g_cam_yaw * 3.14159265f / 180.0f;
+            g_game.ThrowEntity(-sinf(rad_yaw) * 100.0f, 50.0f, -cosf(rad_yaw) * 100.0f);
+        } else {
+            g_zooming = true;
+            g_last_my = HIWORD(lp);
+            SetCapture(hwnd);
+        }
         return 0;
     case WM_LBUTTONUP:
+        g_lmb_down = false;
+        if (g_game_mode && g_game.hand.held_entity >= 0) {
+            g_game.DropEntity();
+        }
         g_dragging = false; ReleaseCapture(); return 0;
     case WM_RBUTTONUP:
+        g_rmb_down = false;
         g_zooming = false; ReleaseCapture(); return 0;
 
     case WM_MOUSEMOVE:
+        g_mouse_x = LOWORD(lp);
+        g_mouse_y = HIWORD(lp);
         if (g_dragging) {
             int mx = LOWORD(lp), my = HIWORD(lp);
             g_cam_yaw   += (mx - g_last_mx) * 0.5f;
@@ -497,8 +580,23 @@ int main(int argc, char* argv[]) {
     std::string ext = path.substr(path.find_last_of('.') + 1);
     for (auto& c : ext) c = static_cast<char>(tolower(c));
 
-    if (ext == "txt") {
-        // World mode: load script + terrain + meshes
+    if (ext == "txt" && argc >= 3 && std::string(argv[2]) == "--play") {
+        // Game mode: interactive with hand + entity interaction
+        g_game_mode = true;
+        if (!g_game.Init(path)) {
+            fprintf(stderr, "Failed to init game: %s\n", path.c_str());
+            return 1;
+        }
+        g_cam_x = g_game.cam_x;
+        g_cam_y = g_game.cam_y;
+        g_cam_z = g_game.cam_z;
+        g_cam_yaw = g_game.cam_yaw;
+        g_cam_pitch = g_game.cam_pitch;
+        g_cam_dist = g_game.cam_dist;
+        // Use game's texture/mesh data for rendering
+        // (g_gl_textures populated below after GL init)
+    } else if (ext == "txt") {
+        // World viewer mode: load script + terrain + meshes (read-only)
         g_world_mode = true;
         g_terrain_mode = true;
 
@@ -587,6 +685,8 @@ int main(int argc, char* argv[]) {
     // Upload textures if we have a G3D archive loaded
     if (g_archive_mode || g_world_mode) {
         UploadTextures(g_archive);
+    } else if (g_game_mode) {
+        UploadTextures(g_game.meshes);
     }
 
     UpdateTitle();
@@ -604,6 +704,19 @@ int main(int argc, char* argv[]) {
             DispatchMessageA(&msg);
         }
         if (!running) break;
+
+        // Game tick
+        if (g_game_mode) {
+            g_game.cam_x = g_cam_x;
+            g_game.cam_y = g_cam_y;
+            g_game.cam_z = g_cam_z;
+            g_game.cam_yaw = g_cam_yaw;
+            g_game.cam_pitch = g_cam_pitch;
+            g_game.cam_dist = g_cam_dist;
+            g_game.UpdateHand(g_mouse_x, g_mouse_y, g_width, g_height);
+            g_game.ProcessTurn();
+        }
+
         Display();
         SwapBuffers(g_hdc);
         Sleep(16);
