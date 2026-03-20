@@ -376,10 +376,10 @@ static void RenderGameEntities() {
             !g_game.meshes.meshes[g_game.hand_mesh_id].submeshes.empty()) {
             glPushMatrix();
             glTranslatef(hx, hy, hz);
-            float hand_scale = g_cam_dist * 0.05f; // Scale relative to camera distance
+            float hand_scale = g_cam_dist * 0.003f; // Small relative to view
             glScalef(hand_scale, hand_scale, hand_scale);
-            glRotatef(-70.0f, 1, 0, 0); // Tilt forward (pointing down)
-            glRotatef(g_cam_yaw, 0, 1, 0); // Face camera
+            glRotatef(g_cam_yaw + 180.0f, 0, 1, 0); // Always face camera
+            glRotatef(-60.0f, 1, 0, 0); // Tilt pointing down
             RenderModel(g_game.meshes.meshes[g_game.hand_mesh_id]);
             glPopMatrix();
         }
