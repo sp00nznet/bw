@@ -235,9 +235,8 @@ void GameState::UpdateHand(int mouse_x, int mouse_y, int screen_w, int screen_h)
     hand.screen_y = static_cast<float>(mouse_y);
 
     // Project mouse to world coordinates using simple raycast approximation
-    // This is a rough mapping — proper implementation needs gluUnProject
     float nx = (2.0f * mouse_x / screen_w - 1.0f);
-    float ny = (1.0f - 2.0f * mouse_y / screen_h);
+    float ny = -(2.0f * mouse_y / screen_h - 1.0f); // Screen Y is top-down, GL is bottom-up
 
     float rad_yaw = cam_yaw * 3.14159265f / 180.0f;
     float rad_pitch = cam_pitch * 3.14159265f / 180.0f;

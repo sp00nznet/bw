@@ -134,11 +134,11 @@ static void UploadTextures(const bw::G3DArchive& archive) {
 static void ResetCamera() {
     if (g_game_mode) {
         g_cam_x = (g_game.terrain.min_x + g_game.terrain.max_x) * 0.5f;
-        g_cam_y = (g_game.terrain.min_y + g_game.terrain.max_y) * 0.5f + g_game.terrain.GetExtent() * 0.1f;
+        g_cam_y = (g_game.terrain.min_y + g_game.terrain.max_y) * 0.5f;
         g_cam_z = (g_game.terrain.min_z + g_game.terrain.max_z) * 0.5f;
-        g_cam_dist = g_game.terrain.GetExtent() * 0.3f;
+        g_cam_dist = 150.0f; // Close enough to see entities
         g_cam_yaw = 30.0f;
-        g_cam_pitch = 30.0f;
+        g_cam_pitch = 40.0f;
         return;
     }
     if (g_terrain_mode) {
@@ -370,15 +370,16 @@ static void RenderGameEntities() {
         float hy = g_game.hand.y + 15.0f;
         float hz = g_game.hand.z;
 
-        // Try to render the actual hand mesh
+        // Render the hand mesh
         if (g_game.hand_mesh_id >= 0 &&
             g_game.hand_mesh_id < static_cast<int>(g_game.meshes.meshes.size()) &&
             !g_game.meshes.meshes[g_game.hand_mesh_id].submeshes.empty()) {
             glPushMatrix();
             glTranslatef(hx, hy, hz);
-            glScalef(3.0f, 3.0f, 3.0f); // Scale hand up for visibility
-            // Point hand downward
-            glRotatef(-90.0f, 1, 0, 0);
+            float hand_scale = g_cam_dist * 0.05f; // Scale relative to camera distance
+            glScalef(hand_scale, hand_scale, hand_scale);
+            glRotatef(-70.0f, 1, 0, 0); // Tilt forward (pointing down)
+            glRotatef(g_cam_yaw, 0, 1, 0); // Face camera
             RenderModel(g_game.meshes.meshes[g_game.hand_mesh_id]);
             glPopMatrix();
         }
@@ -556,10 +557,18 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case VK_ESCAPE: PostQuitMessage(0); break;
         case VK_TAB:    g_wireframe = !g_wireframe; break;
         case 'R':       ResetCamera(); break;
-        case 'W': g_cam_z -= g_cam_dist * 0.05f; break;
-        case 'S': g_cam_z += g_cam_dist * 0.05f; break;
-        case 'A': g_cam_x -= g_cam_dist * 0.05f; break;
-        case 'D': g_cam_x += g_cam_dist * 0.05f; break;
+        case 'W': case 'S': case 'A': case 'D': {
+            // Camera-relative movement
+            float rad = g_cam_yaw * 3.14159265f / 180.0f;
+            float speed = g_cam_dist * 0.05f;
+            float fw_x = -sinf(rad), fw_z = -cosf(rad);
+            float rt_x = cosf(rad), rt_z = -sinf(rad);
+            if (wp == 'W') { g_cam_x += fw_x * speed; g_cam_z += fw_z * speed; }
+            if (wp == 'S') { g_cam_x -= fw_x * speed; g_cam_z -= fw_z * speed; }
+            if (wp == 'A') { g_cam_x -= rt_x * speed; g_cam_z -= rt_z * speed; }
+            if (wp == 'D') { g_cam_x += rt_x * speed; g_cam_z += rt_z * speed; }
+            break;
+        }
         case VK_LEFT:  if (g_archive_mode) SelectMesh(g_current_mesh - 1); break;
         case VK_RIGHT: if (g_archive_mode) SelectMesh(g_current_mesh + 1); break;
         case VK_HOME:  if (g_archive_mode) SelectMesh(0); break;
