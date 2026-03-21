@@ -300,6 +300,9 @@ add_library(bw_core STATIC
     core/GInterfaceStatus.cpp
     # Script engine
     core/GScript.cpp
+    core/LHVM.cpp
+    # Utility functions
+    core/GUtils.cpp
 )
 
 # L3D mesh viewer — standalone Win32 + OpenGL application
