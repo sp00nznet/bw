@@ -22,7 +22,9 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**595 headers | 247 implementations | ~35,000 lines of C++ | 115 commits**
+**598 headers | 247 implementations | ~34,500 lines of C++ | 119 commits**
+
+**Entity hierarchy: 100% complete** — all 569 vendor types from bw1-decomp are rebuilt as C++ classes with correct vtable layout, static_asserts on every struct size, and ~220 translated method bodies.
 
 **Working right now:** A playable prototype that loads the original game data, renders the terrain with textured buildings and trees, and lets you pick up and throw entities with the god hand. The core B&W interaction loop — hover, grab, fling — works.
 
@@ -40,6 +42,8 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] ~220 method bodies translated from Ghidra decompilation
 - [x] Building lifecycle: IsFunctional, IsBuilt, BuildBy, Built, Repaired
 - [x] Resource delegation, influence calculation, repair/damage systems
+- [x] Complete creature AI subsystem structs (135KB CreatureMental, beliefs, desires, learning)
+- [x] GUtils distance/angle calculation library
 
 ### Phase 2: Rendering Pipeline — COMPLETE
 
@@ -57,12 +61,15 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **Entity interaction** — pick up trees/villagers/animals, fling with mouse velocity
 - [x] **Throw physics** — gravity, ground collision, bounce damping
 - [x] **Camera-relative controls** — WASD moves relative to view direction
-- [ ] Creature spawning and AI
+- [x] **LHVM scripting engine** — CHL bytecode loader + 31-opcode stack VM with task management
+- [ ] LHVM native function bindings (465 functions)
+- [ ] Creature spawning and AI state machine
 - [ ] Town simulation (resource gathering, building)
-- [ ] LHVM scripting engine (level logic)
+- [ ] GGame::ProcessTurn — connect all entity subsystems
 
 ### Phase 4: Full Game
 - [ ] Complete GGame loop (ProcessTurn, entity ticking)
+- [ ] Translate remaining ~1,800 method stubs from Ghidra decompilation
 - [ ] Audio engine
 - [ ] Multiplayer
 - [ ] Modding support
@@ -111,7 +118,7 @@ bw/
 ├── README.md
 ├── src/
 │   ├── CMakeLists.txt         ← Builds bw_core lib + bw_viewer exe
-│   ├── include/black/         ← 595 C++ headers (entity classes, vtable layout)
+│   ├── include/black/         ← 598 C++ headers (entity classes, vtable layout)
 │   ├── core/                  ← 247 implementation files (method stubs + bodies)
 │   └── viewer/                ← OpenGL viewer/game application
 │       ├── main.cpp           ← Win32+OpenGL window, rendering, input
