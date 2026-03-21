@@ -24,12 +24,12 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 663dda7)
-- **309 headers** in `src/include/black/`
-- **165 .cpp files** in `src/core/`
-- **25,044 lines** of C++ total
-- **53 commits**, all pushed to GitHub
-- **~54% coverage** of 569 vendor types
+## Current Stats (as of commit e395939)
+- **598 headers** in `src/include/black/`
+- **247 .cpp files** in `src/core/`
+- **34,529 lines** of C++ total
+- **117 commits**, all pushed to GitHub
+- **~100% coverage** of 569 vendor types (entity hierarchy complete)
 
 ## Architecture Patterns
 
@@ -122,11 +122,14 @@ HandState (0x8, 5 virtuals) + 11 subclasses (Invisible/Normal/Camera/Tug/Holding
 ### Batch 35: Magic info hierarchy + data info types (23 types)
 GEffectInfo (0x34), GMagicEffectInfo (0x11C), 13 magic spell info types (GMagicFireBallInfo through GMagicWaterInfo), GBeliefInfo, GClimateInfo, GClimateRainInfo, GSpecialVillagerInfo (0x60), GVillagerInfo (0x3A4), HelpSpiritInfo (0x1F4)
 
+### Batch 36: LHVM scripting engine + utility types (3 types)
+LHVM bytecode interpreter (CHL file loader + 31-opcode VM), GUtils (static distance/angle utility class), MaterialProperties (0x5)
+
 ## What's Next (priority order)
-1. **Landscape/terrain** — map loading, heightfield
-2. **LHVM scripting engine** — virtual machine for level scripts
+1. **LHVM native functions** — implement the 465 native function bindings
+2. **GGame::ProcessTurn** — flesh out the main game loop turn processing
 3. **Remaining UI/dialog types** — SetupBox hierarchy, dialog boxes
-4. **Mesh/rendering** — L3D/G3D loaders
+4. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
