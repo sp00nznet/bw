@@ -15,3 +15,8 @@ bool32_t ScriptHighlight::CanBePickedUpByCreature(Creature*) { return 0; }
 uint32_t ScriptHighlight::Process() { return 0; }
 void     ScriptHighlight::Draw() {}
 void     ScriptHighlight::CallVirtualFunctionsForCreation(const MapCoords&) {}
+
+// Static methods
+void ScriptHighlight::ProcessHighlights() {
+    // Original at 0x0070a460 — processes script highlight objects
+}

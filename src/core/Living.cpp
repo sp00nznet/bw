@@ -320,3 +320,9 @@ void Living::SetBoxXForChessGame(int) {}
 void Living::SetBoxZForChessGame(int) {}
 uint32_t Living::GetTeamForChessGame() { return 0; }
 bool Living::IsPosValidForTurnAngle(const MapCoords*) { return false; }
+
+// Static methods
+void Living::ProcessLiving() {
+    // Original at 0x005ec810 — processes all living entities per tick
+    // TODO: iterate living list, update AI, movement, health
+}

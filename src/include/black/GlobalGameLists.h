@@ -168,5 +168,8 @@ struct GlobalGameLists : public Base {
     LHListHead_GameThing            game_things;               // 0x178
     LHLinkedList_TownArtifact       town_artifacts;            // 0x180
     LHLinkedList_Fragment           fragments;                 // 0x188
+
+    // Methods
+    void Process();                                            // 0x0058e870
 };
 static_assert(sizeof(GlobalGameLists) == 0x190, "GlobalGameLists size mismatch");

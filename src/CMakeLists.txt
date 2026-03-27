@@ -236,6 +236,8 @@ add_library(bw_core STATIC
     core/MapCoords.cpp
     # Game state
     core/Game.cpp
+    core/GlobalGameLists.cpp
+    core/GNetwork.cpp
     # UI option entry hierarchy
     core/SubOptionEntry.cpp
     core/FuncT.cpp

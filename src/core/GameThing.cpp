@@ -247,3 +247,8 @@ void GameThing::SaveExtraData(GameOSFile* /*file*/) {
 void GameThing::ResolveLoad() {
     // Default: no-op
 }
+
+// Static methods
+void GameThing::ProcessDeadList(int /*param*/) {
+    // Original at 0x0056fb10 — deletes entities on the dead list
+}

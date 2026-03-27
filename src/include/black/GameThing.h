@@ -148,5 +148,8 @@ struct GameThing : public Base {
 
     // === Constants ===
     static constexpr float MAX_ALIGNMENT_CHANGE_PER_TURN = 1.0f / (60.0f * 60.0f * 10.0f);
+
+    // === Static methods ===
+    static void ProcessDeadList(int param);   // 0x0056fb10
 };
 static_assert(sizeof(GameThing) == 0x14, "GameThing size mismatch");

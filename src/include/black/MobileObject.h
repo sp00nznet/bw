@@ -71,5 +71,8 @@ struct MobileObject : public Mobile {
     uint32_t field_0x5c;  // 0x5C
     uint32_t field_0x60;  // 0x60
     uint32_t field_0x64;  // 0x64
+
+    // Static methods
+    static void AddMobileObjectCheckSum();    // 0x00606fc0
 };
 static_assert(sizeof(MobileObject) == 0x68, "MobileObject size mismatch");

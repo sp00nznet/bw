@@ -269,3 +269,8 @@ size_t MobileObject::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*
     // TODO: implement when save system is available
     return 0;
 }
+
+// Static methods
+void MobileObject::AddMobileObjectCheckSum() {
+    // Original at 0x00606fc0 — integrity checksum for mobile objects
+}

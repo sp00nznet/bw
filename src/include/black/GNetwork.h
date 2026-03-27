@@ -27,5 +27,8 @@ struct GNetwork {
     uint8_t    field_0xe;   // 0x0E
     uint8_t    field_0xf;   // 0x0F
     LHSession* session;     // 0x10
+
+    // Methods
+    void Process();         // 0x0063c4d0
 };
 static_assert(sizeof(GNetwork) == 0x14, "GNetwork size mismatch");

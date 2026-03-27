@@ -23,5 +23,8 @@ struct ScriptHighlight : public SingleMapFixed {
 
     // === Fields ===
     uint8_t field_0x5c[0x30];  // 0x5C
+
+    // Static methods
+    static void ProcessHighlights();          // 0x0070a460
 };
 static_assert(sizeof(ScriptHighlight) == 0x8C, "ScriptHighlight size mismatch");

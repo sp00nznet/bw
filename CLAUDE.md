@@ -125,11 +125,14 @@ GEffectInfo (0x34), GMagicEffectInfo (0x11C), 13 magic spell info types (GMagicF
 ### Batch 36: LHVM scripting engine + utility types (3 types)
 LHVM bytecode interpreter (CHL file loader + 31-opcode VM), GUtils (static distance/angle utility class), MaterialProperties (0x5)
 
+### Batch 37: LHVM native function dispatch (464 functions)
+Complete native function dispatch table — NativeFunction enum (0-463), NativeFunctionEntry dispatch table, OP_CALL dispatch, stack ops with current_task context, ~50 typed stubs (camera, property, object, math, time, text, fade, etc.), remaining functions as no-op stubs
+
 ## What's Next (priority order)
-1. **LHVM native functions** — implement the 465 native function bindings
-2. **GGame::ProcessTurn** — flesh out the main game loop turn processing
-3. **Remaining UI/dialog types** — SetupBox hierarchy, dialog boxes
-4. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
+1. **GGame::ProcessTurn** — flesh out the main game loop turn processing
+2. **Remaining UI/dialog types** — SetupBox hierarchy, dialog boxes
+3. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
+4. **LHVM native function bodies** — fill in stub implementations as subsystems come online
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names

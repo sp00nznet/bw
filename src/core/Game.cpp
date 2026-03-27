@@ -6,6 +6,12 @@
 // landscape, script engine, camera, climate, and everything else.
 
 #include <black/Game.h>
+#include <black/GCamera.h>
+#include <black/GameThing.h>
+#include <black/Living.h>
+#include <black/MobileObject.h>
+#include <black/Script.h>
+#include <black/ScriptHighlight.h>
 
 // Global game instance pointer (allocated during engine init)
 GGame* g_game = nullptr;
@@ -117,15 +123,123 @@ void GGame::Process3dEngine() {
 }
 
 void GGame::StartTurn() {
-    // Original at 0x0054e4f0 — complex turn start
+    // Original at 0x0054e4f0 — turn initialization
+    // Increment secondary turn counter (always)
+    data.field_0x14++;
+
+    // Increment primary game turn counter (only when not paused)
+    if ((field_0x14 & 4) == 0) {
+        data.game_turn++;
+    }
+
+    // TODO: timer init (-1)
+    // TODO: clean up linked list (game object queue at data_bytes+0x33adc4)
+
+    // Update UI
+    // GInterface* iface = MyInterface();
+    // if (iface) iface->Update();  // vtable offset 0x18
+
+    // TODO: GGameInfo::Load()
+
+    // Reset multiplayer sound state
+    if (IsMultiplayerGame() && sound_map) {
+        // TODO: sound_map->field_0x4608 = 0;
+    }
 }
 
 void GGame::ProcessTurn() {
-    // Original at 0x0054e5c0 — complex turn processing
+    // Original at 0x0054e5c0 — main game logic per tick
+    // This is the heart of the game loop, calling all subsystems.
+    // Translated from x86 assembly at 0x0054e5c0-0x0054e960.
+
+    // Phase 1: Physics/Input normalization
+    // TODO: LHPoint::FastNormalize (input vector)
+    // TODO: GGameInfo::Process()
+
+    // Phase 2: Entity processing
+    // TODO: Pre-player processing (0x005cdb90)
+    GPlayer::ProcessPlayers();
+    // TODO: Post-player processing (0x0050bb60)
+    game_lists.Process();
+    // TODO: Inter-entity processing (0x00539d70)
+    Living::ProcessLiving();
+
+    // Phase 3: World updates
+    // TODO: Multiple world subsystem calls (terrain, weather, physics)
+    // 0x00730760, 0x00435f30, 0x006e3b50, 0x00720300
+    // 0x0063e090, 0x0052b7a0, 0x00644fc0, 0x0067d630, 0x0068f5b0
+
+    // Phase 4: Scripting
+    if (script) {
+        script->Process();
+    }
+    // TODO: Post-script processing (0x005c8fe0, 0x005c4660)
+
+    // Phase 5: Sound/Ambience
+    // TODO: Sound processing calls
+
+    // Phase 6: Hand/Gesture processing
+    // GInterface* iface = MyInterface();
+    // if (iface) { /* CHand::GameTurnUpdate() */ }
+    AddPlayerSparkles();
+    MobileObject::AddMobileObjectCheckSum();
+
+    // Phase 7: Dead entity cleanup
+    GameThing::ProcessDeadList(0);
+
+    // Phase 8: Highlights
+    ScriptHighlight::ProcessHighlights();
+
+    // Phase 9: Influence
+    Update3DInfluence();
+
+    // Phase 10: Camera validation
+    if (camera) {
+        camera->CheckStackedModesForValidity();
+        camera->Validate();
+    }
+
+    // Phase 11: Creature AI events
+    // TODO: iterate pending creature event linked list (field_0x205d2c)
+
+    // Phase 12: Save/reload detection
+    // TODO: complex logic checking paused state, turn count, multiplayer status
+    // TODO: trigger script reload if conditions met
 }
 
 void GGame::EndTurn() {
-    // Original at 0x0054e960 — complex turn end
+    // Original at 0x0054e960 — turn finalization
+
+    // Phase 1: Sound engine
+    // TODO: Multiple sound processing calls
+
+    // Phase 2: Particle/effect cleanup
+    // TODO: iterate particle/effect list, clear disabled entries
+
+    // Phase 3: Map update (only when not paused)
+    if ((field_0x14 & 4) == 0) {
+        // TODO: if game_turn > 5, call complex map update
+        // TODO: else, different global processing path
+    }
+
+    // Phase 4: Terrain/Physics cleanup
+    // TODO: terrain_map update, physics cleanup
+
+    // Phase 5: Script event check (creature birth trigger)
+    // Only if NOT paused, turn count <= 5, NOT multiplayer
+    if ((field_0x14 & 4) == 0 && data.game_turn <= 5 &&
+        !IsMultiplayerGame() && field_0x205a0c == 0 && field_0x205a14 == 1) {
+        // TODO: complex creature state check for triggering OnBirth script
+    }
+
+    // Phase 6: Network processing
+    network.Process();
+
+    // Phase 7: Save event detection
+    // TODO: complex time-based save event logic
+
+    // Phase 8: FPS calculations
+    // TODO: floating point FPS tracking based on turn divisor
 }
 
 void GGame::ProcessFrameInputs() {

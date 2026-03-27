@@ -344,5 +344,8 @@ struct Living : public MobileWallHug {
     DanceGroup* dance_group;                  // 0xD8
     uint8_t field_0xdc;                       // 0xDC
     uint8_t pad_0xdd[3];                      // 0xDD-0xDF — padding to 0xE0
+
+    // Static methods
+    static void ProcessLiving();              // 0x005ec810
 };
 static_assert(sizeof(Living) == 0xE0, "Living size mismatch");
