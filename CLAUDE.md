@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit bd8a403)
+## Current Stats (as of commit 265aca3)
 - **598 headers** in `src/include/black/`
 - **249 .cpp files** in `src/core/`
-- **36,167 lines** of C++ total
-- **120 commits**, all pushed to GitHub
+- **36,400+ lines** of C++ total
+- **122 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 
 ## Architecture Patterns
@@ -128,11 +128,14 @@ LHVM bytecode interpreter (CHL file loader + 31-opcode VM), GUtils (static dista
 ### Batch 37: LHVM native function dispatch (464 functions)
 Complete native function dispatch table — NativeFunction enum (0-463), NativeFunctionEntry dispatch table, OP_CALL dispatch, stack ops with current_task context, ~50 typed stubs (camera, property, object, math, time, text, fade, etc.), remaining functions as no-op stubs
 
+### Batch 38: Creature spawning + Town simulation + Abode resources
+Creature::Create factory (calloc + InitCreature, allocates 135KB CreatureMental), Town::Process 7-phase simulation tick, Abode::JustAddResource/JustRemoveResource with clamping, StoragePit resource delegation
+
 ## What's Next (priority order)
-1. **GGame::ProcessTurn** — flesh out the main game loop turn processing
-2. **Remaining UI/dialog types** — SetupBox hierarchy, dialog boxes
-3. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
-4. **LHVM native function bodies** — fill in stub implementations as subsystems come online
+1. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
+2. **Camera system** — implement GCamera update loop for proper B&W-style camera
+3. **Villager AI states** — implement Living state machine for villager behavior
+4. **LHVM native function bodies** — fill in ~400 remaining stubs as subsystems come online
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
