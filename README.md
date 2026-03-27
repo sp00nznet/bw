@@ -22,7 +22,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**598 headers | 247 implementations | ~34,500 lines of C++ | 119 commits**
+**598 headers | 249 implementations | ~36,200 lines of C++ | 120 commits**
 
 **Entity hierarchy: 100% complete** — all 569 vendor types from bw1-decomp are rebuilt as C++ classes with correct vtable layout, static_asserts on every struct size, and ~220 translated method bodies.
 
@@ -62,13 +62,13 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **Throw physics** — gravity, ground collision, bounce damping
 - [x] **Camera-relative controls** — WASD moves relative to view direction
 - [x] **LHVM scripting engine** — CHL bytecode loader + 31-opcode stack VM with task management
-- [ ] LHVM native function bindings (465 functions)
+- [x] **LHVM native functions** — 464-entry dispatch table with typed stubs for ~50 core functions
+- [x] **GGame::ProcessTurn** — game loop calls all subsystems in correct order (players, entities, creatures, scripting, camera, dead list cleanup)
 - [ ] Creature spawning and AI state machine
 - [ ] Town simulation (resource gathering, building)
-- [ ] GGame::ProcessTurn — connect all entity subsystems
 
 ### Phase 4: Full Game
-- [ ] Complete GGame loop (ProcessTurn, entity ticking)
+- [ ] LHVM native function bodies (fill in ~400 remaining stubs as subsystems come online)
 - [ ] Translate remaining ~1,800 method stubs from Ghidra decompilation
 - [ ] Audio engine
 - [ ] Multiplayer
