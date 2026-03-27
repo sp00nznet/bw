@@ -7,6 +7,7 @@
 // resources, and player interaction.
 
 #include <black/Town.h>
+#include <black/StoragePit.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -256,7 +257,10 @@ StoragePit* Town::GetStoragePit() {
 }
 
 void Town::Birthday() {
-    // Original at 0x0073b5d0 — complex
+    // Original at 0x0073b5d0 — ages villagers, triggers births
+    // Simplified: births occur when population has capacity and resources
+    // TODO: iterate villager list, check for pregnant villagers, spawn children
+    // TODO: age children to adults when timer expires
 }
 
 BuildingSite* Town::AddBuildingSite(PlannedMultiMapFixed* /*planned*/) {
@@ -395,12 +399,57 @@ void Town::UpdateAttitudeToCreature() {
 }
 
 uint32_t Town::Process() {
-    // Original at 0x00747380 — complex town simulation tick
-    return 0;
+    // Original at 0x00747380 — town simulation tick
+    // Translated from vendor decompilation — the central town update loop.
+
+    // Phase 1: Update town desires (food, wood, shelter needs)
+    // TODO: desire evaluation — update desire values based on population needs
+
+    // Phase 2: Population management
+    // Check for new births if population can grow
+    Birthday();
+
+    // Phase 3: Housing check — assign homeless villagers to abodes
+    AllVillagersCheckNeedNewAbode();
+
+    // Phase 4: Construction management
+    // Request new buildings if there are unmet desires
+    if (planned_list.count > 0) {
+        RequestBestPlanned();
+    }
+
+    // Phase 5: Emergency handling (starvation, etc.)
+    ProcessTownEmergency();
+
+    // Phase 6: Worship and belief updates
+    UpdateAttitudeToCreature();
+
+    // Phase 7: Resource accounting — tally total food/wood in town
+    float food_total = 0.0f;
+    float wood_total = 0.0f;
+
+    // Sum resources from storage pits and abodes
+    StoragePit* pit = storage_pit_list;
+    while (pit) {
+        food_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(0))); // FOOD
+        wood_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(1))); // WOOD
+        pit = nullptr; // TODO: iterate linked list properly
+    }
+
+    // Update town stats with resource totals
+    stats.total_food = food_total;
+    // stats.total_wood = wood_total; // TODO: verify field offset
+
+    return 1;
 }
 
 void Town::ProcessTownEmergency() {
-    // Original at 0x007477a0 — complex
+    // Original at 0x007477a0 — handles starvation, lack of shelter
+    // Check if town is starving (no food, has population)
+    if (stats.num_adults > 0 && stats.total_food <= 0.0f) {
+        // Town is in food emergency
+        // TODO: trigger starvation behavior, reduce happiness
+    }
 }
 
 bool Town::IsInStateOfEmergency() {

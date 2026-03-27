@@ -6,8 +6,16 @@
 void StoragePit::Delete(int param) { Abode::Delete(param); } // 0x00732c10
 void StoragePit::ToBeDeleted(int param) { Abode::ToBeDeleted(param); } // 0x00732c30
 
-uint32_t StoragePit::AddResource(RESOURCE_TYPE, uint32_t, GInterfaceStatus*, bool, const MapCoords&, int) { return 0; } // 0x00732f60
-uint32_t StoragePit::RemoveResource(RESOURCE_TYPE, uint32_t, GInterfaceStatus*, bool*) { return 0; } // 0x007332a0
+uint32_t StoragePit::AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool param4, const MapCoords& coords, int param6) {
+    // Original at 0x00732f60 — adds resource to storage pit
+    // Delegates to base abode resource adding
+    return Abode::AddResource(type, amount, status, param4, coords, param6);
+}
+
+uint32_t StoragePit::RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool* param4) {
+    // Original at 0x007332a0 — removes resource from storage pit
+    return Abode::RemoveResource(type, amount, status, param4);
+}
 
 char* StoragePit::GetDebugText() { static char t[] = "StoragePit"; return t; } // 0x0055cd40
 uint32_t StoragePit::Load(GameOSFile*) { return 0; } // 0x00733920

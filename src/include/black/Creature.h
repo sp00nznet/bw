@@ -48,6 +48,8 @@ struct CreatureSubActionAgenda {
     uint8_t data[0xC50];  // 0x408 to 0x1058 (field_0x408 to field_0x1058)
 };
 
+struct CreatureInfo;
+
 struct Creature : public Living {
     // No new virtual methods — uses Living's vtable (0xB40)
 
@@ -62,6 +64,18 @@ struct Creature : public Living {
     // === Overrides of Living/MobileWallHug virtuals ===
     MapCoords* GetDestPos() override;
     MapCoords* GetFinalDestPos(MapCoords* out) override;
+
+    // === Non-virtual methods ===
+    void InitCreature(const MapCoords& pos, const CreatureInfo* creature_info, GPlayer* player);
+    CreaturePhysical* GetPhysical();
+    CreatureMental* GetMind();
+    GAlignment* GetAlignment();
+    bool IsOnHomeTeam();
+    void SetOwner(GPlayer* player);
+    void SetName(const char16_t* new_name);
+
+    // === Static factory methods ===
+    static Creature* Create(const MapCoords& pos, const CreatureInfo* creature_info, GPlayer* player);
 
     // === Fields ===
     char16_t name[0x40];                   // 0xE0 — creature name (64 UTF-16 chars, 128 bytes)

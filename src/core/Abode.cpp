@@ -41,14 +41,19 @@ Town* Abode::GetTown() {
 
 uint32_t Abode::JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool /*param3*/) {
     // Original at 0x00404d40
-    // TODO: implement properly (likely resources[type] += amount)
-    return 0;
+    if (type < 2) {
+        resources[type] += amount;
+    }
+    return amount;
 }
 
 uint32_t Abode::JustRemoveResource(RESOURCE_TYPE type, uint32_t amount, bool* /*param3*/) {
-    // Original at 0x00404d60 — complex (clamping logic)
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00404d60
+    if (type >= 2) return 0;
+    uint32_t available = resources[type];
+    uint32_t removed = (amount <= available) ? amount : available;
+    resources[type] -= removed;
+    return removed;
 }
 
 uint32_t Abode::GetResource(RESOURCE_TYPE type) {
@@ -57,16 +62,14 @@ uint32_t Abode::GetResource(RESOURCE_TYPE type) {
     return resources[type];
 }
 
-uint32_t Abode::AddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool /*param4*/, const MapCoords& /*coords*/, int /*param6*/) {
-    // Original at 0x00404d90 — complex resource system
-    // TODO: implement when resource system is available
-    return 0;
+uint32_t Abode::AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* /*status*/, bool param4, const MapCoords& /*coords*/, int /*param6*/) {
+    // Original at 0x00404d90 — delegates to DoResourceAdding/JustAddResource
+    return JustAddResource(type, amount, param4);
 }
 
-uint32_t Abode::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, GInterfaceStatus* /*status*/, bool* /*param4*/) {
-    // Original at 0x00404f10 — complex resource system
-    // TODO: implement when resource system is available
-    return 0;
+uint32_t Abode::RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* /*status*/, bool* param4) {
+    // Original at 0x00404f10 — delegates to DoResourceRemoving/JustRemoveResource
+    return JustRemoveResource(type, amount, param4);
 }
 
 Abode* Abode::CastAbode() {
