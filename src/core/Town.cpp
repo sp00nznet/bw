@@ -8,6 +8,7 @@
 
 #include <black/Town.h>
 #include <black/StoragePit.h>
+#include <black/Player.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -283,12 +284,16 @@ uint32_t Town::RemoveBuildingSite(MultiMapFixed* /*structure*/) {
     return 0;
 }
 
-void Town::SetBeliefInPlayer(GPlayer* /*player*/, float /*value*/) {
-    // Original at 0x0073ba70 — complex
+void Town::SetBeliefInPlayer(GPlayer* player, float value) {
+    // Original at 0x0073ba70 — set the town's belief in a given player
+    if (!player) return;
+    uint8_t player_num = player->GetPlayerNumber();
+    belief.SetBelief(player_num, value);
 }
 
-void Town::SetWorshipPercentage(float /*percentage*/) {
-    // Original at 0x0073c060 — complex
+void Town::SetWorshipPercentage(float percentage) {
+    // Original at 0x0073c060 — sets the worship percentage for this town
+    worship_percentage = percentage;
 }
 
 void Town::AdjustWorshipersWorshipping(long /*param1*/, int /*param2*/, int /*param3*/) {
