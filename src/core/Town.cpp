@@ -36,13 +36,13 @@ void Town::SetVillagerActivity(Villager* /*villager*/) {
 }
 
 float Town::GetRadius() {
-    // Original at 0x0073d6e0 — complex
-    return 0.0f;
+    // Original at 0x0073d6e0 — returns the town's influence radius
+    return influence;
 }
 
 uint16_t Town::GetNumberOfInstanceForGlobalList() {
-    // Original at 0x0073af80
-    return 0;
+    // Original at 0x0073af80 — returns population count for global list
+    return static_cast<uint16_t>(stats.num_adults + stats.num_children);
 }
 
 char* Town::GetDebugText() {
@@ -90,8 +90,8 @@ Citadel* Town::GetCitadel() {
 }
 
 uint32_t Town::GetOrigin() {
-    // Original at 0x007391d0
-    return 0;
+    // Original at 0x007391d0 — returns the tribe type
+    return static_cast<uint32_t>(tribe_type);
 }
 
 bool Town::IsTown_0() {
@@ -295,7 +295,7 @@ void Town::AdjustWorshipersWorshipping(long /*param1*/, int /*param2*/, int /*pa
 }
 
 GTribeInfo* Town::GetTribe() const {
-    // Original at 0x0073c840 — complex
+    // Original at 0x0073c840 — complex tribe info lookup
     return nullptr;
 }
 

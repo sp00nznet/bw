@@ -102,8 +102,9 @@ uint32_t Flock::GetScriptObjectType() {
 // Non-virtual methods
 // ============================================================================
 
-void Flock::SetDomainCentrePos(const MapCoords& /*pos*/) {
-    // Original at 0x0052fc20 — complex
+void Flock::SetDomainCentrePos(const MapCoords& pos) {
+    // Original at 0x0052fc20 — set the center position for the flock's domain
+    field_0x60 = pos;
 }
 
 MapCoords* Flock::GetFlockPos() {

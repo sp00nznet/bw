@@ -143,7 +143,7 @@ bool GPlayer::IsMemberOfThisPlayer(GInterfaceStatus* /*status*/) {
 }
 
 LH3DColor GPlayer::GetPlayerColour() const {
-    // Original at 0x0064d800 — complex color lookup
+    // Original at 0x0064d800 — complex color lookup from player index
     LH3DColor color = {0};
     return color;
 }
