@@ -49,6 +49,6 @@ bool32_t ScriptMarker::IsScriptMarker() {
 }
 
 uint32_t ScriptMarker::GetScriptObjectType() {
-    // Original at 0x0070d960 — complex
-    return 0;
+    // Original at 0x0070d960
+    return 0x14;
 }

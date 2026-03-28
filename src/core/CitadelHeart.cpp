@@ -105,8 +105,8 @@ bool32_t CitadelHeart::CreateBuildingSite() {
 }
 
 uint32_t CitadelHeart::GetScriptObjectType() {
-    // Original at 0x004680b0 — complex
-    return 0;
+    // Original at 0x004680b0
+    return 0xf;
 }
 
 // ============================================================================
@@ -165,8 +165,8 @@ void CitadelHeart::SetUpPhysOb(PhysOb* /*param1*/) {
 }
 
 bool CitadelHeart::InteractsWithPhysicsObjects() {
-    // Original at 0x00467b40 — complex
-    return false;
+    // Original at 0x00467b40 — citadel hearts interact with physics
+    return true;
 }
 
 uint32_t CitadelHeart::ChecksVerticesVObjects() {

@@ -20,27 +20,33 @@ void Pot::ToBeDeleted(int /*param*/) {
 // Overrides of GameThing virtuals
 // ============================================================================
 
-uint32_t Pot::JustAddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool /*param3*/) {
-    // Original at 0x0066d2b0 — complex
-    // TODO: implement properly
+uint32_t Pot::JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool /*param3*/) {
+    // Original at 0x0066d2b0 — add resource to pot
+    if (type == field_0x68) {
+        field_0x6c += amount;
+        return amount;
+    }
     return 0;
 }
 
-uint32_t Pot::JustRemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool* /*param3*/) {
-    // Original at 0x0066d410 — complex
-    // TODO: implement properly
+uint32_t Pot::JustRemoveResource(RESOURCE_TYPE type, uint32_t amount, bool* /*param3*/) {
+    // Original at 0x0066d410 — remove resource from pot
+    if (type != field_0x68) return 0;
+    uint32_t available = field_0x6c;
+    uint32_t removed = (amount <= available) ? amount : available;
+    field_0x6c -= removed;
+    return removed;
+}
+
+uint32_t Pot::JustGetResource(RESOURCE_TYPE type, uint32_t /*amount*/, bool* /*param3*/) {
+    // Original at 0x0066d390 — returns current resource count
+    if (type == field_0x68) return field_0x6c;
     return 0;
 }
 
-uint32_t Pot::JustGetResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/, bool* /*param3*/) {
-    // Original at 0x0066d390 — complex
-    // TODO: implement properly
-    return 0;
-}
-
-uint32_t Pot::GetResource(RESOURCE_TYPE /*type*/) {
-    // Original at 0x0066d3d0 — complex
-    // TODO: implement properly
+uint32_t Pot::GetResource(RESOURCE_TYPE type) {
+    // Original at 0x0066d3d0 — returns resource count if type matches
+    if (type == field_0x68) return field_0x6c;
     return 0;
 }
 
@@ -148,10 +154,9 @@ float Pot::GetFoodValue(FOOD_TYPE /*type*/) {
     return static_cast<float>(GetResource(RESOURCE_TYPE_FOOD));
 }
 
-bool Pot::IsResourceStore(RESOURCE_TYPE /*type*/) {
-    // Original at 0x0066f560 — complex
-    // TODO: implement properly
-    return false;
+bool Pot::IsResourceStore(RESOURCE_TYPE type) {
+    // Original at 0x0066f560 — pot stores its assigned resource type
+    return type == field_0x68;
 }
 
 bool Pot::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*param2*/) {
@@ -261,9 +266,8 @@ void Pot::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
 }
 
 bool Pot::CanBecomeAPhysicsObject() {
-    // Original at 0x0066e8f0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x0066e8f0 — pots can become physics objects when thrown
+    return true;
 }
 
 size_t Pot::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {

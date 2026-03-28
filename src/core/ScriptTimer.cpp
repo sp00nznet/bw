@@ -40,6 +40,6 @@ bool32_t ScriptTimer::IsScriptTimer() {
 }
 
 uint32_t ScriptTimer::GetScriptObjectType() {
-    // Original at 0x00711600 — complex
-    return 0;
+    // Original at 0x00711600
+    return 0x15;
 }
