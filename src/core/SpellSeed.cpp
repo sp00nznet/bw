@@ -84,9 +84,8 @@ bool32_t SpellSeed::IsSpellSeed() {
 }
 
 uint32_t SpellSeed::GetScriptObjectType() {
-    // Original at 0x00729c90 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00729c90 — spell seeds are script type 0x10
+    return 0x10;
 }
 
 // ============================================================================
@@ -104,9 +103,8 @@ void SpellSeed::RemoveMapObject() {
 }
 
 HOLD_TYPE SpellSeed::GetHoldType() {
-    // Original at 0x00728680 — complex
-    // TODO: implement properly
-    return HOLD_TYPE_DEFAULT;
+    // Original at 0x00728680 — spell seeds use hold type 4
+    return static_cast<HOLD_TYPE>(4);
 }
 
 float SpellSeed::GetHoldRadius() {
@@ -149,9 +147,8 @@ void SpellSeed::DrawOutOfMap(bool /*param1*/) {
 }
 
 bool SpellSeed::IsG3DObjectDrawnInHand() {
-    // Original at 0x00728600 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00728600 — spell seeds are drawn in hand
+    return true;
 }
 
 void SpellSeed::CallVirtualFunctionsForCreation(const MapCoords& coords) {

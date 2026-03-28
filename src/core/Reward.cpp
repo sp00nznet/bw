@@ -70,8 +70,8 @@ bool32_t Reward::IsActive() const {
 }
 
 uint32_t Reward::GetScriptObjectType() {
-    // Original at 0x006e5ca0 — complex
-    return 0;
+    // Original at 0x006e5ca0 — rewards are script type 0x12
+    return 0x12;
 }
 
 // ============================================================================

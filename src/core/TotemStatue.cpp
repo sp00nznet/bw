@@ -96,8 +96,8 @@ bool32_t TotemStatue::IsTotemWithStealableSpell(Creature* /*creature*/) {
 }
 
 uint32_t TotemStatue::GetScriptObjectType() {
-    // Original at 0x00738eb0 — complex
-    return 0;
+    // Original at 0x00738eb0 — totem statues are script type 0x11
+    return 0x11;
 }
 
 // ============================================================================
