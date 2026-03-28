@@ -69,8 +69,13 @@ GPlayer* GGame::GetPlayer(uint32_t index) {
     return &players[index];
 }
 
-GPlayer* GGame::GetPlayer(PLAYER_NAME /*name*/) {
-    // Original at 0x00550a60
+GPlayer* GGame::GetPlayer(PLAYER_NAME name) {
+    // Original at 0x00550a60 — find player by name enum
+    for (int i = 0; i < 8; i++) {
+        if (players[i].player_number == static_cast<uint8_t>(name)) {
+            return &players[i];
+        }
+    }
     return nullptr;
 }
 
