@@ -21,7 +21,8 @@ void Field::ToBeDeleted(int /*param*/) {
 // ============================================================================
 
 GPlayer* Field::GetPlayer() {
-    // Original at 0x00528940 — complex (may derive from town)
+    // Original at 0x00528940 — gets player from owning town
+    if (town) return reinterpret_cast<GameThing*>(town)->GetPlayer();
     return nullptr;
 }
 
@@ -186,8 +187,10 @@ uint32_t Field::DestroyedByEffect(GPlayer* /*player*/, float /*param*/) {
 }
 
 uint32_t Field::Process() {
-    // Original at 0x00529020 — complex
-    return 0;
+    // Original at 0x00529020 — field per-tick update
+    if (!IsBuilt()) return MultiMapFixed::Process();
+    // TODO: crop growth, food production, watering mechanics
+    return 1;
 }
 
 void Field::Draw() {
@@ -211,8 +214,8 @@ float Field::ApplyWaterSpell(SpellWater* /*spell*/) {
 }
 
 RESOURCE_TYPE Field::GetResourceType() {
-    // Original at 0x00528010: returns RESOURCE_TYPE for food
-    return RESOURCE_TYPE(0);
+    // Original at 0x00528010: fields produce food
+    return RESOURCE_TYPE_FOOD;
 }
 
 bool Field::IsLockedInInteract() {

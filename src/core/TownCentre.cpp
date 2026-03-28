@@ -18,7 +18,11 @@ bool32_t TownCentre::IsStoragePit(Creature*) { return 0; } // 0x0055db50
 
 void TownCentre::ReduceLife(float v, GPlayer* p) { Abode::ReduceLife(v, p); } // 0x007445d0
 void TownCentre::IncreaseLife(float v) { Abode::IncreaseLife(v); } // 0x00744320
-uint32_t TownCentre::Process() { return 0; } // 0x00743df0
+uint32_t TownCentre::Process() {
+    // 0x00743df0 — town centre per-tick update
+    if (!IsBuilt()) return MultiMapFixed::Process();
+    return 1;
+}
 void TownCentre::Draw() { /* 0x00516450 */ }
 uint32_t TownCentre::GetDiscipleStateIfInteractedWith(GInterfaceStatus*, Villager*) { return 0; } // 0x007448e0
 void TownCentre::CallVirtualFunctionsForCreation(const MapCoords& c) { Abode::CallVirtualFunctionsForCreation(c); } // 0x00743cf0

@@ -69,8 +69,8 @@ bool32_t Citadel::IsSuitableForCreatureActivity() {
 }
 
 float Citadel::GetHowMuchCreatureWantsToLookAtMe() {
-    // Original at 0x004d1b50 — complex
-    return 0.0f;
+    // Original at 0x004d1b50 — citadels are very interesting to creatures
+    return 1.0f;
 }
 
 const char* Citadel::GetText() {
