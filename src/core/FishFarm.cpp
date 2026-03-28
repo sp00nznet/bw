@@ -9,7 +9,8 @@ void FishFarm::ToBeDeleted(int param) {
 }
 
 GPlayer* FishFarm::GetPlayer() {
-    // Original at 0x0052c850 — complex
+    // Original at 0x0052c850 — gets player from town
+    if (town) return reinterpret_cast<GameThing*>(town)->GetPlayer();
     return nullptr;
 }
 
@@ -51,8 +52,8 @@ uint32_t FishFarm::GetSaveType() {
 }
 
 MapCoords* FishFarm::GetArrivePos(MapCoords* out) {
-    // Original at 0x0052c490 — complex
-    return out;
+    // Original at 0x0052c490 — returns door pos
+    return GetDoorPos(out);
 }
 
 uint32_t FishFarm::GetCreatureBeliefType() {
@@ -238,7 +239,8 @@ size_t FishFarm::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
 }
 
 MapCoords* FishFarm::GetDoorPos(MapCoords* pos) {
-    // Original at 0x0052cf40 — complex
+    // Original at 0x0052cf40 — returns position as door pos
+    *pos = coords;
     return pos;
 }
 

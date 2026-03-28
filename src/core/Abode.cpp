@@ -330,9 +330,11 @@ bool Abode::ShouldFootpathsGoRound() {
 // ============================================================================
 
 float Abode::GetInfluence() {
-    // Original at 0x004072a0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x004072a0 — influence is based on population fullness and build state
+    float built = GetPercentBuilt();
+    float full = GetPercentAbodeFullWithAdults();
+    float base_inf = MultiMapFixed::GetInfluence();
+    return base_inf * (0.5f + 0.5f * full) * built;
 }
 
 bool Abode::IsRepaired() {
@@ -351,21 +353,26 @@ bool Abode::IsBuilt() {
 }
 
 float Abode::GetPercentRepairedForNonFunctional() {
-    // Original at 0x00407290 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00407290 — threshold below which abode stops functioning
+    return 0.5f;
 }
 
 float Abode::GetPercentAbodeFullWithAdults() {
-    // Original at 0x00407050 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00407050 — ratio of adults to max capacity
+    // GAbodeInfo::maxAdults at offset 0x174
+    uint32_t max_adults = *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(info) + 0x174);
+    if (max_adults == 0) return 0.0f;
+    return static_cast<float>(adult_count) / static_cast<float>(max_adults);
 }
 
 float Abode::GetPercentAbodeFullWithChildren() {
-    // Original at 0x00407090 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00407090 — ratio of children to max capacity
+    // GAbodeInfo::maxChildren at offset 0x178
+    uint32_t max_children = *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(info) + 0x178);
+    if (max_children == 0) return 0.0f;
+    return static_cast<float>(field_0xb7) / static_cast<float>(max_children);
 }
 
 bool Abode::Built() {
@@ -404,9 +411,9 @@ ABODE_TYPE Abode::GetAbodeType() {
 }
 
 float Abode::GetDesireToBeRepaired() {
-    // Original at 0x00406970 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00406970 — desire to be repaired scales with damage
+    if (IsRepaired()) return 0.0f;
+    return MultiMapFixed::GetDesireToBeRepaired();
 }
 
 uint32_t Abode::DoResourceAdding(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*iface*/, bool /*param3*/, MapCoords* /*param4*/, int /*param5*/) {
@@ -478,9 +485,8 @@ bool Abode::CausesTownEmergencyIfDamaged() {
 }
 
 bool Abode::CanBeHiddenIn() {
-    // Original at 0x00407280 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00407280 — abode can hide villagers if functional
+    return IsFunctional();
 }
 
 GTribeInfo* Abode::GetTribe() {
