@@ -145,8 +145,8 @@ bool32_t Field::IsFieldWhichNeedsWatering(Creature* /*creature*/) {
 }
 
 bool32_t Field::IsFieldWithFoodInIt(Creature* /*creature*/) {
-    // Original at 0x004e4930 — complex
-    return 0;
+    // Original at 0x004e4930 — returns true if food value > 0
+    return GetFoodValue() > 0.0f ? 1 : 0;
 }
 
 bool32_t Field::IsFieldBelongingToAnotherPlayer(Creature* /*creature*/) {

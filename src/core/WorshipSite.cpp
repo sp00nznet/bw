@@ -2,6 +2,7 @@
 // Method stubs from bw1-decomp
 #include "../include/black/WorshipSite.h"
 #include "../include/black/BuildingSite.h"
+#include "../include/black/WorshipTotem.h"
 
 // === Overrides of Base virtuals ===
 
@@ -143,8 +144,15 @@ void WorshipSite::AddSpellIcon(WorshipSpellIcon* /*icon*/) {}
 void WorshipSite::AddTownSpells(Town* /*town*/) {}
 // 0x0077c9e0
 void WorshipSite::AddSpellIconIfNecessary(SPELL_SEED_TYPE /*seed_type*/) {}
-// 0x0077cf30
-MapCoords* WorshipSite::GetTotemPos(MapCoords* /*coords*/) { return nullptr; }
+// 0x0077cf30 — returns position of the totem at this worship site
+MapCoords* WorshipSite::GetTotemPos(MapCoords* coords) {
+    if (totem) {
+        *coords = totem->coords;
+    } else {
+        *coords = this->coords;
+    }
+    return coords;
+}
 // 0x0077d0a0
 void WorshipSite::RemoveVillagerFromWorshipCount(Villager* /*villager*/) {}
 // 0x0077e1d0
