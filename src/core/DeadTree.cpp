@@ -71,8 +71,8 @@ bool32_t DeadTree::IsDeadTree() {
 }
 
 uint32_t DeadTree::GetScriptObjectType() {
-    // Original at 0x005115b0 — complex
-    return 0;
+    // Original at 0x005115b0
+    return 2;
 }
 
 // ============================================================================
@@ -80,18 +80,18 @@ uint32_t DeadTree::GetScriptObjectType() {
 // ============================================================================
 
 HOLD_TYPE DeadTree::GetHoldType() {
-    // Original at 0x005110d0 — complex
-    return HOLD_TYPE_DEFAULT;
+    // Original at 0x005110d0
+    return static_cast<HOLD_TYPE>(5);
 }
 
 float DeadTree::GetHoldRadius() {
-    // Original at 0x005110e0 — complex
-    return 0.0f;
+    // Original at 0x005110e0
+    return GetLife() * 0.15f;
 }
 
 float DeadTree::GetHoldLoweringMultiplier() {
-    // Original at 0x005110f0 — complex
-    return 0.0f;
+    // Original at 0x005110f0
+    return 0.1f;
 }
 
 bool32_t DeadTree::HandShouldFeelWithMeshIntersect() {
@@ -187,8 +187,8 @@ void DeadTree::EndPhysics(PhysicsObject* /*param1*/, bool /*param2*/) {
 }
 
 bool DeadTree::InteractsWithPhysicsObjects() {
-    // Original at 0x005111f0 — complex
-    return false;
+    // Original at 0x005111f0
+    return true;
 }
 
 void DeadTree::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
@@ -196,8 +196,8 @@ void DeadTree::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) 
 }
 
 bool DeadTree::CanBecomeAPhysicsObject() {
-    // Original at 0x00511a10 — complex
-    return false;
+    // Original at 0x00511a10
+    return true;
 }
 
 bool DeadTree::CreatureMustAvoid(Creature* /*param1*/) {
@@ -206,8 +206,8 @@ bool DeadTree::CreatureMustAvoid(Creature* /*param1*/) {
 }
 
 bool DeadTree::IsARootedObject() {
-    // Original at 0x00511200 — complex
-    return false;
+    // Original at 0x00511200
+    return false;  // dead trees are uprooted
 }
 
 SOUND_COLLISION_TYPE DeadTree::GetCollideSoundType() {

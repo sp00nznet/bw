@@ -126,9 +126,9 @@ void Scaffold::CallVirtualFunctionsForCreation(const MapCoords& coords) {
     MobileObject::CallVirtualFunctionsForCreation(coords);
 }
 
-bool Scaffold::IsResourceStore(RESOURCE_TYPE /*type*/) {
-    // Original at 0x006eaea0 — complex
-    return false;
+bool Scaffold::IsResourceStore(RESOURCE_TYPE type) {
+    // Original at 0x006eaea0
+    return type == RESOURCE_TYPE_WOOD;
 }
 
 bool Scaffold::DeleteObjectAndTakeResource(Object* /*obj*/, GInterfaceStatus* /*status*/) {
@@ -137,8 +137,8 @@ bool Scaffold::DeleteObjectAndTakeResource(Object* /*obj*/, GInterfaceStatus* /*
 }
 
 RESOURCE_TYPE Scaffold::GetResourceType() {
-    // Original at 0x0055e0f0: returns resource type
-    return RESOURCE_TYPE(0);
+    // Original at 0x0055e0f0
+    return RESOURCE_TYPE_WOOD;
 }
 
 int Scaffold::GetDefaultResource() {

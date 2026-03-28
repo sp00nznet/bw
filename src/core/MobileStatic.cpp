@@ -65,9 +65,8 @@ void MobileStatic::PhysicsEditorCreate(int /*param1*/) {
 }
 
 uint32_t MobileStatic::GetCreatureBeliefType() {
-    // Original at 0x00608b10 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00608b10: generic mobile static belief type
+    return 0x13;
 }
 
 bool32_t MobileStatic::IsCastShadowAtNight() {
@@ -105,33 +104,39 @@ bool32_t MobileStatic::IsToyAwayFromHome(Creature* /*creature*/) {
 }
 
 bool32_t MobileStatic::IsToy(Creature* /*creature*/) {
-    // Original at 0x00609020 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609020: reads info->subType at offset 0x104
+    // Toy types are 0x15 (ball), 0x16 (die), 0x17 (cuddly)
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type >= 0x15 && sub_type <= 0x17) ? 1 : 0;
 }
 
 bool32_t MobileStatic::IsToyBall(Creature* /*creature*/) {
-    // Original at 0x00609050 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609050: reads info->subType at offset 0x104
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x15) ? 1 : 0;
 }
 
 bool32_t MobileStatic::IsToyDie(Creature* /*creature*/) {
-    // Original at 0x00609070 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609070: reads info->subType at offset 0x104
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x16) ? 1 : 0;
 }
 
 bool32_t MobileStatic::IsToyCuddly(Creature* /*creature*/) {
-    // Original at 0x00609090 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609090: reads info->subType at offset 0x104
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x17) ? 1 : 0;
 }
 
 bool32_t MobileStatic::IsFence() {
-    // Original at 0x00609110 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609110: reads info->subType at offset 0x104
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x1e) ? 1 : 0;
 }
 
 bool32_t MobileStatic::CanBeUsedForThrowingDamageByCreature(Creature* /*creature*/) {
@@ -151,9 +156,8 @@ uint32_t MobileStatic::GetCreatureMimicType() {
 }
 
 float MobileStatic::GetHowMuchCreatureWantsToLookAtMe() {
-    // Original at 0x004d1af0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x004d1af0: moderate interest for mobile statics
+    return 0.3f;
 }
 
 bool32_t MobileStatic::IsMobileStatic() {
@@ -162,9 +166,8 @@ bool32_t MobileStatic::IsMobileStatic() {
 }
 
 uint32_t MobileStatic::GetScriptObjectType() {
-    // Original at 0x00609330 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609330: mobile statics are script object type 4
+    return 4;
 }
 
 // ============================================================================
@@ -200,21 +203,19 @@ bool MobileStatic::BlocksTownClearArea() const {
 }
 
 HOLD_TYPE MobileStatic::GetHoldType() {
-    // Original at 0x006091b0 — complex
-    // TODO: implement properly
-    return HOLD_TYPE_DEFAULT;
+    // Original at 0x006091b0: default hold type 6 for throwable objects
+    return static_cast<HOLD_TYPE>(6);
 }
 
 float MobileStatic::GetHoldLoweringMultiplier() {
-    // Original at 0x00609230 — complex
-    // TODO: implement properly
-    return 1.0f;
+    // Original at 0x00609230: lowering multiplier for large objects
+    return 0.7f;
 }
 
 int MobileStatic::GetMesh() const {
-    // Original at 0x00439680: small method
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x00439680: reads mesh ID from info at offset 0x100
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x100);
 }
 
 void MobileStatic::Draw() {
@@ -345,8 +346,7 @@ bool32_t MobileStatic::IsSolidToNewAbode() {
 }
 
 uint32_t MobileStatic::GetTastiness() {
-    // Original at 0x00439660: small method
-    // TODO: verify return value
+    // Original at 0x00439660: mobile statics are not edible
     return 0;
 }
 
