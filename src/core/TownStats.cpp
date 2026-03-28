@@ -20,6 +20,17 @@ void TownStats::Add(PlannedMultiMapFixed* /*planned*/) {}
 // 0x00749aa0
 void TownStats::Add(BuildingSite* /*building_site*/) {}
 // 0x00749c60
-void TownStats::IncrementNumOfDisciples(VILLAGER_DISCIPLE /*disciple*/) {}
+void TownStats::IncrementNumOfDisciples(VILLAGER_DISCIPLE disciple) {
+    uint32_t idx = static_cast<uint32_t>(disciple);
+    if (idx < 16) {
+        num_disciples[idx]++;
+    }
+}
+
 // 0x00749c80
-void TownStats::DecrementNumOfDisciples(VILLAGER_DISCIPLE /*disciple*/) {}
+void TownStats::DecrementNumOfDisciples(VILLAGER_DISCIPLE disciple) {
+    uint32_t idx = static_cast<uint32_t>(disciple);
+    if (idx < 16 && num_disciples[idx] > 0) {
+        num_disciples[idx]--;
+    }
+}
