@@ -71,8 +71,15 @@ void WorshipSite::UpdateFrom3DPosition() {}
 LHPoint* WorshipSite::GetDefaultFireCentrePos(LHPoint* /*pos*/) { return nullptr; }
 // 0x0077de10
 float WorshipSite::GetDefaultFireRadius() { return 0.0f; }
-// 0x0077b1d0
-uint32_t WorshipSite::Process() { return 0; }
+// 0x0077b1d0 — per-tick worship site processing
+uint32_t WorshipSite::Process() {
+    // Process building construction if not yet built
+    if (!IsBuilt()) {
+        return MultiMapFixed::Process();
+    }
+    // TODO: process worship charging, spell icon updates, villager worship counts
+    return 1;
+}
 // 0x00704310: returns 1
 int WorshipSite::GetMesh() const { return 1; }
 // 0x005193d0

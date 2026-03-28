@@ -80,6 +80,35 @@ float Villager::GetHowMuchCreatureWantsToLookAtMe() {
 void Villager::DrawVillagerInfo() {}
 
 // ============================================================================
+// Overrides of GameThingWithPos type predicates
+// ============================================================================
+
+bool32_t Villager::IsMaleVillager() {
+    // Returns true if disciple_type & sex bit indicates male
+    // Sex is stored in the low bit of field_0xf1 (0 = male, 1 = female)
+    return (field_0xf1 & 1) == 0 ? 1 : 0;
+}
+
+bool32_t Villager::IsFemaleVillager() {
+    return (field_0xf1 & 1) != 0 ? 1 : 0;
+}
+
+// ============================================================================
+// Overrides of Living virtuals
+// ============================================================================
+
+bool Villager::AmILikelyToMove() {
+    uint8_t state = action.top_state;
+    return state == VILLAGER_STATE_MOVE_TO_POS ||
+           state == VILLAGER_STATE_MOVE_TO_OBJECT ||
+           state == VILLAGER_STATE_MOVE_ON_STRUCTURE ||
+           state == VILLAGER_STATE_FLEEING_FROM_OBJECT_REACTION ||
+           state == VILLAGER_STATE_FOLLOWING_OBJECT_REACTION ||
+           state == VILLAGER_STATE_GOTO_FOOD_REACTION ||
+           state == VILLAGER_STATE_GOTO_WOOD_REACTION;
+}
+
+// ============================================================================
 // Non-virtual methods
 // ============================================================================
 

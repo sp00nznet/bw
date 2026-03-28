@@ -19,11 +19,14 @@ struct Villager : public Living {
     bool32_t IsABeliever() override;
     bool32_t CanReceiveGifts(Creature*) override;
     bool32_t IsVillager(Creature*) override;
+    bool32_t IsMaleVillager() override;
+    bool32_t IsFemaleVillager() override;
     bool CanBePickedUp() override;
     uint32_t GetTastiness() override;
     float GetHowMuchCreatureWantsToLookAtMe() override;
     int GetMesh() const override;
     int GetDetailMesh(int detail) override;
+    bool AmILikelyToMove() override;
 
     // === New virtual methods (vtable 0xB40-0xB44) ===
     virtual const char* GetVillagerName();
