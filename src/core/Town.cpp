@@ -157,8 +157,11 @@ const char* Town::GetText() {
 }
 
 float Town::CalculateDesireForFood() {
-    // Original at 0x00747f00 — complex
-    return 0.0f;
+    // Original at 0x00747f00 — food desire based on population vs food supply
+    if (stats.num_adults <= 0) return 0.0f;
+    float food_per_person = stats.total_food / static_cast<float>(stats.num_adults);
+    if (food_per_person >= 10.0f) return 0.0f;  // Well fed
+    return 1.0f - (food_per_person / 10.0f);    // Linear desire
 }
 
 uint32_t Town::GetScriptObjectType() {
@@ -365,14 +368,18 @@ void Town::RemoveVillagerOnWayToWorshipSite(Villager* /*villager*/) {
     // Original at 0x0073e360 — complex
 }
 
-float Town::GetDesire(TOWN_DESIRE_INFO /*desire*/) {
-    // Original at 0x0073e400 — complex
-    return 0.0f;
+float Town::GetDesire(TOWN_DESIRE_INFO desire_type) {
+    // Original at 0x0073e400 — reads processed desire from TownDesire
+    uint32_t idx = static_cast<uint32_t>(desire_type);
+    if (idx >= 17) return 0.0f;
+    return desire.field_0xd4[idx];
 }
 
-float Town::GetRawDesire(TOWN_DESIRE_INFO /*desire*/) {
-    // Original at 0x0073e420 — complex
-    return 0.0f;
+float Town::GetRawDesire(TOWN_DESIRE_INFO desire_type) {
+    // Original at 0x0073e420 — reads raw unprocessed desire
+    uint32_t idx = static_cast<uint32_t>(desire_type);
+    if (idx >= 17) return 0.0f;
+    return desire.field_0x90[idx];
 }
 
 void* Town::GetTemporaryResourceStorePotOrPos(const MapCoords& /*p1*/, MapCoords& /*p2*/,

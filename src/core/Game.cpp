@@ -12,6 +12,7 @@
 #include <black/MobileObject.h>
 #include <black/Script.h>
 #include <black/ScriptHighlight.h>
+#include <black/Town.h>
 
 // Global game instance pointer (allocated during engine init)
 GGame* g_game = nullptr;
@@ -400,8 +401,15 @@ bool GGame::IsMultiplayerGame() const {
     return network.field_0x0 != 0;
 }
 
-Town* GGame::FindTownWithID(uint32_t /*id*/) {
-    // Original at 0x00552fa0 — complex iteration
+Town* GGame::FindTownWithID(uint32_t id) {
+    // Original at 0x00552fb0 — iterate town list to find by ID
+    // Towns are stored in game_lists.town_list
+    Town* town = game_lists.town_list.first;
+    while (town) {
+        // Compare town's origin/index with requested ID
+        if (town->GetOrigin() == id) return town;
+        town = town->next;
+    }
     return nullptr;
 }
 

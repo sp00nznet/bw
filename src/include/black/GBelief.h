@@ -12,8 +12,8 @@ struct GPlayer;
 
 // Maximum players tracked (8 player slots)
 static constexpr int BELIEF_MAX_PLAYERS = 8;
-// Number of reaction function types (NUM_REACTION_FUNCTIONS = 41)
-static constexpr int NUM_REACTION_FUNCTIONS = 41;
+// Number of reaction function types
+static constexpr int BELIEF_NUM_REACTIONS = 41;
 
 struct GBelief : public Base {
     // === Static methods ===
@@ -32,7 +32,7 @@ struct GBelief : public Base {
     uint32_t field_0x88[BELIEF_MAX_PLAYERS];             // 0x88
     float    field_0xa8[BELIEF_MAX_PLAYERS];             // 0xA8
     float    field_0xc8[BELIEF_MAX_PLAYERS];             // 0xC8
-    float    boredom_multiplier[NUM_REACTION_FUNCTIONS]; // 0xE8
+    float    boredom_multiplier[BELIEF_NUM_REACTIONS]; // 0xE8
     float    field_0x18c[0x11];                          // 0x18C
 };
 static_assert(sizeof(GBelief) == 0x1D0, "GBelief size mismatch");
