@@ -135,7 +135,8 @@ bool32_t Town::CanBePlayedWithByCreature(Creature* /*creature*/) {
 }
 
 WorshipSite* Town::GetWorshipSite() {
-    // Original at 0x0073c940 — complex
+    // Original at 0x0073c940 — complex lookup through citadel parts
+    // TODO: implement when citadel worship site tracking is in place
     return nullptr;
 }
 
@@ -160,8 +161,8 @@ float Town::CalculateDesireForFood() {
 }
 
 uint32_t Town::GetScriptObjectType() {
-    // Original at 0x0073e200 — complex
-    return 0;
+    // Original at 0x0073e200 — returns script type for towns
+    return 0xd;
 }
 
 // ============================================================================

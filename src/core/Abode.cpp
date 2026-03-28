@@ -174,9 +174,13 @@ float Abode::GetHowMuchCreatureWantsToLookAtMe() {
     return 0.0f;
 }
 
-void Abode::CalculateWhereIWillBeAfterNSeconds(float /*seconds*/, LHPoint* /*outPos*/) {
-    // Original at 0x0063b940 — complex
-    // TODO: implement properly
+void Abode::CalculateWhereIWillBeAfterNSeconds(float /*seconds*/, LHPoint* outPos) {
+    // Original at 0x0063b940 — buildings don't move, return current position
+    if (outPos) {
+        outPos->x = *reinterpret_cast<float*>(&coords.x);
+        outPos->y = *reinterpret_cast<float*>(&coords.z);
+        outPos->z = coords.altitude;
+    }
 }
 
 bool32_t Abode::IsHouse() {
@@ -219,14 +223,17 @@ bool Abode::GetPSysFireLocalRndFlamePos(LHPoint* /*point*/, int* /*param2*/) {
     return false;
 }
 
-void Abode::ReduceLife(float /*value*/, GPlayer* /*player*/) {
-    // Original at 0x00405d90 — complex (damage system)
-    // TODO: implement properly
+void Abode::ReduceLife(float value, GPlayer* player) {
+    // Original at 0x00405d90 — reduces life and sets damaged flag
+    Object::ReduceLife(value, player);
+    if (GetLife() < 1.0f) {
+        field_0x58 |= 4;  // Set damaged bit
+    }
 }
 
-void Abode::IncreaseLife(float /*value*/) {
-    // Original at 0x00405ed0 — complex
-    // TODO: implement properly
+void Abode::IncreaseLife(float value) {
+    // Original at 0x00405ed0 — increases life (repair)
+    Object::IncreaseLife(value);
 }
 
 uint32_t Abode::DestroyedByEffect(GPlayer* /*player*/, float /*param2*/) {
@@ -376,15 +383,17 @@ float Abode::GetPercentAbodeFullWithChildren() {
 }
 
 bool Abode::Built() {
-    // Original at 0x00404720 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00404720 — called when abode finishes construction
+    // Delegates to MultiMapFixed::Built then makes functional
+    if (!MultiMapFixed::Built()) return false;
+    MakeFunctional();
+    return true;
 }
 
 bool Abode::Repaired() {
-    // Original at 0x004047b0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x004047b0 — called when abode finishes repair
+    if (!MultiMapFixed::Repaired()) return false;
+    return true;
 }
 
 LH3DMesh* Abode::GetDestructionMesh() {
@@ -398,9 +407,10 @@ void Abode::RemoveDamage() {
 }
 
 bool Abode::IsCivic() {
-    // Original at 0x00405ff0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00405ff0 — checks GAbodeInfo civic flag at offset 0x16C
+    uint32_t flags = *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(info) + 0x16C);
+    return (flags & 1) != 0;
 }
 
 ABODE_TYPE Abode::GetAbodeType() {
