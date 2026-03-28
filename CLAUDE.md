@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 265aca3)
+## Current Stats (as of commit 31f8b8e)
 - **598 headers** in `src/include/black/`
 - **249 .cpp files** in `src/core/`
-- **36,400+ lines** of C++ total
-- **122 commits**, all pushed to GitHub
+- **36,700+ lines** of C++ total
+- **125 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 
 ## Architecture Patterns
@@ -131,10 +131,27 @@ Complete native function dispatch table — NativeFunction enum (0-463), NativeF
 ### Batch 38: Creature spawning + Town simulation + Abode resources
 Creature::Create factory (calloc + InitCreature, allocates 135KB CreatureMental), Town::Process 7-phase simulation tick, Abode::JustAddResource/JustRemoveResource with clamping, StoragePit resource delegation
 
+### Batch 39: Method body pass — systems and state machines (6 commits)
+GCamera: Update loop, Validate, SetPointFromPointDistanceHeadingAndPitch, GetHeadingAndPitchFromPoints
+Living: 20+ state queries (Dying/Dead/InHand/Downed/etc.), SetState/StorePreviousState, IsDead, MoveByTeleport
+Object: ReduceLife/IncreaseLife (clamped), Set/Get angle methods, GetDistanceFromObject_1, GetTopPos
+GGame: GetNextPlayer iteration, GetPlayerFromReal, GetPlayerInterfaceFromReal
+GPlayer: ProcessPlayers loop, Process with town delegation, GetPlayerNumber, IsMagicTypeEnabled
+Villager: 13 non-virtual methods (GetTown, GetHome, resource mgmt, food, pregnancy)
+BuildingSite: GetBuilding/GetRootBuilding, delegation chain (GetTown/GetRadius/BuildBy)
+Town: GetRadius, GetOrigin, GetNumberOfInstanceForGlobalList, GetTribe, GetStoragePit
+GBelief: GetBeliefInPlayer/SetBelief with bounds checking and cap clamping
+TownStats: IncrementNumOfDisciples/DecrementNumOfDisciples
+WorshipSite: IsBuilt, Built, GetArrivePos, GetTotemPos, GetNumVillagersRequestingToGoHome
+GameThingWithPos: GetDistanceFromObject (Euclidean XZ), GetHeight
+Flock: SetDomainCentrePos
+Field: IsFieldWithFoodInIt
+StoragePit/TownCentre: GetArrivePos via GetDoorPos
+
 ## What's Next (priority order)
-1. **Method bodies** — translate remaining Ghidra decompilation (~1800 stubs)
-2. **Camera system** — implement GCamera update loop for proper B&W-style camera
-3. **Villager AI states** — implement Living state machine for villager behavior
+1. **Method bodies** — translate remaining Ghidra decompilation (~1750 stubs)
+2. **Villager state machine** — implement VillagerStates ProcessState dispatch
+3. **Camera system** — fill remaining GCamera stubs (SwitchToViewMode, etc.)
 4. **LHVM native function bodies** — fill in ~400 remaining stubs as subsystems come online
 
 ## Common Pitfalls (learned the hard way)
