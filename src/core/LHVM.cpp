@@ -344,8 +344,56 @@ static void Native_SET_ACTIVE(LHVM* vm) {
 }
 
 static void Native_IS_ACTIVE(LHVM* vm) {
-    vm->PopObject();
+    uint32_t obj_id = vm->PopObject();
+    // TODO: look up object by ID and check IsAvailable()
+    vm->PushBoolean(obj_id != 0);
+}
+
+static void Native_THING_FIELD_OF_VIEW(LHVM* vm) {
+    vm->PopObject(); // object to check
+    vm->PushBoolean(true); // assume in view for now
+}
+
+static void Native_POS_FIELD_OF_VIEW(LHVM* vm) {
+    vm->PopFloat(); // z
+    vm->PopFloat(); // y
+    vm->PopFloat(); // x
     vm->PushBoolean(true);
+}
+
+static void Native_SPIRIT_SPEAKS(LHVM* vm) {
+    vm->PopInt(); // spirit type
+    vm->PopInt(); // text ID
+}
+
+static void Native_SPIRIT_PLAYED(LHVM* vm) {
+    vm->PopObject(); // spirit
+    vm->PushBoolean(true);
+}
+
+static void Native_SET_SCRIPT_STATE(LHVM* vm) {
+    vm->PopInt();    // state
+    vm->PopObject(); // object
+}
+
+static void Native_SET_SCRIPT_STATE_POS(LHVM* vm) {
+    vm->PopFloat(); // z
+    vm->PopFloat(); // y
+    vm->PopFloat(); // x
+    vm->PopInt();   // state
+    vm->PopObject(); // object
+}
+
+static void Native_SET_SCRIPT_FLOAT(LHVM* vm) {
+    vm->PopFloat();  // value
+    vm->PopInt();    // property index
+    vm->PopObject(); // object
+}
+
+static void Native_SET_SCRIPT_ULONG(LHVM* vm) {
+    vm->PopInt();    // value
+    vm->PopInt();    // property index
+    vm->PopObject(); // object
 }
 
 // --- Map ---
@@ -598,16 +646,16 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SPIRIT_HOME,                   "SPIRIT_HOME",                   NativeStub);
     RegisterNativeFunction(NATIVE_SPIRIT_POINT_POS,              "SPIRIT_POINT_POS",              NativeStub);
     RegisterNativeFunction(NATIVE_SPIRIT_POINT_GAME_THING,       "SPIRIT_POINT_GAME_THING",       NativeStub);
-    RegisterNativeFunction(NATIVE_GAME_THING_FIELD_OF_VIEW,      "GAME_THING_FIELD_OF_VIEW",      NativeStub);
-    RegisterNativeFunction(NATIVE_POS_FIELD_OF_VIEW,             "POS_FIELD_OF_VIEW",             NativeStub);
+    RegisterNativeFunction(NATIVE_GAME_THING_FIELD_OF_VIEW,      "GAME_THING_FIELD_OF_VIEW",      Native_THING_FIELD_OF_VIEW);
+    RegisterNativeFunction(NATIVE_POS_FIELD_OF_VIEW,             "POS_FIELD_OF_VIEW",             Native_POS_FIELD_OF_VIEW);
     RegisterNativeFunction(NATIVE_RUN_TEXT,                       "RUN_TEXT",                       Native_RUN_TEXT);
     RegisterNativeFunction(NATIVE_TEMP_TEXT,                      "TEMP_TEXT",                      Native_TEMP_TEXT);
     RegisterNativeFunction(NATIVE_TEXT_READ,                      "TEXT_READ",                      Native_TEXT_READ);
     RegisterNativeFunction(NATIVE_GAME_THING_CLICKED,            "GAME_THING_CLICKED",            Native_GAME_THING_CLICKED);
-    RegisterNativeFunction(NATIVE_SET_SCRIPT_STATE,              "SET_SCRIPT_STATE",              NativeStub);
-    RegisterNativeFunction(NATIVE_SET_SCRIPT_STATE_POS,          "SET_SCRIPT_STATE_POS",          NativeStub);
-    RegisterNativeFunction(NATIVE_SET_SCRIPT_FLOAT,              "SET_SCRIPT_FLOAT",              NativeStub);
-    RegisterNativeFunction(NATIVE_SET_SCRIPT_ULONG,              "SET_SCRIPT_ULONG",              NativeStub);
+    RegisterNativeFunction(NATIVE_SET_SCRIPT_STATE,              "SET_SCRIPT_STATE",              Native_SET_SCRIPT_STATE);
+    RegisterNativeFunction(NATIVE_SET_SCRIPT_STATE_POS,          "SET_SCRIPT_STATE_POS",          Native_SET_SCRIPT_STATE_POS);
+    RegisterNativeFunction(NATIVE_SET_SCRIPT_FLOAT,              "SET_SCRIPT_FLOAT",              Native_SET_SCRIPT_FLOAT);
+    RegisterNativeFunction(NATIVE_SET_SCRIPT_ULONG,              "SET_SCRIPT_ULONG",              Native_SET_SCRIPT_ULONG);
     RegisterNativeFunction(NATIVE_GET_PROPERTY,                  "GET_PROPERTY",                  Native_GET_PROPERTY);
     RegisterNativeFunction(NATIVE_SET_PROPERTY,                  "SET_PROPERTY",                  Native_SET_PROPERTY);
     RegisterNativeFunction(NATIVE_GET_POSITION,                  "GET_POSITION",                  Native_GET_POSITION);
@@ -752,7 +800,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_IS_POISONED,                   "IS_POISONED",                   Native_IS_POISONED);
     RegisterNativeFunction(NATIVE_CALL_POISONED_IN,              "CALL_POISONED_IN",              NativeStub);
     RegisterNativeFunction(NATIVE_CALL_NOT_POISONED_IN,          "CALL_NOT_POISONED_IN",          NativeStub);
-    RegisterNativeFunction(NATIVE_SPIRIT_PLAYED,                 "SPIRIT_PLAYED",                 NativeStub);
+    RegisterNativeFunction(NATIVE_SPIRIT_PLAYED,                 "SPIRIT_PLAYED",                 Native_SPIRIT_PLAYED);
     RegisterNativeFunction(NATIVE_CLING_SPIRIT,                  "CLING_SPIRIT",                  NativeStub);
     RegisterNativeFunction(NATIVE_FLY_SPIRIT,                    "FLY_SPIRIT",                    NativeStub);
     RegisterNativeFunction(NATIVE_SET_ID_MOVEABLE,               "SET_ID_MOVEABLE",               Native_SET_ID_MOVEABLE);
@@ -833,7 +881,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_FADE_FINISHED,                 "FADE_FINISHED",                 Native_FADE_FINISHED);
     RegisterNativeFunction(NATIVE_SET_PLAYER_MAGIC,              "SET_PLAYER_MAGIC",              Native_SET_PLAYER_MAGIC);
     RegisterNativeFunction(NATIVE_HAS_PLAYER_MAGIC,              "HAS_PLAYER_MAGIC",              Native_HAS_PLAYER_MAGIC);
-    RegisterNativeFunction(NATIVE_SPIRIT_SPEAKS,                 "SPIRIT_SPEAKS",                 NativeStub);
+    RegisterNativeFunction(NATIVE_SPIRIT_SPEAKS,                 "SPIRIT_SPEAKS",                 Native_SPIRIT_SPEAKS);
     RegisterNativeFunction(NATIVE_BELIEF_FOR_PLAYER,             "BELIEF_FOR_PLAYER",             Native_BELIEF_FOR_PLAYER);
     RegisterNativeFunction(NATIVE_GET_HELP,                      "GET_HELP",                      NativeStub);
     RegisterNativeFunction(NATIVE_SET_LEASH_WORKS,               "SET_LEASH_WORKS",               NativeStub);
