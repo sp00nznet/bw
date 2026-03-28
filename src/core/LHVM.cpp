@@ -12,6 +12,7 @@
 #include <black/LHVM.h>
 #include <cstring>
 #include <cstdlib>
+#include <cmath>
 
 // ============================================================================
 // Native function stubs — each pops args and pushes default return values
@@ -153,23 +154,26 @@ static void Native_IS_OF_TYPE(LHVM* vm) {
 
 // --- Math functions ---
 static void Native_RANDOM(LHVM* vm) {
-    vm->PopFloat(); // max
-    vm->PopFloat(); // min
-    // TODO: use game RNG
-    vm->PushFloat(0.0f);
+    float max_val = vm->PopFloat();
+    float min_val = vm->PopFloat();
+    // Simple linear congruential RNG (game uses its own, this is placeholder)
+    float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    vm->PushFloat(min_val + t * (max_val - min_val));
 }
 
 static void Native_RANDOM_ULONG(LHVM* vm) {
-    vm->PopInt(); // max
-    vm->PopInt(); // min
-    // TODO: use game RNG
-    vm->PushInt(0);
+    int32_t max_val = vm->PopInt();
+    int32_t min_val = vm->PopInt();
+    if (max_val <= min_val) {
+        vm->PushInt(min_val);
+    } else {
+        vm->PushInt(min_val + (rand() % (max_val - min_val + 1)));
+    }
 }
 
 static void Native_SQUARE_ROOT(LHVM* vm) {
-    vm->PopFloat(); // value
-    // TODO: compute sqrt
-    vm->PushFloat(0.0f);
+    float value = vm->PopFloat();
+    vm->PushFloat(sqrtf(value));
 }
 
 // --- Time functions ---
