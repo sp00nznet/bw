@@ -45,6 +45,46 @@ uint32_t Creature::GetScriptObjectType() {
     return 0xc;
 }
 
+uint32_t Creature::GetCreatureBeliefType() {
+    // Original at 0x00460c40 — creature belief type is 0x16
+    return 0x16;
+}
+
+bool Creature::IsCreature() {
+    // Original at 0x00461200
+    return true;
+}
+
+bool Creature::CanBePickedUp() {
+    // Creatures can always be picked up
+    return true;
+}
+
+bool32_t Creature::CanBePickedUpByCreature(Creature* /*other*/) {
+    // Creatures can fight/interact with each other
+    return 1;
+}
+
+bool32_t Creature::CanBeThrownByPlayer() {
+    return 1;
+}
+
+HOLD_TYPE Creature::GetHoldType() {
+    return static_cast<HOLD_TYPE>(0x10);
+}
+
+uint32_t Creature::GetPhysicsConstantsType() {
+    return 0xA;
+}
+
+uint32_t Creature::GetTastiness() {
+    return 0;
+}
+
+float Creature::GetHowMuchCreatureWantsToLookAtMe() {
+    return 1.0f;
+}
+
 // ============================================================================
 // Overrides of Living/MobileWallHug virtuals
 // ============================================================================

@@ -57,6 +57,15 @@ struct Creature : public Living {
     GPlayer* GetPlayer() override;
     char* GetDebugText() override;
     uint32_t GetSaveType() override;
+    uint32_t GetCreatureBeliefType() override;
+    bool IsCreature() override;
+    bool CanBePickedUp() override;
+    bool32_t CanBePickedUpByCreature(Creature*) override;
+    bool32_t CanBeThrownByPlayer() override;
+    HOLD_TYPE GetHoldType() override;
+    uint32_t GetPhysicsConstantsType() override;
+    uint32_t GetTastiness() override;
+    float GetHowMuchCreatureWantsToLookAtMe() override;
 
     // === Overrides of GameThingWithPos virtuals ===
     uint32_t GetScriptObjectType() override;
