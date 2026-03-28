@@ -184,13 +184,30 @@ void Living::Birthday() {}
 // Age and animation state machine (vtable 0x8D0-0x95C)
 // ============================================================================
 
-uint32_t Living::GetAge() { return 0; }
-void Living::SetAge(uint32_t) {}
+uint32_t Living::GetAge() {
+    // Age is computed from birth_turn — overridden by Villager with real age tracking
+    return 0;
+}
+
+void Living::SetAge(uint32_t /*age*/) {
+    // Base: no-op, overridden by Villager
+}
 bool Living::LookAtFlyingObjectReaction() { return false; }
-int Living::SetCurrentAndDestinationState(VILLAGER_STATES, VILLAGER_STATES) { return 0; }
+int Living::SetCurrentAndDestinationState(VILLAGER_STATES current, VILLAGER_STATES destination) {
+    // Sets top and final states for the state machine transition
+    SetState(LIVING_ACTION_INDEX_TOP, current);
+    SetState(LIVING_ACTION_INDEX_FINAL, destination);
+    return 1;
+}
+
 int Living::CallIntoAnimationFunction(VILLAGER_STATES) { return 0; }
 int Living::CallOutofAnimationFunction(VILLAGER_STATES) { return 0; }
-int Living::SetTopState(VILLAGER_STATES) { return 0; }
+
+int Living::SetTopState(VILLAGER_STATES state) {
+    StorePreviousState();
+    SetState(LIVING_ACTION_INDEX_TOP, state);
+    return 1;
+}
 void Living::StorePreviousState() {
     action.previous_state = action.top_state;
 }
@@ -244,7 +261,9 @@ int Living::ExitPlayAnim(VILLAGER_STATES) { return 0; }
 // State query predicates (vtable 0x960-0x98C)
 // ============================================================================
 
-bool Living::IsScriptState(VILLAGER_STATES) const { return false; }
+bool Living::IsScriptState(VILLAGER_STATES state) const {
+    return state == VILLAGER_STATE_IN_SCRIPT;
+}
 bool Living::IsScriptInterruptableState(VILLAGER_STATES state) const {
     // Original at 0x00413e60: return state == 0x18
     return state == VILLAGER_STATE_IN_HAND;
@@ -396,9 +415,17 @@ VILLAGER_STATES Living::GetFinalState() const {
 }
 void Living::RemoveFromDance(int) {}
 void Living::SetStateAfterFinishingDance() {}
-float Living::CalculateLifeDesire() { return 0.0f; }
+float Living::CalculateLifeDesire() {
+    // Life desire inversely proportional to current life
+    float life = GetLife();
+    if (life >= 1.0f) return 0.0f;
+    return 1.0f - life;
+}
 uint32_t Living::DanceType() { return 0; }
-bool Living::CanBeHealedByHealSpell() { return false; }
+bool Living::CanBeHealedByHealSpell() {
+    // Can be healed if alive but damaged
+    return !IsDead() && GetLife() < 1.0f;
+}
 bool Living::MoveAllowedForChessGame() { return false; }
 bool Living::AttackAllowedForChessGame() { return false; }
 void Living::AddToBoxPositionForChessGame(int, int) {}
