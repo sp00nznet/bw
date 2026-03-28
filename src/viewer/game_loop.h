@@ -4,6 +4,10 @@
 // This provides a minimal game state that can tick entities,
 // handle input, and render the world — a stepping stone toward
 // the full GGame implementation.
+//
+// bw_core integration: when use_bw_core is true, real bw_core
+// entities are created alongside viewer entities. The viewer
+// entities provide rendering; bw_core entities provide game logic.
 
 #pragma once
 
@@ -15,6 +19,9 @@
 #include "g3d_loader.h"
 #include "lnd_loader.h"
 #include "script_parser.h"
+
+// Forward-declare bw_core types
+struct Object;
 
 namespace bw {
 
@@ -64,8 +71,14 @@ struct GameState {
     G3DArchive             meshes;
     LevelScript            script;
 
-    // Live entities
+    // Live entities (viewer-side rendering data)
     std::vector<GameEntity> entities;
+
+    // bw_core entity pointers (parallel to entities vector)
+    // When use_bw_core is true, each viewer entity has a corresponding
+    // bw_core Object* that handles game logic.
+    std::vector<Object*>   core_entities;
+    bool                   use_bw_core;
 
     // Player hand
     HandState              hand;

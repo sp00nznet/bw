@@ -1,5 +1,6 @@
 // Game loop implementation
 // Manages entity lifecycle, hand interaction, and game state
+// Now bridges to bw_core for real entity logic.
 
 #include "game_loop.h"
 
@@ -7,11 +8,27 @@
 #include <cmath>
 #include <cstdio>
 
+// bw_core integration
+#include <black/Terrain.h>
+#include <black/EntityFactory.h>
+#include <black/Object.h>
+
 namespace bw {
 
 static const float GRAVITY = -9.8f * 2.0f;  // Scaled gravity
 static const float HAND_HOVER_HEIGHT = 30.0f;
 static const float PICK_RADIUS = 15.0f;
+
+// Static pointer to current GameState for terrain callback
+static const GameState* s_current_game_state = nullptr;
+
+// Terrain height callback for bw_core
+static float TerrainHeightCallback(float world_x, float world_z) {
+    if (s_current_game_state) {
+        return s_current_game_state->GetTerrainHeight(world_x, world_z);
+    }
+    return 0.0f;
+}
 
 float GameState::GetTerrainHeight(float wx, float wz) const {
     if (terrain.vertices.empty()) return 0;
@@ -31,6 +48,7 @@ bool GameState::Init(const std::string& script_path) {
     game_turn = 0;
     delta_time = 1.0f / 30.0f;
     paused = false;
+    use_bw_core = true;  // Enable bw_core entity creation
 
     // Derive paths
     std::string dir = script_path.substr(0, script_path.find_last_of("/\\") + 1);
@@ -44,6 +62,11 @@ bool GameState::Init(const std::string& script_path) {
         fprintf(stderr, "Game: Failed to load terrain: %s\n", lnd_path.c_str());
         return false;
     }
+
+    // Register terrain height callback for bw_core
+    s_current_game_state = this;
+    g_terrain_height_func = TerrainHeightCallback;
+    printf("Game: Terrain height service registered for bw_core\n"); fflush(stdout);
 
     // Load meshes
     printf("Game: Loading meshes...\n"); fflush(stdout);
@@ -59,7 +82,7 @@ bool GameState::Init(const std::string& script_path) {
         return false;
     }
 
-    // Spawn entities
+    // Spawn entities (creates both viewer and bw_core entities)
     SpawnEntitiesFromScript();
 
     // Init hand
@@ -85,9 +108,12 @@ bool GameState::Init(const std::string& script_path) {
 
 void GameState::SpawnEntitiesFromScript() {
     entities.clear();
+    core_entities.clear();
     entities.reserve(script.entities.size());
+    core_entities.reserve(script.entities.size());
 
     int spawned = 0;
+    int core_spawned = 0;
     for (const auto& se : script.entities) {
         float y = GetTerrainHeight(se.x, se.z);
         if (y < 2.0f) continue; // Skip water
@@ -106,29 +132,58 @@ void GameState::SpawnEntitiesFromScript() {
         e.physics_active = false;
 
         // Determine type
+        EntityCategory core_category = ENTITY_CAT_FEATURE;
         if (se.type_name.find("ABODE") != std::string::npos ||
             se.type_name.find("TOWN") != std::string::npos) {
             e.type = ENTITY_ABODE;
+            core_category = ENTITY_CAT_ABODE;
         } else if (se.type_name == "TREE") {
             e.type = ENTITY_TREE;
+            core_category = ENTITY_CAT_TREE;
         } else if (se.type_name.find("FORESTER") != std::string::npos ||
                    se.type_name.find("HOUSEWIFE") != std::string::npos ||
                    se.type_name.find("SHEPHERD") != std::string::npos ||
                    se.type_name.find("FISHERMAN") != std::string::npos) {
             e.type = ENTITY_VILLAGER;
+            core_category = ENTITY_CAT_VILLAGER;
         } else if (se.type_name == "ANIMAL") {
             e.type = ENTITY_ANIMAL;
         } else if (se.type_name == "MOBILE_STATIC") {
             e.type = ENTITY_MOBILE;
+            core_category = ENTITY_CAT_MOBILE;
         } else {
             e.type = ENTITY_FEATURE;
+            core_category = ENTITY_CAT_FEATURE;
         }
 
         entities.push_back(e);
+
+        // Create corresponding bw_core entity
+        Object* core_obj = nullptr;
+        if (use_bw_core) {
+            EntityCreateParams params;
+            params.world_x = se.x;
+            params.world_z = se.z;
+            params.angle = se.angle;
+            params.scale = se.scale;
+            params.mesh_id = se.mesh_id;
+            params.type_enum = 0;
+            params.type_name = se.type_name.c_str();
+
+            core_obj = EntityFactory::CreateEntity(core_category, params);
+            if (core_obj) core_spawned++;
+        }
+        core_entities.push_back(core_obj);
+
         spawned++;
     }
 
-    printf("Game: Spawned %d entities\n", spawned);
+    printf("Game: Spawned %d viewer entities", spawned);
+    if (use_bw_core) {
+        printf(", %d bw_core entities", core_spawned);
+    }
+    printf("\n");
+    fflush(stdout);
 }
 
 void GameState::ProcessTurn() {

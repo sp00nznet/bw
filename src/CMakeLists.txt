@@ -305,6 +305,9 @@ add_library(bw_core STATIC
     core/LHVM.cpp
     # Utility functions
     core/GUtils.cpp
+    # Terrain and entity factory (bridge to viewer)
+    core/Terrain.cpp
+    core/EntityFactory.cpp
 )
 
 # L3D mesh viewer — standalone Win32 + OpenGL application
@@ -316,7 +319,7 @@ add_executable(bw_viewer
     viewer/script_parser.cpp
     viewer/game_loop.cpp
 )
-target_link_libraries(bw_viewer PRIVATE opengl32 glu32)
+target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
