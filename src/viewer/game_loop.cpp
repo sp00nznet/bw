@@ -12,6 +12,7 @@
 #include <black/Terrain.h>
 #include <black/EntityFactory.h>
 #include <black/Object.h>
+#include <black/types.h>
 
 namespace bw {
 
@@ -190,7 +191,43 @@ void GameState::ProcessTurn() {
     if (paused) return;
     game_turn++;
 
-    // Simple physics for thrown objects
+    // === Phase 1: Run bw_core game logic ===
+    if (use_bw_core) {
+        // Tick bw_core entities — this runs the real game simulation
+        // TODO: call GGame::ProcessTurn() when GGame is fully initialized
+        // For now, tick individual entity Process() methods
+        for (size_t i = 0; i < core_entities.size(); i++) {
+            Object* obj = core_entities[i];
+            if (!obj) continue;
+            if (!obj->IsAvailable()) continue;
+            obj->Process();
+        }
+    }
+
+    // === Phase 2: Sync bw_core state back to viewer entities ===
+    if (use_bw_core) {
+        for (size_t i = 0; i < entities.size() && i < core_entities.size(); i++) {
+            Object* obj = core_entities[i];
+            if (!obj) continue;
+
+            auto& ve = entities[i];
+            if (ve.physics_active || ve.selected) continue; // Don't override physics/hand
+
+            // Sync position from bw_core MapCoords to viewer world coords
+            ve.x = static_cast<float>(obj->coords.x) / 65536.0f;
+            ve.z = static_cast<float>(obj->coords.z) / 65536.0f;
+            ve.y = obj->coords.altitude;
+
+            // Sync rotation and scale
+            ve.angle = obj->y_angle;
+            ve.scale = obj->scale;
+
+            // Sync alive state
+            ve.alive = obj->IsAvailable() && obj->IsAlive();
+        }
+    }
+
+    // === Phase 3: Viewer-side physics for thrown objects ===
     for (auto& e : entities) {
         if (!e.alive || !e.physics_active) continue;
 
@@ -209,11 +246,22 @@ void GameState::ProcessTurn() {
             if (fabsf(e.vx) + fabsf(e.vz) < 0.5f) {
                 e.physics_active = false;
                 e.vx = e.vy = e.vz = 0;
+
+                // Sync landing position back to bw_core
+                if (use_bw_core) {
+                    size_t idx = &e - &entities[0];
+                    if (idx < core_entities.size() && core_entities[idx]) {
+                        int32_t map_x = static_cast<int32_t>(e.x * 65536.0f);
+                        int32_t map_z = static_cast<int32_t>(e.z * 65536.0f);
+                        MapCoords pos(map_x, map_z, e.y);
+                        core_entities[idx]->SetPos(pos);
+                    }
+                }
             }
         }
     }
 
-    // Update held entity position to follow hand
+    // === Phase 4: Update held entity position to follow hand ===
     if (hand.held_entity >= 0 && hand.held_entity < static_cast<int>(entities.size())) {
         auto& e = entities[hand.held_entity];
         e.x = hand.x;
@@ -243,8 +291,14 @@ void GameState::PickUpEntity(int index) {
     if (hand.held_entity >= 0) return; // Already holding something
 
     auto& e = entities[index];
-    // Can pick up anything except buildings
-    if (e.type == ENTITY_ABODE || e.type == ENTITY_FEATURE) return;
+
+    // Check if bw_core entity allows pick up
+    if (use_bw_core && index < static_cast<int>(core_entities.size()) && core_entities[index]) {
+        if (!core_entities[index]->CanBePickedUp()) return;
+    } else {
+        // Fallback: can pick up anything except buildings
+        if (e.type == ENTITY_ABODE || e.type == ENTITY_FEATURE) return;
+    }
 
     e.selected = true;
     e.physics_active = false;
