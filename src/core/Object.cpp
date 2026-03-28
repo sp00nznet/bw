@@ -8,6 +8,7 @@
 
 #include <black/Object.h>
 #include <black/ObjectInfo.h>
+#include <cmath>
 
 // ============================================================================
 // Orientation and scale (vtable 0x500-0x528)
@@ -52,17 +53,28 @@ float Object::GetZAngle() {
 
 void Object::SetFocus(const LHPoint* /*focus*/) {}
 
-void Object::SetXYZAngles(float /*x*/, float /*y*/, float /*z*/) {}
-void Object::SetXYZAnglesAndScale(float /*x*/, float /*y*/, float /*z*/, float /*scale*/) {}
+void Object::SetXYZAngles(float /*x*/, float y, float /*z*/) {
+    // Base Object only stores Y angle
+    y_angle = y;
+}
+
+void Object::SetXYZAnglesAndScale(float /*x*/, float y, float /*z*/, float s) {
+    y_angle = y;
+    scale = s;
+}
 
 void Object::SetJustScale(float s) {
     // Writes to scale field at offset 0x50
     scale = s;
 }
 
-void Object::SetYJustAngle(float /*angle*/) {}
+void Object::SetYJustAngle(float angle) {
+    y_angle = angle;
+}
 
-void Object::SetYAngle(float /*angle*/) {}
+void Object::SetYAngle(float angle) {
+    y_angle = angle;
+}
 
 void Object::UpdateFrom3DPosition() {
     // Default: no-op
@@ -239,8 +251,15 @@ bool Object::IsAlive() {
     return false;
 }
 
-void Object::ReduceLife(float /*value*/, GPlayer* /*player*/) {}
-void Object::IncreaseLife(float /*value*/) {}
+void Object::ReduceLife(float value, GPlayer* /*player*/) {
+    life -= value;
+    if (life < 0.0f) life = 0.0f;
+}
+
+void Object::IncreaseLife(float value) {
+    life += value;
+    if (life > 1.0f) life = 1.0f;
+}
 float Object::GetSacrificeValue() { return 0.0f; }
 void Object::ReduceLifeDueToBurning(float, GPlayer*) {}
 void Object::FillInEffectDefenceMultiplier(EffectNumbers*) {}
@@ -278,7 +297,10 @@ uint32_t Object::ProcessState() { return 0; }
 float Object::GetProjectileSpeed() { return 0.0f; }
 bool Object::CanBePickedUp() { return false; }
 bool32_t Object::CanBeCrushed() { return 0; }
-float Object::GetTopPos() { return 0.0f; }
+float Object::GetTopPos() {
+    // Returns the top of the object (altitude + height based on scale)
+    return coords.altitude + GetScale();
+}
 float Object::GetVillagerHugRadius() {
     // Original at 0x004026b0: call [eax+0x64] (Get2DRadius) * 1.05 + 0.0005
     return Get2DRadius() * 1.05f + 0.0005f;
@@ -350,7 +372,12 @@ bool Object::IsTouching_2(MapCoords*) const { return false; }
 bool Object::IsTouching_3(Object*, float) const { return false; }
 void Object::StartOnFire() {}
 void Object::EndOnFire() {}
-float Object::GetDistanceFromObject_1(Object*) { return 0.0f; }
+float Object::GetDistanceFromObject_1(Object* other) {
+    if (!other) return 0.0f;
+    float dx = static_cast<float>(coords.x - other->coords.x);
+    float dz = static_cast<float>(coords.z - other->coords.z);
+    return sqrtf(dx * dx + dz * dz);
+}
 float Object::GetTribalPower(TRIBE_TYPE) { return 0.0f; }
 
 // ============================================================================
@@ -466,7 +493,9 @@ bool Object::IsPushable() { return false; }
 void Object::PushObject_1(Living*, MapCoords*) {}
 void Object::PushObject_2(Living*) {}
 uint32_t Object::GetCarriedTreeType() { return 0; }
-float Object::GetFacingPitch() { return 0.0f; }
+float Object::GetFacingPitch() {
+    return y_angle;
+}
 
 void Object::SetHeadPos(MapCoords* param1) {
     // Copies this object's coords to the output

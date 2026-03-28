@@ -7,6 +7,7 @@
 // predicates return false here; derived classes (Object, Villager, etc.) override.
 
 #include <black/GameThingWithPos.h>
+#include <cmath>
 
 // ============================================================================
 // Position and basic property methods
@@ -86,8 +87,11 @@ float GameThingWithPos::GetRunningSpeedInMetres() {
     return 0.0f;
 }
 
-float GameThingWithPos::GetDistanceFromObject(const MapCoords& /*target*/) {
-    return 0.0f;
+float GameThingWithPos::GetDistanceFromObject(const MapCoords& target) {
+    // Euclidean distance in XZ plane
+    float dx = static_cast<float>(coords.x - target.x);
+    float dz = static_cast<float>(coords.z - target.z);
+    return sqrtf(dx * dx + dz * dz);
 }
 
 float GameThingWithPos::GetDefaultSpeedInMetres() {
@@ -424,7 +428,7 @@ const char* GameThingWithPos::GetText() {
 float GameThingWithPos::CalculateDesireForFood() { return 0.0f; }
 float GameThingWithPos::CalculateDesireForRest() { return 0.0f; }
 float GameThingWithPos::CalculatePeopleHidingIndicator() { return 0.0f; }
-float GameThingWithPos::GetHeight() { return 0.0f; }
+float GameThingWithPos::GetHeight() { return coords.altitude; }
 bool32_t GameThingWithPos::IsReadyForNewScriptAction() { return 0; }
 int GameThingWithPos::ForDrawFXGetNumVertices() { return 0; }
 void GameThingWithPos::ForDrawFXGetVertexPos(int, LHPoint*) {}
