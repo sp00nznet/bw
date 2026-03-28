@@ -35,16 +35,72 @@ float GCamera::GetHeight() { return coords.altitude; }
 bool GCamera::CantExitCurrentMode() { return false; }
 // 0x00441cd0
 void GCamera::SwitchToViewMode(CameraMode* /*mode*/) {}
-// 0x00441d40
-void GCamera::CheckStackedModesForValidity() {}
-// 0x00441f50
-void GCamera::Validate() {}
-// 0x00441f80
-void GCamera::Update() {}
-// 0x00442ef0
-void GCamera::UpdateGameThingWithPosData() {}
-// 0x00443680
-void GCamera::SetCameraFov(float /*fov*/, float /*time*/) {}
+// 0x00441d40 — checks all stacked camera modes and removes invalid ones
+void GCamera::CheckStackedModesForValidity() {
+    // Iterate from bottom of mode stack to current index
+    int i = 0;
+    bool found_invalid = false;
+    while (i <= mode_current_index) {
+        CameraMode* mode = modes[i];
+        if (!mode) { i++; continue; }
+
+        // Check if mode is valid through its vtable (offset 0x14 = IsValid)
+        // For now, assume all modes are valid — proper vtable dispatch comes later
+        // TODO: call mode->IsValid() when CameraMode vtable is wired up
+        i++;
+    }
+}
+
+// 0x00441f50 — validates camera state, snaps to ground if needed
+void GCamera::Validate() {
+    // TODO: implement camera bounds checking
+    // - Ensure camera is within map bounds
+    // - Ensure camera height is above terrain
+    // - Snap heading/origin to valid ranges
+    camera_dirty = 0;
+}
+
+// 0x00441f80 — main camera update tick
+void GCamera::Update() {
+    // Update current camera mode
+    if (mode_current_index >= 0 && mode_current_index < 12) {
+        CameraMode* mode = modes[mode_current_index];
+        if (mode) {
+            // TODO: call mode->Update() through vtable
+            // This drives the camera position/focus each frame
+        }
+    }
+
+    // Interpolate heading zoomer
+    // TODO: camera_heading_zoomer.Update(time_delta)
+
+    // Interpolate origin zoomer
+    // TODO: camera_origin_zoomer.Update(time_delta)
+
+    // Interpolate FOV zoomer
+    // TODO: fov_zoomer.Update(time_delta)
+
+    // Sync GameThingWithPos position from camera state
+    UpdateGameThingWithPosData();
+
+    camera_dirty = 1;
+}
+
+// 0x00442ef0 — syncs GameThingWithPos coords from camera position
+void GCamera::UpdateGameThingWithPosData() {
+    // Copy camera position into the GameThingWithPos coordinate fields
+    coords.x = static_cast<int32_t>(pos.x);
+    coords.z = static_cast<int32_t>(pos.z);
+    coords.altitude = pos.y;
+}
+
+// 0x00443680 — sets camera FOV with interpolation time
+void GCamera::SetCameraFov(float fov, float /*time*/) {
+    // TODO: set up fov_zoomer to interpolate to target FOV over time
+    // For now, snap immediately
+    fov_zoomer.current_value = fov;
+    fov_zoomer.destination = fov;
+}
 
 // === Static methods ===
 

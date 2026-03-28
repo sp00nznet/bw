@@ -310,24 +310,40 @@ int GGame::MyPlayerID(uint32_t /*param*/) {
     return 0;
 }
 
-GPlayer* GGame::GetNextPlayer(GPlayer* /*player*/) {
-    // Original at 0x005508a0 — complex iteration
+GPlayer* GGame::GetNextPlayer(GPlayer* player) {
+    // Original at 0x005508a0 — iterate to next player slot
+    if (!player) return &players[0];
+    uint32_t index = static_cast<uint32_t>(player - &players[0]);
+    if (index >= 7) return nullptr;
+    return &players[index + 1];
+}
+
+GPlayer* GGame::GetNextActivePlayer(GPlayer* player) {
+    // Original at 0x005508d0 — iterate to next active (non-NONE) player
+    GPlayer* next = GetNextPlayer(player);
+    while (next) {
+        if (next->type != PLAYER_TYPE_NONE) return next;
+        next = GetNextPlayer(next);
+    }
     return nullptr;
 }
 
-GPlayer* GGame::GetNextActivePlayer(GPlayer* /*player*/) {
-    // Original at 0x005508d0 — complex iteration
+GPlayer* GGame::GetNextActivePlayerAndNeutral(GPlayer* player) {
+    // Original at 0x00550930 — iterate to next active player (including neutral)
+    if (!player) return &players[0];
+    uint32_t index = static_cast<uint32_t>(player - &players[0]);
+    for (uint32_t i = index + 1; i < 8; i++) {
+        if (players[i].type != PLAYER_TYPE_NONE) return &players[i];
+    }
     return nullptr;
 }
 
-GPlayer* GGame::GetNextActivePlayerAndNeutral(GPlayer* /*player*/) {
-    // Original at 0x00550930 — complex iteration
-    return nullptr;
-}
-
-GPlayer* GGame::GetNextPlayerAndNeutral(GPlayer* /*player*/) {
-    // Original at 0x00550980 — complex iteration
-    return nullptr;
+GPlayer* GGame::GetNextPlayerAndNeutral(GPlayer* player) {
+    // Original at 0x00550980 — iterate to next player slot (including neutral at index 7)
+    if (!player) return &players[0];
+    uint32_t index = static_cast<uint32_t>(player - &players[0]);
+    if (index >= 7) return nullptr;
+    return &players[index + 1];
 }
 
 GPlayer* GGame::GetNextPlayerWithNoCreature(GPlayer* /*player*/) {

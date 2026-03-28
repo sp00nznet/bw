@@ -6,6 +6,7 @@
 // can become disciples, carry resources, build structures, and worship.
 
 #include <black/Villager.h>
+#include <black/Abode.h>
 
 // ============================================================================
 // Overrides from GameThingWithPos / Object
@@ -77,3 +78,62 @@ float Villager::GetHowMuchCreatureWantsToLookAtMe() {
 }
 
 void Villager::DrawVillagerInfo() {}
+
+// ============================================================================
+// Non-virtual methods
+// ============================================================================
+
+Town* Villager::GetTown() {
+    // Villager gets town from its home abode
+    if (home) return home->GetTown();
+    return nullptr;
+}
+
+Abode* Villager::GetHome() {
+    return home;
+}
+
+void Villager::SetHome(Abode* abode) {
+    home = abode;
+}
+
+bool Villager::IsPregnant() const {
+    return is_pregnant != 0;
+}
+
+bool Villager::IsHomeless() const {
+    return home == nullptr;
+}
+
+bool Villager::IsCarryingResource() const {
+    return resource_held[0] != 0 || resource_held[1] != 0 || resource_held[2] != 0;
+}
+
+int16_t Villager::GetResourceHeld(RESOURCE_TYPE type) const {
+    if (static_cast<uint32_t>(type) < 3) return resource_held[static_cast<uint32_t>(type)];
+    return 0;
+}
+
+void Villager::AddResourceHeld(RESOURCE_TYPE type, int16_t amount) {
+    if (static_cast<uint32_t>(type) < 3) {
+        resource_held[static_cast<uint32_t>(type)] += amount;
+    }
+}
+
+void Villager::ClearResourceHeld() {
+    resource_held[0] = 0;
+    resource_held[1] = 0;
+    resource_held[2] = 0;
+}
+
+float Villager::GetFood() const {
+    return food;
+}
+
+void Villager::SetFood(float value) {
+    food = value;
+}
+
+bool Villager::IsFoodSpeedUp() const {
+    return food_speed_up;
+}

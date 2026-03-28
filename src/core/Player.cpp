@@ -3,6 +3,10 @@
 // Cross-referenced with bw1-decomp (v1.20)
 
 #include <black/Player.h>
+#include <black/Game.h>
+#include <black/Town.h>
+
+extern GGame* g_game;
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -48,7 +52,14 @@ GPlayer* GPlayer::CastPlayer() {
 // ============================================================================
 
 void GPlayer::ProcessPlayers() {
-    // Original at 0x00649a20 — complex, iterates all players
+    // Original at 0x00649a20 — iterates all 8 players and calls Process()
+    if (!g_game) return;
+    for (int i = 0; i < 8; i++) {
+        GPlayer* player = &g_game->players[i];
+        if (player->type != PLAYER_TYPE_NONE) {
+            player->Process();
+        }
+    }
 }
 
 void GPlayer::PostLoadCleanup() {
@@ -70,7 +81,19 @@ void GPlayer::Init(PLAYER_TYPE /*type*/, uint8_t /*number*/,
 }
 
 void GPlayer::Process() {
-    // Original at 0x006494e0 — complex per-frame update
+    // Original at 0x006494e0 — per-tick player update
+    // Processes towns, creature, spell charges, and alignment
+
+    // Process each town owned by this player
+    Town* town_ptr = towns.first;
+    while (town_ptr) {
+        town_ptr->Process();
+        town_ptr = town_ptr->next;
+    }
+
+    // TODO: process creature AI tick
+    // TODO: update spell charge timers
+    // TODO: update alignment changes
 }
 
 void GPlayer::Birthday() {
@@ -102,13 +125,15 @@ LH3DColor* GPlayer::GetPlayer3DColor(LH3DColor* color) {
     return color;
 }
 
-bool32_t GPlayer::IsMagicTypeEnabled(MAGIC_TYPE /*type*/) {
-    // Original at 0x0064c220 — complex
-    return 0;
+bool32_t GPlayer::IsMagicTypeEnabled(MAGIC_TYPE type) {
+    // Original at 0x0064c220 — checks if a magic type is available to this player
+    if (static_cast<uint32_t>(type) >= 0x2A) return 0;
+    return magic_enabled[static_cast<uint32_t>(type)] ? 1 : 0;
 }
 
-GInterface* GPlayer::GetRealInterface(unsigned long /*index*/) {
-    // Original at 0x0064d120 — complex
+GInterface* GPlayer::GetRealInterface(unsigned long index) {
+    // Original at 0x0064d120 — returns interface by index
+    if (index == 0) return interfaces[0];
     return nullptr;
 }
 

@@ -29,6 +29,20 @@ struct Villager : public Living {
     virtual const char* GetVillagerName();
     virtual void DrawVillagerInfo();
 
+    // === Non-virtual methods ===
+    Town* GetTown();
+    Abode* GetHome();
+    void SetHome(Abode* abode);
+    bool IsPregnant() const;
+    bool IsHomeless() const;
+    bool IsCarryingResource() const;
+    int16_t GetResourceHeld(RESOURCE_TYPE type) const;
+    void AddResourceHeld(RESOURCE_TYPE type, int16_t amount);
+    void ClearResourceHeld();
+    float GetFood() const;
+    void SetFood(float value);
+    bool IsFoodSpeedUp() const;
+
     // === Fields ===
     uint16_t field_0xe0;                    // 0xE0
     uint16_t pad_0xe2;                      // 0xE2
