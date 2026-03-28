@@ -346,18 +346,26 @@ GPlayer* GGame::GetNextPlayerAndNeutral(GPlayer* player) {
     return &players[index + 1];
 }
 
-GPlayer* GGame::GetNextPlayerWithNoCreature(GPlayer* /*player*/) {
-    // Original at 0x00550a60 — complex iteration
+GPlayer* GGame::GetNextPlayerWithNoCreature(GPlayer* player) {
+    // Original at 0x00550a60 — iterate to next player that has no creature
+    GPlayer* next = GetNextActivePlayer(player);
+    while (next) {
+        if (next->creature == nullptr) return next;
+        next = GetNextActivePlayer(next);
+    }
     return nullptr;
 }
 
-GPlayer* GGame::GetPlayerFromReal(uint32_t /*index*/) {
-    // Original at 0x005509e0 — complex mapping
-    return nullptr;
+GPlayer* GGame::GetPlayerFromReal(uint32_t index) {
+    // Original at 0x005509e0 — returns player by real index
+    if (index >= 8) return nullptr;
+    return &players[index];
 }
 
-GInterface* GGame::GetPlayerInterfaceFromReal(uint32_t /*index*/) {
-    // Original at 0x00550a10 — complex
+GInterface* GGame::GetPlayerInterfaceFromReal(uint32_t index) {
+    // Original at 0x00550a10 — returns player interface by index
+    GPlayer* player = GetPlayerFromReal(index);
+    if (player) return player->GetRealInterface(0);
     return nullptr;
 }
 

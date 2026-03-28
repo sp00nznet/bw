@@ -22,14 +22,17 @@ uint32_t StoragePit::Load(GameOSFile*) { return 0; } // 0x00733920
 uint32_t StoragePit::Save(GameOSFile*) { return 0; } // 0x007338d0
 uint32_t StoragePit::GetSaveType() { return 0; } // 0x0055cd30
 
-MapCoords* StoragePit::GetArrivePos(MapCoords* out) { return out; } // 0x0055ccb0
+MapCoords* StoragePit::GetArrivePos(MapCoords* out) { return GetDoorPos(out); } // 0x0055ccb0
 bool32_t StoragePit::IsCastShadowAtNight() { return 1; } // 0x0055ccf0
 bool32_t StoragePit::CanBeEatenByCreature(Creature*) { return 0; } // 0x0055cd10
 bool32_t StoragePit::CanActAsAContainer(Creature*) { return 1; } // 0x0055cd00
 bool32_t StoragePit::CanHaveMagicFoodCastOnMe(Creature*) { return 0; } // 0x004e4b50
 bool32_t StoragePit::CanHaveMagicWoodCastOnMe(Creature*) { return 0; } // 0x004e4b70
 bool32_t StoragePit::IsStoragePit(Creature*) { return 1; } // 0x004e4990
-bool32_t StoragePit::IsStoragePitWithFoodInIt(Creature*) { return 0; } // 0x004e4d90
+bool32_t StoragePit::IsStoragePitWithFoodInIt(Creature*) {
+    // 0x004e4d90 — returns true if storage pit has food
+    return GetResource(static_cast<RESOURCE_TYPE>(0)) > 0 ? 1 : 0;
+}
 bool32_t StoragePit::IsStoragePitBelongingToAnotherPlayer(Creature*) { return 0; } // 0x004e49a0
 bool32_t StoragePit::IsStoragePitBelongingToMyPlayer(Creature*) { return 0; } // 0x004e49e0
 bool32_t StoragePit::IsPoisoned() { return 0; } // 0x007336b0

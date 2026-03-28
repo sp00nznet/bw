@@ -10,7 +10,7 @@ uint32_t TownCentre::Save(GameOSFile*) { return 0; } // 0x00744830
 uint32_t TownCentre::GetSaveType() { return 0; } // 0x0055db90
 void TownCentre::ResolveLoad() { /* 0x007448c0 */ }
 
-MapCoords* TownCentre::GetArrivePos(MapCoords* out) { return out; } // 0x007449e0
+MapCoords* TownCentre::GetArrivePos(MapCoords* out) { return GetDoorPos(out); } // 0x007449e0
 bool32_t TownCentre::IsCastShadowAtNight() { return 1; } // 0x0055db60
 bool32_t TownCentre::IsTownCentre() { return 1; } // 0x0055db70
 bool32_t TownCentre::CanActAsAContainer(Creature*) { return 0; } // 0x0055db40

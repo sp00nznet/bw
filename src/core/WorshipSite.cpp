@@ -1,6 +1,7 @@
 // WorshipSite — worship site building (CitadelPart subclass)
 // Method stubs from bw1-decomp
 #include "../include/black/WorshipSite.h"
+#include "../include/black/BuildingSite.h"
 
 // === Overrides of Base virtuals ===
 
@@ -32,10 +33,16 @@ void WorshipSite::ResolveLoad() {}
 
 // === Overrides of GameThingWithPos virtuals ===
 
-// 0x0077ced0
-MapCoords* WorshipSite::GetArrivePos(MapCoords* /*out*/) { return nullptr; }
-// 0x0055dc30
-void WorshipSite::GetInteractPos(LHPoint* /*pos*/) {}
+// 0x0077ced0 — returns the door position as arrive position
+MapCoords* WorshipSite::GetArrivePos(MapCoords* out) {
+    return GetDoorPos(out);
+}
+// 0x0055dc30 — returns the interact position (base coords)
+void WorshipSite::GetInteractPos(LHPoint* pos) {
+    pos->x = *reinterpret_cast<float*>(&coords.x);
+    pos->y = *reinterpret_cast<float*>(&coords.z);
+    pos->z = coords.altitude;
+}
 // 0x0055dc80
 uint32_t WorshipSite::IsSuitableForCreatureAction() { return 0; }
 // 0x004e4b60
@@ -100,10 +107,21 @@ void WorshipSite::GetNearestEdgeOfObject(Object* /*object*/) {}
 
 // 0x0077e460
 void WorshipSite::GetResourceDropPosForComputerPlayer(MapCoords* /*coords*/) {}
-// 0x0077bdd0
-bool WorshipSite::IsBuilt() { return false; }
-// 0x0077ac10
-bool WorshipSite::Built() { return false; }
+// 0x0077bdd0 — checks if worship site is fully built
+bool WorshipSite::IsBuilt() {
+    // WorshipSite overrides: check construction flag and percent_built
+    if (field_0x58 & 0x02) return false;
+    return GetPercentBuilt() >= 1.0f;
+}
+// 0x0077ac10 — called when worship site finishes building
+bool WorshipSite::Built() {
+    if (building_site != nullptr) {
+        building_site->ToBeDeleted(0);
+    }
+    field_0x58 = (field_0x58 & ~2) | 8;
+    percent_built = 1.0f;
+    return true;
+}
 // 0x0055dc70
 ABODE_TYPE WorshipSite::GetAbodeType() { return static_cast<ABODE_TYPE>(0); }
 // 0x0077c5d0
@@ -131,5 +149,7 @@ MapCoords* WorshipSite::GetTotemPos(MapCoords* /*coords*/) { return nullptr; }
 void WorshipSite::RemoveVillagerFromWorshipCount(Villager* /*villager*/) {}
 // 0x0077e1d0
 void WorshipSite::RemoveVillagerRequestingToGoHome(Villager* /*villager*/) {}
-// 0x0077e260
-int WorshipSite::GetNumVillagersRequestingToGoHome() { return 0; }
+// 0x0077e260 — returns count of villagers wanting to go home
+int WorshipSite::GetNumVillagersRequestingToGoHome() {
+    return num_villagers_requesting_to_go_home;
+}

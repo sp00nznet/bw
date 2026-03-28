@@ -106,23 +106,77 @@ bool Living::AmILikelyToMove() { return false; }
 void Living::SetFoodSpeedup(bool) {}
 bool Living::IsFoodSpeedUp() { return false; }
 uint32_t Living::GetNumTurnsToDieOver() { return 0; }
-MapCoords* Living::GetFinalDestPos(MapCoords* out) { return out; }
-bool Living::FleeingFromObjectReaction() { return false; }
-bool Living::LookingAtObjectReaction() { return false; }
-bool Living::FleeingAndLookingAtObjectReaction() { return false; }
-bool Living::FollowingObjectReaction() { return false; }
-bool Living::InspectObjectReaction() { return false; }
-bool Living::Dying() { return false; }
-bool Living::Dead() { return false; }
-bool Living::Downed() { return false; }
-bool Living::BeingEaten() { return false; }
-bool Living::GotoFoodReaction() { return false; }
-bool Living::GotoWoodReaction() { return false; }
-bool Living::MoveInFlock() { return false; }
-bool Living::IsMovingForAnimation() { return false; }
-bool Living::ArrivesAtFoodReaction() { return false; }
-bool Living::ArrivesAtWoodReaction() { return false; }
-bool Living::InHand() { return false; }
+
+MapCoords* Living::GetFinalDestPos(MapCoords* out) {
+    *out = coords;
+    return out;
+}
+
+// State query methods — check action.top_state against specific VILLAGER_STATES
+bool Living::FleeingFromObjectReaction() {
+    return action.top_state == VILLAGER_STATE_FLEEING_FROM_OBJECT_REACTION;
+}
+
+bool Living::LookingAtObjectReaction() {
+    return action.top_state == VILLAGER_STATE_LOOKING_AT_OBJECT_REACTION;
+}
+
+bool Living::FleeingAndLookingAtObjectReaction() {
+    return FleeingFromObjectReaction() || LookingAtObjectReaction();
+}
+
+bool Living::FollowingObjectReaction() {
+    return action.top_state == VILLAGER_STATE_FOLLOWING_OBJECT_REACTION;
+}
+
+bool Living::InspectObjectReaction() {
+    return action.top_state == VILLAGER_STATE_INSPECT_OBJECT_REACTION;
+}
+
+bool Living::Dying() {
+    return action.top_state == VILLAGER_STATE_DYING;
+}
+
+bool Living::Dead() {
+    return action.top_state == VILLAGER_STATE_DEAD;
+}
+
+bool Living::Downed() {
+    return action.top_state == VILLAGER_STATE_DOWNED;
+}
+
+bool Living::BeingEaten() {
+    return action.top_state == VILLAGER_STATE_BEING_EATEN;
+}
+
+bool Living::GotoFoodReaction() {
+    return action.top_state == VILLAGER_STATE_GOTO_FOOD_REACTION;
+}
+
+bool Living::GotoWoodReaction() {
+    return action.top_state == VILLAGER_STATE_GOTO_WOOD_REACTION;
+}
+
+bool Living::MoveInFlock() {
+    return flock != nullptr;
+}
+
+bool Living::IsMovingForAnimation() {
+    return IsMoving();
+}
+
+bool Living::ArrivesAtFoodReaction() {
+    return action.top_state == VILLAGER_STATE_ARRIVES_AT_FOOD_REACTION;
+}
+
+bool Living::ArrivesAtWoodReaction() {
+    return action.top_state == VILLAGER_STATE_ARRIVES_AT_WOOD_REACTION;
+}
+
+bool Living::InHand() {
+    return action.top_state == VILLAGER_STATE_IN_HAND;
+}
+
 bool Living::DecideWhatToDo() { return false; }
 void Living::Birthday() {}
 
@@ -137,9 +191,13 @@ int Living::SetCurrentAndDestinationState(VILLAGER_STATES, VILLAGER_STATES) { re
 int Living::CallIntoAnimationFunction(VILLAGER_STATES) { return 0; }
 int Living::CallOutofAnimationFunction(VILLAGER_STATES) { return 0; }
 int Living::SetTopState(VILLAGER_STATES) { return 0; }
-void Living::StorePreviousState() {}
+void Living::StorePreviousState() {
+    action.previous_state = action.top_state;
+}
 void Living::SetStateSpeed() {}
-bool Living::IsFinalState(VILLAGER_STATES) { return false; }
+bool Living::IsFinalState(VILLAGER_STATES state) {
+    return action.top_state == static_cast<uint8_t>(state);
+}
 void Living::SetAnim_2(int, int) {}
 void Living::SetAnim_1(int) {}
 ANIM_LIST Living::GetAnimId() { return ANM_INVALID; }
@@ -156,7 +214,22 @@ int Living::ExitNoChangeState(VILLAGER_STATES) { return 0; }
 int Living::ExitMoveOnPath(VILLAGER_STATES) { return 0; }
 int Living::ExitMoveToPos(uint8_t) { return 0; }
 int Living::ExitBeingEaten(uint8_t) { return 0; }
-void Living::SetState(LIVING_ACTION_INDEX, VILLAGER_STATES) {}
+void Living::SetState(LIVING_ACTION_INDEX index, VILLAGER_STATES state) {
+    switch (index) {
+    case LIVING_ACTION_INDEX_TOP:
+        action.top_state = static_cast<uint8_t>(state);
+        action.turns_since_state_change = 0;
+        break;
+    case LIVING_ACTION_INDEX_FINAL:
+        action.final_state = static_cast<uint8_t>(state);
+        break;
+    case LIVING_ACTION_INDEX_PREVIOUS:
+        action.previous_state = static_cast<uint8_t>(state);
+        break;
+    default:
+        break;
+    }
+}
 uint32_t Living::EnterMoveToPos(VILLAGER_STATES, VILLAGER_STATES) { return 0; }
 uint32_t Living::EnterInScript(VILLAGER_STATES, VILLAGER_STATES) { return 0; }
 uint32_t Living::EnterInHand(VILLAGER_STATES, VILLAGER_STATES) { return 0; }
@@ -178,9 +251,13 @@ bool Living::IsScriptInterruptableState(VILLAGER_STATES state) const {
 }
 bool Living::IsStateForInterface(VILLAGER_STATES) const { return false; }
 bool Living::IsStateExitFunctionSameAs(VILLAGER_STATES) const { return false; }
-bool Living::IsDeathState(VILLAGER_STATES) const { return false; }
+bool Living::IsDeathState(VILLAGER_STATES state) const {
+    return state == VILLAGER_STATE_DEAD || state == VILLAGER_STATE_DYING;
+}
 uint32_t Living::DebugShowTime(uint32_t, uint8_t, uint8_t) { return 0; }
-bool Living::IsDancing() { return false; }
+bool Living::IsDancing() {
+    return action.top_state == VILLAGER_STATE_IN_DANCE;
+}
 bool Living::IsInterestedInFoodObject(Object*) { return false; }
 bool Living::IsInterestedInWoodObject(Object*) { return false; }
 bool Living::IsAvailableForReaction(REACTION) { return false; }
@@ -300,12 +377,23 @@ uint32_t Living::IsPosValidForMapCellExistance(const MapCoords*) { return 0; }
 // Miscellaneous (vtable 0xAF0-0xB3C)
 // ============================================================================
 
-void Living::MoveByTeleport(const MapCoords*) {}
-bool Living::IsDead() { return false; }
+void Living::MoveByTeleport(const MapCoords* target) {
+    if (target) {
+        SetPos(*target);
+    }
+}
+
+bool Living::IsDead() {
+    // Original: checks if top_state is DEAD or DYING
+    return action.top_state == VILLAGER_STATE_DEAD || action.top_state == VILLAGER_STATE_DYING;
+}
+
 bool Living::IsChild() { return false; }
 void Living::GetFleeingPositionFromMovingObject(MapCoords*, GameThingWithPos*, float) {}
 void Living::GetFleeingPositionFromStationaryObject(MapCoords*, GameThingWithPos*, float) {}
-VILLAGER_STATES Living::GetFinalState() const { return VILLAGER_STATE_INVALID_STATE; }
+VILLAGER_STATES Living::GetFinalState() const {
+    return static_cast<VILLAGER_STATES>(action.final_state);
+}
 void Living::RemoveFromDance(int) {}
 void Living::SetStateAfterFinishingDance() {}
 float Living::CalculateLifeDesire() { return 0.0f; }

@@ -1,6 +1,7 @@
 // GCamera — main game camera
 // Method stubs from bw1-decomp
 #include "../include/black/GCamera.h"
+#include <cmath>
 
 // === Overrides of Base virtuals ===
 
@@ -106,9 +107,24 @@ void GCamera::SetCameraFov(float fov, float /*time*/) {
 
 // 0x00441f20
 float GCamera::GetThingViewingDistance(GameThingWithPos* /*target*/) { return 0.0f; }
-// 0x00442810
-void GCamera::SetPointFromPointDistanceHeadingAndPitch(LHPoint* /*out*/, const LHPoint& /*point*/,
-    float /*distance*/, float /*heading*/, float /*pitch*/) {}
-// 0x004428d0
-void GCamera::GetHeadingAndPitchFromPoints(const LHPoint& /*origin*/, const LHPoint& /*heading*/,
-    float* /*pitch*/, float* /*yaw*/) {}
+
+// 0x00442810 — compute a point at (distance, heading, pitch) from a source point
+void GCamera::SetPointFromPointDistanceHeadingAndPitch(LHPoint* out, const LHPoint& point,
+    float distance, float heading, float pitch) {
+    // Standard spherical-to-cartesian: heading is rotation about Y, pitch is elevation
+    float cos_pitch = cosf(pitch);
+    out->x = point.x + distance * sinf(heading) * cos_pitch;
+    out->y = point.y + distance * sinf(pitch);
+    out->z = point.z + distance * cosf(heading) * cos_pitch;
+}
+
+// 0x004428d0 — extract heading and pitch from two points
+void GCamera::GetHeadingAndPitchFromPoints(const LHPoint& origin, const LHPoint& target,
+    float* out_pitch, float* out_heading) {
+    float dx = target.x - origin.x;
+    float dy = target.y - origin.y;
+    float dz = target.z - origin.z;
+    float horizontal_dist = sqrtf(dx * dx + dz * dz);
+    if (out_heading) *out_heading = atan2f(dx, dz);
+    if (out_pitch) *out_pitch = atan2f(dy, horizontal_dist);
+}
