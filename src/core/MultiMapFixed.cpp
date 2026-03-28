@@ -7,6 +7,9 @@
 // connectivity, resource management, and collision.
 
 #include <black/MultiMapFixed.h>
+#include <black/Map.h>
+
+extern GMap* g_map;
 #include <black/BuildingSite.h>
 #include <black/GMultiMapFixedInfo.h>
 
@@ -164,13 +167,68 @@ void MultiMapFixed::SetMapChild(Object* /*object*/, MapCell* /*cell*/) {
 }
 
 void MultiMapFixed::InsertMapObject() {
-    // Original at 0x0052e650 — complex multi-cell insertion
-    // TODO: implement properly
+    // Original at 0x0052e650 — insert into all cells this building occupies
+    if (!g_map) return;
+
+    // Insert into the primary cell (same as SingleMapFixed)
+    uint32_t cell_x = static_cast<uint32_t>(coords.x) >> 16;
+    uint32_t cell_z = static_cast<uint32_t>(coords.z) >> 16;
+    if (g_map->InBounds(cell_x, cell_z)) {
+        MapCell* cell = g_map->ToMap(cell_x, cell_z);
+        map_parent = cell->first_object_fixed;
+        cell->SetFirstObjectFixed(this);
+    }
+
+    // Insert into additional cells from multi_children_array
+    for (uint32_t i = 0; i < multi_children_array.size; i++) {
+        MultiChild& child = multi_children_array.array[i];
+        uint16_t cx = static_cast<uint16_t>(child.coords & 0xFFFF);
+        uint16_t cz = static_cast<uint16_t>((child.coords >> 16) & 0xFFFF);
+        if (g_map->InBounds(cx, cz)) {
+            MapCell* cell = g_map->ToMap(cx, cz);
+            InsertMapObjectToCell(cell);
+        }
+    }
+
+    field_0x24 |= 1;  // Set "in map" flag
+    obj_coords = coords;
 }
 
 void MultiMapFixed::RemoveMapObject() {
-    // Original at 0x0052e7b0 — complex multi-cell removal
-    // TODO: implement properly
+    // Original at 0x0052e7b0 — remove from all cells this building occupies
+    if (!g_map) return;
+
+    // Remove from primary cell
+    uint32_t cell_x = static_cast<uint32_t>(obj_coords.x) >> 16;
+    uint32_t cell_z = static_cast<uint32_t>(obj_coords.z) >> 16;
+    if (g_map->InBounds(cell_x, cell_z)) {
+        MapCell* cell = g_map->ToMap(cell_x, cell_z);
+        Object* prev = nullptr;
+        Object* curr = cell->first_object_fixed;
+        while (curr) {
+            if (curr == this) {
+                if (prev) prev->map_parent = map_parent;
+                else cell->SetFirstObjectFixed(map_parent);
+                map_parent = nullptr;
+                break;
+            }
+            prev = curr;
+            curr = curr->map_parent;
+        }
+    }
+
+    // Remove from additional cells
+    for (uint32_t i = 0; i < multi_children_array.size; i++) {
+        MultiChild& child = multi_children_array.array[i];
+        uint16_t cx = static_cast<uint16_t>(child.coords & 0xFFFF);
+        uint16_t cz = static_cast<uint16_t>((child.coords >> 16) & 0xFFFF);
+        if (g_map->InBounds(cx, cz)) {
+            MapCell* cell = g_map->ToMap(cx, cz);
+            RemoveMapObjectFromCell(cell);
+        }
+    }
+
+    field_0x24 &= ~1;  // Clear "in map" flag
 }
 
 int MultiMapFixed::MoveMapObject(const MapCoords& /*coords*/) {
@@ -179,9 +237,12 @@ int MultiMapFixed::MoveMapObject(const MapCoords& /*coords*/) {
     return 0;
 }
 
-void MultiMapFixed::ReduceLife(float /*value*/, GPlayer* /*player*/) {
-    // Original at 0x00505790 — complex (delegates between building_site and Object)
-    // TODO: implement properly — requires multiple vtable calls and base delegation
+void MultiMapFixed::ReduceLife(float value, GPlayer* player) {
+    // Original at 0x00505790 — reduces life and enters damaged state if needed
+    Object::ReduceLife(value, player);
+    if (GetLife() < 1.0f && IsBuilt()) {
+        field_0x58 |= 4;  // Set damaged bit
+    }
 }
 
 uint32_t MultiMapFixed::Process() {
@@ -423,8 +484,9 @@ LH3DMesh* MultiMapFixed::GetDestructionMesh() {
 }
 
 void MultiMapFixed::RemoveDamage() {
-    // Original at 0x00422030 — complex
-    // TODO: implement properly
+    // Original at 0x00422030 — clears damage state and restores full life
+    field_0x58 &= ~4;  // Clear damaged bit
+    life = 1.0f;
 }
 
 void* MultiMapFixed::GetBuildingObject() {
@@ -449,11 +511,8 @@ void MultiMapFixed::SetPower(float /*power*/) {
 }
 
 MapCoords* MultiMapFixed::GetResourcePos(RESOURCE_TYPE /*type*/, int /*param2*/) {
-    // Original at 0x00401560: copies this->coords to return struct
-    // Decompiled: adds 0x14 to ecx, copies 12 bytes
-    // Note: returns struct by hidden pointer in original calling convention
-    // TODO: fix return value semantics
-    return nullptr;
+    // Original at 0x00401560: returns the building's position as resource pos
+    return &coords;
 }
 
 bool MultiMapFixed::IsPoisonedResource() {
@@ -461,9 +520,13 @@ bool MultiMapFixed::IsPoisonedResource() {
     return false;
 }
 
-MapCoords* MultiMapFixed::GetResourceNearestEdge(MapCoords* /*coords*/, RESOURCE_TYPE /*type*/, Object* /*param3*/, int /*param4*/) {
-    // Original at 0x00401590: calls GetResourcePos through vtable
-    // TODO: implement properly
+MapCoords* MultiMapFixed::GetResourceNearestEdge(MapCoords* out, RESOURCE_TYPE type, Object* /*param3*/, int param4) {
+    // Original at 0x00401590: delegates to GetResourcePos
+    MapCoords* res = GetResourcePos(type, param4);
+    if (res && out) {
+        *out = *res;
+        return out;
+    }
     return nullptr;
 }
 
