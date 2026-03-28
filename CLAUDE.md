@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit ffbb6af)
+## Current Stats (as of commit 13f8b5e)
 - **598 headers** in `src/include/black/`
 - **249 .cpp files** in `src/core/`
-- **36,700+ lines** of C++ total
-- **130 commits**, all pushed to GitHub
+- **36,900+ lines** of C++ total
+- **135 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 
 ## Architecture Patterns
@@ -131,7 +131,7 @@ Complete native function dispatch table — NativeFunction enum (0-463), NativeF
 ### Batch 38: Creature spawning + Town simulation + Abode resources
 Creature::Create factory (calloc + InitCreature, allocates 135KB CreatureMental), Town::Process 7-phase simulation tick, Abode::JustAddResource/JustRemoveResource with clamping, StoragePit resource delegation
 
-### Batch 39: Method body pass — systems and state machines (6 commits)
+### Batch 39-40: Method body pass — systems, map ops, state machines (13 commits)
 GCamera: Update loop, Validate, SetPointFromPointDistanceHeadingAndPitch, GetHeadingAndPitchFromPoints
 Living: 20+ state queries (Dying/Dead/InHand/Downed/etc.), SetState/StorePreviousState, IsDead, MoveByTeleport
 Object: ReduceLife/IncreaseLife (clamped), Set/Get angle methods, GetDistanceFromObject_1, GetTopPos
@@ -148,10 +148,17 @@ Flock: SetDomainCentrePos
 Field: IsFieldWithFoodInIt
 StoragePit/TownCentre: GetArrivePos via GetDoorPos
 
+SingleMapFixed: InsertMapObject/RemoveMapObject (cell linked list management)
+MobileWallHug: MoveTo3D horizontal step, SetTowardsAngle
+Villager: IsMaleVillager/IsFemaleVillager, AmILikelyToMove
+Workshop/WorshipSite/Abode: Process delegation (building site when under construction)
+Town: SetBeliefInPlayer, SetWorshipPercentage
+LHVM: RANDOM/RANDOM_ULONG/SQUARE_ROOT math implementations
+
 ## What's Next (priority order)
-1. **Method bodies** — translate remaining Ghidra decompilation (~1750 stubs)
+1. **Method bodies** — translate remaining Ghidra decompilation (~1500 stubs)
 2. **Villager state machine** — implement VillagerStates ProcessState dispatch
-3. **Camera system** — fill remaining GCamera stubs (SwitchToViewMode, etc.)
+3. **Map operations** — MultiMapFixed multi-cell insert/remove
 4. **LHVM native function bodies** — fill in ~400 remaining stubs as subsystems come online
 
 ## Common Pitfalls (learned the hard way)
