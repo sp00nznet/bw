@@ -8,6 +8,10 @@
 #include "Fixed.h"
 
 struct SingleMapFixed : public Fixed {
+    // === Overrides of Object virtuals ===
+    void InsertMapObject() override;
+    void RemoveMapObject() override;
+
     // === New virtual methods (vtable 0x864) ===
     virtual void CreateCollideData();
 

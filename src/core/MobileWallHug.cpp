@@ -38,22 +38,27 @@ void MobileWallHug::SetSpeed(int spd) {
     }
 }
 
-void MobileWallHug::SetTowardsAngle(uint16_t /*angle*/) {
-    // Calls FUN_005c86b0 (angle interpolation function)
-    // TODO: implement when angle interpolation is resolved
+void MobileWallHug::SetTowardsAngle(uint16_t angle) {
+    // Sets the game angle toward a target direction
+    // Original at 0x005c86b0
+    game_angle = angle;
 }
 
 void MobileWallHug::MoveTo3D() {
     // Height interpolation: moves altitude towards goal altitude by ±0.2 per tick
     // Original at 0x005c5b60
-    // offset 0x1C = coords.altitude, offset 0x88 = goal.altitude (0x80 + 0x08)
     if (coords.altitude > goal.altitude) {
         coords.altitude -= 0.2f;
+        if (coords.altitude < goal.altitude) coords.altitude = goal.altitude;
     } else if (coords.altitude < goal.altitude) {
         coords.altitude += 0.2f;
+        if (coords.altitude > goal.altitude) coords.altitude = goal.altitude;
     }
-    // Then calls FUN_005c5ba0 (horizontal movement step)
-    // TODO: implement horizontal movement
+
+    // Horizontal movement: apply step vector to position
+    // Original at 0x005c5ba0
+    coords.x = static_cast<int32_t>(static_cast<float>(coords.x) + step.x);
+    coords.z = static_cast<int32_t>(static_cast<float>(coords.z) + step.z);
 }
 
 void MobileWallHug::SetNewWander(const MapCoords& /*target*/, int /*param2*/, int /*param3*/) {

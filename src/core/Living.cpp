@@ -8,6 +8,9 @@
 
 #include <black/Living.h>
 #include <black/ObjectInfo.h>
+#include <black/Map.h>
+
+extern GMap* g_map;
 
 // ============================================================================
 // Overrides of GameThing virtuals
@@ -288,10 +291,27 @@ bool Living::IsAvailableForBeliefButNotReaction(REACTION) { return false; }
 
 void Living::UpdateHowImpressed(Reaction*, int) {}
 void Living::AddReaction(Reaction*, VILLAGER_STATES) {}
-void Living::StartReacting(REACTION, GameThingWithPos*, Reaction*) {}
-void Living::StopReacting() {}
-void Living::StopReactingAndSetState() {}
-void Living::ResetStateAfterReacting() {}
+void Living::StartReacting(REACTION /*type*/, GameThingWithPos* target, Reaction* r) {
+    // Store the reaction and the target entity
+    reaction = r;
+    field_0xbc = target;
+}
+void Living::StopReacting() {
+    // Clear the current reaction
+    reaction = nullptr;
+    reaction_done_when = nullptr;
+}
+
+void Living::StopReactingAndSetState() {
+    // Stop reacting and reset to previous state
+    StopReacting();
+    ResetStateAfterReacting();
+}
+
+void Living::ResetStateAfterReacting() {
+    // Restore the previous state after finishing a reaction
+    SetTopState(static_cast<VILLAGER_STATES>(action.previous_state));
+}
 
 // ============================================================================
 // Reaction setup (vtable 0x9A4-0xA28)
@@ -390,7 +410,13 @@ uint32_t Living::NumGameTurnsToReactToBurningObjectFunction(GameThingWithPos*, u
 uint32_t Living::NumGameTurnsBeforeReactingAgainToBurningObjectFunction(GameThingWithPos*, uint32_t, float) { return 0; }
 uint32_t Living::NumGameTurnsToReactToShieldFunction(GameThingWithPos*, uint32_t, float) { return 0; }
 uint32_t Living::NumGameTurnsBeforeReactingToShieldAgainFunction(GameThingWithPos*, uint32_t, float) { return 0; }
-uint32_t Living::IsPosValidForMapCellExistance(const MapCoords*) { return 0; }
+uint32_t Living::IsPosValidForMapCellExistance(const MapCoords* pos) {
+    // Checks if the position is within the map bounds
+    if (!g_map || !pos) return 0;
+    uint32_t cell_x = static_cast<uint32_t>(pos->x) >> 16;
+    uint32_t cell_z = static_cast<uint32_t>(pos->z) >> 16;
+    return g_map->InBounds(cell_x, cell_z) ? 1 : 0;
+}
 
 // ============================================================================
 // Miscellaneous (vtable 0xAF0-0xB3C)

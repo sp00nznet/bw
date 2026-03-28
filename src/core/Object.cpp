@@ -8,7 +8,10 @@
 
 #include <black/Object.h>
 #include <black/ObjectInfo.h>
+#include <black/Map.h>
 #include <cmath>
+
+extern GMap* g_map;
 
 // ============================================================================
 // Orientation and scale (vtable 0x500-0x528)
@@ -166,7 +169,11 @@ void Object::RemoveMapObject() {}
 void Object::InsertMapObjectToCell(MapCell* /*cell*/) {}
 void Object::RemoveMapObjectFromCell(MapCell* /*cell*/) {}
 bool Object::IsObjectInMap_1(MapCell* /*cell*/) { return false; }
-bool Object::IsObjectInMapCheck() { return false; }
+
+bool Object::IsObjectInMapCheck() {
+    // Checks if the object is registered in the map
+    return IsObjectInMap_0();
+}
 int Object::MoveMapObject(const MapCoords& /*coords*/) { return 0; }
 void Object::ActualMoveMapObject(const MapCoords& /*coords*/) {}
 

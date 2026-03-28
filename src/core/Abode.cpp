@@ -243,9 +243,15 @@ uint32_t Abode::DestroyedByEffect(GPlayer* /*player*/, float /*param2*/) {
 }
 
 uint32_t Abode::Process() {
-    // Original at 0x00404440 — complex building process loop
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00404440 — abode per-tick update
+    // Delegates to building site if under construction
+    if (!IsBuilt()) {
+        return MultiMapFixed::Process();
+    }
+
+    // If functional, process normal abode tick
+    // TODO: villager food consumption, pregnancy timer, etc.
+    return 1;
 }
 
 int Abode::GetMesh() const {
