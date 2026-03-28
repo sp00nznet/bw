@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 3f79aec)
+## Current Stats (as of commit b5eeb26)
 - **598 headers** in `src/include/black/`
 - **249 .cpp files** in `src/core/`
 - **37,300+ lines** of C++ total
-- **141 commits**, all pushed to GitHub
+- **143 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 
 ## Architecture Patterns
@@ -155,11 +155,19 @@ Workshop/WorshipSite/Abode: Process delegation (building site when under constru
 Town: SetBeliefInPlayer, SetWorshipPercentage
 LHVM: RANDOM/RANDOM_ULONG/SQUARE_ROOT math implementations
 
+### Batch 41: Map operations, LHVM natives, Creature/Villager predicates
+SingleMapFixed/MultiMapFixed: InsertMapObject/RemoveMapObject (cell linked list management)
+Creature: IsCreature, GetCreatureBeliefType, CanBePickedUp, GetHoldType, GetPhysicsConstantsType
+Villager: 15 creature interaction predicates (eat/befriend/stroke/kiss/throw/etc.)
+LHVM: 25+ typed native function stubs (fire, poison, resource, leash, state queries)
+MultiMapFixed: ReduceLife (damage flag), RemoveDamage, GetResourcePos/NearestEdge
+WorshipSite: GetScriptObjectType, GetDistanceFromObject_1
+
 ## What's Next (priority order)
-1. **Method bodies** — translate remaining Ghidra decompilation (~1500 stubs)
+1. **Method bodies** — translate remaining Ghidra decompilation (~1400 stubs)
 2. **Villager state machine** — implement VillagerStates ProcessState dispatch
-3. **Map operations** — MultiMapFixed multi-cell insert/remove
-4. **LHVM native function bodies** — fill in ~400 remaining stubs as subsystems come online
+3. **Save/Load system** — binary format for entity serialization
+4. **LHVM native function bodies** — fill in ~375 remaining stubs as subsystems come online
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
