@@ -85,7 +85,11 @@ GCamera* GGame::GetCamera() {
 }
 
 GInterface* GGame::MyInterface() {
-    // Original at 0x00555850 — complex, gets current player's interface
+    // Original at 0x00555850 — returns the local player's interface
+    // In single player, this is always player 0's interface
+    if (players[0].type != PLAYER_TYPE_NONE) {
+        return players[0].GetRealInterface(0);
+    }
     return nullptr;
 }
 
