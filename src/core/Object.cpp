@@ -268,7 +268,10 @@ void Object::IncreaseLife(float value) {
     if (life > 1.0f) life = 1.0f;
 }
 float Object::GetSacrificeValue() { return 0.0f; }
-void Object::ReduceLifeDueToBurning(float, GPlayer*) {}
+void Object::ReduceLifeDueToBurning(float value, GPlayer* player) {
+    // Burning damage delegates to regular damage
+    ReduceLife(value, player);
+}
 void Object::FillInEffectDefenceMultiplier(EffectNumbers*) {}
 void Object::ApplyEffect(EffectValues*, int) {}
 float Object::GetDamageEffect(EffectValues*) { return 0.0f; }
@@ -316,7 +319,11 @@ float Object::GetWeight() { return 0.0f; }
 void Object::GetWorldMatrix(LHMatrix*) {}
 bool Object::CanBeSuckedIntoVortex(LandscapeVortex*) { return false; }
 uint32_t Object::GetDiscipleStateIfInteractedWith(GInterfaceStatus*, Villager*) { return 0; }
-MapCoords* Object::GetWorkingPos(MapCoords* out, Object*) { return out; }
+MapCoords* Object::GetWorkingPos(MapCoords* out, Object* /*relative_to*/) {
+    // Default: working position is the object's current position
+    *out = coords;
+    return out;
+}
 float Object::GetHeightForHandAboveInteractObject() { return 0.0f; }
 uint32_t Object::GetHandHelpMessageSet() { return 0; }
 uint32_t Object::GetHandHelpCondition() { return 0; }
@@ -455,7 +462,17 @@ uint32_t Object::GetPhysicsConstantsType() { return 0; }
 void Object::SetUpPhysOb(PhysOb*) {}
 void Object::EndPhysics(PhysicsObject*, bool) {}
 uint32_t Object::DropSfx() { return 0; }
-void Object::GetBoundingSphere(LHPoint*, float*) {}
+void Object::GetBoundingSphere(LHPoint* center, float* radius) {
+    // Returns the object's center and approximate radius
+    if (center) {
+        center->x = *reinterpret_cast<float*>(&coords.x);
+        center->y = coords.altitude;
+        center->z = *reinterpret_cast<float*>(&coords.z);
+    }
+    if (radius) {
+        *radius = scale > 0.0f ? scale : 1.0f;
+    }
+}
 bool Object::InteractsWithPhysicsObjects() { return false; }
 uint32_t Object::ChecksVerticesVObjects() { return 0; }
 void Object::ShouldPhysicsRaiseObjectUntilNotIntersectingThis(Object*) {}
