@@ -108,6 +108,76 @@ bool Villager::AmILikelyToMove() {
            state == VILLAGER_STATE_GOTO_WOOD_REACTION;
 }
 
+uint32_t Villager::GetScriptObjectType() {
+    // Original at 0x005c2d80 — villagers are script type 1
+    return 1;
+}
+
+HOLD_TYPE Villager::GetHoldType() {
+    // Original at 0x005c2e40 — villagers use hold type 7
+    return static_cast<HOLD_TYPE>(7);
+}
+
+float Villager::GetHoldLoweringMultiplier() {
+    // Original at 0x005c2650
+    return 0.65f;
+}
+
+uint32_t Villager::GetPhysicsConstantsType() {
+    // Original at 0x005c2660 — villagers use physics type 7
+    return 7;
+}
+
+bool32_t Villager::CanBeEatenByCreature(Creature* /*creature*/) {
+    // Original at 0x004e48a0 — villagers can be eaten if not dead
+    return !IsDead() ? 1 : 0;
+}
+
+bool32_t Villager::CanBeBefriendedByCreature(Creature* /*creature*/) {
+    // Original at 0x0055c9a0 — villagers can be befriended
+    return 1;
+}
+
+bool32_t Villager::CanBeStrokedByCreature(Creature* /*creature*/) {
+    // Original at 0x0055c9b0 — villagers can be stroked
+    return 1;
+}
+
+bool32_t Villager::CanBeKissedByCreature(Creature* /*creature*/) {
+    // Original at 0x0055c9c0 — villagers can be kissed
+    return 1;
+}
+
+bool32_t Villager::CanBeGivenToTown(Creature* /*creature*/) {
+    // Original at 0x0055c9d0 — villagers can be given to a town
+    return 1;
+}
+
+bool32_t Villager::CanBePutInFoodPile(Creature* /*creature*/) {
+    // Original at 0x0055c9e0 — villagers cannot be put in food pile
+    return 0;
+}
+
+bool32_t Villager::CanBePutInWoodPile(Creature* /*creature*/) {
+    // Original at 0x0055c9f0 — villagers cannot be put in wood pile
+    return 0;
+}
+
+bool32_t Villager::CanBeBroughtBackToCitadel(Creature* /*creature*/) {
+    // Original at 0x0055ca00 — villagers can be brought to citadel
+    return 1;
+}
+
+bool32_t Villager::CanBeThrownByCreature(Creature* /*creature*/) {
+    // Original at 0x0055ca10 — villagers can be thrown
+    return 1;
+}
+
+bool32_t Villager::CanBeGivenToVillager(Creature* /*creature*/) {
+    // Original at 0x0055ca20 — villagers can receive other villagers
+    return 0;
+}
+
 // ============================================================================
 // Non-virtual methods
 // ============================================================================

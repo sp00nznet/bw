@@ -62,8 +62,7 @@ uint32_t Rock::Save(GameOSFile* /*file*/) {
 
 uint32_t Rock::GetSaveType() {
     // Original at 0x00561380
-    // TODO: verify return value
-    return 0;
+    return 0x52;
 }
 
 // ============================================================================
@@ -110,9 +109,8 @@ bool32_t Rock::CanBeThrownByPlayer() {
 }
 
 uint32_t Rock::GetScriptObjectType() {
-    // Original at 0x006e79e0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006e79e0 — rocks are script type 3
+    return 3;
 }
 
 // ============================================================================
