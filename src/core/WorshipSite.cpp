@@ -3,6 +3,7 @@
 #include "../include/black/WorshipSite.h"
 #include "../include/black/BuildingSite.h"
 #include "../include/black/WorshipTotem.h"
+#include <cmath>
 
 // === Overrides of Base virtuals ===
 
@@ -61,7 +62,7 @@ float WorshipSite::CalculateDesireForRest() { return 0.0f; }
 // 0x0077c3d0
 float WorshipSite::CalculatePeopleHidingIndicator() { return 0.0f; }
 // 0x0077d2e0
-uint32_t WorshipSite::GetScriptObjectType() { return 0; }
+uint32_t WorshipSite::GetScriptObjectType() { return 0xe; }
 
 // === Overrides of Object virtuals ===
 
@@ -96,8 +97,13 @@ bool WorshipSite::DeleteObjectAndTakeResource(Object* /*object*/, GInterfaceStat
 float WorshipSite::GetRadiusMultiplierForApplyingPotToPos() { return 0.0f; }
 // 0x0077def0
 bool WorshipSite::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*status*/) { return false; }
-// 0x0077de20
-float WorshipSite::GetDistanceFromObject_1(Object* /*object*/) { return 0.0f; }
+// 0x0077de20 — distance from object to worship site center
+float WorshipSite::GetDistanceFromObject_1(Object* object) {
+    if (!object) return 0.0f;
+    float dx = static_cast<float>(coords.x - object->coords.x);
+    float dz = static_cast<float>(coords.z - object->coords.z);
+    return sqrtf(dx * dx + dz * dz);
+}
 // 0x0055dc60
 bool WorshipSite::InteractsWithPhysicsObjects() { return false; }
 // 0x0077ae30
@@ -114,7 +120,9 @@ void WorshipSite::GetNearestEdgeOfObject(Object* /*object*/) {}
 // === Overrides of MultiMapFixed virtuals ===
 
 // 0x0077e460
-void WorshipSite::GetResourceDropPosForComputerPlayer(MapCoords* /*coords*/) {}
+void WorshipSite::GetResourceDropPosForComputerPlayer(MapCoords* out) {
+    *out = coords;
+}
 // 0x0077bdd0 — checks if worship site is fully built
 bool WorshipSite::IsBuilt() {
     // WorshipSite overrides: check construction flag and percent_built

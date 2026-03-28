@@ -41,8 +41,8 @@ void Bonfire::PhysicsEditorCreate(int /*param1*/) {
 }
 
 uint32_t Bonfire::GetScriptObjectType() {
-    // Original at 0x00439a70 — complex
-    return 0;
+    // Original at 0x00439a70 — bonfire is a special rock type
+    return 3;
 }
 
 // ============================================================================
