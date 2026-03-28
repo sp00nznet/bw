@@ -12,6 +12,7 @@
 #include <black/Terrain.h>
 #include <black/EntityFactory.h>
 #include <black/Object.h>
+#include <black/LHVM.h>
 #include <black/types.h>
 
 namespace bw {
@@ -85,6 +86,44 @@ bool GameState::Init(const std::string& script_path) {
 
     // Spawn entities (creates both viewer and bw_core entities)
     SpawnEntitiesFromScript();
+
+    // Initialize LHVM scripting engine
+    vm = nullptr;
+    scripts_loaded = false;
+    if (use_bw_core) {
+        // Look for CHL file (compiled challenge script)
+        std::string chl_path = dir + "Quests/Challenge.chl";
+        FILE* test = fopen(chl_path.c_str(), "rb");
+        if (!test) {
+            // Try alternate location
+            chl_path = dir + "Scripts/Quests/Challenge.chl";
+            test = fopen(chl_path.c_str(), "rb");
+        }
+        if (test) {
+            fclose(test);
+            vm = static_cast<LHVM*>(calloc(1, sizeof(LHVM)));
+            if (vm) {
+                vm->InitNativeFunctions();
+                if (vm->LoadBinary(chl_path.c_str())) {
+                    scripts_loaded = true;
+                    printf("Game: Loaded CHL script: %s (%u instructions, %u scripts)\n",
+                           chl_path.c_str(), vm->instruction_count, vm->script_count);
+                    // Start auto-start scripts
+                    for (uint32_t i = 0; i < vm->auto_start_count; i++) {
+                        vm->StartScriptByID(vm->auto_start_scripts[i]);
+                    }
+                    printf("Game: Started %u auto-start scripts\n", vm->auto_start_count);
+                } else {
+                    printf("Game: Failed to load CHL: %s\n", chl_path.c_str());
+                    free(vm);
+                    vm = nullptr;
+                }
+            }
+        } else {
+            printf("Game: No CHL script found (tried %s)\n", chl_path.c_str());
+        }
+        fflush(stdout);
+    }
 
     // Init hand
     hand = {};
@@ -191,11 +230,14 @@ void GameState::ProcessTurn() {
     if (paused) return;
     game_turn++;
 
+    // === Phase 0: Tick LHVM scripts ===
+    if (scripts_loaded && vm) {
+        vm->ProcessTick();
+    }
+
     // === Phase 1: Run bw_core game logic ===
     if (use_bw_core) {
         // Tick bw_core entities — this runs the real game simulation
-        // TODO: call GGame::ProcessTurn() when GGame is fully initialized
-        // For now, tick individual entity Process() methods
         for (size_t i = 0; i < core_entities.size(); i++) {
             Object* obj = core_entities[i];
             if (!obj) continue;

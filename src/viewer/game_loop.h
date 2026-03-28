@@ -22,6 +22,7 @@
 
 // Forward-declare bw_core types
 struct Object;
+struct LHVM;
 
 namespace bw {
 
@@ -79,6 +80,10 @@ struct GameState {
     // bw_core Object* that handles game logic.
     std::vector<Object*>   core_entities;
     bool                   use_bw_core;
+
+    // LHVM scripting engine — executes CHL bytecode
+    LHVM*                  vm;
+    bool                   scripts_loaded;
 
     // Player hand
     HandState              hand;
