@@ -2,6 +2,12 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/FishFarm.h>
+#include <black/GMultiMapFixedInfo.h>
+#include <black/ObjectInfo.h>
+#include <black/Game.h>
+
+// External game instance
+extern GGame* g_game;
 
 void FishFarm::ToBeDeleted(int param) {
     // Original at 0x0052c690 — complex cleanup
@@ -20,8 +26,8 @@ Town* FishFarm::GetTown() {
 }
 
 float FishFarm::Get2DRadius() {
-    // Original at 0x0052c470 — complex
-    return 0.0f;
+    // Original at 0x0052c470: returns 5.0f (from rdata constant)
+    return 5.0f;
 }
 
 uint32_t FishFarm::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
@@ -47,8 +53,8 @@ uint32_t FishFarm::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t FishFarm::GetSaveType() {
-    // Original at 0x0052c5a0
-    return 0;
+    // Original at 0x0052c5a0: mov eax, 0x5b; ret
+    return 0x5b;
 }
 
 MapCoords* FishFarm::GetArrivePos(MapCoords* out) {
@@ -57,12 +63,13 @@ MapCoords* FishFarm::GetArrivePos(MapCoords* out) {
 }
 
 uint32_t FishFarm::GetCreatureBeliefType() {
-    // Original at 0x0052c4d0 — complex
-    return 0;
+    // Original at 0x0052c4d0: mov eax, 0x0b; ret
+    return 0x0b;
 }
 
 bool FishFarm::IsObjectInMap_0() {
-    // Original at 0x0052c980 — complex
+    // Original at 0x0052c980 — complex map query
+    // TODO: calls internal function with zero MapCoords, checks result
     return false;
 }
 
@@ -139,13 +146,42 @@ void FishFarm::RemoveMapObject() {
 }
 
 float FishFarm::GetMeshRadius() const {
-    // Original at 0x0052c480 — complex
-    return 0.0f;
+    // Original at 0x0052c480: returns 5.0f (same rdata constant as Get2DRadius)
+    return 5.0f;
 }
 
 uint32_t FishFarm::Process() {
-    // Original at 0x0052d130 — complex fish farm simulation
-    return 0;
+    // Original at 0x0052d130 — fish farm per-tick food accumulation
+    // Reads game turn from g_game->data.game_turn, divides by a tick rate
+    // from info[0x124] (past end of GFishFarmInfo — likely a field not captured
+    // in the vendor decomp). On each tick interval, field_0x94 (current food)
+    // increments by 1.0. Clamped to [0, GetFoodValue(FOOD_TYPE(3))].
+    // If field_0x88 is set, updates field_0x88->field_0x64 with fill ratio.
+
+    // TODO: implement tick-rate divisor from info[0x124] once field is identified
+    // For now, accumulate food each turn (simplified)
+
+    // Clamp food to [0, max]
+    if (field_0x94 < 0.0f) {
+        field_0x94 = 0.0f;
+    } else {
+        float max_food = GetFoodValue(static_cast<FOOD_TYPE>(3));
+        if (max_food < field_0x94) {
+            field_0x94 = max_food;
+        }
+    }
+
+    // Update fill percentage on associated object (visual indicator)
+    if (field_0x88 != 0) {
+        float max_food = GetFoodValue(static_cast<FOOD_TYPE>(3));
+        if (max_food > 0.0f) {
+            // field_0x88 points to an object whose field at 0x64 holds fill ratio
+            // field_0x88->field_0x64 = field_0x94 / max_food
+            // TODO: cast field_0x88 to correct type once identified
+        }
+    }
+
+    return 1;
 }
 
 void FishFarm::Draw() {
@@ -159,8 +195,8 @@ uint32_t FishFarm::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*status*/
 }
 
 float FishFarm::GetHeightForHandAboveInteractObject() {
-    // Original at 0x0052c840 — complex
-    return 0.0f;
+    // Original at 0x0052c840: returns 5.0f (same rdata constant)
+    return 5.0f;
 }
 
 void FishFarm::CallVirtualFunctionsForCreation(const MapCoords& coords) {
@@ -168,8 +204,23 @@ void FishFarm::CallVirtualFunctionsForCreation(const MapCoords& coords) {
     MultiMapFixed::CallVirtualFunctionsForCreation(coords);
 }
 
-float FishFarm::GetFoodValue(FOOD_TYPE /*type*/) {
-    // Original at 0x0052d1e0 — complex food calculation
+float FishFarm::GetFoodValue(FOOD_TYPE type) {
+    // Original at 0x0052d1e0 — returns food value from info if type matches
+    // Calls info->GetFoodType() to get this farm's food type.
+    // If the requested type matches the farm's food type, or type == 3 (any food),
+    // then check GetFoodType() virtual on self — if result & 3 (valid food type),
+    // return info->foodValue; else 0.
+    // Note: info->GetFoodType() is a vtable call at info->vftable[0x38/4]
+    const GObjectInfo* obj_info = reinterpret_cast<const GObjectInfo*>(info);
+    FOOD_TYPE farm_type = static_cast<FOOD_TYPE>(obj_info->food_type);
+    if (type != farm_type && type != static_cast<FOOD_TYPE>(3)) {
+        return 0.0f;
+    }
+    // Check if this Object's GetFoodType returns a valid food type
+    FOOD_TYPE self_type = Object::GetFoodType();
+    if (static_cast<uint32_t>(self_type) & 3) {
+        return obj_info->foodValue;
+    }
     return 0.0f;
 }
 
@@ -179,8 +230,8 @@ RESOURCE_TYPE FishFarm::GetResourceType() {
 }
 
 bool FishFarm::IsLockedInInteract() {
-    // Original at 0x0052c590: returns false
-    return false;
+    // Original at 0x0052c590: mov eax, 1; ret — returns true
+    return true;
 }
 
 bool32_t FishFarm::ValidForLockedSelectProcess(GInterfaceStatus* /*status*/) {

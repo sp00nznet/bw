@@ -79,9 +79,8 @@ Abode* Abode::CastAbode() {
 }
 
 uint16_t Abode::GetNumberOfInstanceForGlobalList() {
-    // Original at 0x00403f10 — complex
-    // TODO: implement properly
-    return 1;
+    // Original at 0x00403f10 — returns adult + child count
+    return static_cast<uint16_t>(adult_count + field_0xb7);
 }
 
 bool Abode::IsFunctional() {
@@ -198,9 +197,8 @@ bool32_t Abode::IsWonder() {
 }
 
 uint32_t Abode::GetScriptObjectType() {
-    // Original at 0x00406810 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00406810 — abodes are script type 5
+    return 5;
 }
 
 // ============================================================================
@@ -255,9 +253,10 @@ uint32_t Abode::Process() {
 }
 
 int Abode::GetMesh() const {
-    // Original at 0x00404aa0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00404aa0 — reads mesh from GAbodeInfo at offset 0x100
+    if (!info) return 0;
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x100);
 }
 
 void Abode::Draw() {
