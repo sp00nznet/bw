@@ -86,6 +86,82 @@ float Creature::GetHowMuchCreatureWantsToLookAtMe() {
 }
 
 // ============================================================================
+// ProcessState — creature AI state dispatch
+// ============================================================================
+
+uint32_t Creature::ProcessState() {
+    // Creatures have a more complex AI than villagers — desires, mental model,
+    // learning, and physical needs all drive behavior.
+    // For now, implement basic state handling.
+
+    action.turns_since_state_change++;
+
+    VILLAGER_STATES state = static_cast<VILLAGER_STATES>(action.top_state);
+
+    switch (state) {
+    case VILLAGER_STATE_INVALID_STATE:
+        // Idle — creature should decide what to do based on desires
+        // TODO: query CreatureMental for highest priority desire
+        break;
+
+    case VILLAGER_STATE_MOVE_TO_POS:
+    case VILLAGER_STATE_MOVE_TO_OBJECT:
+        // Moving toward a target — advance along path
+        // TODO: MobileWallHug movement step
+        break;
+
+    case VILLAGER_STATE_IN_SCRIPT:
+        // Controlled by LHVM script — don't interfere
+        break;
+
+    case VILLAGER_STATE_IN_HAND:
+        // Being held by the god hand
+        break;
+
+    case VILLAGER_STATE_FLYING:
+        // Thrown by hand — physics handles this
+        break;
+
+    case VILLAGER_STATE_LANDED:
+        // Just landed after being thrown — return to idle
+        SetTopState(VILLAGER_STATE_INVALID_STATE);
+        break;
+
+    case VILLAGER_STATE_SET_DYING:
+        SetTopState(VILLAGER_STATE_DYING);
+        break;
+
+    case VILLAGER_STATE_DYING:
+        if (action.turns_since_state_change > 120) {
+            SetTopState(VILLAGER_STATE_DEAD);
+        }
+        break;
+
+    case VILLAGER_STATE_DEAD:
+        if (action.turns_since_state_change > 600) {
+            ToBeDeleted(0);
+        }
+        break;
+
+    case VILLAGER_STATE_BEING_EATEN:
+        ReduceLife(0.02f, nullptr);
+        if (GetLife() <= 0.0f) {
+            SetTopState(VILLAGER_STATE_SET_DYING);
+        }
+        break;
+
+    default:
+        // Unhandled creature states — timeout to idle
+        if (action.turns_since_state_change > 300) {
+            SetTopState(VILLAGER_STATE_INVALID_STATE);
+        }
+        break;
+    }
+
+    return 1;
+}
+
+// ============================================================================
 // Overrides of Living/MobileWallHug virtuals
 // ============================================================================
 

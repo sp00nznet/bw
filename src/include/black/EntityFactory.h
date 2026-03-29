@@ -31,6 +31,7 @@ enum EntityCategory : uint32_t {
     ENTITY_CAT_MOBILE     = 5,
     ENTITY_CAT_BONFIRE    = 6,
     ENTITY_CAT_ROCK       = 7,
+    ENTITY_CAT_CREATURE   = 8,
 };
 
 namespace EntityFactory {
@@ -50,5 +51,8 @@ Object* CreateVillager(const EntityCreateParams& params);
 
 // Create a mobile static (rock, mushroom, etc.)
 Object* CreateMobileStatic(const EntityCreateParams& params);
+
+// Create a creature (player's avatar)
+Object* CreateCreature(const EntityCreateParams& params);
 
 } // namespace EntityFactory

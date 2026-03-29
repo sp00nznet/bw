@@ -71,6 +71,7 @@ struct Creature : public Living {
     uint32_t GetScriptObjectType() override;
 
     // === Overrides of Living/MobileWallHug virtuals ===
+    uint32_t ProcessState() override;
     MapCoords* GetDestPos() override;
     MapCoords* GetFinalDestPos(MapCoords* out) override;
 

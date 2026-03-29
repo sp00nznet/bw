@@ -11,6 +11,7 @@
 #include <black/MobileStatic.h>
 #include <black/Feature.h>
 #include <black/Animal.h>
+#include <black/Creature.h>
 #include <black/Terrain.h>
 #include <black/Map.h>
 #include <cstdlib>
@@ -42,6 +43,7 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
     case ENTITY_CAT_VILLAGER: return CreateVillager(params);
     case ENTITY_CAT_MOBILE:
     case ENTITY_CAT_ROCK:     return CreateMobileStatic(params);
+    case ENTITY_CAT_CREATURE: return CreateCreature(params);
     default: break;
     }
 
@@ -98,6 +100,23 @@ Object* CreateMobileStatic(const EntityCreateParams& params) {
     InitObjectFromParams(rock, params);
 
     return rock;
+}
+
+Object* CreateCreature(const EntityCreateParams& params) {
+    // Allocate using Creature::Create factory
+    MapCoords pos;
+    pos.x = static_cast<int32_t>(params.world_x * 65536.0f);
+    pos.z = static_cast<int32_t>(params.world_z * 65536.0f);
+    pos.altitude = GetTerrainHeightAt(params.world_x, params.world_z);
+
+    Creature* creature = Creature::Create(pos, nullptr, nullptr);
+    if (!creature) return nullptr;
+
+    creature->y_angle = params.angle;
+    creature->scale = params.scale > 0.0f ? params.scale : 5.0f; // Creatures are big
+    creature->life = 1.0f;
+
+    return creature;
 }
 
 } // namespace EntityFactory
