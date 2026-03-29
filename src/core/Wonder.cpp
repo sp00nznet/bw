@@ -26,12 +26,12 @@ uint32_t Wonder::Save(GameOSFile* /*file*/) {
 
 uint32_t Wonder::GetSaveType() {
     // Original at 0x00561200
-    return 0;
+    return 0x54;
 }
 
 MapCoords* Wonder::GetArrivePos(MapCoords* out) {
-    // Original at 0x005611b0 — complex
-    return out;
+    // Original at 0x005611b0 — delegates to door pos
+    return GetDoorPos(out);
 }
 
 bool32_t Wonder::CanActAsAContainer(Creature* /*creature*/) {

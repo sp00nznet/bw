@@ -88,6 +88,7 @@ uint32_t Town::GetCreatureBeliefListType() {
 
 Citadel* Town::GetCitadel() {
     // Original at 0x0073bc40 — complex citadel lookup
+    // TODO: traverse town structures to find associated citadel
     return nullptr;
 }
 
