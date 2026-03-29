@@ -24,15 +24,15 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 5b1f7b1)
+## Current Stats (as of commit 9da5b7e)
 - **600 headers** in `src/include/black/`
 - **251 .cpp files** in `src/core/`
-- **42,000+ lines** of C++ total (core + viewer)
-- **167 commits**, all pushed to GitHub
+- **42,200+ lines** of C++ total (core + viewer)
+- **176 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
-- **~1080 stubs remaining** (~350 are intentional base-class defaults)
+- **~1069 stubs remaining** (~350 intentional base-class defaults, ~719 real)
 - **bw_viewer links bw_core** — dual entity system with state sync
-- **LHVM: 464 typed natives / 465 total (100%)** — only NONE stub remaining
+- **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **CHL scripts load and execute** in the viewer game loop
 
 ## Architecture Patterns
