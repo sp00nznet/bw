@@ -24,17 +24,19 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 8d8f0cf)
+## Current Stats (as of commit 02b730a)
 - **600 headers** in `src/include/black/`
 - **251 .cpp files** in `src/core/`
-- **42,500+ lines** of C++ total (core + viewer)
-- **179 commits**, all pushed to GitHub
+- **42,800+ lines** of C++ total (core + viewer)
+- **187 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
-- **~1050 stubs remaining** (~350 intentional base-class defaults, ~700 real)
+- **~1052 stubs remaining** (~350 intentional base-class defaults, ~700 real)
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
-- **Villager state machine: IMPLEMENTED** — ProcessState with 25+ states
+- **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
 - **Creature AI: IMPLEMENTED** — ProcessState + EntityFactory spawning
+- **Movement system: IMPLEMENTED** — MobileWallHug goal-seeking + arrival
+- **Resource gathering loop: IMPLEMENTED** — food/wood pick → storage pit → deposit
 - **CHL scripts load and execute** in the viewer game loop
 
 ## Architecture Patterns
