@@ -22,7 +22,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**600 headers | 251 implementations | ~42,000 lines of C++ | 171 commits**
+**600 headers | 251 implementations | ~42,500 lines of C++ | 179 commits**
 
 **Entity hierarchy: 100% complete** — all 569 vendor types rebuilt as C++ with correct vtable layout, 500+ translated method bodies, and real game logic executing.
 
@@ -76,8 +76,8 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **Map cell system** — 512x512 grid, linked list per cell, insert/remove for all entity types
 - [x] **Belief system** — GBelief get/set with per-player cap clamping
 - [x] **Town simulation** — desire queries, food calculation, worship percentage, building site delegation
-- [ ] Villager state machine dispatch (VillagerStates ProcessState)
-- [ ] Creature spawning with AI
+- [x] **Villager state machine** — ProcessState dispatch with 25+ handled states (death, drowning, building, worship, food, home, reactions, AI decisions)
+- [x] **Creature AI** — ProcessState dispatch, EntityFactory::CreateCreature, basic desire-driven behavior
 - [ ] Save/Load binary format
 
 ### Phase 4: Full Game
