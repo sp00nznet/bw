@@ -50,8 +50,8 @@ bool32_t GStreetLantern::IsStreetLantern() {
 }
 
 uint32_t GStreetLantern::GetScriptObjectType() {
-    // Original at 0x00734d40 — complex
-    return 0;
+    // Original at 0x00734d40: mov eax, 8; ret
+    return 0x8;
 }
 
 // ============================================================================

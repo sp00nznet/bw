@@ -34,8 +34,8 @@ uint32_t Football::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Football::GetSaveType() {
-    // Original at 0x00531310
-    return 0;
+    // Original at 0x00531310: mov eax, 0x45; ret
+    return 0x45;
 }
 
 uint32_t Football::GetCreatureBeliefType() {
@@ -67,8 +67,8 @@ void Football::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 LH3DObject_ObjectType Football::Get3DType() {
-    // Original at 0x005312e0 — complex
-    return LH3D_OBJECT_TYPE_DEFAULT;
+    // Original at 0x005312e0: mov eax, 1; ret
+    return static_cast<LH3DObject_ObjectType>(1);
 }
 
 bool Football::InteractsWithPhysicsObjects() {

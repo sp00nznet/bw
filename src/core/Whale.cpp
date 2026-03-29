@@ -35,8 +35,8 @@ uint32_t Whale::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Whale::GetSaveType() {
-    // Original at 0x005612a0
-    return 0;
+    // Original at 0x005612a0: mov eax, 0x97; ret
+    return 0x97;
 }
 
 void Whale::ResolveLoad() {

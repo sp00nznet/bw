@@ -82,8 +82,8 @@ uint32_t CitadelHeart::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t CitadelHeart::GetSaveType() {
-    // Original at 0x00464ba0
-    return 0;
+    // Original at 0x00464ba0: mov eax, 0x3a; ret
+    return 0x3a;
 }
 
 void CitadelHeart::ResolveLoad() {
@@ -151,8 +151,8 @@ void CitadelHeart::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 LH3DObject_ObjectType CitadelHeart::Get3DType() {
-    // Original at 0x00464b40 — complex
-    return LH3D_OBJECT_TYPE_DEFAULT;
+    // Original at 0x00464b40: mov eax, 8; ret
+    return static_cast<LH3DObject_ObjectType>(8);
 }
 
 uint32_t CitadelHeart::GetPhysicsConstantsType() {
@@ -198,8 +198,8 @@ size_t CitadelHeart::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*
 }
 
 bool CitadelHeart::ShouldFootpathsGoRound() {
-    // Original at 0x00464b70: returns true
-    return true;
+    // Original at 0x00464b70: xor eax, eax; ret
+    return false;
 }
 
 // ============================================================================
@@ -217,8 +217,8 @@ bool CitadelHeart::Built() {
 }
 
 ABODE_TYPE CitadelHeart::GetAbodeType() {
-    // Original at 0x00464b60 — complex
-    return ABODE_TYPE_NONE;
+    // Original at 0x00464b60: mov eax, 0x804; ret
+    return static_cast<ABODE_TYPE>(0x804);
 }
 
 PlannedMultiMapFixed* CitadelHeart::ConvertToPlanned() {

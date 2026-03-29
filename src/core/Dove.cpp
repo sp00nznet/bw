@@ -57,8 +57,8 @@ float Dove::GetHowMuchCreatureWantsToLookAtMe() {
 }
 
 uint32_t Dove::GetScriptObjectType() {
-    // Original at 0x0041eaa0 — complex
-    return 0;
+    // Original at 0x0041eaa0: mov eax, 0x15; ret
+    return 0x15;
 }
 
 // ============================================================================
@@ -100,8 +100,8 @@ uint32_t SpellDove::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t SpellDove::GetSaveType() {
-    // Original at 0x0041eb40
-    return 0;
+    // Original at 0x0041eb40: mov eax, 0x90; ret
+    return 0x90;
 }
 
 bool SpellDove::SetDying() {

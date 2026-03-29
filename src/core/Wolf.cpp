@@ -33,8 +33,8 @@ uint32_t SpellWolf::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t SpellWolf::GetSaveType() {
-    // Original at 0x004208c0
-    return 0;
+    // Original at 0x004208c0: mov eax, 0x8d; ret
+    return 0x8d;
 }
 
 void SpellWolf::Draw() {

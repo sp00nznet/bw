@@ -44,9 +44,8 @@ uint32_t Totem::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Totem::GetSaveType() {
-    // Original at 0x00561560
-    // TODO: verify return value from Ghidra
-    return 0;
+    // Original at 0x00561560: mov eax, 0x2b; ret
+    return 0x2b;
 }
 
 // ============================================================================
@@ -59,15 +58,13 @@ bool32_t Totem::IsCastShadowAtNight() {
 }
 
 bool32_t Totem::CanBePlayedWithByCreature(Creature* /*creature*/) {
-    // Original at 0x00561510: small method (~16 bytes)
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x00561510: mov eax, 1; ret 4
+    return 1;
 }
 
 bool32_t Totem::CanBeImpressedByCreature(Creature* /*creature*/) {
-    // Original at 0x00561500: small method (~16 bytes)
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x00561500: mov eax, 1; ret 4
+    return 1;
 }
 
 bool32_t Totem::DoesTotemBelongToATownWhichIsVeryImpressedIndeed(Creature* /*creature*/) {
@@ -128,7 +125,6 @@ bool32_t Totem::NetworkFriendlyEndLockedSelect(GInterfaceStatus* /*status*/) {
 }
 
 bool32_t Totem::IsEffectReceiver(EffectValues* /*param1*/) {
-    // Original at 0x00561520: small method (~16 bytes)
-    // TODO: verify from decompiled code
+    // Original at 0x00561520: xor eax, eax; ret 4
     return 0;
 }
