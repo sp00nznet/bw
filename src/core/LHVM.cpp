@@ -1578,6 +1578,14 @@ static void Native_GET_SACRIFICE_TOTAL2(LHVM* vm) { vm->PopObject(); vm->PushFlo
 static void Native_GAME_ADD_FOR_BUILDING2(LHVM* vm) { vm->PopFloat(); vm->PopObject(); }
 static void Native_GET_TIME_SINCE_ATTACKED(LHVM* vm) { vm->PopObject(); vm->PushFloat(999.0f); }
 
+// --- Missing function definitions (final batch) ---
+static void Native_SET_GAME_TIME_PROPERTIES(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); }
+static void Native_RESET_GAME_TIME_PROPERTIES(LHVM* /*vm*/) {}
+static void Native_SET_INTERFACE_CITADEL(LHVM* vm) { vm->PopBoolean(); }
+static void Native_SET_LAND_BALANCE(LHVM* vm) { vm->PopFloat(); vm->PopInt(); }
+static void Native_GET_FIRST_IN_CONTAINER(LHVM* vm) { vm->PopObject(); vm->PushObject(0); }
+static void Native_GET_NEXT_IN_CONTAINER(LHVM* vm) { vm->PopObject(); vm->PopObject(); vm->PushObject(0); }
+
 // --- Help system ---
 static void Native_HELP_SYSTEM_ON(LHVM* vm) {
     vm->PushBoolean(true);
@@ -1933,7 +1941,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SET_INTRO_BUILDING,            "SET_INTRO_BUILDING",            Native_SET_INTRO_BUILDING);
     RegisterNativeFunction(NATIVE_CREATURE_FORCE_FRIENDS,        "CREATURE_FORCE_FRIENDS",        Native_CREATURE_FORCE_FRIENDS);
     RegisterNativeFunction(NATIVE_MOVE_COMPUTER_PLAYER_POSITION, "MOVE_COMPUTER_PLAYER_POSITION", Native_MOVE_COMPUTER_PLAYER_POSITION);
-    RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_311, "ENABLE_DISABLE_COMPUTER_PLAYER", NativeStub);
+    RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_311, "ENABLE_DISABLE_COMPUTER_PLAYER", Native_ENABLE_DISABLE_COMPUTER_PLAYER);
     RegisterNativeFunction(NATIVE_GET_COMPUTER_PLAYER_POSITION,  "GET_COMPUTER_PLAYER_POSITION",  Native_GET_COMPUTER_PLAYER_POSITION);
     RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_POSITION,  "SET_COMPUTER_PLAYER_POSITION",  Native_SET_COMPUTER_PLAYER_POSITION);
     RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_POSITION,    "GET_STORED_CAMERA_POSITION",    Native_GET_STORED_CAMERA_POSITION);
@@ -1967,7 +1975,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_IS_LOCKED_INTERACTION,         "IS_LOCKED_INTERACTION",         Native_IS_LOCKED_INTERACTION);
     RegisterNativeFunction(NATIVE_SET_CREATURE_NAME,             "SET_CREATURE_NAME",             Native_SET_CREATURE_NAME);
     RegisterNativeFunction(NATIVE_COMPUTER_PLAYER_READY,         "COMPUTER_PLAYER_READY",         Native_COMPUTER_PLAYER_READY);
-    RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_345, "ENABLE_DISABLE_COMPUTER_PLAYER", NativeStub);
+    RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_345, "ENABLE_DISABLE_COMPUTER_PLAYER", Native_ENABLE_DISABLE_COMPUTER_PLAYER);
     RegisterNativeFunction(NATIVE_CLEAR_ACTOR_MIND,              "CLEAR_ACTOR_MIND",              Native_CLEAR_ACTOR_MIND);
     RegisterNativeFunction(NATIVE_ENTER_EXIT_CITADEL,            "ENTER_EXIT_CITADEL",            Native_ENTER_EXIT_CITADEL);
     RegisterNativeFunction(NATIVE_START_ANGLE_SOUND_348,         "START_ANGLE_SOUND",             Native_START_ANGLE_SOUND);
@@ -2024,19 +2032,19 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SET_PLAYER_WIND_RESISTANCE,    "SET_PLAYER_WIND_RESISTANCE",    Native_SET_PLAYER_WIND_RESISTANCE);
     RegisterNativeFunction(NATIVE_GET_PLAYER_WIND_RESISTANCE,    "GET_PLAYER_WIND_RESISTANCE",    Native_GET_PLAYER_WIND_RESISTANCE);
     RegisterNativeFunction(NATIVE_PAUSE_UNPAUSE_CLIMATE_SYSTEM,  "PAUSE_UNPAUSE_CLIMATE_SYSTEM",  Native_PAUSE_UNPAUSE_CLIMATE_SYSTEM);
-    RegisterNativeFunction(NATIVE_PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM, "PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM", NativeStub);
+    RegisterNativeFunction(NATIVE_PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM, "PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM", Native_PAUSE_UNPAUSE_STORM_CREATION);
     RegisterNativeFunction(NATIVE_GET_MANA_FOR_SPELL,            "GET_MANA_FOR_SPELL",            Native_GET_MANA_FOR_SPELL);
     RegisterNativeFunction(NATIVE_KILL_STORMS_IN_AREA,           "KILL_STORMS_IN_AREA",           Native_KILL_STORMS_IN_AREA);
     RegisterNativeFunction(NATIVE_INSIDE_TEMPLE,                 "INSIDE_TEMPLE",                 Native_INSIDE_TEMPLE);
     RegisterNativeFunction(NATIVE_RESTART_OBJECT,                "RESTART_OBJECT",                Native_RESTART_OBJECT);
-    RegisterNativeFunction(NATIVE_SET_GAME_TIME_PROPERTIES,      "SET_GAME_TIME_PROPERTIES",      NativeStub);
-    RegisterNativeFunction(NATIVE_RESET_GAME_TIME_PROPERTIES,    "RESET_GAME_TIME_PROPERTIES",    NativeStub);
+    RegisterNativeFunction(NATIVE_SET_GAME_TIME_PROPERTIES,      "SET_GAME_TIME_PROPERTIES",      Native_SET_GAME_TIME_PROPERTIES);
+    RegisterNativeFunction(NATIVE_RESET_GAME_TIME_PROPERTIES,    "RESET_GAME_TIME_PROPERTIES",    Native_RESET_GAME_TIME_PROPERTIES);
     RegisterNativeFunction(NATIVE_SOUND_EXISTS,                  "SOUND_EXISTS",                  Native_SOUND_EXISTS);
     RegisterNativeFunction(NATIVE_GET_TOWN_WORSHIP_DEATHS,       "GET_TOWN_WORSHIP_DEATHS",       Native_GET_TOWN_WORSHIP_DEATHS);
     RegisterNativeFunction(NATIVE_GAME_CLEAR_DIALOGUE,           "GAME_CLEAR_DIALOGUE",           Native_GAME_CLEAR_DIALOGUE);
     RegisterNativeFunction(NATIVE_GAME_CLOSE_DIALOGUE,           "GAME_CLOSE_DIALOGUE",           Native_GAME_CLOSE_DIALOGUE);
     RegisterNativeFunction(NATIVE_GET_HAND_STATE,                "GET_HAND_STATE",                Native_GET_HAND_STATE);
-    RegisterNativeFunction(NATIVE_SET_INTERFACE_CITADEL,         "SET_INTERFACE_CITADEL",         NativeStub);
+    RegisterNativeFunction(NATIVE_SET_INTERFACE_CITADEL,         "SET_INTERFACE_CITADEL",         Native_SET_INTERFACE_CITADEL);
     RegisterNativeFunction(NATIVE_MAP_SCRIPT_FUNCTION,           "MAP_SCRIPT_FUNCTION",           Native_MAP_SCRIPT_FUNCTION);
     RegisterNativeFunction(NATIVE_WITHIN_ROTATION,               "WITHIN_ROTATION",               Native_WITHIN_ROTATION);
     RegisterNativeFunction(NATIVE_GET_PLAYER_TOWN_TOTAL,         "GET_PLAYER_TOWN_TOTAL",         Native_GET_PLAYER_TOWN_TOTAL);
@@ -2049,7 +2057,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_STOP_SOUND_EFFECT,             "STOP_SOUND_EFFECT",             Native_STOP_SOUND_EFFECT);
     RegisterNativeFunction(NATIVE_GET_TOTEM_STATUE,              "GET_TOTEM_STATUE",              Native_GET_TOTEM_STATUE);
     RegisterNativeFunction(NATIVE_SET_SET_ON_FIRE,               "SET_SET_ON_FIRE",               Native_SET_SET_ON_FIRE);
-    RegisterNativeFunction(NATIVE_SET_LAND_BALANCE,              "SET_LAND_BALANCE",              NativeStub);
+    RegisterNativeFunction(NATIVE_SET_LAND_BALANCE,              "SET_LAND_BALANCE",              Native_SET_LAND_BALANCE);
     RegisterNativeFunction(NATIVE_SET_OBJECT_BELIEF_SCALE,       "SET_OBJECT_BELIEF_SCALE",       Native_SET_OBJECT_BELIEF_SCALE);
     RegisterNativeFunction(NATIVE_START_IMMERSION,               "START_IMMERSION",               Native_START_IMMERSION);
     RegisterNativeFunction(NATIVE_STOP_IMMERSION,                "STOP_IMMERSION",                Native_STOP_IMMERSION);
@@ -2064,21 +2072,21 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SAVE_GAME_IN_SLOT,             "SAVE_GAME_IN_SLOT",             Native_SAVE_GAME_IN_SLOT);
     RegisterNativeFunction(NATIVE_SET_OBJECT_CARRYING,           "SET_OBJECT_CARRYING",           Native_SET_OBJECT_CARRYING);
     RegisterNativeFunction(NATIVE_POS_VALID_FOR_CREATURE,        "POS_VALID_FOR_CREATURE",        Native_POS_VALID_FOR_CREATURE);
-    RegisterNativeFunction(NATIVE_GET_TIME_SINCE_OBJECT_ATTACKED, "GET_TIME_SINCE_OBJECT_ATTACKED", NativeStub);
-    RegisterNativeFunction(NATIVE_GET_TOWN_AND_VILLAGER_HEALTH_TOTAL, "GET_TOWN_AND_VILLAGER_HEALTH_TOTAL", NativeStub);
-    RegisterNativeFunction(NATIVE_GAME_ADD_FOR_BUILDING,         "GAME_ADD_FOR_BUILDING",         NativeStub);
+    RegisterNativeFunction(NATIVE_GET_TIME_SINCE_OBJECT_ATTACKED, "GET_TIME_SINCE_OBJECT_ATTACKED", Native_GET_TIME_SINCE_ATTACKED);
+    RegisterNativeFunction(NATIVE_GET_TOWN_AND_VILLAGER_HEALTH_TOTAL, "GET_TOWN_AND_VILLAGER_HEALTH_TOTAL", Native_GET_TOWN_AND_VILLAGER_HEALTH);
+    RegisterNativeFunction(NATIVE_GAME_ADD_FOR_BUILDING,         "GAME_ADD_FOR_BUILDING",         Native_GAME_ADD_FOR_BUILDING2);
     RegisterNativeFunction(NATIVE_ENABLE_DISABLE_ALIGNMENT_MUSIC, "ENABLE_DISABLE_ALIGNMENT_MUSIC", Native_ENABLE_DISABLE_ALIGNMENT_MUSIC);
     RegisterNativeFunction(NATIVE_GET_DEAD_LIVING,               "GET_DEAD_LIVING",               Native_GET_DEAD_LIVING);
     RegisterNativeFunction(NATIVE_ATTACH_SOUND_TAG,              "ATTACH_SOUND_TAG",              Native_ATTACH_SOUND_TAG);
     RegisterNativeFunction(NATIVE_DETACH_SOUND_TAG,              "DETACH_SOUND_TAG",              Native_DETACH_SOUND_TAG);
-    RegisterNativeFunction(NATIVE_GET_SACRIFICE_TOTAL,           "GET_SACRIFICE_TOTAL",           NativeStub);
+    RegisterNativeFunction(NATIVE_GET_SACRIFICE_TOTAL,           "GET_SACRIFICE_TOTAL",           Native_GET_SACRIFICE_TOTAL2);
     RegisterNativeFunction(NATIVE_GAME_SOUND_PLAYING,            "GAME_SOUND_PLAYING",            Native_GAME_SOUND_PLAYING);
     RegisterNativeFunction(NATIVE_GET_TEMPLE_POSITION,           "GET_TEMPLE_POSITION",           Native_GET_TEMPLE_POSITION);
     RegisterNativeFunction(NATIVE_CREATURE_AUTOSCALE,            "CREATURE_AUTOSCALE",            Native_CREATURE_AUTOSCALE);
     RegisterNativeFunction(NATIVE_GET_SPELL_ICON_IN_TEMPLE,      "GET_SPELL_ICON_IN_TEMPLE",      Native_GET_SPELL_ICON_IN_TEMPLE);
     RegisterNativeFunction(NATIVE_GAME_CLEAR_COMPUTER_PLAYER_ACTIONS, "GAME_CLEAR_COMPUTER_PLAYER_ACTIONS", Native_GAME_CLEAR_COMPUTER_PLAYER_ACTIONS);
-    RegisterNativeFunction(NATIVE_GET_FIRST_IN_CONTAINER,        "GET_FIRST_IN_CONTAINER",        NativeStub);
-    RegisterNativeFunction(NATIVE_GET_NEXT_IN_CONTAINER,         "GET_NEXT_IN_CONTAINER",         NativeStub);
+    RegisterNativeFunction(NATIVE_GET_FIRST_IN_CONTAINER,        "GET_FIRST_IN_CONTAINER",        Native_GET_FIRST_IN_CONTAINER);
+    RegisterNativeFunction(NATIVE_GET_NEXT_IN_CONTAINER,         "GET_NEXT_IN_CONTAINER",         Native_GET_NEXT_IN_CONTAINER);
     RegisterNativeFunction(NATIVE_GET_TEMPLE_ENTRANCE_POSITION,  "GET_TEMPLE_ENTRANCE_POSITION",  Native_GET_TEMPLE_ENTRANCE_POSITION);
     RegisterNativeFunction(NATIVE_SAY_SOUND_EFFECT_PLAYING,      "SAY_SOUND_EFFECT_PLAYING",      Native_SAY_SOUND_EFFECT_PLAYING);
     RegisterNativeFunction(NATIVE_SET_HAND_DEMO_KEYS,            "SET_HAND_DEMO_KEYS",            Native_SET_HAND_DEMO_KEYS);
