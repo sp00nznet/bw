@@ -11,19 +11,17 @@ TownStats::~TownStats() {}
 // === Non-virtual methods ===
 
 // 0x007493c0 — Remove villager from town stats
-// Checks if villager is a child (vtable 0xaf8 = IsChild), decrements num_children or num_adults
+// Calls IsChild virtual (vtable 0xaf8). If child: dec num_children + dec housed children
+// If adult: dec num_adults. Then updates tribe counts and resource accounting.
 void TownStats::Remove(Villager* villager) {
     if (!villager) return;
-    // Original checks IsChild virtual at offset 0xaf8 in vtable
-    // For now, use home as proxy: if villager has an abode, decrement housed count
-    Abode* abode = villager->GetHome();
-    if (abode) {
-        num_children--;
-    } else {
-        num_adults--;
-    }
-    // NOTE: The original also does complex resource accounting (field_0x54 tribe arrays,
-    // field_0xe4 food subtraction, resource_held tallying). Left as simplified for now.
+    // Original calls vtable[0xaf8] which is IsChild() on the Living hierarchy
+    // If IsChild returns true: dec num_children (0x0c), else: dec num_adults (0x08)
+    // For now, always decrement num_adults (children are less common)
+    // TODO: check villager IsChild status to choose correct counter
+    num_adults--;
+    // NOTE: The original also decrements tribe-specific counts (field_0x5c array),
+    // subtracts carried resources from field_0xe4, and does further accounting.
 }
 
 // 0x00749490 — Transition child villager to adult in stats

@@ -7,6 +7,7 @@
 // resources, and player interaction.
 
 #include <black/Town.h>
+#include <black/Abode.h>
 #include <black/StoragePit.h>
 #include <black/Player.h>
 #include <black/Villager.h>
@@ -38,7 +39,10 @@ void Town::SetVillagerActivity(Villager* /*villager*/) {
 }
 
 float Town::GetRadius() {
-    // Original at 0x0073d6e0 — returns the town's influence radius
+    // Original at 0x0073d6e0 — computes radius from MapCoords bounding box
+    // Calculates max(abs(field_0x728.x - field_0x734.x), abs(field_0x728.z - field_0x734.z))
+    // with float conversion and scaling. Complex math involving field_0x728 and field_0x734.
+    // TODO: translate full implementation
     return influence;
 }
 
@@ -201,17 +205,70 @@ bool Town::CheckForClearArea(MapCoords& /*p1*/, float /*p2*/,
 // Non-virtual methods
 // ============================================================================
 
-void Town::AddStructureToTown(MultiMapFixed* /*structure*/) {
-    // Original at 0x007399a0 — complex
+void Town::AddStructureToTown(MultiMapFixed* structure) {
+    // Original at 0x007399a0 — translated from x86 assembly
+    // Step 1: dynamic_cast structure to Abode*
+    // If it's an Abode, prepend to abode_list linked list
+    // Abode has a link field at offset 0x9c used for the town's abode list
+    // abode->link_next = abode_list.head; abode_list.head = abode; abode_list.count++
+    // TODO: implement dynamic_cast and abode list insertion
+
+    // Step 2: If field_0x990 (forest system) is set, notify it of new structure
+    // TODO: forest notification
+
+    // Step 3: Call structure->SetTown(this) via vtable[0x8f0]
+    // TODO: structure->SetTown(this);
+
+    // Step 4: Add abode stats
+    AddAbodeToTownStats(reinterpret_cast<Abode*>(structure));
 }
 
 void Town::AddAbodeToTownStats(Abode* /*abode*/) {
     // Original at 0x00739a20 — complex
 }
 
-bool Town::AddVillagerToTown(Villager* /*villager*/) {
-    // Original at 0x0073a090 — complex
-    return false;
+bool Town::AddVillagerToTown(Villager* villager) {
+    // Original at 0x0073a090 — translated from x86 assembly
+    if (!villager) return false;
+
+    // If field_0x5f4 is set, town is locked — reject
+    if (field_0x5f4 != 0) return false;
+
+    // Add to town stats (calls TownStats::Add at 0x007492e0)
+    // This increments num_adults or num_children depending on IsChild status
+    // Simplified: increment num_adults (original checks villager child status)
+    stats.num_adults++;
+
+    // Set town reference on villager
+    // TODO: villager->SetTown(this);
+
+    // Check if villager's current abode belongs to a different town
+    Abode* abode = villager->GetHome();
+    if (abode) {
+        if (abode->GetTown() != this) {
+            // Remove from foreign abode
+            // TODO: abode->RemoveAliveVillagerFromAbode(villager);
+            villager->SetHome(nullptr);
+            abode = nullptr;
+        }
+    }
+
+    if (!abode) {
+        // Try to find a home in this town
+        Abode* found = FindAbodeWithSpaceInTown(villager, 0.0f);
+        if (found) {
+            // TODO: found->AddVillagerToAbode(villager);
+            return true;
+        }
+        // No space — make homeless
+        // TODO: villager->MakeHomelessNoStateChange();
+    }
+
+    // If this is the first villager (total pop == 1), initialize town position
+    // Original checks stats.num_adults + stats.num_children == 1
+    // TODO: if (stats.num_adults + stats.num_children == 1) { /* init town center pos */ }
+
+    return true;
 }
 
 PlannedMultiMapFixed* Town::GetBestPlanned(float& /*score*/, ABODE_TYPE /*type*/) {
@@ -263,7 +320,7 @@ bool32_t Town::IsVillagerInHomelessList(Villager* villager) {
     Villager* curr = static_cast<Villager*>(homeless_list.first);
     while (curr) {
         if (curr == villager) return 1;
-        curr = static_cast<Villager*>(curr->next);
+        curr = curr->next_villager;
     }
     return 0;
 }
@@ -372,8 +429,57 @@ TotemStatue* Town::GetTotemStatue() {
     return nullptr;
 }
 
-void Town::RemoveVillager(Villager* /*villager*/) {
-    // Original at 0x0073e210 — complex
+void Town::RemoveVillager(Villager* villager) {
+    // Original at 0x0073e210 — translated from x86 assembly
+    if (!villager) return;
+
+    // Step 1: Orphan any children of this villager
+    // TODO: villager->FindChildrenAndOrphanThem();
+
+    // Step 2: Get abode and remove from stats
+    Abode* abode = villager->GetHome();
+    stats.Remove(villager);
+
+    // Step 3: Remove from abode or homeless list
+    if (abode) {
+        // TODO: abode->RemoveAliveVillagerFromAbode(villager);
+        villager->SetHome(nullptr);
+    } else {
+        // Remove from homeless linked list
+        if (IsVillagerInHomelessList(villager)) {
+            // Walk the singly-linked list (next_villager at offset 0xE4)
+            Villager* head = static_cast<Villager*>(homeless_list.first);
+            if (head == villager) {
+                // Removing head of list
+                homeless_list.first = villager->next_villager;
+            } else if (head) {
+                // Walk list to find predecessor
+                Villager* prev = head;
+                while (prev) {
+                    if (prev->next_villager == villager) {
+                        prev->next_villager = villager->next_villager;
+                        break;
+                    }
+                    prev = prev->next_villager;
+                }
+            }
+            // Decrement homeless count — asm does dec [edi+0x76c] which is homeless_list.last used as count
+            reinterpret_cast<uint32_t&>(homeless_list.last)--;
+            villager->next_villager = nullptr;
+        }
+    }
+
+    // Step 4: Remove from worship site tracking
+    RemoveVillagerOnWayToWorshipSite(villager);
+
+    // Step 5: Remove from worship site if worshipping (bit 1 of field_0xe0)
+    // TODO: if (villager->field_0xe0 & 0x02) villager->RemoveVillagerFromWorshipSite();
+
+    // Step 6: Clear town reference on villager
+    // TODO: villager->SetTown(nullptr);
+
+    // Step 7: If population is now 0, handle empty town
+    // TODO: if (stats.num_adults + stats.num_children == 0) { /* handle town depopulation */ }
 }
 
 void Town::RemoveVillagerOnWayToWorshipSite(Villager* /*villager*/) {
