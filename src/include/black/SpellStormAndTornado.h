@@ -15,5 +15,8 @@ struct SpellStormAndTornado : public Spell {
     float Get2DRadius() override;
     char* GetDebugText() override;
     uint32_t GetSaveType() override;
+
+    // === Overrides of Spell virtuals ===
+    bool IsSpellStormAndTornado() override;
 };
 static_assert(sizeof(SpellStormAndTornado) == 0xEC, "SpellStormAndTornado size mismatch");

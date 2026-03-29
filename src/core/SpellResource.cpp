@@ -20,8 +20,8 @@ uint32_t SpellResource::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t SpellResource::GetSaveType() {
-    // Original at 0x0055cfb0
-    return 0;
+    // Original at 0x0055cfb0: mov eax, 0x0a
+    return 0x0a;
 }
 
 void SpellResource::HasEnoughChantsAndLifeForRecast() {

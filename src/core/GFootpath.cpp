@@ -25,6 +25,6 @@ uint32_t GFootpath::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t GFootpath::GetSaveType() {
-    // Original at 0x00534de0
-    return 0;
+    // Original at 0x00534de0: mov eax, 0x01
+    return 0x01;
 }

@@ -25,6 +25,11 @@ char* SpellStormAndTornado::GetDebugText() {
 }
 
 uint32_t SpellStormAndTornado::GetSaveType() {
-    // Original at 0x0072d970
-    return 0;
+    // Original at 0x0072d970: mov eax, 0x10
+    return 0x10;
+}
+
+bool SpellStormAndTornado::IsSpellStormAndTornado() {
+    // Mac 1052e090 — returns true for this spell type
+    return true;
 }

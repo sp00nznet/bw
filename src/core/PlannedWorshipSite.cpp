@@ -20,6 +20,6 @@ uint32_t PlannedWorshipSite::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t PlannedWorshipSite::GetSaveType() {
-    // Original at 0x0077bef0
-    return 0;
+    // Original at 0x0077bef0: mov eax, 0x3b
+    return 0x3b;
 }

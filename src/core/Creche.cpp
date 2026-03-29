@@ -15,13 +15,13 @@ char* Creche::GetDebugText() {
 }
 
 uint32_t Creche::GetSaveType() {
-    // Original at 0x0050a9e0
-    return 0;
+    // Original at 0x0050a9e0: mov eax, 0x50
+    return 0x50;
 }
 
 MapCoords* Creche::GetArrivePos(MapCoords* out) {
-    // Original at 0x0050a990 — complex
-    return out;
+    // Original at 0x0050a990 — calls GetDoorPos (same as Abode::GetArrivePos)
+    return GetDoorPos(out);
 }
 
 bool32_t Creche::CanActAsAContainer(Creature* /*creature*/) {

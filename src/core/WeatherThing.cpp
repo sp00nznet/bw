@@ -48,8 +48,8 @@ const char* WeatherThing::GetText() {
 }
 
 uint32_t WeatherThing::GetScriptObjectType() {
-    // Original at 0x00774360 — complex
-    return 0;
+    // Original at 0x00774360: mov eax, 0x0f
+    return 0x0f;
 }
 
 void WeatherThing::SetAffectedByWind(int /*param1*/) {
