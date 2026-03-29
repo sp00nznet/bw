@@ -22,11 +22,11 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**600 headers | 251 implementations | ~42,000 lines of C++ | 168 commits**
+**600 headers | 251 implementations | ~42,000 lines of C++ | 171 commits**
 
 **Entity hierarchy: 100% complete** — all 569 vendor types rebuilt as C++ with correct vtable layout, 500+ translated method bodies, and real game logic executing.
 
-**LHVM scripting: 74% native coverage** — 343 of 465 native functions have typed implementations. CHL bytecode scripts load and execute in the game loop.
+**LHVM scripting: 100% native coverage** — all 464 of 465 native functions have typed implementations (only NONE/index-0 is a no-op stub). CHL bytecode scripts load and execute with zero stack corruption risk.
 
 **bw_core/bw_viewer bridge: operational** — the viewer creates real bw_core entity instances (Object, Tree, Abode, Villager) alongside rendering entities, with bidirectional state synchronization every frame.
 
@@ -68,7 +68,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **Throw physics** — gravity, ground collision, bounce damping
 - [x] **Camera system** — spherical orbit, WASD pan, GCamera update loop with math
 - [x] **LHVM scripting engine** — CHL bytecode loader + 31-opcode stack VM + task management
-- [x] **LHVM native functions** — 343/465 typed (74%) — camera, creature AI, spells, movement, flock, music, timer, weather, influence, leash, spirit, effects
+- [x] **LHVM native functions** — 464/465 typed (100%) — camera, creature AI, spells, movement, flock, music, timer, weather, influence, leash, spirit, effects, computer player, fight queue, rewards, temple
 - [x] **CHL script execution** — Challenge.chl loads on startup, auto-start scripts run each frame
 - [x] **GGame::ProcessTurn** — game loop calls subsystems (players, entities, creatures, scripting, camera, dead list)
 - [x] **bw_core/viewer bridge** — terrain height service, entity factory, dual entity system with state sync
@@ -82,7 +82,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ### Phase 4: Full Game
 - [ ] Fill remaining ~730 method stubs (beyond base-class defaults)
-- [ ] LHVM remaining 122 native function stubs
+- [x] ~~LHVM native functions~~ — **COMPLETE** (464/465)
 - [ ] Audio engine
 - [ ] Multiplayer
 - [ ] Modding support
