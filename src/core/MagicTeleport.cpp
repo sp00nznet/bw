@@ -46,8 +46,8 @@ uint32_t MagicTeleport::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t MagicTeleport::GetSaveType() {
-    // Original at 0x005fc0e0
-    return 0;
+    // Original at 0x005fc0e0: mov eax, 0x19
+    return 0x19;
 }
 
 // ============================================================================

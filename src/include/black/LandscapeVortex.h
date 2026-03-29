@@ -39,6 +39,9 @@ struct LandscapeVortex : public MobileStatic {
     bool32_t CanBeFoughtByCreature(Creature* creature) override;
     bool32_t CanActAsAContainer(Creature* creature) override;
     uint32_t GetScriptObjectType() override;
+    uint32_t GetCreatureBeliefType() override;
+    uint32_t GetCreatureMimicType() override;
+    float GetHowMuchCreatureWantsToLookAtMe() override;
 
     // === Overrides of Object virtuals ===
     void Create3DObject() override;

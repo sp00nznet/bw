@@ -77,8 +77,23 @@ bool32_t LandscapeVortex::CanActAsAContainer(Creature* /*creature*/) {
 }
 
 uint32_t LandscapeVortex::GetScriptObjectType() {
-    // Original at 0x005ffff0 — complex
-    return 0;
+    // Original at 0x005ffff0: returns 0x1e (SCRIPT_OBJECT_TYPE_LANDSCAPE_VORTEX)
+    return 0x1e;
+}
+
+uint32_t LandscapeVortex::GetCreatureBeliefType() {
+    // Original: returns 0x14
+    return 0x14;
+}
+
+uint32_t LandscapeVortex::GetCreatureMimicType() {
+    // Original: returns 9
+    return 9;
+}
+
+float LandscapeVortex::GetHowMuchCreatureWantsToLookAtMe() {
+    // Original: returns 0.8f
+    return 0.8f;
 }
 
 void LandscapeVortex::Create3DObject() {
@@ -163,8 +178,8 @@ uint32_t LandscapeVortexIn::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t LandscapeVortexIn::GetSaveType() {
-    // Original at 0x005fd790
-    return 0;
+    // Original at 0x005fd790: mov eax, 0x1b
+    return 0x1b;
 }
 
 uint32_t LandscapeVortexIn::GetPhysicsConstantsType() {
@@ -216,8 +231,8 @@ uint32_t LandscapeVortexOut::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t LandscapeVortexOut::GetSaveType() {
-    // Original at 0x005fddc0
-    return 0;
+    // Original at 0x005fddc0: mov eax, 0x1c
+    return 0x1c;
 }
 
 void LandscapeVortexOut::SetTown(Town* /*town*/) {
@@ -235,6 +250,6 @@ char* LandscapeVortexVolc::GetDebugText() {
 }
 
 uint32_t LandscapeVortexVolc::GetSaveType() {
-    // Original at 0x005fd6e0
-    return 0;
+    // Original at 0x005fd6e0: mov eax, 0x1a
+    return 0x1a;
 }

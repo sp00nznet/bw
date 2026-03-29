@@ -42,8 +42,8 @@ uint32_t BigForest::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t BigForest::GetSaveType() {
-    // Original at 0x00438e00
-    return 0;
+    // Original at 0x00438e00: mov eax, 0x4d
+    return 0x4d;
 }
 
 // ============================================================================

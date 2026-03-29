@@ -50,6 +50,11 @@ uint32_t OneOffSpellSeed::GetSaveType() {
     return 0x25;
 }
 
+uint32_t OneOffSpellSeed::GetScriptObjectType() {
+    // Same as SpellSeed: script type 0x10
+    return 0x10;
+}
+
 // ============================================================================
 // Overrides of GameThingWithPos virtuals
 // ============================================================================
@@ -112,6 +117,11 @@ HELP_TEXT OneOffSpellSeed::GetQueryLastEnumText() {
 // ============================================================================
 // Overrides of Object virtuals
 // ============================================================================
+
+HOLD_TYPE OneOffSpellSeed::GetHoldType() {
+    // Same as SpellSeed: hold type 4
+    return static_cast<HOLD_TYPE>(4);
+}
 
 int OneOffSpellSeed::GetMesh() const {
     // Original at 0x0072a910 — complex

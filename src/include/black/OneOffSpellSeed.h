@@ -21,6 +21,7 @@ struct OneOffSpellSeed : public MobileObject {
     uint32_t Load(GameOSFile* file) override;
     uint32_t Save(GameOSFile* file) override;
     uint32_t GetSaveType() override;
+    uint32_t GetScriptObjectType() override;
 
     // === Overrides of GameThingWithPos virtuals ===
     uint32_t GetOverwritePickUpToolTip() override;
@@ -36,6 +37,7 @@ struct OneOffSpellSeed : public MobileObject {
     HELP_TEXT GetQueryLastEnumText() override;
 
     // === Overrides of Object virtuals ===
+    HOLD_TYPE GetHoldType() override;
     int GetMesh() const override;
     void Draw() override;
     void DrawOutOfMap(bool param1) override;

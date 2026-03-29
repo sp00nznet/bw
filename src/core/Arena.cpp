@@ -34,8 +34,8 @@ uint32_t GArena::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t GArena::GetSaveType() {
-    // Original at 0x004247a0
-    return 0;
+    // Original at 0x004247a0: mov eax, 0x41
+    return 0x41;
 }
 
 const char* GArena::GetText() {
@@ -69,8 +69,8 @@ uint32_t ArenaSpellIcon::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t ArenaSpellIcon::GetSaveType() {
-    // Original at 0x00425320
-    return 0;
+    // Original at 0x00425320: mov eax, 0x42
+    return 0x42;
 }
 
 void ArenaSpellIcon::Create3DObject() {
