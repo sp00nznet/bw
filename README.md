@@ -22,11 +22,15 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**598 headers | 249 implementations | ~36,200 lines of C++ | 120 commits**
+**600 headers | 251 implementations | ~42,000 lines of C++ | 168 commits**
 
-**Entity hierarchy: 100% complete** — all 569 vendor types from bw1-decomp are rebuilt as C++ classes with correct vtable layout, static_asserts on every struct size, and ~220 translated method bodies.
+**Entity hierarchy: 100% complete** — all 569 vendor types rebuilt as C++ with correct vtable layout, 500+ translated method bodies, and real game logic executing.
 
-**Working right now:** A playable prototype that loads the original game data, renders the terrain with textured buildings and trees, and lets you pick up and throw entities with the god hand. The core B&W interaction loop — hover, grab, fling — works.
+**LHVM scripting: 74% native coverage** — 343 of 465 native functions have typed implementations. CHL bytecode scripts load and execute in the game loop.
+
+**bw_core/bw_viewer bridge: operational** — the viewer creates real bw_core entity instances (Object, Tree, Abode, Villager) alongside rendering entities, with bidirectional state synchronization every frame.
+
+**Working right now:** Load original game data, render terrain with textured buildings and trees, pick up and throw entities with the god hand, execute level scripts through the LHVM bytecode VM, and tick real game entity logic each frame.
 
 ### Phase 0: Reconnaissance — COMPLETE
 
@@ -39,9 +43,11 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 - [x] CMake build system (Visual Studio 2022, 32-bit x86)
 - [x] All 569 vendor types rebuilt as C++ classes with correct vtable layout
-- [x] ~220 method bodies translated from Ghidra decompilation
+- [x] 500+ method bodies translated from Ghidra decompilation
 - [x] Building lifecycle: IsFunctional, IsBuilt, BuildBy, Built, Repaired
-- [x] Resource delegation, influence calculation, repair/damage systems
+- [x] Resource management: Pot, Abode, StoragePit add/remove with type checking
+- [x] Living state machine: 20+ state queries, transitions, reaction management
+- [x] Map operations: Insert/RemoveMapObject for single + multi-cell buildings
 - [x] Complete creature AI subsystem structs (135KB CreatureMental, beliefs, desires, learning)
 - [x] GUtils distance/angle calculation library
 
@@ -50,7 +56,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **L3D mesh loader** — parses Lionhead's proprietary mesh format with bone transforms
 - [x] **G3D archive loader** — loads AllMeshes.g3d (622/626 meshes, 111K verts, 101K tris)
 - [x] **DXT1/DXT3 texture rendering** — compressed textures via S3TC OpenGL extensions
-- [x] **LND terrain renderer** — heightmap loading, altitude-based coloring, 17×17 cell blocks
+- [x] **LND terrain renderer** — heightmap loading, altitude-based coloring, 17x17 cell blocks
 - [x] **Mesh browser** — browse all 626 game meshes by name with Left/Right arrows
 
 ### Phase 3: Game Loop & Interaction — IN PROGRESS
@@ -60,16 +66,23 @@ This project is a **static recompilation** of Black & White — taking the origi
 - [x] **God hand** — spell hand mesh follows cursor, hovers over terrain
 - [x] **Entity interaction** — pick up trees/villagers/animals, fling with mouse velocity
 - [x] **Throw physics** — gravity, ground collision, bounce damping
-- [x] **Camera-relative controls** — WASD moves relative to view direction
-- [x] **LHVM scripting engine** — CHL bytecode loader + 31-opcode stack VM with task management
-- [x] **LHVM native functions** — 464-entry dispatch table with typed stubs for ~50 core functions
-- [x] **GGame::ProcessTurn** — game loop calls all subsystems in correct order (players, entities, creatures, scripting, camera, dead list cleanup)
-- [ ] Creature spawning and AI state machine
-- [ ] Town simulation (resource gathering, building)
+- [x] **Camera system** — spherical orbit, WASD pan, GCamera update loop with math
+- [x] **LHVM scripting engine** — CHL bytecode loader + 31-opcode stack VM + task management
+- [x] **LHVM native functions** — 343/465 typed (74%) — camera, creature AI, spells, movement, flock, music, timer, weather, influence, leash, spirit, effects
+- [x] **CHL script execution** — Challenge.chl loads on startup, auto-start scripts run each frame
+- [x] **GGame::ProcessTurn** — game loop calls subsystems (players, entities, creatures, scripting, camera, dead list)
+- [x] **bw_core/viewer bridge** — terrain height service, entity factory, dual entity system with state sync
+- [x] **Entity factory** — creates real Tree/Abode/Villager/Rock from level scripts
+- [x] **Map cell system** — 512x512 grid, linked list per cell, insert/remove for all entity types
+- [x] **Belief system** — GBelief get/set with per-player cap clamping
+- [x] **Town simulation** — desire queries, food calculation, worship percentage, building site delegation
+- [ ] Villager state machine dispatch (VillagerStates ProcessState)
+- [ ] Creature spawning with AI
+- [ ] Save/Load binary format
 
 ### Phase 4: Full Game
-- [ ] LHVM native function bodies (fill in ~400 remaining stubs as subsystems come online)
-- [ ] Translate remaining ~1,800 method stubs from Ghidra decompilation
+- [ ] Fill remaining ~730 method stubs (beyond base-class defaults)
+- [ ] LHVM remaining 122 native function stubs
 - [ ] Audio engine
 - [ ] Multiplayer
 - [ ] Modding support
@@ -94,14 +107,14 @@ build/Release/bw_viewer.exe game_data/Land1.lnd
 # World viewer (terrain + entities)
 build/Release/bw_viewer.exe game_data/Land1.txt
 
-# Game mode — interactive with god hand!
+# Game mode — interactive with god hand + bw_core entities + script execution!
 build/Release/bw_viewer.exe game_data/Land1.txt --play
 ```
 
 **Controls (game mode):**
 - Mouse — move hand cursor
-- LMB on entity — pick up (trees, villagers, animals)
-- Release LMB while moving — fling entity
+- LMB on entity — pick up (queries real CanBePickedUp from bw_core)
+- Release LMB while moving — fling entity (syncs back to bw_core MapCoords)
 - RMB while holding — throw forward
 - LMB drag (empty space) — orbit camera
 - RMB drag — zoom
@@ -116,28 +129,31 @@ build/Release/bw_viewer.exe game_data/Land1.txt --play
 ```
 bw/
 ├── README.md
+├── CLAUDE.md                  ← Development memory + architecture notes
 ├── src/
 │   ├── CMakeLists.txt         ← Builds bw_core lib + bw_viewer exe
-│   ├── include/black/         ← 598 C++ headers (entity classes, vtable layout)
-│   ├── core/                  ← 247 implementation files (method stubs + bodies)
+│   ├── include/black/         ← 600 C++ headers (entity classes, vtable layout)
+│   ├── core/                  ← 251 implementation files (500+ method bodies)
+│   │   ├── EntityFactory.cpp  ← Creates real entities from level data
+│   │   ├── Terrain.cpp        ← Terrain height service for bw_core
+│   │   ├── LHVM.cpp           ← 2000-line VM with 343 typed native stubs
+│   │   ├── Game.cpp           ← GGame::ProcessTurn game loop
+│   │   └── ...                ← All 569 entity type implementations
 │   └── viewer/                ← OpenGL viewer/game application
 │       ├── main.cpp           ← Win32+OpenGL window, rendering, input
 │       ├── l3d_loader.*       ← L3D mesh parser with bone transforms
 │       ├── g3d_loader.*       ← G3D archive parser (meshes + DXT textures)
 │       ├── lnd_loader.*       ← LND terrain heightmap parser
 │       ├── script_parser.*    ← Level script entity placement parser
-│       ├── game_loop.*        ← Game state, hand interaction, physics
+│       ├── game_loop.*        ← Game state, bw_core bridge, hand interaction
 │       └── mesh_names.h       ← 626 mesh name lookup (from AllMeshes.h)
 ├── vendor/
 │   └── bw1-decomp/            ← 569 decompiled struct headers (reference)
-├── work/
-│   ├── decompiled/            ← 268 Ghidra auto-decompiled .c files (77K lines)
-│   ├── functions.csv          ← 14,277 function addresses
-│   └── vtable_matches.csv    ← 65K vtable entries
 └── game_data/                 ← Your own game data (not included)
     ├── AllMeshes.g3d          ← 626 meshes + 110 textures
     ├── Land1-5.lnd            ← Campaign terrain files
     ├── Land1-5.txt            ← Level scripts
+    ├── Quests/Challenge.chl   ← Compiled script bytecode
     └── *.L3D                  ← Individual creature meshes
 ```
 
@@ -148,7 +164,7 @@ This project contains **no copyrighted game assets**. You need your own copy of 
 ## Acknowledgments
 
 - **Lionhead Studios** — for making something truly special
-- **openblack** — for file format documentation (L3D, G3D, LND)
+- **openblack** — for file format documentation (L3D, G3D, LND, CHL)
 - **bw1-decomp** — for 569 decompiled struct headers
 - The Black & White community — still keeping the faith after 25 years
 
