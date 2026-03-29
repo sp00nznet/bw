@@ -14,8 +14,8 @@ GPlayer* Spell::GetPlayer() {
 }
 
 bool Spell::IsFunctional() {
-    // Original at 0x0055cdc0 — complex
-    return false;
+    // Original at 0x0055cdc0: return (GetLife() != 0.0f) && IsAvailable()
+    return (GetLife() != 0.0f) && IsAvailable();
 }
 
 char* Spell::GetDebugText() {
@@ -40,23 +40,23 @@ uint32_t Spell::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Spell::GetSaveType() {
-    // Original at 0x0071faf0
-    return 0;
+    // Original at 0x0071faf0: mov eax, 9
+    return 9;
 }
 
 uint32_t Spell::GetCreatureBeliefType() {
-    // Original at 0x0055cec0 — complex
-    return 0;
+    // Original at 0x0055cec0: mov eax, 0x0a
+    return 0x0a;
 }
 
 uint32_t Spell::GetCreatureBeliefListType() {
-    // Original at 0x0055ceb0 — complex
-    return 0;
+    // Original at 0x0055ceb0: mov eax, 1
+    return 1;
 }
 
 uint32_t Spell::GetOrigin() {
-    // Original at 0x0055cef0 — complex
-    return 0;
+    // Original at 0x0055cef0: mov eax, 2
+    return 2;
 }
 
 float Spell::GetLife() {
@@ -92,13 +92,13 @@ float Spell::GetUpdateOfBoredomValue(Reaction* /*param1*/, GameThingWithPos* /*p
 }
 
 bool32_t Spell::IsSuitableForCreatureAction() {
-    // Original at 0x0055cee0 — complex
-    return 0;
+    // Original at 0x0055cee0: mov eax, 1
+    return 1;
 }
 
 bool32_t Spell::CanBeFrighteningToCreature(Creature* /*creature*/) {
-    // Original at 0x0055ced0 — complex
-    return 0;
+    // Original at 0x0055ced0: mov eax, 1
+    return 1;
 }
 
 WorshipSite* Spell::GetWorshipSite() {
@@ -176,11 +176,11 @@ void Spell::HasEnoughChantsAndLifeForRecast() {
 }
 
 void Spell::UpdateStruckReaction() {
-    // Original at 0x0055ce10 — complex
+    // Original at 0x0055ce10: ret (no-op)
 }
 
 void Spell::SetUpDestroyedReaction() {
-    // Original at 0x0055ce20 — complex
+    // Original at 0x0055ce20: ret (no-op)
 }
 
 uintptr_t Spell::GetCreatureCastOn() {
@@ -217,7 +217,7 @@ float Spell::CalculateCostToMaintain() {
 }
 
 void Spell::AdjustSpellSeedPos(MapCoords* /*pos*/) {
-    // Original at 0x0055ce60 — complex
+    // Original at 0x0055ce60: ret 0x0004 (no-op)
 }
 
 bool Spell::IsSpellCreature() {
@@ -231,7 +231,7 @@ bool Spell::IsSpellStormAndTornado() {
 }
 
 void Spell::SetMaxObjectsToCreate(int /*value*/) {
-    // Original at 0x0055ce90 — complex
+    // Original at 0x0055ce90: ret 0x0004 (no-op)
 }
 
 int Spell::GetMaxObjectsToCreate() {

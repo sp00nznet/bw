@@ -105,20 +105,23 @@ HOLD_TYPE SpellSeed::GetHoldType() {
 }
 
 float SpellSeed::GetHoldRadius() {
-    // Original at 0x00728640 — complex
-    // TODO: implement properly
+    // Original at 0x00728640: return GetPower() * info->hold_radius_scale
+    // Reads vtable GetPower() * field_0x28->offset_0x150
+    // TODO: implement when info struct fields are mapped
     return 0.0f;
 }
 
 float SpellSeed::GetHoldLoweringMultiplier() {
-    // Original at 0x00728660 — complex
-    // TODO: implement properly
+    // Original at 0x00728660: return *(float*)(field_0x28 + 0x14c)
+    // Reads from info struct — returns 1.0f as default
+    // TODO: implement when info struct fields are mapped
     return 1.0f;
 }
 
 float SpellSeed::GetHoldYRotate() {
-    // Original at 0x00728670 — complex
-    // TODO: implement properly
+    // Original at 0x00728670: return *(float*)(field_0x28 + 0x154)
+    // Reads from info struct — returns 0.0f as default
+    // TODO: implement when info struct fields are mapped
     return 0.0f;
 }
 

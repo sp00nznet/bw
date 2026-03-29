@@ -6,6 +6,7 @@
 // Methods at 0x00425bxx are small (~16 bytes each).
 
 #include <black/MobileObject.h>
+#include <black/Map.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -157,9 +158,12 @@ void MobileObject::Create3DObject() {
     // TODO: implement when rendering system is available
 }
 
-void MobileObject::InsertMapObjectToCell(MapCell* /*cell*/) {
-    // Original at 0x00607250 — complex
-    // TODO: implement properly
+void MobileObject::InsertMapObjectToCell(MapCell* cell) {
+    // Original at 0x00607250 — insert into cell's mobile object list
+    if (!cell) return;
+    map_parent = cell->first_object_mobile;
+    cell->SetFirstObjectMobile(this);
+    field_0x24 |= 1;  // Set "in map" flag
 }
 
 void MobileObject::RemoveMapObjectFromCell(MapCell* cell) {

@@ -64,8 +64,8 @@ uint32_t Town::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Town::GetSaveType() {
-    // Original at 0x00739290
-    return 0;
+    // Original at 0x00739290: mov eax, 0x28; ret
+    return 0x28;
 }
 
 void Town::ResolveLoad() {
@@ -167,8 +167,8 @@ float Town::CalculateDesireForFood() {
 }
 
 uint32_t Town::GetScriptObjectType() {
-    // Original at 0x0073e200 — returns script type for towns
-    return 0xd;
+    // Original at 0x0073e200: mov eax, 0x09; ret
+    return 0x9;
 }
 
 // ============================================================================
@@ -229,8 +229,10 @@ bool32_t Town::RequestBestPlanned() {
     return 0;
 }
 
-void Town::ChildToAdult(Villager* /*villager*/) {
-    // Original at 0x0073af50 — complex
+void Town::ChildToAdult(Villager* villager) {
+    // Original at 0x0073af50: delegates to stats.ChildToAdult
+    // ecx = this + 0x610 (stats offset), push villager, call TownStats::ChildToAdult
+    stats.ChildToAdult(villager);
 }
 
 bool Town::IsHarvestTime() {

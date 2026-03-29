@@ -265,8 +265,9 @@ void GGame::ProcessBufferedKeys() {
 }
 
 bool GGame::LocalTimerSaysDoATurn() {
-    // Original at 0x0054c4a0 — complex timer check
-    return false;
+    // Original at 0x0054c4a0 — always returns true for single-player
+    // In multiplayer, this checks network sync timing
+    return !IsMultiplayerGame();
 }
 
 void GGame::ProcessNetworkPackets() {
@@ -308,11 +309,21 @@ void GGame::SetupPlayers() {
 }
 
 void GGame::LoopThroughPlayers() {
-    // Original at 0x005507d0 — iterates through active players
+    // Original at 0x005507d0 — iterates active players for per-frame updates
+    GPlayer* player = GetNextActivePlayer(nullptr);
+    while (player) {
+        // TODO: per-frame player update (influence, interface, etc.)
+        player = GetNextActivePlayer(player);
+    }
 }
 
 void GGame::Birthday() {
-    // Original at 0x005507f0 — village birthday processing
+    // Original at 0x005507f0 — iterate players and call Birthday on each town
+    GPlayer* player = GetNextActivePlayer(nullptr);
+    while (player) {
+        player->Birthday();
+        player = GetNextActivePlayer(player);
+    }
 }
 
 int GGame::MyPlayerID(uint32_t /*param*/) {
