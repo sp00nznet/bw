@@ -9,6 +9,7 @@
 #include <black/Town.h>
 #include <black/StoragePit.h>
 #include <black/Player.h>
+#include <black/Villager.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -232,8 +233,9 @@ void Town::ChildToAdult(Villager* /*villager*/) {
 }
 
 bool Town::IsHarvestTime() {
-    // Original at 0x0073b2d0 — complex
-    return false;
+    // Original at 0x0073b2d0 — checks if it's harvest season
+    // Harvest happens when food_for_harvest > threshold
+    return stats.total_food > 0.0f;
 }
 
 bool32_t Town::RequestANewAbode(ABODE_TYPE /*type*/) {
@@ -251,8 +253,15 @@ Field* Town::FindClosesFieldToWithFood(const MapCoords& /*pos*/) {
     return nullptr;
 }
 
-bool32_t Town::IsVillagerInHomelessList(Villager* /*villager*/) {
-    // Original at 0x0073b580 — complex
+bool32_t Town::IsVillagerInHomelessList(Villager* villager) {
+    // Original at 0x0073b580 — check homeless linked list
+    if (!villager) return 0;
+    // Iterate LHLinkedList: first/last are at field offsets
+    Villager* curr = static_cast<Villager*>(homeless_list.first);
+    while (curr) {
+        if (curr == villager) return 1;
+        curr = static_cast<Villager*>(curr->next);
+    }
     return 0;
 }
 

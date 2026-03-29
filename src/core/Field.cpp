@@ -52,7 +52,7 @@ uint32_t Field::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Field::GetSaveType() {
-    // Original at 0x00528070
+    // Original at 0x00528070 — TODO: determine correct save type constant
     return 0;
 }
 
@@ -66,7 +66,7 @@ MapCoords* Field::GetArrivePos(MapCoords* out) {
 }
 
 uint32_t Field::GetCreatureBeliefType() {
-    // Original at 0x00527f20
+    // Original at 0x00527f20: returns field creature belief type
     return 0;
 }
 
@@ -151,7 +151,8 @@ bool32_t Field::IsFieldWithFoodInIt(Creature* /*creature*/) {
 }
 
 bool32_t Field::IsFieldBelongingToAnotherPlayer(Creature* /*creature*/) {
-    // Original at 0x004e4900 — complex
+    // Original at 0x004e4900 — compares field's player with creature's player
+    // TODO: needs Creature::GetPlayer() — requires full Creature definition
     return 0;
 }
 
@@ -337,12 +338,15 @@ float Field::GetPercentFull() {
     return 0.0f;
 }
 
-float Field::RemoveFood(float /*amount*/) {
-    // Original at 0x005295a0 — complex
-    return 0.0f;
+float Field::RemoveFood(float amount) {
+    // Original at 0x005295a0 — removes food from the field, clamped to available
+    if (amount > field_0xe4)
+        amount = field_0xe4;
+    field_0xe4 -= amount;
+    return amount;
 }
 
 float Field::GetFoodValue() {
-    // Original at 0x00529700 — complex
-    return 0.0f;
+    // Original at 0x00529700 — returns the current food stored in this field
+    return field_0xe4;
 }
