@@ -97,7 +97,12 @@ void GPlayer::Process() {
 }
 
 void GPlayer::Birthday() {
-    // Original at 0x0064a6b0 — complex
+    // Original at 0x0064a6b0 — trigger birthday events for all towns
+    Town* town_ptr = towns.first;
+    while (town_ptr) {
+        town_ptr->Birthday();
+        town_ptr = town_ptr->next;
+    }
 }
 
 uint8_t GPlayer::GetPlayerNumber() const {
@@ -116,8 +121,14 @@ bool GPlayer::IsNeutral() {
 }
 
 float GPlayer::CalculateInfluencePower() {
-    // Original at 0x0064ad00 — complex
-    return 0.0f;
+    // Original at 0x0064ad00 — sum influence from all towns
+    float total = 0.0f;
+    Town* town_ptr = towns.first;
+    while (town_ptr) {
+        total += town_ptr->influence;
+        town_ptr = town_ptr->next;
+    }
+    return total;
 }
 
 LH3DColor* GPlayer::GetPlayer3DColor(LH3DColor* color) {

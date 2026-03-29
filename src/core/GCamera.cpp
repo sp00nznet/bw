@@ -35,7 +35,13 @@ float GCamera::GetHeight() { return coords.altitude; }
 // 0x00441b70
 bool GCamera::CantExitCurrentMode() { return false; }
 // 0x00441cd0
-void GCamera::SwitchToViewMode(CameraMode* /*mode*/) {}
+void GCamera::SwitchToViewMode(CameraMode* mode) {
+    // Push new mode onto the camera mode stack
+    if (mode_current_index < 11) {
+        mode_current_index++;
+        modes[mode_current_index] = mode;
+    }
+}
 // 0x00441d40 — checks all stacked camera modes and removes invalid ones
 void GCamera::CheckStackedModesForValidity() {
     // Iterate from bottom of mode stack to current index
