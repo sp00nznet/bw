@@ -1019,6 +1019,294 @@ static void Native_CALL_IN_NEAR(LHVM* vm) {
     vm->PopObject(); // player
 }
 
+// --- Camera extensions ---
+static void Native_CONVERT_CAMERA_POSITION(LHVM* vm) {
+    vm->PopFloat(); // z
+    vm->PopFloat(); // y
+    vm->PopFloat(); // x
+}
+
+static void Native_CONVERT_CAMERA_FOCUS(LHVM* vm) {
+    vm->PopFloat(); // z
+    vm->PopFloat(); // y
+    vm->PopFloat(); // x
+}
+
+static void Native_RUN_CAMERA_PATH(LHVM* vm) {
+    vm->PopInt(); // path ID
+}
+
+static void Native_SET_CAMERA_ZONE(LHVM* vm) {
+    vm->PopFloat();  // z2
+    vm->PopFloat();  // x2
+    vm->PopFloat();  // z1
+    vm->PopFloat();  // x1
+}
+
+static void Native_CAMERA_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); // param3
+    vm->PopFloat(); // param2
+    vm->PopFloat(); // param1
+}
+
+static void Native_SHAKE_CAMERA(LHVM* vm) {
+    vm->PopFloat(); // duration
+    vm->PopFloat(); // intensity
+}
+
+static void Native_SET_FIXED_CAM_ROTATION(LHVM* vm) {
+    vm->PopFloat(); // angle
+}
+
+static void Native_STORE_CAMERA_DETAILS(LHVM* /*vm*/) {
+}
+
+static void Native_RESTORE_CAMERA_DETAILS(LHVM* /*vm*/) {
+}
+
+static void Native_SET_CAMERA_POS_FOC_LENS(LHVM* vm) {
+    vm->PopFloat(); // lens
+    vm->PopFloat(); // fz
+    vm->PopFloat(); // fy
+    vm->PopFloat(); // fx
+    vm->PopFloat(); // pz
+    vm->PopFloat(); // py
+    vm->PopFloat(); // px
+}
+
+static void Native_MOVE_CAMERA_POS_FOC_LENS(LHVM* vm) {
+    vm->PopFloat(); // time
+    vm->PopFloat(); // lens
+    vm->PopFloat(); // fz
+    vm->PopFloat(); // fy
+    vm->PopFloat(); // fx
+    vm->PopFloat(); // pz
+    vm->PopFloat(); // py
+    vm->PopFloat(); // px
+}
+
+static void Native_SET_CAMERA_LENS(LHVM* vm) {
+    vm->PopFloat(); // lens
+}
+
+static void Native_MOVE_CAMERA_LENS(LHVM* vm) {
+    vm->PopFloat(); // time
+    vm->PopFloat(); // lens
+}
+
+static void Native_GET_STORED_CAMERA_POSITION(LHVM* vm) {
+    vm->PushFloat(0.0f);
+    vm->PushFloat(0.0f);
+    vm->PushFloat(0.0f);
+}
+
+static void Native_GET_STORED_CAMERA_FOCUS(LHVM* vm) {
+    vm->PushFloat(0.0f);
+    vm->PushFloat(0.0f);
+    vm->PushFloat(0.0f);
+}
+
+// --- Timer extensions ---
+static void Native_CREATE_TIMER(LHVM* vm) {
+    vm->PopFloat(); // duration
+    vm->PushObject(0);
+}
+
+static void Native_HIDE_COUNTDOWN_TIMER(LHVM* vm) {
+    vm->PopObject(); // timer
+}
+
+static void Native_REVEAL_COUNTDOWN_TIMER(LHVM* vm) {
+    vm->PopObject(); // timer
+}
+
+static void Native_SET_TIMER_TIME(LHVM* vm) {
+    vm->PopFloat();  // time
+    vm->PopObject(); // timer
+}
+
+static void Native_GET_TIMER_TIME_REMAINING(LHVM* vm) {
+    vm->PopObject(); // timer
+    vm->PushFloat(0.0f);
+}
+
+static void Native_GET_TIMER_TIME_SINCE_SET(LHVM* vm) {
+    vm->PopObject(); // timer
+    vm->PushFloat(0.0f);
+}
+
+// --- Game speed ---
+static void Native_START_GAME_SPEED(LHVM* /*vm*/) {
+}
+
+static void Native_END_GAME_SPEED(LHVM* /*vm*/) {
+}
+
+static void Native_GAME_TIME_ON_OFF(LHVM* vm) {
+    vm->PopBoolean(); // on/off
+}
+
+static void Native_MOVE_GAME_TIME(LHVM* vm) {
+    vm->PopFloat(); // hours
+}
+
+// --- Spell ---
+static void Native_SPELL_AT_THING(LHVM* vm) {
+    vm->PopInt();    // spell type
+    vm->PopObject(); // target
+    vm->PopObject(); // caster
+    vm->PushObject(0);
+}
+
+static void Native_SPELL_AT_POS(LHVM* vm) {
+    vm->PopInt();    // spell type
+    vm->PopFloat();  // z
+    vm->PopFloat();  // y
+    vm->PopFloat();  // x
+    vm->PopObject(); // caster
+    vm->PushObject(0);
+}
+
+static void Native_SPELL_AT_POINT(LHVM* vm) {
+    vm->PopFloat(); // radius
+    vm->PopInt();   // spell type
+    vm->PopFloat(); // z
+    vm->PopFloat(); // y
+    vm->PopFloat(); // x
+    vm->PopObject(); // caster
+    vm->PushObject(0);
+}
+
+// --- Object held ---
+static void Native_GET_OBJECT_HELD(LHVM* vm) {
+    vm->PopObject(); // player
+    vm->PushObject(0);
+}
+
+static void Native_CLEAR_HIT_OBJECT(LHVM* /*vm*/) {
+}
+
+static void Native_GAME_THING_HIT(LHVM* vm) {
+    vm->PopObject(); // object
+    vm->PushBoolean(false);
+}
+
+static void Native_GET_HIT_OBJECT(LHVM* vm) {
+    vm->PopObject(); // object
+    vm->PushObject(0);
+}
+
+static void Native_GET_OBJECT_WHICH_HIT(LHVM* vm) {
+    vm->PopObject(); // object
+    vm->PushObject(0);
+}
+
+// --- Creature misc ---
+static void Native_SET_CREATURE_ONLY_DESIRE(LHVM* vm) {
+    vm->PopInt();    // desire
+    vm->PopObject(); // creature
+}
+
+static void Native_SET_CREATURE_ONLY_DESIRE_OFF(LHVM* vm) {
+    vm->PopObject(); // creature
+}
+
+static void Native_CREATURE_CREATE_RELATIVE(LHVM* vm) {
+    vm->PopFloat();  // distance
+    vm->PopInt();    // type
+    vm->PopObject(); // relative creature
+    vm->PopObject(); // player
+    vm->PushObject(0);
+}
+
+static void Native_SWAP_CREATURE(LHVM* vm) {
+    vm->PopObject(); // creature2
+    vm->PopObject(); // creature1
+}
+
+static void Native_SET_CREATURE_DEV_STAGE(LHVM* vm) {
+    vm->PopFloat();  // stage
+    vm->PopObject(); // creature
+}
+
+// --- Misc ---
+static void Native_SET_AFFECTED_BY_WIND(LHVM* vm) {
+    vm->PopBoolean(); // affected
+    vm->PopObject();  // object
+}
+
+static void Native_GET_ACTION_TEXT_FOR_OBJECT(LHVM* vm) {
+    vm->PopObject(); // object
+    vm->PushInt(0);
+}
+
+static void Native_CHANGE_INNER_OUTER_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); // outer
+    vm->PopFloat(); // inner
+    vm->PopObject(); // object
+}
+
+static void Native_ADD_REFERENCE(LHVM* vm) {
+    vm->PopObject(); // object
+}
+
+static void Native_REMOVE_REFERENCE(LHVM* vm) {
+    vm->PopObject(); // object
+}
+
+static void Native_GET_REAL_TIME(LHVM* vm) {
+    vm->PushFloat(0.0f);
+}
+
+static void Native_GET_REAL_DAY(LHVM* vm) {
+    vm->PushInt(1);
+}
+
+static void Native_GET_REAL_MONTH(LHVM* vm) {
+    vm->PushInt(1);
+}
+
+static void Native_GET_REAL_YEAR(LHVM* vm) {
+    vm->PushInt(2001);
+}
+
+// --- Set drawing ---
+static void Native_SET_HIGH_GRAPHICS_DETAIL(LHVM* vm) {
+    vm->PopBoolean();
+}
+
+static void Native_CHANGE_LIGHTNING_PROPERTIES(LHVM* vm) {
+    vm->PopFloat();
+    vm->PopFloat();
+    vm->PopFloat();
+}
+
+static void Native_CHANGE_TIME_FADE_PROPERTIES(LHVM* vm) {
+    vm->PopFloat();
+    vm->PopFloat();
+    vm->PopFloat();
+}
+
+// --- Focus/position follow ---
+static void Native_SET_FOCUS_FOLLOW(LHVM* vm) {
+    vm->PopFloat();  // distance
+    vm->PopObject(); // target
+}
+
+static void Native_SET_POSITION_FOLLOW(LHVM* vm) {
+    vm->PopFloat();  // distance
+    vm->PopObject(); // target
+}
+
+static void Native_SET_FOCUS_AND_POSITION_FOLLOW(LHVM* vm) {
+    vm->PopFloat();  // distance
+    vm->PopObject(); // target
+}
+
+static void Native_FOCUS_AND_POSITION_FOLLOW(LHVM* vm) {
+    vm->PopObject(); // target
+}
+
 // --- Help system ---
 static void Native_HELP_SYSTEM_ON(LHVM* vm) {
     vm->PushBoolean(true);
@@ -1119,7 +1407,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SPECIAL_EFFECT_OBJECT,         "SPECIAL_EFFECT_OBJECT",         Native_SPECIAL_EFFECT_OBJECT);
     RegisterNativeFunction(NATIVE_DANCE_CREATE,                  "DANCE_CREATE",                  Native_DANCE_CREATE);
     RegisterNativeFunction(NATIVE_CALL_IN,                       "CALL_IN",                       Native_CALL_IN);
-    RegisterNativeFunction(NATIVE_CHANGE_INNER_OUTER_PROPERTIES, "CHANGE_INNER_OUTER_PROPERTIES", NativeStub);
+    RegisterNativeFunction(NATIVE_CHANGE_INNER_OUTER_PROPERTIES, "CHANGE_INNER_OUTER_PROPERTIES", Native_CHANGE_INNER_OUTER_PROPERTIES);
     RegisterNativeFunction(NATIVE_SNAPSHOT,                      "SNAPSHOT",                      Native_SNAPSHOT);
     RegisterNativeFunction(NATIVE_GET_ALIGNMENT,                 "GET_ALIGNMENT",                 Native_GET_ALIGNMENT);
     RegisterNativeFunction(NATIVE_SET_ALIGNMENT,                 "SET_ALIGNMENT",                 Native_SET_ALIGNMENT);
@@ -1132,7 +1420,7 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SET_GAMESPEED,                 "SET_GAMESPEED",                 Native_SET_GAMESPEED);
     RegisterNativeFunction(NATIVE_CALL_IN_NEAR,                  "CALL_IN_NEAR",                  Native_CALL_IN_NEAR);
     RegisterNativeFunction(NATIVE_OVERRIDE_STATE_ANIMATION,      "OVERRIDE_STATE_ANIMATION",      Native_OVERRIDE_STATE_ANIMATION);
-    RegisterNativeFunction(NATIVE_CREATURE_CREATE_RELATIVE_TO_CREATURE, "CREATURE_CREATE_RELATIVE_TO_CREATURE", NativeStub);
+    RegisterNativeFunction(NATIVE_CREATURE_CREATE_RELATIVE_TO_CREATURE, "CREATURE_CREATE_RELATIVE_TO_CREATURE", Native_CREATURE_CREATE_RELATIVE);
     RegisterNativeFunction(NATIVE_CREATURE_LEARN_EVERYTHING,     "CREATURE_LEARN_EVERYTHING",     Native_CREATURE_LEARN_EVERYTHING);
     RegisterNativeFunction(NATIVE_CREATURE_SET_KNOWS_ACTION,     "CREATURE_SET_KNOWS_ACTION",     Native_CREATURE_SET_KNOWS_ACTION);
     RegisterNativeFunction(NATIVE_CREATURE_SET_AGENDA_PRIORITY,  "CREATURE_SET_AGENDA_PRIORITY",  Native_CREATURE_SET_AGENDA_PRIORITY);
@@ -1144,8 +1432,8 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_ACTIVATED_78, "CREATURE_SET_DESIRE_ACTIVATED", Native_CREATURE_SET_DESIRE_ACTIVATED);
     RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_ACTIVATED_79, "CREATURE_SET_DESIRE_ACTIVATED", Native_CREATURE_SET_DESIRE_ACTIVATED);
     RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_MAXIMUM,   "CREATURE_SET_DESIRE_MAXIMUM",   Native_CREATURE_SET_DESIRE_MAXIMUM);
-    RegisterNativeFunction(NATIVE_CONVERT_CAMERA_POSITION,       "CONVERT_CAMERA_POSITION",       NativeStub);
-    RegisterNativeFunction(NATIVE_CONVERT_CAMERA_FOCUS,          "CONVERT_CAMERA_FOCUS",          NativeStub);
+    RegisterNativeFunction(NATIVE_CONVERT_CAMERA_POSITION,        "CONVERT_CAMERA_POSITION",       Native_CONVERT_CAMERA_POSITION);
+    RegisterNativeFunction(NATIVE_CONVERT_CAMERA_FOCUS,           "CONVERT_CAMERA_FOCUS",          Native_CONVERT_CAMERA_FOCUS);
     RegisterNativeFunction(NATIVE_CREATURE_SET_PLAYER,           "CREATURE_SET_PLAYER",           Native_CREATURE_SET_PLAYER);
     RegisterNativeFunction(NATIVE_START_COUNTDOWN_TIMER,         "START_COUNTDOWN_TIMER",         Native_START_COUNTDOWN_TIMER);
     RegisterNativeFunction(NATIVE_CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION, "CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION", Native_CREATURE_INITIALISE_NUM_TIMES);
@@ -1166,35 +1454,35 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_LOOK_GAME_THING,               "LOOK_GAME_THING",               Native_LOOK_GAME_THING);
     RegisterNativeFunction(NATIVE_GET_OBJECT_DESTINATION,        "GET_OBJECT_DESTINATION",        Native_GET_OBJECT_DESTINATION);
     RegisterNativeFunction(NATIVE_CREATURE_FORCE_FINISH,         "CREATURE_FORCE_FINISH",         Native_CREATURE_FORCE_FINISH);
-    RegisterNativeFunction(NATIVE_HIDE_COUNTDOWN_TIMER,          "HIDE_COUNTDOWN_TIMER",          NativeStub);
-    RegisterNativeFunction(NATIVE_GET_ACTION_TEXT_FOR_OBJECT,     "GET_ACTION_TEXT_FOR_OBJECT",     NativeStub);
+    RegisterNativeFunction(NATIVE_HIDE_COUNTDOWN_TIMER,          "HIDE_COUNTDOWN_TIMER",          Native_HIDE_COUNTDOWN_TIMER);
+    RegisterNativeFunction(NATIVE_GET_ACTION_TEXT_FOR_OBJECT,     "GET_ACTION_TEXT_FOR_OBJECT",     Native_GET_ACTION_TEXT_FOR_OBJECT);
     RegisterNativeFunction(NATIVE_CREATE_DUAL_CAMERA_WITH_POINT, "CREATE_DUAL_CAMERA_WITH_POINT", Native_CREATE_DUAL_CAMERA_WITH_POINT);
     RegisterNativeFunction(NATIVE_SET_CAMERA_TO_FACE_OBJECT,     "SET_CAMERA_TO_FACE_OBJECT",     Native_SET_CAMERA_TO_FACE_OBJECT);
     RegisterNativeFunction(NATIVE_MOVE_CAMERA_TO_FACE_OBJECT,    "MOVE_CAMERA_TO_FACE_OBJECT",    Native_MOVE_CAMERA_TO_FACE_OBJECT);
     RegisterNativeFunction(NATIVE_GET_MOON_PERCENTAGE,           "GET_MOON_PERCENTAGE",           Native_GET_MOON_PERCENTAGE);
     RegisterNativeFunction(NATIVE_POPULATE_CONTAINER,            "POPULATE_CONTAINER",            Native_POPULATE_CONTAINER);
-    RegisterNativeFunction(NATIVE_ADD_REFERENCE,                 "ADD_REFERENCE",                 NativeStub);
-    RegisterNativeFunction(NATIVE_REMOVE_REFERENCE,              "REMOVE_REFERENCE",              NativeStub);
+    RegisterNativeFunction(NATIVE_ADD_REFERENCE,                 "ADD_REFERENCE",                 Native_ADD_REFERENCE);
+    RegisterNativeFunction(NATIVE_REMOVE_REFERENCE,              "REMOVE_REFERENCE",              Native_REMOVE_REFERENCE);
     RegisterNativeFunction(NATIVE_SET_GAME_TIME,                 "SET_GAME_TIME",                 Native_SET_GAME_TIME);
     RegisterNativeFunction(NATIVE_GET_GAME_TIME,                 "GET_GAME_TIME",                 Native_GET_GAME_TIME);
-    RegisterNativeFunction(NATIVE_GET_REAL_TIME,                 "GET_REAL_TIME",                 NativeStub);
-    RegisterNativeFunction(NATIVE_GET_REAL_DAY_115,              "GET_REAL_DAY",                  NativeStub);
-    RegisterNativeFunction(NATIVE_GET_REAL_DAY_116,              "GET_REAL_DAY",                  NativeStub);
-    RegisterNativeFunction(NATIVE_GET_REAL_MONTH,                "GET_REAL_MONTH",                NativeStub);
-    RegisterNativeFunction(NATIVE_GET_REAL_YEAR,                 "GET_REAL_YEAR",                 NativeStub);
-    RegisterNativeFunction(NATIVE_RUN_CAMERA_PATH,               "RUN_CAMERA_PATH",               NativeStub);
+    RegisterNativeFunction(NATIVE_GET_REAL_TIME,                 "GET_REAL_TIME",                 Native_GET_REAL_TIME);
+    RegisterNativeFunction(NATIVE_GET_REAL_DAY_115,              "GET_REAL_DAY",                  Native_GET_REAL_DAY);
+    RegisterNativeFunction(NATIVE_GET_REAL_DAY_116,              "GET_REAL_DAY",                  Native_GET_REAL_DAY);
+    RegisterNativeFunction(NATIVE_GET_REAL_MONTH,                "GET_REAL_MONTH",                Native_GET_REAL_MONTH);
+    RegisterNativeFunction(NATIVE_GET_REAL_YEAR,                 "GET_REAL_YEAR",                 Native_GET_REAL_YEAR);
+    RegisterNativeFunction(NATIVE_RUN_CAMERA_PATH,                "RUN_CAMERA_PATH",               Native_RUN_CAMERA_PATH);
     RegisterNativeFunction(NATIVE_START_DIALOGUE,                "START_DIALOGUE",                Native_START_DIALOGUE);
     RegisterNativeFunction(NATIVE_END_DIALOGUE,                  "END_DIALOGUE",                  Native_END_DIALOGUE);
     RegisterNativeFunction(NATIVE_IS_DIALOGUE_READY,             "IS_DIALOGUE_READY",             Native_IS_DIALOGUE_READY);
     RegisterNativeFunction(NATIVE_CHANGE_WEATHER_PROPERTIES,     "CHANGE_WEATHER_PROPERTIES",     Native_CHANGE_WEATHER_PROPERTIES);
-    RegisterNativeFunction(NATIVE_CHANGE_LIGHTNING_PROPERTIES,   "CHANGE_LIGHTNING_PROPERTIES",   NativeStub);
-    RegisterNativeFunction(NATIVE_CHANGE_TIME_FADE_PROPERTIES,   "CHANGE_TIME_FADE_PROPERTIES",   NativeStub);
+    RegisterNativeFunction(NATIVE_CHANGE_LIGHTNING_PROPERTIES,   "CHANGE_LIGHTNING_PROPERTIES",   Native_CHANGE_LIGHTNING_PROPERTIES);
+    RegisterNativeFunction(NATIVE_CHANGE_TIME_FADE_PROPERTIES,   "CHANGE_TIME_FADE_PROPERTIES",   Native_CHANGE_TIME_FADE_PROPERTIES);
     RegisterNativeFunction(NATIVE_CHANGE_CLOUD_PROPERTIES,       "CHANGE_CLOUD_PROPERTIES",       Native_CHANGE_CLOUD_PROPERTIES);
     RegisterNativeFunction(NATIVE_SET_HEADING_AND_SPEED,         "SET_HEADING_AND_SPEED",         Native_SET_HEADING_AND_SPEED);
-    RegisterNativeFunction(NATIVE_START_GAME_SPEED,              "START_GAME_SPEED",              NativeStub);
-    RegisterNativeFunction(NATIVE_END_GAME_SPEED,                "END_GAME_SPEED",                NativeStub);
+    RegisterNativeFunction(NATIVE_START_GAME_SPEED,              "START_GAME_SPEED",              Native_START_GAME_SPEED);
+    RegisterNativeFunction(NATIVE_END_GAME_SPEED,                "END_GAME_SPEED",                Native_END_GAME_SPEED);
     RegisterNativeFunction(NATIVE_BUILD_BUILDING,                "BUILD_BUILDING",                Native_BUILD_BUILDING);
-    RegisterNativeFunction(NATIVE_SET_AFFECTED_BY_WIND,          "SET_AFFECTED_BY_WIND",          NativeStub);
+    RegisterNativeFunction(NATIVE_SET_AFFECTED_BY_WIND,          "SET_AFFECTED_BY_WIND",          Native_SET_AFFECTED_BY_WIND);
     RegisterNativeFunction(NATIVE_WIDESCREEN_TRANSISTION_FINISHED, "WIDESCREEN_TRANSISTION_FINISHED", Native_WIDESCREEN_TRANSISTION_FINISHED);
     RegisterNativeFunction(NATIVE_GET_RESOURCE,                  "GET_RESOURCE",                  Native_GET_RESOURCE);
     RegisterNativeFunction(NATIVE_ADD_RESOURCE,                  "ADD_RESOURCE",                  Native_ADD_RESOURCE);
@@ -1205,13 +1493,13 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_LOOK_AT_POSITION,              "LOOK_AT_POSITION",              NativeStub);
     RegisterNativeFunction(NATIVE_PLAY_SPIRIT_ANIM,              "PLAY_SPIRIT_ANIM",              NativeStub);
     RegisterNativeFunction(NATIVE_CALL_IN_NOT_NEAR,              "CALL_IN_NOT_NEAR",              NativeStub);
-    RegisterNativeFunction(NATIVE_SET_CAMERA_ZONE,               "SET_CAMERA_ZONE",               NativeStub);
+    RegisterNativeFunction(NATIVE_SET_CAMERA_ZONE,                "SET_CAMERA_ZONE",               Native_SET_CAMERA_ZONE);
     RegisterNativeFunction(NATIVE_GET_OBJECT_STATE,              "GET_OBJECT_STATE",              Native_GET_OBJECT_STATE);
-    RegisterNativeFunction(NATIVE_REVEAL_COUNTDOWN_TIMER,        "REVEAL_COUNTDOWN_TIMER",        NativeStub);
-    RegisterNativeFunction(NATIVE_SET_TIMER_TIME,                "SET_TIMER_TIME",                NativeStub);
-    RegisterNativeFunction(NATIVE_CREATE_TIMER,                  "CREATE_TIMER",                  NativeStub);
-    RegisterNativeFunction(NATIVE_GET_TIMER_TIME_REMAINING,      "GET_TIMER_TIME_REMAINING",      NativeStub);
-    RegisterNativeFunction(NATIVE_GET_TIMER_TIME_SINCE_SET,      "GET_TIMER_TIME_SINCE_SET",      NativeStub);
+    RegisterNativeFunction(NATIVE_REVEAL_COUNTDOWN_TIMER,        "REVEAL_COUNTDOWN_TIMER",        Native_REVEAL_COUNTDOWN_TIMER);
+    RegisterNativeFunction(NATIVE_SET_TIMER_TIME,                "SET_TIMER_TIME",                Native_SET_TIMER_TIME);
+    RegisterNativeFunction(NATIVE_CREATE_TIMER,                  "CREATE_TIMER",                  Native_CREATE_TIMER);
+    RegisterNativeFunction(NATIVE_GET_TIMER_TIME_REMAINING,      "GET_TIMER_TIME_REMAINING",      Native_GET_TIMER_TIME_REMAINING);
+    RegisterNativeFunction(NATIVE_GET_TIMER_TIME_SINCE_SET,      "GET_TIMER_TIME_SINCE_SET",      Native_GET_TIMER_TIME_SINCE_SET);
     RegisterNativeFunction(NATIVE_MOVE_MUSIC,                    "MOVE_MUSIC",                    NativeStub);
     RegisterNativeFunction(NATIVE_GET_INCLUSION_DISTANCE,        "GET_INCLUSION_DISTANCE",        NativeStub);
     RegisterNativeFunction(NATIVE_GET_LAND_HEIGHT,               "GET_LAND_HEIGHT",               Native_GET_LAND_HEIGHT);
@@ -1241,9 +1529,9 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_SET_ON_FIRE,                   "SET_ON_FIRE",                   Native_SET_ON_FIRE);
     RegisterNativeFunction(NATIVE_SET_TARGET,                    "SET_TARGET",                    Native_SET_TARGET);
     RegisterNativeFunction(NATIVE_WALK_PATH,                     "WALK_PATH",                     NativeStub);
-    RegisterNativeFunction(NATIVE_FOCUS_AND_POSITION_FOLLOW,     "FOCUS_AND_POSITION_FOLLOW",     NativeStub);
+    RegisterNativeFunction(NATIVE_FOCUS_AND_POSITION_FOLLOW,     "FOCUS_AND_POSITION_FOLLOW",     Native_FOCUS_AND_POSITION_FOLLOW);
     RegisterNativeFunction(NATIVE_GET_WALK_PATH_PERCENTAGE,      "GET_WALK_PATH_PERCENTAGE",      NativeStub);
-    RegisterNativeFunction(NATIVE_CAMERA_PROPERTIES,             "CAMERA_PROPERTIES",             NativeStub);
+    RegisterNativeFunction(NATIVE_CAMERA_PROPERTIES,             "CAMERA_PROPERTIES",             Native_CAMERA_PROPERTIES);
     RegisterNativeFunction(NATIVE_ENABLE_DISABLE_MUSIC,          "ENABLE_DISABLE_MUSIC",          NativeStub);
     RegisterNativeFunction(NATIVE_GET_MUSIC_OBJ_DISTANCE,        "GET_MUSIC_OBJ_DISTANCE",        NativeStub);
     RegisterNativeFunction(NATIVE_GET_MUSIC_ENUM_DISTANCE,       "GET_MUSIC_ENUM_DISTANCE",       NativeStub);
@@ -1251,29 +1539,29 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_ATTACH_OBJECT_LEASH_TO_OBJECT, "ATTACH_OBJECT_LEASH_TO_OBJECT", Native_ATTACH_OBJECT_LEASH_TO_OBJECT);
     RegisterNativeFunction(NATIVE_ATTACH_OBJECT_LEASH_TO_HAND,   "ATTACH_OBJECT_LEASH_TO_HAND",   Native_ATTACH_OBJECT_LEASH_TO_HAND);
     RegisterNativeFunction(NATIVE_DETACH_OBJECT_LEASH,           "DETACH_OBJECT_LEASH",           Native_DETACH_OBJECT_LEASH);
-    RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE,      "SET_CREATURE_ONLY_DESIRE",      NativeStub);
-    RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE_OFF,  "SET_CREATURE_ONLY_DESIRE_OFF",  NativeStub);
+    RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE,      "SET_CREATURE_ONLY_DESIRE",      Native_SET_CREATURE_ONLY_DESIRE);
+    RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE_OFF,  "SET_CREATURE_ONLY_DESIRE_OFF",  Native_SET_CREATURE_ONLY_DESIRE_OFF);
     RegisterNativeFunction(NATIVE_RESTART_MUSIC,                 "RESTART_MUSIC",                 NativeStub);
     RegisterNativeFunction(NATIVE_MUSIC_PLAYED_191,              "MUSIC_PLAYED",                  NativeStub);
     RegisterNativeFunction(NATIVE_IS_OF_TYPE,                    "IS_OF_TYPE",                    Native_IS_OF_TYPE);
-    RegisterNativeFunction(NATIVE_CLEAR_HIT_OBJECT,              "CLEAR_HIT_OBJECT",              NativeStub);
-    RegisterNativeFunction(NATIVE_GAME_THING_HIT,                "GAME_THING_HIT",                NativeStub);
-    RegisterNativeFunction(NATIVE_SPELL_AT_THING,                "SPELL_AT_THING",                NativeStub);
-    RegisterNativeFunction(NATIVE_SPELL_AT_POS,                  "SPELL_AT_POS",                  NativeStub);
+    RegisterNativeFunction(NATIVE_CLEAR_HIT_OBJECT,              "CLEAR_HIT_OBJECT",              Native_CLEAR_HIT_OBJECT);
+    RegisterNativeFunction(NATIVE_GAME_THING_HIT,                "GAME_THING_HIT",                Native_GAME_THING_HIT);
+    RegisterNativeFunction(NATIVE_SPELL_AT_THING,                "SPELL_AT_THING",                Native_SPELL_AT_THING);
+    RegisterNativeFunction(NATIVE_SPELL_AT_POS,                  "SPELL_AT_POS",                  Native_SPELL_AT_POS);
     RegisterNativeFunction(NATIVE_CALL_PLAYER_CREATURE,          "CALL_PLAYER_CREATURE",          Native_CALL_PLAYER_CREATURE);
     RegisterNativeFunction(NATIVE_GET_SLOWEST_SPEED,             "GET_SLOWEST_SPEED",             NativeStub);
-    RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_199,           "GET_OBJECT_HELD",               NativeStub);
+    RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_199,           "GET_OBJECT_HELD",               Native_GET_OBJECT_HELD);
     RegisterNativeFunction(NATIVE_HELP_SYSTEM_ON,                "HELP_SYSTEM_ON",                Native_HELP_SYSTEM_ON);
-    RegisterNativeFunction(NATIVE_SHAKE_CAMERA,                  "SHAKE_CAMERA",                  NativeStub);
+    RegisterNativeFunction(NATIVE_SHAKE_CAMERA,                  "SHAKE_CAMERA",                  Native_SHAKE_CAMERA);
     RegisterNativeFunction(NATIVE_SET_ANIMATION_MODIFY,          "SET_ANIMATION_MODIFY",          NativeStub);
     RegisterNativeFunction(NATIVE_SET_AVI_SEQUENCE,              "SET_AVI_SEQUENCE",              NativeStub);
     RegisterNativeFunction(NATIVE_PLAY_GESTURE,                  "PLAY_GESTURE",                  NativeStub);
     RegisterNativeFunction(NATIVE_DEV_FUNCTION,                  "DEV_FUNCTION",                  NativeStub);
     RegisterNativeFunction(NATIVE_HAS_MOUSE_WHEEL,               "HAS_MOUSE_WHEEL",               NativeStub);
     RegisterNativeFunction(NATIVE_NUM_MOUSE_BUTTONS,             "NUM_MOUSE_BUTTONS",             NativeStub);
-    RegisterNativeFunction(NATIVE_SET_CREATURE_DEV_STAGE,        "SET_CREATURE_DEV_STAGE",        NativeStub);
-    RegisterNativeFunction(NATIVE_SET_FIXED_CAM_ROTATION,        "SET_FIXED_CAM_ROTATION",        NativeStub);
-    RegisterNativeFunction(NATIVE_SWAP_CREATURE,                 "SWAP_CREATURE",                 NativeStub);
+    RegisterNativeFunction(NATIVE_SET_CREATURE_DEV_STAGE,        "SET_CREATURE_DEV_STAGE",        Native_SET_CREATURE_DEV_STAGE);
+    RegisterNativeFunction(NATIVE_SET_FIXED_CAM_ROTATION,        "SET_FIXED_CAM_ROTATION",        Native_SET_FIXED_CAM_ROTATION);
+    RegisterNativeFunction(NATIVE_SWAP_CREATURE,                 "SWAP_CREATURE",                 Native_SWAP_CREATURE);
     RegisterNativeFunction(NATIVE_GET_ARENA,                     "GET_ARENA",                     NativeStub);
     RegisterNativeFunction(NATIVE_GET_FOOTBALL_PITCH,            "GET_FOOTBALL_PITCH",            NativeStub);
     RegisterNativeFunction(NATIVE_STOP_ALL_GAMES,                "STOP_ALL_GAMES",                NativeStub);
@@ -1287,10 +1575,10 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_GAME_SUB_TYPE,                 "GAME_SUB_TYPE",                 NativeStub);
     RegisterNativeFunction(NATIVE_IS_LEASHED,                    "IS_LEASHED",                    Native_IS_LEASHED);
     RegisterNativeFunction(NATIVE_SET_CREATURE_HOME,             "SET_CREATURE_HOME",             Native_SET_CREATURE_HOME);
-    RegisterNativeFunction(NATIVE_GET_HIT_OBJECT,                "GET_HIT_OBJECT",                NativeStub);
-    RegisterNativeFunction(NATIVE_GET_OBJECT_WHICH_HIT,          "GET_OBJECT_WHICH_HIT",          NativeStub);
+    RegisterNativeFunction(NATIVE_GET_HIT_OBJECT,                "GET_HIT_OBJECT",                Native_GET_HIT_OBJECT);
+    RegisterNativeFunction(NATIVE_GET_OBJECT_WHICH_HIT,          "GET_OBJECT_WHICH_HIT",          Native_GET_OBJECT_WHICH_HIT);
     RegisterNativeFunction(NATIVE_GET_NEAREST_TOWN_OF_PLAYER,    "GET_NEAREST_TOWN_OF_PLAYER",    Native_GET_NEAREST_TOWN_OF_PLAYER);
-    RegisterNativeFunction(NATIVE_SPELL_AT_POINT,                "SPELL_AT_POINT",                NativeStub);
+    RegisterNativeFunction(NATIVE_SPELL_AT_POINT,                "SPELL_AT_POINT",                Native_SPELL_AT_POINT);
     RegisterNativeFunction(NATIVE_SET_ATTACK_OWN_TOWN,           "SET_ATTACK_OWN_TOWN",           NativeStub);
     RegisterNativeFunction(NATIVE_IS_FIGHTING,                   "IS_FIGHTING",                   Native_IS_FIGHTING);
     RegisterNativeFunction(NATIVE_SET_MAGIC_RADIUS,              "SET_MAGIC_RADIUS",              NativeStub);
@@ -1336,24 +1624,24 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_GET_INTERACTION_MAGNITUDE,     "GET_INTERACTION_MAGNITUDE",     NativeStub);
     RegisterNativeFunction(NATIVE_IS_CREATURE_AVAILABLE,         "IS_CREATURE_AVAILABLE",         Native_IS_CREATURE_AVAILABLE);
     RegisterNativeFunction(NATIVE_CREATE_HIGHLIGHT,              "CREATE_HIGHLIGHT",              Native_CREATE_HIGHLIGHT);
-    RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_273,           "GET_OBJECT_HELD",               NativeStub);
+    RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_273,           "GET_OBJECT_HELD",               Native_GET_OBJECT_HELD);
     RegisterNativeFunction(NATIVE_GET_ACTION_COUNT,              "GET_ACTION_COUNT",              NativeStub);
     RegisterNativeFunction(NATIVE_GET_OBJECT_LEASH_TYPE,         "GET_OBJECT_LEASH_TYPE",         NativeStub);
-    RegisterNativeFunction(NATIVE_SET_FOCUS_FOLLOW,              "SET_FOCUS_FOLLOW",              NativeStub);
-    RegisterNativeFunction(NATIVE_SET_POSITION_FOLLOW,           "SET_POSITION_FOLLOW",           NativeStub);
-    RegisterNativeFunction(NATIVE_SET_FOCUS_AND_POSITION_FOLLOW, "SET_FOCUS_AND_POSITION_FOLLOW", NativeStub);
-    RegisterNativeFunction(NATIVE_SET_CAMERA_LENS,               "SET_CAMERA_LENS",               NativeStub);
-    RegisterNativeFunction(NATIVE_MOVE_CAMERA_LENS,              "MOVE_CAMERA_LENS",              NativeStub);
+    RegisterNativeFunction(NATIVE_SET_FOCUS_FOLLOW,              "SET_FOCUS_FOLLOW",              Native_SET_FOCUS_FOLLOW);
+    RegisterNativeFunction(NATIVE_SET_POSITION_FOLLOW,           "SET_POSITION_FOLLOW",           Native_SET_POSITION_FOLLOW);
+    RegisterNativeFunction(NATIVE_SET_FOCUS_AND_POSITION_FOLLOW, "SET_FOCUS_AND_POSITION_FOLLOW", Native_SET_FOCUS_AND_POSITION_FOLLOW);
+    RegisterNativeFunction(NATIVE_SET_CAMERA_LENS,               "SET_CAMERA_LENS",               Native_SET_CAMERA_LENS);
+    RegisterNativeFunction(NATIVE_MOVE_CAMERA_LENS,              "MOVE_CAMERA_LENS",              Native_MOVE_CAMERA_LENS);
     RegisterNativeFunction(NATIVE_CREATURE_REACTION,             "CREATURE_REACTION",             NativeStub);
     RegisterNativeFunction(NATIVE_CREATURE_IN_DEV_SCRIPT,        "CREATURE_IN_DEV_SCRIPT",        NativeStub);
-    RegisterNativeFunction(NATIVE_STORE_CAMERA_DETAILS,          "STORE_CAMERA_DETAILS",          NativeStub);
-    RegisterNativeFunction(NATIVE_RESTORE_CAMERA_DETAILS,        "RESTORE_CAMERA_DETAILS",        NativeStub);
+    RegisterNativeFunction(NATIVE_STORE_CAMERA_DETAILS,          "STORE_CAMERA_DETAILS",          Native_STORE_CAMERA_DETAILS);
+    RegisterNativeFunction(NATIVE_RESTORE_CAMERA_DETAILS,        "RESTORE_CAMERA_DETAILS",        Native_RESTORE_CAMERA_DETAILS);
     RegisterNativeFunction(NATIVE_START_ANGLE_SOUND_285,         "START_ANGLE_SOUND",             NativeStub);
-    RegisterNativeFunction(NATIVE_SET_CAMERA_POS_FOC_LENS,       "SET_CAMERA_POS_FOC_LENS",       NativeStub);
-    RegisterNativeFunction(NATIVE_MOVE_CAMERA_POS_FOC_LENS,      "MOVE_CAMERA_POS_FOC_LENS",      NativeStub);
-    RegisterNativeFunction(NATIVE_GAME_TIME_ON_OFF,              "GAME_TIME_ON_OFF",              NativeStub);
-    RegisterNativeFunction(NATIVE_MOVE_GAME_TIME,                "MOVE_GAME_TIME",                NativeStub);
-    RegisterNativeFunction(NATIVE_SET_HIGH_GRAPHICS_DETAIL,      "SET_HIGH_GRAPHICS_DETAIL",      NativeStub);
+    RegisterNativeFunction(NATIVE_SET_CAMERA_POS_FOC_LENS,       "SET_CAMERA_POS_FOC_LENS",       Native_SET_CAMERA_POS_FOC_LENS);
+    RegisterNativeFunction(NATIVE_MOVE_CAMERA_POS_FOC_LENS,      "MOVE_CAMERA_POS_FOC_LENS",      Native_MOVE_CAMERA_POS_FOC_LENS);
+    RegisterNativeFunction(NATIVE_GAME_TIME_ON_OFF,              "GAME_TIME_ON_OFF",              Native_GAME_TIME_ON_OFF);
+    RegisterNativeFunction(NATIVE_MOVE_GAME_TIME,                "MOVE_GAME_TIME",                Native_MOVE_GAME_TIME);
+    RegisterNativeFunction(NATIVE_SET_HIGH_GRAPHICS_DETAIL,      "SET_HIGH_GRAPHICS_DETAIL",      Native_SET_HIGH_GRAPHICS_DETAIL);
     RegisterNativeFunction(NATIVE_SET_SKELETON,                  "SET_SKELETON",                  Native_SET_SKELETON);
     RegisterNativeFunction(NATIVE_IS_SKELETON,                   "IS_SKELETON",                   Native_IS_SKELETON);
     RegisterNativeFunction(NATIVE_PLAYER_SPELL_CAST_TIME,        "PLAYER_SPELL_CAST_TIME",        NativeStub);
@@ -1377,8 +1665,8 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_311, "ENABLE_DISABLE_COMPUTER_PLAYER", NativeStub);
     RegisterNativeFunction(NATIVE_GET_COMPUTER_PLAYER_POSITION,  "GET_COMPUTER_PLAYER_POSITION",  NativeStub);
     RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_POSITION,  "SET_COMPUTER_PLAYER_POSITION",  NativeStub);
-    RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_POSITION,    "GET_STORED_CAMERA_POSITION",    NativeStub);
-    RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_FOCUS,       "GET_STORED_CAMERA_FOCUS",       NativeStub);
+    RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_POSITION,    "GET_STORED_CAMERA_POSITION",    Native_GET_STORED_CAMERA_POSITION);
+    RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_FOCUS,       "GET_STORED_CAMERA_FOCUS",       Native_GET_STORED_CAMERA_FOCUS);
     RegisterNativeFunction(NATIVE_CALL_NEAR_IN_STATE,            "CALL_NEAR_IN_STATE",            NativeStub);
     RegisterNativeFunction(NATIVE_SET_CREATURE_SOUND,            "SET_CREATURE_SOUND",            NativeStub);
     RegisterNativeFunction(NATIVE_CREATURE_INTERACTING_WITH,     "CREATURE_INTERACTING_WITH",     NativeStub);
