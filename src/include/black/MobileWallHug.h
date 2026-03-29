@@ -55,6 +55,10 @@ struct MobileWallHug : public Mobile {
     virtual void MoveTo3D();
     virtual void SetNewWander(const MapCoords& target, int param2, int param3);
 
+    // === Non-virtual movement methods ===
+    void MoveToGoal();                     // Compute step + advance toward goal
+    void SetGoalPos(const MapCoords& pos); // Set destination and start moving
+
     // === Fields ===
     int16_t  turns_until_next_state_change; // 0x58
     uint16_t speed;                         // 0x5A

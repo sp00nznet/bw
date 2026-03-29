@@ -102,8 +102,13 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_MOVE_TO_POS:
     case VILLAGER_STATE_MOVE_TO_OBJECT:
     case VILLAGER_STATE_MOVE_ON_STRUCTURE:
-        // Movement states — advance along path
-        // TODO: call MoveAlongPath() and check arrival
+        // Movement states — advance toward goal using MobileWallHug
+        if (speed == 0) SetSpeed(200);  // Default villager walk speed
+        MoveToGoal();
+        if (move_state == MOVE_TO_STATES_ARRIVED) {
+            // Arrived at destination — transition to final state
+            SetTopState(static_cast<VILLAGER_STATES>(action.final_state));
+        }
         break;
 
     case VILLAGER_STATE_IN_SCRIPT:
@@ -183,8 +188,17 @@ uint32_t Villager::ProcessState() {
 
     case VILLAGER_STATE_GOTO_FOOD_REACTION:
     case VILLAGER_STATE_GOTO_WOOD_REACTION:
-        // Moving toward food/wood — check arrival
-        // TODO: movement system
+    case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF:
+    case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD:
+    case VILLAGER_STATE_GO_HOME:
+    case VILLAGER_STATE_GOTO_WORSHIP_SITE_FOR_WORSHIP:
+        // Goto states — move toward goal
+        if (speed == 0) SetSpeed(200);
+        MoveToGoal();
+        if (move_state == MOVE_TO_STATES_ARRIVED) {
+            // Transition to the "arrives" state (final_state)
+            SetTopState(static_cast<VILLAGER_STATES>(action.final_state));
+        }
         break;
 
     case VILLAGER_STATE_ARRIVES_AT_FOOD_REACTION:
@@ -196,11 +210,6 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_ARRIVES_AT_WOOD_REACTION:
         // Arrived at wood — pick up
         SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF);
-        break;
-
-    case VILLAGER_STATE_GO_HOME:
-        // Moving home — check arrival
-        // TODO: movement system
         break;
 
     case VILLAGER_STATE_ARRIVES_HOME:
@@ -230,14 +239,38 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_DECIDE_WHAT_TO_DO:
         // AI decision point — choose next activity
         // Priority: survival > tasks > idle
-        if (food <= 0.2f && home) {
-            SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD);
-        } else if (IsHomeless()) {
-            // Wander looking for housing
-            SetTopState(VILLAGER_STATE_INVALID_STATE);
+        if (food <= 0.2f) {
+            // Hungry — go find food
+            if (home) {
+                // Set goal to home position for food
+                MapCoords home_pos;
+                home->GetPos(&home_pos);
+                SetGoalPos(home_pos);
+                SetCurrentAndDestinationState(
+                    VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD,
+                    VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD);
+            } else {
+                SetTopState(VILLAGER_STATE_INVALID_STATE);
+            }
+        } else if (building_site && building_site->GetBuilding()) {
+            // Has a building assignment — go build
+            MapCoords site_pos;
+            building_site->GetBuilding()->GetPos(&site_pos);
+            SetGoalPos(site_pos);
+            SetCurrentAndDestinationState(
+                VILLAGER_STATE_MOVE_TO_POS,
+                VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE);
+        } else if (home) {
+            // Nothing urgent — go home and rest
+            MapCoords home_pos;
+            home->GetPos(&home_pos);
+            SetGoalPos(home_pos);
+            SetCurrentAndDestinationState(
+                VILLAGER_STATE_GO_HOME,
+                VILLAGER_STATE_ARRIVES_HOME);
         } else {
-            // Go home and rest
-            SetTopState(VILLAGER_STATE_GO_HOME);
+            // Homeless — idle
+            SetTopState(VILLAGER_STATE_INVALID_STATE);
         }
         break;
 

@@ -61,7 +61,60 @@ void MobileWallHug::MoveTo3D() {
     coords.z = static_cast<int32_t>(static_cast<float>(coords.z) + step.z);
 }
 
-void MobileWallHug::SetNewWander(const MapCoords& /*target*/, int /*param2*/, int /*param3*/) {
-    // Complex wander direction calculation with angle randomization
-    // TODO: implement when sine/cosine lookup tables are resolved
+void MobileWallHug::SetNewWander(const MapCoords& target, int /*param2*/, int /*param3*/) {
+    // Set a wander destination
+    goal = target;
+    move_state = MOVE_TO_STATES_LINEAR;
+}
+
+// ============================================================================
+// Non-virtual movement methods
+// ============================================================================
+
+void MobileWallHug::MoveToGoal() {
+    // Core movement loop — compute step vector and advance toward goal
+    // This is a simplified version of the original wall-hugging pathfinder.
+
+    if (move_state == MOVE_TO_STATES_ARRIVED) return;
+
+    // Check if we've arrived
+    if (AreWeThere(goal, 0.0f)) {
+        move_state = MOVE_TO_STATES_ARRIVED;
+        step.x = 0.0f;
+        step.z = 0.0f;
+        return;
+    }
+
+    // Compute direction to goal
+    float dx = static_cast<float>(goal.x - coords.x);
+    float dz = static_cast<float>(goal.z - coords.z);
+    float dist = sqrtf(dx * dx + dz * dz);
+
+    if (dist < 0.001f) {
+        move_state = MOVE_TO_STATES_ARRIVED;
+        return;
+    }
+
+    // Normalize and scale by speed
+    float spd = static_cast<float>(speed);
+    if (spd > dist) spd = dist;  // Don't overshoot
+
+    step.x = (dx / dist) * spd;
+    step.z = (dz / dist) * spd;
+    step.altitude = 0.0f;
+
+    // Compute facing angle (game angle units: 0-65535 = 0-2PI)
+    float angle = atan2f(dx, dz);
+    game_angle = static_cast<uint16_t>(angle * (32768.0f / 3.14159265f));
+
+    // Apply movement
+    MoveTo3D();
+
+    // Update obj_coords for map tracking
+    obj_coords = coords;
+}
+
+void MobileWallHug::SetGoalPos(const MapCoords& target) {
+    goal = target;
+    move_state = MOVE_TO_STATES_LINEAR;
 }
