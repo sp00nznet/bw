@@ -8,6 +8,9 @@
 #include <black/Villager.h>
 #include <black/Abode.h>
 #include <black/BuildingSite.h>
+#include <black/StoragePit.h>
+#include <black/Town.h>
+#include <black/MultiMapFixed.h>
 
 // ============================================================================
 // Overrides from GameThingWithPos / Object
@@ -202,14 +205,71 @@ uint32_t Villager::ProcessState() {
         break;
 
     case VILLAGER_STATE_ARRIVES_AT_FOOD_REACTION:
-        // Arrived at food — pick up
-        // TODO: resource pickup logic
+        // Arrived at food — pick up resource
+        AddResourceHeld(RESOURCE_TYPE_FOOD, 10);
         SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF);
         break;
 
     case VILLAGER_STATE_ARRIVES_AT_WOOD_REACTION:
-        // Arrived at wood — pick up
+        // Arrived at wood — pick up resource
+        AddResourceHeld(RESOURCE_TYPE_WOOD, 10);
         SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF);
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF:
+        // Arrived at storage pit — deposit resources
+        if (home && IsCarryingResource()) {
+            Town* t = GetTown();
+            if (t) {
+                StoragePit* pit = t->GetStoragePit();
+                if (pit) {
+                    for (uint32_t i = 0; i < 3; i++) {
+                        int16_t amt = GetResourceHeld(static_cast<RESOURCE_TYPE>(i));
+                        if (amt > 0) {
+                            pit->AddResource(static_cast<RESOURCE_TYPE>(i), amt, nullptr, false, coords, 0);
+                        }
+                    }
+                }
+            }
+            ClearResourceHeld();
+        }
+        SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD:
+        // Arrived at storage pit for food — take food
+        if (home) {
+            Town* t = GetTown();
+            if (t) {
+                StoragePit* pit = t->GetStoragePit();
+                if (pit) {
+                    pit->RemoveResource(RESOURCE_TYPE_FOOD, 5, nullptr, nullptr);
+                    food += 0.5f;
+                    if (food > 1.0f) food = 1.0f;
+                }
+            }
+        }
+        SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE:
+        // Arrived at building site — start building
+        SetTopState(VILLAGER_STATE_BUILDING);
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_BUILDING_MATERIALS:
+        // Picked up wood for building — go to building site
+        AddResourceHeld(RESOURCE_TYPE_WOOD, 5);
+        if (building_site && building_site->GetBuilding()) {
+            MapCoords site_pos;
+            building_site->GetBuilding()->GetPos(&site_pos);
+            SetGoalPos(site_pos);
+            SetCurrentAndDestinationState(
+                VILLAGER_STATE_MOVE_TO_POS,
+                VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE);
+        } else {
+            SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        }
         break;
 
     case VILLAGER_STATE_ARRIVES_HOME:
