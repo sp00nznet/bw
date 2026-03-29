@@ -39,9 +39,8 @@ uint32_t SpellSeed::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t SpellSeed::GetSaveType() {
-    // Original at 0x00727fa0
-    // TODO: verify return value
-    return 0;
+    // Original at 0x00727fa0: returns 0x24
+    return 0x24;
 }
 
 // ============================================================================
@@ -49,15 +48,13 @@ uint32_t SpellSeed::GetSaveType() {
 // ============================================================================
 
 uint32_t SpellSeed::GetCreatureBeliefType() {
-    // Original at 0x00727f70
-    // TODO: verify return value
-    return 0;
+    // Original at 0x00727f70: returns 0x12
+    return 0x12;
 }
 
 uint32_t SpellSeed::GetOrigin() {
-    // Original at 0x00727f80
-    // TODO: verify return value
-    return 0;
+    // Original at 0x00727f80: returns 2
+    return 2;
 }
 
 float SpellSeed::GetPower() const {

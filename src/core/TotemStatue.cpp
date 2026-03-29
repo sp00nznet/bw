@@ -43,8 +43,8 @@ uint32_t TotemStatue::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t TotemStatue::GetSaveType() {
-    // Original at 0x00561160
-    return 0;
+    // Original at 0x00561160: returns 0x7F
+    return 0x7F;
 }
 
 void TotemStatue::ResolveLoad() {

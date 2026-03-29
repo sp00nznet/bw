@@ -116,9 +116,8 @@ bool32_t MobileObject::IsPoisoned() {
 }
 
 uint32_t MobileObject::GetScriptObjectType() {
-    // Original at 0x00607b60 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00607b60: returns 0x14
+    return 0x14;
 }
 
 // ============================================================================
@@ -181,9 +180,11 @@ float MobileObject::GetHoldLoweringMultiplier() {
 }
 
 int MobileObject::GetMesh() const {
-    // Original at 0x00425b40: small method
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x00425b40: reads mesh from info at offset 0x108
+    // (delegates to GMobileObjectInfo::GetMesh virtual at 0x00425920)
+    if (!info) return 0;
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x108);
 }
 
 void MobileObject::Draw() {

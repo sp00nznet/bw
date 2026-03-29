@@ -46,8 +46,8 @@ uint32_t MagicFireBall::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t MagicFireBall::GetSaveType() {
-    // Original at 0x00682b30
-    return 0;
+    // Original at 0x00682b30: returns 0x20
+    return 0x20;
 }
 
 // ============================================================================

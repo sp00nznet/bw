@@ -38,8 +38,8 @@ uint32_t Reward::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Reward::GetSaveType() {
-    // Original at 0x006e5670
-    return 0;
+    // Original at 0x006e5670: returns 0x46
+    return 0x46;
 }
 
 void Reward::ResolveLoad() {
@@ -65,8 +65,9 @@ bool32_t Reward::IsReward() const {
 }
 
 bool32_t Reward::IsActive() const {
-    // Original at 0x006e5660 — complex
-    return 0;
+    // Original at 0x006e5660: reads field at offset 0x7C
+    return *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(this) + 0x7C);
 }
 
 uint32_t Reward::GetScriptObjectType() {

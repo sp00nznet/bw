@@ -50,19 +50,17 @@ uint32_t Pot::GetResource(RESOURCE_TYPE type) {
     return 0;
 }
 
-uint32_t Pot::AddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
-                           GInterfaceStatus* /*status*/, bool /*param4*/,
+uint32_t Pot::AddResource(RESOURCE_TYPE type, uint32_t amount,
+                           GInterfaceStatus* /*status*/, bool param4,
                            const MapCoords& /*coords*/, int /*param6*/) {
-    // Original at 0x0066d290 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x0066d290 — delegates to JustAddResource
+    return JustAddResource(type, amount, param4);
 }
 
-uint32_t Pot::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
-                              GInterfaceStatus* /*status*/, bool* /*param4*/) {
-    // Original at 0x0066d3f0 — complex
-    // TODO: implement properly
-    return 0;
+uint32_t Pot::RemoveResource(RESOURCE_TYPE type, uint32_t amount,
+                              GInterfaceStatus* /*status*/, bool* param4) {
+    // Original at 0x0066d3f0 — delegates to JustRemoveResource
+    return JustRemoveResource(type, amount, param4);
 }
 
 char* Pot::GetDebugText() {
@@ -72,8 +70,11 @@ char* Pot::GetDebugText() {
 }
 
 uint32_t Pot::GetGuidanceResourceType() {
-    // Original at 0x0071bde0 — complex
-    // TODO: implement properly
+    // Original at 0x0071bde0 — maps resource type to guidance type
+    // RESOURCE_TYPE_FOOD (0) → 1, RESOURCE_TYPE_WOOD (1) → 2, other → 0
+    RESOURCE_TYPE rt = GetResourceType();
+    if (rt == RESOURCE_TYPE_FOOD) return 1;
+    if (rt == RESOURCE_TYPE_WOOD) return 2;
     return 0;
 }
 
