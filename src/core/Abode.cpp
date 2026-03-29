@@ -6,6 +6,7 @@
 // resources, handles building/repair lifecycle.
 
 #include <black/Abode.h>
+#include <black/Town.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -136,9 +137,8 @@ uint32_t Abode::GetOrigin() {
 }
 
 bool Abode::IsInteractable() {
-    // Original at 0x00407200 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00407200 — abodes are interactable when functional
+    return IsFunctional();
 }
 
 bool32_t Abode::IsCastShadowAtNight() {
@@ -310,9 +310,8 @@ void Abode::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
 }
 
 bool Abode::CanBecomeAPhysicsObject() {
-    // Original at 0x00406800 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00406800 — abodes can become physics objects when destroyed
+    return IsBuilt();
 }
 
 bool Abode::GetInspectObjectPos(Villager* /*param1*/, MapCoords* /*pos*/) {
@@ -333,9 +332,8 @@ size_t Abode::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
 }
 
 bool Abode::ShouldFootpathsGoRound() {
-    // Original at 0x00403ef0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00403ef0 — abodes should have footpaths go around them
+    return true;
 }
 
 // ============================================================================
@@ -506,7 +504,7 @@ bool Abode::CanBeHiddenIn() {
 }
 
 GTribeInfo* Abode::GetTribe() {
-    // Original at 0x00405f50 — complex
-    // TODO: implement properly
+    // Original at 0x00405f50 — get tribe from town
+    if (town) return town->GetTribe();
     return nullptr;
 }

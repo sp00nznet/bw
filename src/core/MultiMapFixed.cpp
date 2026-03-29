@@ -18,8 +18,8 @@ extern GMap* g_map;
 // ============================================================================
 
 Town* MultiMapFixed::GetTown() {
-    // Original at 0x004220a0 — complex
-    // TODO: implement when Town system is available
+    // Original at 0x004220a0 — base class returns nullptr
+    // Overridden by Abode, FishFarm, etc. to return their town field
     return nullptr;
 }
 
@@ -304,9 +304,8 @@ bool MultiMapFixed::InteractsWithPhysicsObjects() {
 }
 
 bool MultiMapFixed::CreatureMustAvoid(Creature* /*param1*/) {
-    // Original at 0x0052f490 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x0052f490 — creatures avoid built buildings
+    return IsBuilt();
 }
 
 bool32_t MultiMapFixed::IsSolidToNewAbode() {
