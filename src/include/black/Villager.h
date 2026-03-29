@@ -41,6 +41,7 @@ struct Villager : public Living {
     int GetMesh() const override;
     int GetDetailMesh(int detail) override;
     bool AmILikelyToMove() override;
+    uint32_t ProcessState() override;
 
     // === New virtual methods (vtable 0xB40-0xB44) ===
     virtual const char* GetVillagerName();

@@ -7,6 +7,7 @@
 
 #include <black/Villager.h>
 #include <black/Abode.h>
+#include <black/BuildingSite.h>
 
 // ============================================================================
 // Overrides from GameThingWithPos / Object
@@ -78,6 +79,179 @@ float Villager::GetHowMuchCreatureWantsToLookAtMe() {
 }
 
 void Villager::DrawVillagerInfo() {}
+
+// ============================================================================
+// ProcessState — villager state machine dispatch
+// ============================================================================
+
+uint32_t Villager::ProcessState() {
+    // Original uses a function pointer table (_VillagerStateTable) indexed by state.
+    // We implement as a switch dispatch since we don't have the original table.
+    // Each case calls the appropriate handler for that state.
+
+    action.turns_since_state_change++;
+
+    VILLAGER_STATES state = static_cast<VILLAGER_STATES>(action.top_state);
+
+    switch (state) {
+    case VILLAGER_STATE_INVALID_STATE:
+        // Idle — decide what to do next
+        // TODO: call DecideWhatToDo() when AI decision tree is implemented
+        break;
+
+    case VILLAGER_STATE_MOVE_TO_POS:
+    case VILLAGER_STATE_MOVE_TO_OBJECT:
+    case VILLAGER_STATE_MOVE_ON_STRUCTURE:
+        // Movement states — advance along path
+        // TODO: call MoveAlongPath() and check arrival
+        break;
+
+    case VILLAGER_STATE_IN_SCRIPT:
+        // Controlled by LHVM script — do nothing, script drives state
+        break;
+
+    case VILLAGER_STATE_IN_DANCE:
+        // Participating in a dance — handled by dance system
+        break;
+
+    case VILLAGER_STATE_FLEEING_FROM_OBJECT_REACTION:
+    case VILLAGER_STATE_LOOKING_AT_OBJECT_REACTION:
+    case VILLAGER_STATE_FOLLOWING_OBJECT_REACTION:
+    case VILLAGER_STATE_INSPECT_OBJECT_REACTION:
+    case VILLAGER_STATE_LOOK_AT_FLYING_OBJECT_REACTION:
+    case VILLAGER_STATE_FLEEING_AND_LOOKING_AT_OBJECT_REACTION:
+        // Reaction states — decrement reaction timer, check if done
+        if (reaction && reaction_done_when) {
+            // TODO: check reaction_done_when condition
+        }
+        break;
+
+    case VILLAGER_STATE_FLYING:
+        // Thrown by hand — physics handles this
+        break;
+
+    case VILLAGER_STATE_LANDED:
+        // Just landed after being thrown
+        SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        break;
+
+    case VILLAGER_STATE_IN_HAND:
+        // Being held by the god hand — do nothing
+        break;
+
+    case VILLAGER_STATE_SET_DYING:
+        // Transition to dying
+        SetTopState(VILLAGER_STATE_DYING);
+        break;
+
+    case VILLAGER_STATE_DYING:
+        // Dying animation — wait then transition to dead
+        if (action.turns_since_state_change > 60) { // ~2 seconds at 30fps
+            SetTopState(VILLAGER_STATE_DEAD);
+        }
+        break;
+
+    case VILLAGER_STATE_DEAD:
+        // Dead — mark for deletion after timeout
+        if (action.turns_since_state_change > 300) { // ~10 seconds
+            ToBeDeleted(0);
+        }
+        break;
+
+    case VILLAGER_STATE_DROWNING:
+        // In water — reduce life
+        ReduceLife(0.01f, nullptr);
+        if (GetLife() <= 0.0f) {
+            SetTopState(VILLAGER_STATE_SET_DYING);
+        }
+        break;
+
+    case VILLAGER_STATE_DOWNED:
+        // Knocked down — recover after timeout
+        if (action.turns_since_state_change > 90) { // ~3 seconds
+            SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        }
+        break;
+
+    case VILLAGER_STATE_BEING_EATEN:
+        // Being consumed by creature
+        ReduceLife(0.05f, nullptr);
+        if (GetLife() <= 0.0f) {
+            SetTopState(VILLAGER_STATE_SET_DYING);
+        }
+        break;
+
+    case VILLAGER_STATE_GOTO_FOOD_REACTION:
+    case VILLAGER_STATE_GOTO_WOOD_REACTION:
+        // Moving toward food/wood — check arrival
+        // TODO: movement system
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_FOOD_REACTION:
+        // Arrived at food — pick up
+        // TODO: resource pickup logic
+        SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF);
+        break;
+
+    case VILLAGER_STATE_ARRIVES_AT_WOOD_REACTION:
+        // Arrived at wood — pick up
+        SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF);
+        break;
+
+    case VILLAGER_STATE_GO_HOME:
+        // Moving home — check arrival
+        // TODO: movement system
+        break;
+
+    case VILLAGER_STATE_ARRIVES_HOME:
+    case VILLAGER_STATE_AT_HOME:
+        // At home — rest, consume food
+        if (food > 0.0f) food -= 0.001f;
+        if (action.turns_since_state_change > 150) {
+            SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        }
+        break;
+
+    case VILLAGER_STATE_BUILDING:
+        // Building at a construction site
+        if (building_site) {
+            building_site->BuildBy(0.002f);
+        }
+        if (action.turns_since_state_change > 120) {
+            SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        }
+        break;
+
+    case VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE:
+        // Worshipping — generates prayer power
+        // TODO: increment worship counter on worship site
+        break;
+
+    case VILLAGER_STATE_DECIDE_WHAT_TO_DO:
+        // AI decision point — choose next activity
+        // Priority: survival > tasks > idle
+        if (food <= 0.2f && home) {
+            SetTopState(VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD);
+        } else if (IsHomeless()) {
+            // Wander looking for housing
+            SetTopState(VILLAGER_STATE_INVALID_STATE);
+        } else {
+            // Go home and rest
+            SetTopState(VILLAGER_STATE_GO_HOME);
+        }
+        break;
+
+    default:
+        // Unhandled states — many specialized states (forester, farmer, etc.)
+        // For now, timeout back to decision state
+        if (action.turns_since_state_change > 300) {
+            SetTopState(VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        }
+        break;
+    }
+
+    return 1;
+}
 
 // ============================================================================
 // Overrides of GameThingWithPos type predicates
