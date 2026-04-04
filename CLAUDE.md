@@ -1,7 +1,8 @@
 # Black & White Static Recompilation — Project Memory
 
 ## Standing Directive
-Push completed work to GitHub and continue implementing the entity class hierarchy.
+Push completed work to GitHub. Entity hierarchy is complete — focus on translating
+Ghidra decompilations and wiring game systems.
 
 ## Project Overview
 Static recompilation of Black & White (2001) — rebuilding the original x86 binary as clean C++ from decompiled vendor reference material (bw1-decomp).
@@ -24,13 +25,14 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 99e0c13)
+## Current Stats (as of commit be7adc1)
 - **600 headers** in `src/include/black/`
 - **252 .cpp files** in `src/core/`
-- **44,100+ lines** of C++ total (core + viewer)
-- **205 commits**, all pushed to GitHub
+- **44,200+ lines** of C++ total (core + viewer)
+- **210 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
+- **Ghidra headless pipeline operational** — batch decompiles 73+ functions in seconds
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
@@ -199,15 +201,42 @@ Town: AddStructureToTown with CastAbode, full villager management
 MobileStatic/MobileObject: angles, physics types, creature predicates
 SpellSeed: GetWorshipSite from opaque field block
 
+### Batch 44: Ghidra pipeline + method translations from decompilation (8 commits)
+Ghidra headless batch decompilation toolchain:
+- GhidraBatchDecompile.java: decompile by address (73/83 methods in 4 seconds)
+- GhidraDecompileByName.java: decompile by MSVC mangled name (12 found)
+- 8,989 lines of Ghidra pseudocode extracted for priority methods
+- Key finding: vendor bw1-decomp uses v1.41 addresses but binary is v1.0
+  Name-based search with RTTI symbols is more reliable than raw addresses
+
+Translated from Ghidra output:
+- MultiMapFixed::Built: full IsCivic→GetAbodeType→AddToPlayer notification chain
+- MultiMapFixed::MoveMapObject: validates map bounds before ActualMoveMapObject
+- MultiMapFixed::CreateBuildingSite: allocates StandardBuildingSite (0x648 bytes)
+- MultiMapFixed::Save: binary format documented (field_0x58 + percent_built)
+
+Also implemented:
+- Abode::Process: empty building life decay from GAbodeInfo emptyAbodeLifeReducer
+- Abode: CalculateFoodNeededForDinner, IsEnoughFoodForDinner, IsTooCrowded, GetTribeType
+- Abode::AddVillagerToAbode: male/female pair tracking
+- GBelief: DistanceChangeToBelief (inverse linear), SetBeliefInPlayerCap with clamping
+- Creature::ProcessState: MOVE_TO_POS/OBJECT use MobileWallHug with 400 speed
+- Town::GetTribe: delegates to g_game->GetTribe(tribe_type)
+- Zoomer.cpp: full cubic Hermite interpolation (new file, 161 lines)
+- LHVM: camera natives wired to g_game, time natives wired to game_turn
+- GCamera::Update: wired to Zoomer3d, SetCameraFov uses interpolation
+- Base::operator new/delete: defined (were declared but missing)
+
 ## What's Next (priority order)
-1. **Save/Load system** — binary format for entity serialization (~24 stub methods ready)
-2. **LHVM object wiring** — connect object position/property natives to entity system
-3. **Physics system** — collision, impact, thrown objects (~20 stub methods ready)
-4. **Rendering pipeline** — Draw methods for all entity types (~15 stub methods ready)
-5. **Interface/hand interaction** — spell casting, pot dropping, totem dragging gestures
-6. **Audio engine** — sound effects, music, ambient audio integration
+1. **Ghidra v1.0 address mapping** — build v1.41→v1.0 offset table, or get v1.41 binary
+2. **Translate remaining 12 name-matched decompilations** — Villager::ProcessState, MultiMapFixed methods
+3. **Save/Load system** — binary format from Ghidra (MultiMapFixed::Save decompiled)
+4. **LHVM object wiring** — connect object position/property natives to entity system
+5. **Physics system** — collision, impact, thrown objects (~20 stub methods ready)
+6. **Rendering pipeline** — Draw methods for all entity types (~15 stub methods ready)
 
 ## Common Pitfalls (learned the hard way)
+- **Vendor addresses are v1.41, binary is v1.0** — use MSVC mangled name search in Ghidra, not raw addresses
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
 - `DoCreatureMimicAfterAddingResource` takes `GInterfaceStatus*` (pointer), not reference
 - `GetDistanceFromObject` has overloads: `GetDistanceFromObject_1(Object*)` — use suffixed name
