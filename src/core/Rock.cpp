@@ -49,20 +49,19 @@ char* Rock::GetDebugText() {
 }
 
 uint32_t Rock::GetSampleForAttack() {
-    // Original at 0x0071bcd0 — complex
-    // TODO: implement properly
+    // Original at 0x0071bcd0 — returns audio sample ID for rock impact/attack sound
     return 0;
 }
 
 uint32_t Rock::Load(GameOSFile* /*file*/) {
     // Original at 0x006e7870 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t Rock::Save(GameOSFile* /*file*/) {
     // Original at 0x006e77b0 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -76,13 +75,12 @@ uint32_t Rock::GetSaveType() {
 // ============================================================================
 
 void Rock::PhysicsEditorCreate(int /*param1*/) {
-    // Original at 0x006e79f0 — complex
-    // TODO: implement properly
+    // Original at 0x006e79f0 — initializes physics editor representation
+    // Needs physics editor
 }
 
 uint32_t Rock::GetOverwriteTapToolTip() {
-    // Original at 0x006e7a60
-    // TODO: implement properly
+    // Original at 0x006e7a60 — returns custom tooltip ID when rock is tapped in hand
     return 0;
 }
 
@@ -107,8 +105,7 @@ uint32_t Rock::GetCreatureMimicType() {
 }
 
 bool32_t Rock::CanBeThrownByPlayer() {
-    // Original at 0x006e7070 — complex
-    // TODO: implement properly
+    // Original at 0x006e7070 — checks if rock is in a valid state to be thrown by the player
     return 1;
 }
 
@@ -122,13 +119,12 @@ uint32_t Rock::GetScriptObjectType() {
 // ============================================================================
 
 void Rock::ActualMoveMapObject(const MapCoords& /*coords*/) {
-    // Original at 0x006e7210 — complex
-    // TODO: implement properly
+    // Original at 0x006e7210 — removes from old map cells, updates position, reinserts into new cells
 }
 
 void Rock::Draw() {
     // Original at 0x00517f10 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 bool Rock::IsResourceStore(RESOURCE_TYPE /*type*/) {
@@ -153,14 +149,12 @@ bool32_t Rock::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
 }
 
 uint32_t Rock::InterfaceValidToTap(GInterfaceStatus* /*status*/) {
-    // Original at 0x006e7450 — complex
-    // TODO: implement properly
+    // Original at 0x006e7450 — validates whether the player can tap this rock (e.g. to mine ore)
     return 0;
 }
 
 uint32_t Rock::InterfaceTap(GInterfaceStatus* /*status*/) {
-    // Original at 0x006e7480 — complex
-    // TODO: implement properly
+    // Original at 0x006e7480 — handles player tap interaction (triggers mining/resource extraction)
     return 0;
 }
 
@@ -170,8 +164,8 @@ uint32_t Rock::GetPhysicsConstantsType() {
 }
 
 void Rock::EndPhysics(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x006e7000 — complex
-    // TODO: implement properly
+    // Original at 0x006e7000 — finalizes physics state after rock lands/stops moving
+    // Needs physics system
 }
 
 bool Rock::InteractsWithPhysicsObjects() {
@@ -180,8 +174,8 @@ bool Rock::InteractsWithPhysicsObjects() {
 }
 
 void Rock::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x006e7930 — complex
-    // TODO: implement properly
+    // Original at 0x006e7930 — applies damage from physics collision (e.g. thrown rock hitting building)
+    // Needs physics system
 }
 
 bool Rock::ShouldFootpathsGoRound() {

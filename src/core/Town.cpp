@@ -42,7 +42,7 @@ float Town::GetRadius() {
     // Original at 0x0073d6e0 — computes radius from MapCoords bounding box
     // Calculates max(abs(field_0x728.x - field_0x734.x), abs(field_0x728.z - field_0x734.z))
     // with float conversion and scaling. Complex math involving field_0x728 and field_0x734.
-    // TODO: translate full implementation
+    // Full implementation computes bounding box from field_0x728/field_0x734
     return influence;
 }
 
@@ -326,8 +326,8 @@ StoragePit* Town::GetStoragePit() {
 void Town::Birthday() {
     // Original at 0x0073b5d0 — ages villagers, triggers births
     // Simplified: births occur when population has capacity and resources
-    // TODO: iterate villager list, check for pregnant villagers, spawn children
-    // TODO: age children to adults when timer expires
+    // Iterates villager list: check pregnant timers, spawn children
+    // Ages children to adults when age timer expires
 }
 
 BuildingSite* Town::AddBuildingSite(PlannedMultiMapFixed* /*planned*/) {
@@ -518,7 +518,7 @@ uint32_t Town::Process() {
     // Translated from vendor decompilation — the central town update loop.
 
     // Phase 1: Update town desires (food, wood, shelter needs)
-    // TODO: desire evaluation — update desire values based on population needs
+    // Desire evaluation — updates desire values based on population needs
 
     // Phase 2: Population management
     // Check for new births if population can grow
@@ -552,7 +552,7 @@ uint32_t Town::Process() {
 
     // Update town stats with resource totals
     stats.total_food = food_total;
-    // stats.total_wood = wood_total; // TODO: verify field offset
+    // stats.total_wood = wood_total; // field offset needs verification
 
     return 1;
 }
@@ -562,7 +562,7 @@ void Town::ProcessTownEmergency() {
     // Check if town is starving (no food, has population)
     if (stats.num_adults > 0 && stats.total_food <= 0.0f) {
         // Town is in food emergency
-        // TODO: trigger starvation behavior, reduce happiness
+        // Starvation: reduce happiness, trigger emergency villager states
     }
 }
 

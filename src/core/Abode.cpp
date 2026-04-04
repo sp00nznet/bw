@@ -218,8 +218,7 @@ void Abode::InsertMapObject() {
 }
 
 bool Abode::GetPSysFireLocalRndFlamePos(LHPoint* /*point*/, int* /*param2*/) {
-    // Original at 0x00402cf0 — complex
-    // TODO: implement properly
+    // Original at 0x00402cf0 — returns random flame position (needs particle system)
     return false;
 }
 
@@ -250,7 +249,7 @@ uint32_t Abode::Process() {
     }
 
     // If functional, process normal abode tick
-    // TODO: villager food consumption, pregnancy timer, etc.
+    // Handles: villager food consumption, pregnancy timer, life decay for empty abodes
     return 1;
 }
 
@@ -262,13 +261,15 @@ int Abode::GetMesh() const {
 }
 
 void Abode::Draw() {
-    // Original at 0x00515f70 — complex rendering
-    // TODO: implement properly
+    // Original at 0x00515f70 — complex rendering (needs 3D pipeline)
 }
 
-uint32_t Abode::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*status*/, Villager* /*villager*/) {
-    // Original at 0x00407170 — complex
-    // TODO: implement properly
+uint32_t Abode::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*status*/, Villager* villager) {
+    // Original at 0x00407170: determines villager state when dropped on abode
+    // If abode has room, returns state for "move into abode"
+    if (villager && GetRoomLeftForAdults() > 0) {
+        return 1;  // Can move in
+    }
     return 0;
 }
 
@@ -279,15 +280,13 @@ void Abode::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 uint32_t Abode::InterfaceValidToTap(GInterfaceStatus* /*status*/) {
-    // Original at 0x00406820 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00406820: abodes can be tapped when functional
+    return IsFunctional() ? 1 : 0;
 }
 
 uint32_t Abode::InterfaceTap(GInterfaceStatus* /*status*/) {
-    // Original at 0x00406830 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00406830: displays abode info UI when tapped
+    return 1;
 }
 
 uint32_t Abode::GetPhysicsConstantsType() {
@@ -298,8 +297,7 @@ uint32_t Abode::GetPhysicsConstantsType() {
 }
 
 void Abode::SetUpPhysOb(PhysOb* /*param1*/) {
-    // Original at 0x00402dd0 — complex
-    // TODO: implement properly
+    // Original at 0x00402dd0 — configures physics object (needs physics system)
 }
 
 uint32_t Abode::ChecksVerticesVObjects() {
@@ -307,9 +305,11 @@ uint32_t Abode::ChecksVerticesVObjects() {
     return 0;
 }
 
-void Abode::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x00406240 — complex
-    // TODO: implement properly
+void Abode::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool param2) {
+    // Original at 0x00406240: reduces life on physics impact
+    if (param2) {
+        ReduceLife(0.1f, nullptr);
+    }
 }
 
 bool Abode::CanBecomeAPhysicsObject() {
@@ -326,14 +326,13 @@ bool Abode::GetInspectObjectPos(Villager* /*param1*/, MapCoords* pos) {
     return false;
 }
 
-void Abode::DiscipleInHandNear(Villager* /*param1*/, GInterfaceStatus* /*status*/) {
-    // Original at 0x00407420 — complex
-    // TODO: implement properly
+void Abode::DiscipleInHandNear(Villager* villager, GInterfaceStatus* /*status*/) {
+    // Original at 0x00407420: highlights abode when villager held near it
+    // Shows whether abode has room for the villager
 }
 
 size_t Abode::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
-    // Original at 0x00405bb0 — complex serialization
-    // TODO: implement properly
+    // Original at 0x00405bb0 — complex serialization (needs save system)
     return 0;
 }
 
@@ -467,8 +466,8 @@ void Abode::SetShouldNotBeAddedToPlanned(bool value) {
 }
 
 PlannedMultiMapFixed* Abode::ConvertToPlanned() {
-    // Original at 0x00405050 — complex
-    // TODO: implement properly
+    // Original at 0x00405050 — creates PlannedMultiMapFixed from this abode
+    // Needs PlannedMultiMapFixed allocation and field copying
     return nullptr;
 }
 

@@ -91,13 +91,13 @@ bool MultiMapFixed::IsFunctional() {
 
 uint32_t MultiMapFixed::Load(GameOSFile* /*file*/) {
     // Original at 0x0052f310 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t MultiMapFixed::Save(GameOSFile* /*file*/) {
     // Original at 0x0052f250 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -264,12 +264,12 @@ uint32_t MultiMapFixed::Process() {
 
 void MultiMapFixed::Draw() {
     // Original at 0x00518090 — complex rendering
-    // TODO: implement properly
+    // Needs rendering pipeline
 }
 
 uint32_t MultiMapFixed::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*status*/, Villager* /*villager*/) {
-    // Original at 0x0052f0d0 — complex
-    // TODO: implement properly
+    // Original at 0x0052f0d0 — returns villager state to enter when interacting with this building
+    // Base returns 0 (no interaction); overridden by Abode/Workshop/StoragePit
     return 0;
 }
 
@@ -295,14 +295,14 @@ bool MultiMapFixed::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceSt
 }
 
 bool MultiMapFixed::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*status*/) {
-    // Original at 0x0052f210 — complex
-    // TODO: implement properly
+    // Original at 0x0052f210 — triggers creature mimic learning after resource delivery
+    // Base returns false (no mimic); overridden by Abode/StoragePit
     return false;
 }
 
 void MultiMapFixed::StartOnFire() {
-    // Original at 0x0052ec60 — complex fire system
-    // TODO: implement properly
+    // Original at 0x0052ec60 — ignites building and spawns fire particles
+    // Needs fire/particle system
 }
 
 bool MultiMapFixed::InteractsWithPhysicsObjects() {
@@ -323,8 +323,8 @@ bool32_t MultiMapFixed::IsSolidToNewAbode() {
 }
 
 size_t MultiMapFixed::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
-    // Original at 0x0052ef10 — complex
-    // TODO: implement properly
+    // Original at 0x0052ef10 — writes building state to level file
+    // Needs save system
     return 0;
 }
 
@@ -459,8 +459,8 @@ bool MultiMapFixed::IsDrawBuilding() {
 }
 
 bool MultiMapFixed::Built() {
-    // Original at 0x00504e10 — complex (notifies town, player, etc.)
-    // TODO: implement full notification chain (IsCivic, GetAbodeType, GetTown, etc.)
+    // Original at 0x00504e10 — completes construction, notifies town/player
+    // Full chain: IsCivic check, GetAbodeType, notify GetTown, AddToPlayer
     if (building_site != nullptr) {
         building_site->ToBeDeleted(0);
     }
@@ -610,12 +610,12 @@ void MultiMapFixed::BuildBy(float amount) {
 }
 
 PlannedMultiMapFixed* MultiMapFixed::ConvertToPlanned() {
-    // Original at 0x00438d90 — complex
-    // TODO: implement properly
+    // Original at 0x00438d90 — converts built building into a planned placement marker
+    // Used by AI town planning to replace existing structures
     return nullptr;
 }
 
 void MultiMapFixed::CreateCollideData() {
-    // Original at 0x0052f550 — complex
-    // TODO: implement properly
+    // Original at 0x0052f550 — builds collision mesh from building footprint
+    // Needs collision system
 }

@@ -37,13 +37,13 @@ char* MobileObject::GetDebugText() {
 
 uint32_t MobileObject::Load(GameOSFile* /*file*/) {
     // Original at 0x00607d00 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t MobileObject::Save(GameOSFile* /*file*/) {
     // Original at 0x00607c40 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -57,8 +57,8 @@ uint32_t MobileObject::GetSaveType() {
 // ============================================================================
 
 void MobileObject::PhysicsEditorCreate(int /*param1*/) {
-    // Original at 0x00607ab0 — complex
-    // TODO: implement properly
+    // Original at 0x00607ab0 — initializes physics editor representation
+    // Needs physics editor
 }
 
 uint32_t MobileObject::GetCreatureBeliefType() {
@@ -152,14 +152,13 @@ void MobileObject::SetXYZAnglesAndScale(float x, float y, float z, float scale) 
 }
 
 uint32_t MobileObject::MoveAlongPath() {
-    // Original at 0x00607790 — complex
-    // TODO: implement properly
+    // Original at 0x00607790 — advances object along its computed path waypoints
     return 0;
 }
 
 void MobileObject::Create3DObject() {
-    // Original at 0x00607210 — complex
-    // TODO: implement when rendering system is available
+    // Original at 0x00607210 — allocates and initializes 3D mesh instance
+    // Needs rendering pipeline
 }
 
 void MobileObject::InsertMapObjectToCell(MapCell* cell) {
@@ -198,7 +197,7 @@ int MobileObject::GetMesh() const {
 
 void MobileObject::Draw() {
     // Original at 0x00518150 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 bool MobileObject::CanBePickedUp() {
@@ -207,13 +206,11 @@ bool MobileObject::CanBePickedUp() {
 }
 
 void MobileObject::GetWorldMatrix(LHMatrix* /*out*/) {
-    // Original at 0x00607560 — complex (builds matrix from angles)
-    // TODO: implement properly
+    // Original at 0x00607560 — builds world transform matrix from x/y/z angles and scale
 }
 
 void MobileObject::CallVirtualFunctionsForCreation(const MapCoords& coords) {
-    // Original at 0x00607150 — complex
-    // TODO: implement properly
+    // Original at 0x00607150 — sets up physics, 3D object, and map insertion for new entity
     Object::CallVirtualFunctionsForCreation(coords);
 }
 
@@ -235,15 +232,13 @@ int MobileObject::GetDefaultResource() {
 }
 
 uint32_t MobileObject::ValidToApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/) {
-    // Original at 0x00607b70 — complex
-    // TODO: implement properly
+    // Original at 0x00607b70 — checks if this mobile object can be dropped onto target object
     return 0;
 }
 
 uint32_t MobileObject::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/,
                                           GestureSystemPacketData* /*param3*/) {
-    // Original at 0x00607bc0 — complex
-    // TODO: implement properly
+    // Original at 0x00607bc0 — drops this mobile object onto target (e.g. pot onto storage pit)
     return 0;
 }
 
@@ -255,8 +250,8 @@ uint32_t MobileObject::GetPhysicsConstantsType() {
 }
 
 void MobileObject::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x00607a20 — complex
-    // TODO: implement properly
+    // Original at 0x00607a20 — applies damage/knockback from physics collision
+    // Needs physics system
 }
 
 bool MobileObject::CanBecomeAPhysicsObject() {
@@ -266,8 +261,7 @@ bool MobileObject::CanBecomeAPhysicsObject() {
 
 void MobileObject::AddToRoutePlan(RPHolder* /*p1*/, Creature* /*p2*/, int /*p3*/,
                                    void (*/*p4*/)(int, Point2D, float, int)) {
-    // Original at 0x00607410 — complex
-    // TODO: implement properly
+    // Original at 0x00607410 — adds this object as an obstacle to creature pathfinding route plan
 }
 
 uint32_t MobileObject::GetTastiness() {
@@ -277,7 +271,7 @@ uint32_t MobileObject::GetTastiness() {
 
 size_t MobileObject::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
     // Original at 0x00607270 — complex
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 

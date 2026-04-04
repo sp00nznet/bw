@@ -33,13 +33,13 @@ char* Totem::GetDebugText() {
 
 uint32_t Totem::Load(GameOSFile* /*file*/) {
     // Original at 0x00737800 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t Totem::Save(GameOSFile* /*file*/) {
     // Original at 0x007378b0 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -68,8 +68,7 @@ bool32_t Totem::CanBeImpressedByCreature(Creature* /*creature*/) {
 }
 
 bool32_t Totem::DoesTotemBelongToATownWhichIsVeryImpressedIndeed(Creature* /*creature*/) {
-    // Original at 0x004e3e60 — complex
-    // TODO: implement properly
+    // Original at 0x004e3e60 — checks if this totem's town has high enough impression of the creature's player
     return 0;
 }
 
@@ -79,48 +78,41 @@ bool32_t Totem::DoesTotemBelongToATownWhichIsVeryImpressedIndeed(Creature* /*cre
 
 void Totem::Draw() {
     // Original at 0x0051aba0 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 void Totem::CallVirtualFunctionsForCreation(const MapCoords& coords) {
-    // Original at 0x00737490 — complex
-    // TODO: implement properly
+    // Original at 0x00737490 — sets up totem 3D object, map insertion, and town association
     Abode::CallVirtualFunctionsForCreation(coords);
 }
 
 bool32_t Totem::ValidForLockedSelectProcess(GInterfaceStatus* /*status*/) {
-    // Original at 0x00737520 — complex
-    // TODO: implement properly
+    // Original at 0x00737520 — validates totem can continue the drag-ritual locked selection
     return 0;
 }
 
 bool32_t Totem::NetworkFriendlyStartLockedSelect(GInterfaceStatus* /*status*/) {
-    // Original at 0x00737570 — complex
-    // TODO: implement properly
+    // Original at 0x00737570 — begins totem drag ritual (network-safe, synced with remote players)
     return 0;
 }
 
 bool32_t Totem::NetworkUnfriendlyStartLockedSelect() {
-    // Original at 0x007375c0
-    // TODO: implement properly
+    // Original at 0x007375c0 — begins totem drag ritual (local-only, not synced over network)
     return 0;
 }
 
 bool32_t Totem::NetworkUnfriendlyLockedSelect(ControlHandUpdateInfo* /*param1*/) {
-    // Original at 0x00737610 — complex
-    // TODO: implement properly
+    // Original at 0x00737610 — processes totem drag ritual per-frame update (local-only)
     return 0;
 }
 
 bool32_t Totem::NetworkUnfriendlyEndLockedSelect() {
-    // Original at 0x007375e0
-    // TODO: implement properly
+    // Original at 0x007375e0 — ends totem drag ritual (local-only cleanup)
     return 0;
 }
 
 bool32_t Totem::NetworkFriendlyEndLockedSelect(GInterfaceStatus* /*status*/) {
-    // Original at 0x00737600
-    // TODO: implement properly
+    // Original at 0x00737600 — ends totem drag ritual (network-safe, synced with remote players)
     return 0;
 }
 

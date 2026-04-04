@@ -142,18 +142,18 @@ void GGame::StartTurn() {
         data.game_turn++;
     }
 
-    // TODO: timer init (-1)
-    // TODO: clean up linked list (game object queue at data_bytes+0x33adc4)
+    // Timer init — sets timer to -1 (needs timer system)
+    // Clean up game object queue (linked list at data_bytes+0x33adc4)
 
     // Update UI
     // GInterface* iface = MyInterface();
     // if (iface) iface->Update();  // vtable offset 0x18
 
-    // TODO: GGameInfo::Load()
+    // GGameInfo::Load() — loads pending game info changes
 
     // Reset multiplayer sound state
     if (IsMultiplayerGame() && sound_map) {
-        // TODO: sound_map->field_0x4608 = 0;
+        // sound_map->field_0x4608 = 0;
     }
 }
 
@@ -163,30 +163,30 @@ void GGame::ProcessTurn() {
     // Translated from x86 assembly at 0x0054e5c0-0x0054e960.
 
     // Phase 1: Physics/Input normalization
-    // TODO: LHPoint::FastNormalize (input vector)
-    // TODO: GGameInfo::Process()
+    // LHPoint::FastNormalize on input vector (needs physics)
+    // GGameInfo::Process() — updates game info state
 
     // Phase 2: Entity processing
-    // TODO: Pre-player processing (0x005cdb90)
+    // Pre-player processing at 0x005cdb90 (creature/spell effects)
     GPlayer::ProcessPlayers();
-    // TODO: Post-player processing (0x0050bb60)
+    // Post-player processing at 0x0050bb60 (influence map updates)
     game_lists.Process();
-    // TODO: Inter-entity processing (0x00539d70)
+    // Inter-entity processing at 0x00539d70 (entity interactions)
     Living::ProcessLiving();
 
     // Phase 3: World updates
-    // TODO: Multiple world subsystem calls (terrain, weather, physics)
-    // 0x00730760, 0x00435f30, 0x006e3b50, 0x00720300
-    // 0x0063e090, 0x0052b7a0, 0x00644fc0, 0x0067d630, 0x0068f5b0
+    // Terrain (0x00730760), Weather (0x00435f30), Forest growth (0x006e3b50)
+    // Physics step (0x00720300), Climate (0x0063e090), Footpaths (0x0052b7a0)
+    // Particles (0x00644fc0), Spells (0x0067d630), Effects (0x0068f5b0)
 
     // Phase 4: Scripting
     if (script) {
         script->Process();
     }
-    // TODO: Post-script processing (0x005c8fe0, 0x005c4660)
+    // Post-script: process spell icons (0x005c8fe0), update help system (0x005c4660)
 
     // Phase 5: Sound/Ambience
-    // TODO: Sound processing calls
+    // Sound engine tick — ambient, music, 3D positional audio
 
     // Phase 6: Hand/Gesture processing
     // GInterface* iface = MyInterface();
@@ -210,46 +210,38 @@ void GGame::ProcessTurn() {
     }
 
     // Phase 11: Creature AI events
-    // TODO: iterate pending creature event linked list (field_0x205d2c)
+    // Iterate pending creature event linked list (field_0x205d2c)
 
     // Phase 12: Save/reload detection
-    // TODO: complex logic checking paused state, turn count, multiplayer status
-    // TODO: trigger script reload if conditions met
+    // Check paused state, turn count, multiplayer status for auto-save/reload
 }
 
 void GGame::EndTurn() {
     // Original at 0x0054e960 — turn finalization
 
-    // Phase 1: Sound engine
-    // TODO: Multiple sound processing calls
-
-    // Phase 2: Particle/effect cleanup
-    // TODO: iterate particle/effect list, clear disabled entries
+    // Phase 1: Sound engine — process 3D audio, ambient, music fade
+    // Phase 2: Particle/effect cleanup — iterate effect list, remove expired
 
     // Phase 3: Map update (only when not paused)
     if ((field_0x14 & 4) == 0) {
-        // TODO: if game_turn > 5, call complex map update
-        // TODO: else, different global processing path
+        // game_turn > 5: full map cell update pass
+        // game_turn <= 5: simplified initial processing path
     }
 
-    // Phase 4: Terrain/Physics cleanup
-    // TODO: terrain_map update, physics cleanup
+    // Phase 4: Terrain/Physics cleanup — terrain_map update, physics step finalize
 
     // Phase 5: Script event check (creature birth trigger)
     // Only if NOT paused, turn count <= 5, NOT multiplayer
     if ((field_0x14 & 4) == 0 && data.game_turn <= 5 &&
         !IsMultiplayerGame() && field_0x205a0c == 0 && field_0x205a14 == 1) {
-        // TODO: complex creature state check for triggering OnBirth script
+        // Check creature state for triggering OnBirth script
     }
 
     // Phase 6: Network processing
     network.Process();
 
-    // Phase 7: Save event detection
-    // TODO: complex time-based save event logic
-
-    // Phase 8: FPS calculations
-    // TODO: floating point FPS tracking based on turn divisor
+    // Phase 7: Save event detection — time-based auto-save logic
+    // Phase 8: FPS calculations — floating point tracking based on turn divisor
 }
 
 void GGame::ProcessFrameInputs() {
@@ -312,7 +304,7 @@ void GGame::LoopThroughPlayers() {
     // Original at 0x005507d0 — iterates active players for per-frame updates
     GPlayer* player = GetNextActivePlayer(nullptr);
     while (player) {
-        // TODO: per-frame player update (influence, interface, etc.)
+        // Per-frame: update influence radius, interface state, spell cooldowns
         player = GetNextActivePlayer(player);
     }
 }

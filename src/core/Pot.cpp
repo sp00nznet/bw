@@ -80,13 +80,13 @@ uint32_t Pot::GetGuidanceResourceType() {
 
 uint32_t Pot::Load(GameOSFile* /*file*/) {
     // Original at 0x0066d820 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t Pot::Save(GameOSFile* /*file*/) {
     // Original at 0x0066d730 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -105,8 +105,7 @@ uint32_t Pot::GetCreatureBeliefType() {
 }
 
 uint32_t Pot::GetOverwriteInteractableToolTip() {
-    // Original at 0x0066f540 — complex
-    // TODO: implement properly
+    // Original at 0x0066f540 — returns custom tooltip ID showing pot contents and resource type
     return 0;
 }
 
@@ -136,17 +135,16 @@ uint32_t Pot::GetScriptObjectType() {
 
 void Pot::Draw() {
     // Original at 0x0051bb70 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 void Pot::DrawOutOfMap(bool /*param1*/) {
     // Original at 0x0051bbc0 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 void Pot::CallVirtualFunctionsForCreation(const MapCoords& coords) {
-    // Original at 0x0066d130 — complex
-    // TODO: implement properly
+    // Original at 0x0066d130 — sets up 3D object, map insertion, and pot-specific initialization
     MobileObject::CallVirtualFunctionsForCreation(coords);
 }
 
@@ -161,8 +159,7 @@ bool Pot::IsResourceStore(RESOURCE_TYPE type) {
 }
 
 bool Pot::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*param2*/) {
-    // Original at 0x0066dd30 — complex
-    // TODO: implement properly
+    // Original at 0x0066dd30 — destroys pot and transfers its resource contents to the target object
     return false;
 }
 
@@ -192,51 +189,46 @@ void Pot::SetPoisoned(int param1) {
 }
 
 void Pot::StartOnFire() {
-    // Original at 0x0066d6c0 — complex
-    // TODO: implement properly
+    // Original at 0x0066d6c0 — ignites pot and spawns fire particles
+    // Needs fire/particle system
 }
 
 void Pot::EndOnFire() {
-    // Original at 0x0066d6d0 — complex
-    // TODO: implement properly
+    // Original at 0x0066d6d0 — extinguishes pot fire and removes fire particles
+    // Needs fire/particle system
 }
 
 bool32_t Pot::InterfaceSetInMagicHand(GInterfaceStatus* /*status*/) {
-    // Original at 0x0066d710 — complex
-    // TODO: implement properly
+    // Original at 0x0066d710 — handles pot being picked up into the player's magic hand
     return 0;
 }
 
 uint32_t Pot::ValidToApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/) {
-    // Original at 0x0066dd50 — complex
-    // TODO: implement properly
+    // Original at 0x0066dd50 — checks if pot can be dropped onto target (e.g. storage pit, creature)
     return 0;
 }
 
 uint32_t Pot::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/,
                                  GestureSystemPacketData* /*param3*/) {
-    // Original at 0x0066ddd0 — complex
-    // TODO: implement properly
+    // Original at 0x0066ddd0 — drops pot onto target, transferring resources (e.g. into storage pit)
     return 0;
 }
 
 uint32_t Pot::ApplyThisToMapCoord(GInterfaceStatus* /*status*/, const MapCoords* /*param2*/,
                                    GestureSystemPacketData* /*param3*/) {
-    // Original at 0x0066de70 — complex
-    // TODO: implement properly
+    // Original at 0x0066de70 — places pot at map position, spilling resources if applicable
     return 0;
 }
 
 bool32_t Pot::IsEffectReceiver(EffectValues* /*param1*/) {
-    // Original at 0x0066d650 — complex
-    // TODO: implement properly
+    // Original at 0x0066d650 — checks if pot can receive magic effects (e.g. poison, speed-up)
     return 0;
 }
 
 uint32_t Pot::InitialisePhysicsFromHand(LHPoint* /*p1*/, LHPoint* /*p2*/,
                                          GInterfaceStatus* /*p3*/, Object* /*p4*/, int /*p5*/) {
-    // Original at 0x0066df00 — complex
-    // TODO: implement properly
+    // Original at 0x0066df00 — sets up physics velocity/trajectory when pot is thrown from hand
+    // Needs physics system
     return 0;
 }
 
@@ -251,8 +243,8 @@ uint32_t Pot::GetPhysicsConstantsType() {
 }
 
 void Pot::EndPhysics(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x0066dbd0 — complex
-    // TODO: implement properly
+    // Original at 0x0066dbd0 — finalizes physics state after pot lands/stops moving
+    // Needs physics system
 }
 
 bool Pot::InteractsWithPhysicsObjects() {
@@ -261,8 +253,8 @@ bool Pot::InteractsWithPhysicsObjects() {
 }
 
 void Pot::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x0066dc90 — complex
-    // TODO: implement properly
+    // Original at 0x0066dc90 — handles pot breaking/spilling on physics collision
+    // Needs physics system
 }
 
 bool Pot::CanBecomeAPhysicsObject() {
@@ -272,7 +264,7 @@ bool Pot::CanBecomeAPhysicsObject() {
 
 size_t Pot::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
     // Original at 0x0066d550 — complex
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 

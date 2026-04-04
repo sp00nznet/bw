@@ -41,13 +41,13 @@ char* MobileStatic::GetDebugText() {
 
 uint32_t MobileStatic::Load(GameOSFile* /*file*/) {
     // Original at 0x00608590 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t MobileStatic::Save(GameOSFile* /*file*/) {
     // Original at 0x00608650 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -61,8 +61,8 @@ uint32_t MobileStatic::GetSaveType() {
 // ============================================================================
 
 void MobileStatic::PhysicsEditorCreate(int /*param1*/) {
-    // Original at 0x0055d720 — complex
-    // TODO: implement properly
+    // Original at 0x0055d720 — initializes physics editor representation
+    // Needs physics editor
 }
 
 uint32_t MobileStatic::GetCreatureBeliefType() {
@@ -221,7 +221,7 @@ int MobileStatic::GetMesh() const {
 
 void MobileStatic::Draw() {
     // Original at 0x00517f60 — complex rendering
-    // TODO: implement when rendering system is available
+    // Needs rendering pipeline
 }
 
 bool MobileStatic::CanBePickedUp() {
@@ -230,13 +230,11 @@ bool MobileStatic::CanBePickedUp() {
 }
 
 void MobileStatic::GetWorldMatrix(LHMatrix* /*out*/) {
-    // Original at 0x00608de0 — complex (builds matrix from angles)
-    // TODO: implement properly
+    // Original at 0x00608de0 — builds world transform matrix from x/y/z angles and scale
 }
 
 void MobileStatic::CallVirtualFunctionsForCreation(const MapCoords& coords) {
-    // Original at 0x00609700 — complex
-    // TODO: implement properly
+    // Original at 0x00609700 — sets up physics, 3D object, and map insertion for new entity
     MultiMapFixed::CallVirtualFunctionsForCreation(coords);
 }
 
@@ -258,15 +256,13 @@ bool32_t MobileStatic::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
 }
 
 uint32_t MobileStatic::ValidToApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/) {
-    // Original at 0x00608bb0 — complex
-    // TODO: implement properly
+    // Original at 0x00608bb0 — checks if this mobile static can be dropped onto target object
     return 0;
 }
 
 uint32_t MobileStatic::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/,
                                           GestureSystemPacketData* /*param3*/) {
-    // Original at 0x00608c30 — complex
-    // TODO: implement properly
+    // Original at 0x00608c30 — drops this mobile static onto target object (e.g. rock onto building site)
     return 0;
 }
 
@@ -279,8 +275,7 @@ uint32_t MobileStatic::ValidToApplyThisToMapCoord(GInterfaceStatus* /*status*/,
 uint32_t MobileStatic::ApplyThisToMapCoord(GInterfaceStatus* /*status*/,
                                             const MapCoords* /*param2*/,
                                             GestureSystemPacketData* /*param3*/) {
-    // Original at 0x00608b30 — complex
-    // TODO: implement properly
+    // Original at 0x00608b30 — places this mobile static at the given map position
     return 0;
 }
 
@@ -296,8 +291,7 @@ uint32_t MobileStatic::GetPhysicsConstantsType() {
 }
 
 void MobileStatic::GetBoundingSphere(LHPoint* /*center*/, float* /*radius*/) {
-    // Original at 0x00608f40 — complex
-    // TODO: implement properly
+    // Original at 0x00608f40 — computes bounding sphere from mesh extents and scale
 }
 
 bool MobileStatic::InteractsWithPhysicsObjects() {
@@ -317,8 +311,8 @@ uint32_t MobileStatic::PhysicallyDestroysAbodes() {
 }
 
 void MobileStatic::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
-    // Original at 0x00608fc0 — complex
-    // TODO: implement properly
+    // Original at 0x00608fc0 — applies damage/knockback from physics collision
+    // Needs physics system
 }
 
 bool MobileStatic::CanBecomeAPhysicsObject() {
@@ -333,8 +327,7 @@ bool MobileStatic::CreatureMustAvoid(Creature* /*param1*/) {
 
 void MobileStatic::AddToRoutePlan(RPHolder* /*p1*/, Creature* /*p2*/, int /*p3*/,
                                    void (*/*p4*/)(int, Point2D, float, int)) {
-    // Original at 0x00608ac0 — complex
-    // TODO: implement properly
+    // Original at 0x00608ac0 — adds this object as an obstacle to creature pathfinding route plan
 }
 
 bool32_t MobileStatic::IsSolidToNewAbode() {
@@ -349,6 +342,6 @@ uint32_t MobileStatic::GetTastiness() {
 
 size_t MobileStatic::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
     // Original at 0x006088e0 — complex
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
