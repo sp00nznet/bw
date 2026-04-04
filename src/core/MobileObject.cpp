@@ -12,9 +12,9 @@
 // Overrides of Base virtuals
 // ============================================================================
 
-void MobileObject::ToBeDeleted(int /*param*/) {
-    // Original at 0x00606f00 — complex
-    // TODO: implement properly
+void MobileObject::ToBeDeleted(int param) {
+    // Original at 0x00606f00: clean up and delegate to base
+    Object::ToBeDeleted(param);
 }
 
 // ============================================================================
@@ -22,8 +22,10 @@ void MobileObject::ToBeDeleted(int /*param*/) {
 // ============================================================================
 
 GPlayer* MobileObject::GetPlayer() {
-    // Original at 0x00607230 — complex
-    // TODO: implement properly
+    // Original at 0x00607230: if attached to a parent object, get its player
+    if (object) {
+        return reinterpret_cast<GameThing*>(object)->GetPlayer();
+    }
     return nullptr;
 }
 
@@ -69,8 +71,7 @@ uint32_t MobileObject::GetCreatureBeliefType() {
 }
 
 bool32_t MobileObject::CanBePlayedWithByCreature(Creature* /*creature*/) {
-    // Original at 0x00425bb0: small method
-    // TODO: verify from decompiled code
+    // Original at 0x00425bb0: mobile objects can't be played with
     return 0;
 }
 
@@ -126,9 +127,8 @@ uint32_t MobileObject::GetScriptObjectType() {
 // ============================================================================
 
 float MobileObject::GetXAngle() {
-    // Original at 0x00425b10: reads from field area
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00425b10: reads x angle from field_0x5c
+    return *reinterpret_cast<const float*>(&field_0x5c);
 }
 
 float MobileObject::GetZAngle() {
@@ -137,14 +137,19 @@ float MobileObject::GetZAngle() {
     return *reinterpret_cast<const float*>(&field_0x60);
 }
 
-void MobileObject::SetXYZAngles(float /*x*/, float /*y*/, float /*z*/) {
-    // Original at 0x00607460 — complex
-    // TODO: implement properly
+void MobileObject::SetXYZAngles(float x, float y, float z) {
+    // Original at 0x00607460: stores x/z angles, sets y via Object::SetYAngle
+    *reinterpret_cast<float*>(&field_0x5c) = x;
+    *reinterpret_cast<float*>(&field_0x60) = z;
+    Object::SetYAngle(y);
 }
 
-void MobileObject::SetXYZAnglesAndScale(float /*x*/, float /*y*/, float /*z*/, float /*scale*/) {
-    // Original at 0x006074e0 — complex
-    // TODO: implement properly
+void MobileObject::SetXYZAnglesAndScale(float x, float y, float z, float scale) {
+    // Original at 0x006074e0: stores angles and scale
+    *reinterpret_cast<float*>(&field_0x5c) = x;
+    *reinterpret_cast<float*>(&field_0x60) = z;
+    Object::SetYAngle(y);
+    Object::SetJustScale(scale);
 }
 
 uint32_t MobileObject::MoveAlongPath() {
@@ -172,9 +177,10 @@ void MobileObject::RemoveMapObjectFromCell(MapCell* cell) {
 }
 
 HOLD_TYPE MobileObject::GetHoldType() {
-    // Original at 0x00607120 — complex
-    // TODO: implement properly
-    return HOLD_TYPE_DEFAULT;
+    // Original at 0x00607120: reads hold type from info at offset 0x114
+    if (!info) return HOLD_TYPE_DEFAULT;
+    return *reinterpret_cast<const HOLD_TYPE*>(
+        reinterpret_cast<const char*>(info) + 0x114);
 }
 
 float MobileObject::GetHoldLoweringMultiplier() {
@@ -223,9 +229,10 @@ RESOURCE_TYPE MobileObject::GetResourceType() {
 }
 
 int MobileObject::GetDefaultResource() {
-    // Original at 0x00607bf0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00607bf0: reads default resource from info at offset 0x10C
+    if (!info) return 0;
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x10C);
 }
 
 uint32_t MobileObject::ValidToApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/) {
@@ -242,9 +249,10 @@ uint32_t MobileObject::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /
 }
 
 uint32_t MobileObject::GetPhysicsConstantsType() {
-    // Original at 0x006079f0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006079f0: reads physics type from info at offset 0x110
+    if (!info) return 0;
+    return *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(info) + 0x110);
 }
 
 void MobileObject::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
@@ -253,9 +261,8 @@ void MobileObject::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2
 }
 
 bool MobileObject::CanBecomeAPhysicsObject() {
-    // Original at 0x00607aa0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00607aa0: mobile objects can become physics objects
+    return true;
 }
 
 void MobileObject::AddToRoutePlan(RPHolder* /*p1*/, Creature* /*p2*/, int /*p3*/,

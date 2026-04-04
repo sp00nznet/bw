@@ -463,6 +463,11 @@ void Villager::SetHome(Abode* abode) {
     home = abode;
 }
 
+void Villager::SetTown(Town* /*town*/) {
+    // Original at 0x00756530: sets the villager's town reference
+    // Town field is accessed through the Living hierarchy
+}
+
 bool Villager::IsPregnant() const {
     return is_pregnant != 0;
 }

@@ -83,6 +83,7 @@ struct MobileStatic : public MultiMapFixed {
 
     // === Fields ===
     Object*  field_0x7c;       // 0x7C — associated object (parent?)
-    uint8_t  field_0x80[0x8];  // 0x80 — unknown data (angles/orientation?)
+    float    x_angle;          // 0x80 — X rotation angle
+    float    z_angle;          // 0x84 — Z rotation angle
 };
 static_assert(sizeof(MobileStatic) == 0x88, "MobileStatic size mismatch");

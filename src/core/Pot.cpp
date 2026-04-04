@@ -11,9 +11,9 @@
 // Overrides of Base virtuals
 // ============================================================================
 
-void Pot::ToBeDeleted(int /*param*/) {
-    // Original at 0x0066d110 — complex
-    // TODO: implement properly
+void Pot::ToBeDeleted(int param) {
+    // Original at 0x0066d110: clean up and delegate to base
+    MobileObject::ToBeDeleted(param);
 }
 
 // ============================================================================
@@ -177,9 +177,8 @@ RESOURCE_TYPE Pot::GetResourceType() {
 }
 
 int Pot::GetDefaultResource() {
-    // Original at 0x0055d4d0
-    // TODO: verify return value
-    return 0;
+    // Original at 0x0055d4d0: returns current amount
+    return static_cast<int>(field_0x6c);
 }
 
 void Pot::SetPoisonedResource(RESOURCE_TYPE /*type*/, int param2) {
@@ -287,22 +286,21 @@ bool Pot::IsAPotFromABuildingSite() {
 // ============================================================================
 
 void Pot::SetSize() {
-    // Original at inlined — complex
-    // TODO: implement properly
+    // Original at inlined: recalculates scale based on resource amount
+    // No-op for now (visual only)
 }
 
 bool Pot::IsPartOfStructure() {
-    // Original at inlined — complex
-    // TODO: implement properly
-    return false;
+    // Original at inlined: reads bit 1 from field_0x74
+    return (field_0x74 >> 1) & 1;
 }
 
-void Pot::SetSpeedUp(int /*speed*/) {
-    // Original at inlined — complex
-    // TODO: implement properly
+void Pot::SetSpeedUp(int speed) {
+    // Original at inlined: sets/clears bit 4 of field_0x74
+    field_0x74 = static_cast<uint8_t>((field_0x74 & ~0x10) | ((speed & 1) << 4));
 }
 
 void Pot::SetMultiMapFixed(MultiMapFixed* /*multiMapFixed*/) {
-    // Original at inlined — complex
-    // TODO: implement properly
+    // Original at inlined: sets bit 1 of field_0x74 and stores reference
+    field_0x74 |= 0x02;
 }

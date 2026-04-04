@@ -51,6 +51,7 @@ struct Villager : public Living {
     Town* GetTown();
     Abode* GetHome();
     void SetHome(Abode* abode);
+    void SetTown(Town* town);
     bool IsPregnant() const;
     bool IsHomeless() const;
     bool IsCarryingResource() const;

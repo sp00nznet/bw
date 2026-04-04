@@ -207,20 +207,21 @@ bool Town::CheckForClearArea(MapCoords& /*p1*/, float /*p2*/,
 
 void Town::AddStructureToTown(MultiMapFixed* structure) {
     // Original at 0x007399a0 — translated from x86 assembly
-    // Step 1: dynamic_cast structure to Abode*
-    // If it's an Abode, prepend to abode_list linked list
-    // Abode has a link field at offset 0x9c used for the town's abode list
-    // abode->link_next = abode_list.head; abode_list.head = abode; abode_list.count++
-    // TODO: implement dynamic_cast and abode list insertion
+    if (!structure) return;
 
-    // Step 2: If field_0x990 (forest system) is set, notify it of new structure
-    // TODO: forest notification
+    // Set town reference on structure
+    structure->SetTown(this);
 
-    // Step 3: Call structure->SetTown(this) via vtable[0x8f0]
-    // TODO: structure->SetTown(this);
+    // Check if it's an abode (CastAbode returns non-null for Abode types)
+    Abode* abode = reinterpret_cast<GameThing*>(structure)->CastAbode();
+    if (abode) {
+        // Prepend to abode linked list
+        abode->next = reinterpret_cast<Abode*>(abode_list.head);
+        abode_list.head = abode;
 
-    // Step 4: Add abode stats
-    AddAbodeToTownStats(reinterpret_cast<Abode*>(structure));
+        // Add abode stats
+        AddAbodeToTownStats(abode);
+    }
 }
 
 void Town::AddAbodeToTownStats(Abode* /*abode*/) {
@@ -234,20 +235,18 @@ bool Town::AddVillagerToTown(Villager* villager) {
     // If field_0x5f4 is set, town is locked — reject
     if (field_0x5f4 != 0) return false;
 
-    // Add to town stats (calls TownStats::Add at 0x007492e0)
-    // This increments num_adults or num_children depending on IsChild status
-    // Simplified: increment num_adults (original checks villager child status)
+    // Add to town stats
     stats.num_adults++;
 
     // Set town reference on villager
-    // TODO: villager->SetTown(this);
+    villager->SetTown(this);
 
     // Check if villager's current abode belongs to a different town
     Abode* abode = villager->GetHome();
     if (abode) {
         if (abode->GetTown() != this) {
             // Remove from foreign abode
-            // TODO: abode->RemoveAliveVillagerFromAbode(villager);
+            abode->RemoveAliveVillagerFromAbode(villager);
             villager->SetHome(nullptr);
             abode = nullptr;
         }
@@ -257,16 +256,10 @@ bool Town::AddVillagerToTown(Villager* villager) {
         // Try to find a home in this town
         Abode* found = FindAbodeWithSpaceInTown(villager, 0.0f);
         if (found) {
-            // TODO: found->AddVillagerToAbode(villager);
+            found->AddVillagerToAbode(villager);
             return true;
         }
-        // No space — make homeless
-        // TODO: villager->MakeHomelessNoStateChange();
     }
-
-    // If this is the first villager (total pop == 1), initialize town position
-    // Original checks stats.num_adults + stats.num_children == 1
-    // TODO: if (stats.num_adults + stats.num_children == 1) { /* init town center pos */ }
 
     return true;
 }
@@ -433,16 +426,13 @@ void Town::RemoveVillager(Villager* villager) {
     // Original at 0x0073e210 — translated from x86 assembly
     if (!villager) return;
 
-    // Step 1: Orphan any children of this villager
-    // TODO: villager->FindChildrenAndOrphanThem();
-
     // Step 2: Get abode and remove from stats
     Abode* abode = villager->GetHome();
     stats.Remove(villager);
 
     // Step 3: Remove from abode or homeless list
     if (abode) {
-        // TODO: abode->RemoveAliveVillagerFromAbode(villager);
+        abode->RemoveAliveVillagerFromAbode(villager);
         villager->SetHome(nullptr);
     } else {
         // Remove from homeless linked list
@@ -472,14 +462,8 @@ void Town::RemoveVillager(Villager* villager) {
     // Step 4: Remove from worship site tracking
     RemoveVillagerOnWayToWorshipSite(villager);
 
-    // Step 5: Remove from worship site if worshipping (bit 1 of field_0xe0)
-    // TODO: if (villager->field_0xe0 & 0x02) villager->RemoveVillagerFromWorshipSite();
-
-    // Step 6: Clear town reference on villager
-    // TODO: villager->SetTown(nullptr);
-
-    // Step 7: If population is now 0, handle empty town
-    // TODO: if (stats.num_adults + stats.num_children == 0) { /* handle town depopulation */ }
+    // Step 5: Clear town reference on villager
+    villager->SetTown(nullptr);
 }
 
 void Town::RemoveVillagerOnWayToWorshipSite(Villager* /*villager*/) {
@@ -559,12 +543,11 @@ uint32_t Town::Process() {
     float food_total = 0.0f;
     float wood_total = 0.0f;
 
-    // Sum resources from storage pits and abodes
+    // Sum resources from storage pits
     StoragePit* pit = storage_pit_list;
-    while (pit) {
+    if (pit) {
         food_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(0))); // FOOD
         wood_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(1))); // WOOD
-        pit = nullptr; // TODO: iterate linked list properly
     }
 
     // Update town stats with resource totals

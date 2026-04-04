@@ -115,6 +115,17 @@ struct Abode : public MultiMapFixed {
     virtual bool CanBeHiddenIn();
     virtual GTribeInfo* GetTribe();
 
+    // === Non-virtual methods ===
+    void CreateAbodeSurroundingObjects();
+    void DeleteAbodeSurroundingObjects();
+    void RemoveAllVillagersFromAbode();
+    void AddVillagerToAbode(Villager* villager);
+    void RemoveDeletedVillagerFromAbode(Villager* villager);
+    void RemoveAliveVillagerFromAbode(Villager* villager);
+    uint8_t GetNumAdultsInAbode();
+    int GetRoomLeftForAdults();
+    int GetRoomLeftForChildren();
+
     // === Fields ===
     uint32_t        field_0x7c;              // 0x7C — bitfield byte (bit 2 = ShouldNotBeAddedToPlanned)
     MapCoords       drinking_water;          // 0x80

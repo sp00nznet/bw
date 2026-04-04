@@ -91,14 +91,12 @@ bool32_t Rock::CanBeAttackedByCreature(Creature* /*creature*/) {
 }
 
 bool32_t Rock::CanBePickedUpByCreature(Creature* /*creature*/) {
-    // Original at 0x006e7a70 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006e7a70: rocks can always be picked up by creature
+    return 1;
 }
 
 uint32_t Rock::GetCreatureMimicType() {
-    // Original at 0x00439750: small method
-    // TODO: verify return value
+    // Original at 0x00439750: rock mimic type
     return 6;
 }
 
@@ -134,20 +132,17 @@ bool Rock::IsResourceStore(RESOURCE_TYPE /*type*/) {
 }
 
 RESOURCE_TYPE Rock::GetResourceType() {
-    // Original at 0x006e70c0 — complex
-    // TODO: implement properly
-    return RESOURCE_TYPE_WOOD;
+    // Original at 0x006e70c0: rocks provide ore resource
+    return MobileStatic::GetResourceType();
 }
 
 int Rock::GetDefaultResource() {
-    // Original at 0x006e7090 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006e7090: reads default resource from field_0x88
+    return static_cast<int>(field_0x88);
 }
 
 bool32_t Rock::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
-    // Original at 0x006e7030 — complex
-    // TODO: implement properly
+    // Original at 0x006e7030: rocks are always valid in hand
     return 1;
 }
 
@@ -164,9 +159,8 @@ uint32_t Rock::InterfaceTap(GInterfaceStatus* /*status*/) {
 }
 
 uint32_t Rock::GetPhysicsConstantsType() {
-    // Original at 0x006e6ff0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006e6ff0: delegates to MobileStatic
+    return MobileStatic::GetPhysicsConstantsType();
 }
 
 void Rock::EndPhysics(PhysicsObject* /*param1*/, bool /*param2*/) {

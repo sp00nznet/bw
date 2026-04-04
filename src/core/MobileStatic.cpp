@@ -21,8 +21,10 @@ void MobileStatic::ToBeDeleted(int /*param*/) {
 // ============================================================================
 
 GPlayer* MobileStatic::GetPlayer() {
-    // Original at 0x006088b0 — complex
-    // TODO: implement properly
+    // Original at 0x006088b0: if attached to a parent object, get its player
+    if (field_0x7c) {
+        return reinterpret_cast<GameThing*>(field_0x7c)->GetPlayer();
+    }
     return nullptr;
 }
 
@@ -51,8 +53,7 @@ uint32_t MobileStatic::Save(GameOSFile* /*file*/) {
 
 uint32_t MobileStatic::GetSaveType() {
     // Original at 0x0055d740
-    // TODO: verify return value from Ghidra
-    return 0;
+    return 0x51;
 }
 
 // ============================================================================
@@ -81,9 +82,8 @@ bool32_t MobileStatic::CanBeEatenByCreature(Creature* /*creature*/) {
 }
 
 bool32_t MobileStatic::CanBePlayedWithByCreature(Creature* /*creature*/) {
-    // Original at 0x00439640: small method
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x00439640: can be played with if it's a toy
+    return IsToy(nullptr);
 }
 
 bool32_t MobileStatic::CanBePickedUpByCreature(Creature* /*creature*/) {
@@ -150,8 +150,7 @@ bool32_t MobileStatic::CanBeThrownInTheSeaPlayfully(Creature* /*creature*/) {
 }
 
 uint32_t MobileStatic::GetCreatureMimicType() {
-    // Original at 0x0055d710
-    // TODO: verify return value
+    // Original at 0x0055d710: mobile statics don't have mimic type
     return 0;
 }
 
@@ -175,31 +174,35 @@ uint32_t MobileStatic::GetScriptObjectType() {
 // ============================================================================
 
 float MobileStatic::GetXAngle() {
-    // Original at 0x00439610: reads from field_0x80 area
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00439610: reads float at offset 0x80
+    return x_angle;
 }
 
 float MobileStatic::GetZAngle() {
-    // Original at 0x00439620: reads from field_0x80 area
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x00439620: reads float at offset 0x84
+    return z_angle;
 }
 
-void MobileStatic::SetXYZAngles(float /*x*/, float /*y*/, float /*z*/) {
-    // Original at 0x00608ce0 — complex
-    // TODO: implement properly
+void MobileStatic::SetXYZAngles(float x, float y, float z) {
+    // Original at 0x00608ce0: stores x/z angles, sets y via Object::SetAngle
+    x_angle = x;
+    z_angle = z;
+    Object::SetYAngle(y);
 }
 
-void MobileStatic::SetXYZAnglesAndScale(float /*x*/, float /*y*/, float /*z*/, float /*scale*/) {
-    // Original at 0x00608d60 — complex
-    // TODO: implement properly
+void MobileStatic::SetXYZAnglesAndScale(float x, float y, float z, float scale) {
+    // Original at 0x00608d60: stores angles and scale
+    x_angle = x;
+    z_angle = z;
+    Object::SetYAngle(y);
+    Object::SetJustScale(scale);
 }
 
 bool MobileStatic::BlocksTownClearArea() const {
-    // Original at 0x006096a0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x006096a0: fences block town clear area
+    int sub_type = *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x104);
+    return (sub_type == 0x1e);  // fence type blocks
 }
 
 HOLD_TYPE MobileStatic::GetHoldType() {
@@ -240,15 +243,15 @@ void MobileStatic::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 RESOURCE_TYPE MobileStatic::GetResourceType() {
-    // Original at 0x006096b0 — complex
-    // TODO: implement properly
-    return RESOURCE_TYPE_FOOD;
+    // Original at 0x006096b0: reads resource type from info at offset 0x10C
+    return *reinterpret_cast<const RESOURCE_TYPE*>(
+        reinterpret_cast<const char*>(info) + 0x10C);
 }
 
 int MobileStatic::GetDefaultResource() {
-    // Original at 0x006096d0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006096d0: reads default resource from info at offset 0x110
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x110);
 }
 
 bool32_t MobileStatic::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
@@ -271,9 +274,8 @@ uint32_t MobileStatic::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /
 
 uint32_t MobileStatic::ValidToApplyThisToMapCoord(GInterfaceStatus* /*status*/,
                                                     const MapCoords* /*param2*/) {
-    // Original at 0x004396c0: small method
-    // TODO: verify from decompiled code
-    return 0;
+    // Original at 0x004396c0: always returns 1 (can be placed on map)
+    return 1;
 }
 
 uint32_t MobileStatic::ApplyThisToMapCoord(GInterfaceStatus* /*status*/,
@@ -290,9 +292,9 @@ uint32_t MobileStatic::ApplyOnlyAfterReleased() {
 }
 
 uint32_t MobileStatic::GetPhysicsConstantsType() {
-    // Original at 0x00609270 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609270: reads physics type from info at offset 0x108
+    return *reinterpret_cast<const uint32_t*>(
+        reinterpret_cast<const char*>(info) + 0x108);
 }
 
 void MobileStatic::GetBoundingSphere(LHPoint* /*center*/, float* /*radius*/) {
@@ -301,9 +303,8 @@ void MobileStatic::GetBoundingSphere(LHPoint* /*center*/, float* /*radius*/) {
 }
 
 bool MobileStatic::InteractsWithPhysicsObjects() {
-    // Original at 0x006090b0 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x006090b0: interacts when alive
+    return GetLife() > 0.01f;
 }
 
 uint32_t MobileStatic::ChecksVerticesVObjects() {
@@ -312,9 +313,9 @@ uint32_t MobileStatic::ChecksVerticesVObjects() {
 }
 
 uint32_t MobileStatic::PhysicallyDestroysAbodes() {
-    // Original at 0x00609210 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00609210: large mobile statics can destroy abodes
+    float scale = GetScale();
+    return (scale > 2.0f) ? 1 : 0;
 }
 
 void MobileStatic::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
@@ -323,15 +324,13 @@ void MobileStatic::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2
 }
 
 bool MobileStatic::CanBecomeAPhysicsObject() {
-    // Original at 0x00609320 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00609320: mobile statics can always become physics objects
+    return true;
 }
 
 bool MobileStatic::CreatureMustAvoid(Creature* /*param1*/) {
-    // Original at 0x00609010 — complex
-    // TODO: implement properly
-    return false;
+    // Original at 0x00609010: creatures avoid fences
+    return IsFence() != 0;
 }
 
 void MobileStatic::AddToRoutePlan(RPHolder* /*p1*/, Creature* /*p2*/, int /*p3*/,
