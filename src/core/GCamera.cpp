@@ -78,14 +78,20 @@ void GCamera::Update() {
         }
     }
 
-    // Interpolate heading zoomer
-    // camera_heading_zoomer.Update(time_delta)
+    // Interpolate heading zoomer (camera focus point)
+    camera_heading_zoomer.Update(time_delta);
 
-    // Interpolate origin zoomer
-    // camera_origin_zoomer.Update(time_delta)
+    // Interpolate origin zoomer (camera position)
+    camera_origin_zoomer.Update(time_delta);
+
+    // Update camera position from origin zoomer
+    LHPoint origin_pos = camera_origin_zoomer.GetCurrentValue();
+    if (origin_pos.x != 0.0f || origin_pos.y != 0.0f || origin_pos.z != 0.0f) {
+        pos = origin_pos;
+    }
 
     // Interpolate FOV zoomer
-    // fov_zoomer.Update(time_delta)
+    fov_zoomer.Update(time_delta);
 
     // Sync GameThingWithPos position from camera state
     UpdateGameThingWithPosData();
@@ -102,11 +108,13 @@ void GCamera::UpdateGameThingWithPosData() {
 }
 
 // 0x00443680 — sets camera FOV with interpolation time
-void GCamera::SetCameraFov(float fov, float /*time*/) {
-    // Set up fov_zoomer to interpolate to target FOV over time
-    // For now, snap immediately
-    fov_zoomer.current_value = fov;
-    fov_zoomer.destination = fov;
+void GCamera::SetCameraFov(float fov, float time) {
+    // Sets up fov_zoomer to interpolate to target FOV over time
+    if (time <= 0.0f) {
+        fov_zoomer.SetPosition(fov);
+    } else {
+        fov_zoomer.SetDestinationWithSpeedAndTime(fov, 0.0f, time);
+    }
 }
 
 // === Static methods ===
