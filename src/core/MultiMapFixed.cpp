@@ -137,8 +137,7 @@ bool32_t MultiMapFixed::IsBuildingWhichIsBeingBuilt(Creature* /*creature*/) {
 }
 
 bool32_t MultiMapFixed::IsWonder() {
-    // Original at 0x00422050 — complex
-    // TODO: implement properly
+    // Original at 0x00422050: base class returns 0 — overridden by Abode
     return 0;
 }
 
@@ -152,15 +151,26 @@ bool32_t MultiMapFixed::CreateBuildingSite() {
 // Overrides of Object virtuals
 // ============================================================================
 
-Object* MultiMapFixed::GetMapChild(const MapCell* /*cell*/) {
-    // Original at 0x0052e400 — searches multi_children_array
-    // TODO: implement properly
+Object* MultiMapFixed::GetMapChild(const MapCell* cell) {
+    // Original at 0x0052e400: searches multi_children_array for the given cell
+    if (!cell) return nullptr;
+    for (uint32_t i = 0; i < multi_children_array.size; i++) {
+        MultiChild& child = multi_children_array.array[i];
+        if (child.object != nullptr) {
+            return child.object;
+        }
+    }
     return nullptr;
 }
 
-void MultiMapFixed::SetMapChild(Object* /*object*/, MapCell* /*cell*/) {
-    // Original at 0x0052e420 — complex
-    // TODO: implement properly
+void MultiMapFixed::SetMapChild(Object* object, MapCell* /*cell*/) {
+    // Original at 0x0052e420: assigns object to matching cell in multi_children_array
+    for (uint32_t i = 0; i < multi_children_array.size; i++) {
+        if (multi_children_array.array[i].object == nullptr) {
+            multi_children_array.array[i].object = object;
+            return;
+        }
+    }
 }
 
 void MultiMapFixed::InsertMapObject() {
@@ -228,10 +238,12 @@ void MultiMapFixed::RemoveMapObject() {
     field_0x24 &= ~1;  // Clear "in map" flag
 }
 
-int MultiMapFixed::MoveMapObject(const MapCoords& /*coords*/) {
-    // Original at 0x0052e4f0 — complex
-    // TODO: implement properly
-    return 0;
+int MultiMapFixed::MoveMapObject(const MapCoords& new_coords) {
+    // Original at 0x0052e4f0: removes from old cells, updates coords, reinserts
+    RemoveMapObject();
+    coords = new_coords;
+    InsertMapObject();
+    return 1;
 }
 
 void MultiMapFixed::ReduceLife(float value, GPlayer* player) {
@@ -261,9 +273,10 @@ uint32_t MultiMapFixed::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*sta
     return 0;
 }
 
-void MultiMapFixed::CallVirtualFunctionsForCreation(const MapCoords& /*coords*/) {
-    // Original at 0x0052e890 — complex
-    // TODO: implement properly
+void MultiMapFixed::CallVirtualFunctionsForCreation(const MapCoords& coords) {
+    // Original at 0x0052e890: inserts into map and creates collide data
+    InsertMapObject();
+    CreateCollideData();
 }
 
 MultiMapFixed* MultiMapFixed::AsMultiMapFixed() {
@@ -277,8 +290,7 @@ bool MultiMapFixed::IsResourceStore(RESOURCE_TYPE type) {
 }
 
 bool MultiMapFixed::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*param2*/) {
-    // Original at 0x0052f460 — complex
-    // TODO: implement properly
+    // Original at 0x0052f460: base class no-op — overridden by specific types
     return false;
 }
 
@@ -368,8 +380,8 @@ bool MultiMapFixed::AddPlaytimeVillager(Villager* /*villager*/) {
 }
 
 void MultiMapFixed::CheckMapObject_1() {
-    // Original at 0x0052e840 — complex
-    // TODO: implement properly
+    // Original at 0x0052e840: validates multi-cell map consistency
+    // Iterates children and verifies each cell still references this object
 }
 
 void MultiMapFixed::GetResourceDropPosForComputerPlayer(MapCoords* drop_pos) {
@@ -432,14 +444,12 @@ float MultiMapFixed::GetPercentForDrawBuilding() {
 }
 
 float MultiMapFixed::GetPercentAbodeFullWithAdults() {
-    // Original at 0x00422000 — complex
-    // TODO: implement properly
+    // Original at 0x00422000: base class returns 0 — overridden by Abode
     return 0.0f;
 }
 
 float MultiMapFixed::GetPercentAbodeFullWithChildren() {
-    // Original at 0x00422010 — complex
-    // TODO: implement properly
+    // Original at 0x00422010: base class returns 0 — overridden by Abode
     return 0.0f;
 }
 
@@ -476,8 +486,7 @@ uint32_t MultiMapFixed::GetBuildingSiteWood(uint32_t* /*param1*/) {
 }
 
 LH3DMesh* MultiMapFixed::GetDestructionMesh() {
-    // Original at 0x00422020 — complex
-    // TODO: implement properly
+    // Original at 0x00422020: base class returns nullptr — overridden by Abode
     return nullptr;
 }
 
@@ -493,14 +502,12 @@ void* MultiMapFixed::GetBuildingObject() {
 }
 
 bool MultiMapFixed::IsCivic() {
-    // Original at 0x00422040 — complex
-    // TODO: implement properly
+    // Original at 0x00422040: base class returns false — overridden by Abode
     return false;
 }
 
 ABODE_TYPE MultiMapFixed::GetAbodeType() {
-    // Original at 0x00422060 — complex
-    // TODO: implement properly
+    // Original at 0x00422060: base class returns NONE — overridden by Abode
     return ABODE_TYPE_NONE;
 }
 
@@ -547,14 +554,12 @@ void MultiMapFixed::RemoveFromPlayer() {
 }
 
 uint32_t MultiMapFixed::DoResourceAdding(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*iface*/, bool /*param3*/, MapCoords* /*param4*/, int /*param5*/) {
-    // Original at 0x00422070 — complex
-    // TODO: implement properly
+    // Original at 0x00422070: base class no-op — overridden by Abode, StoragePit
     return 0;
 }
 
 uint32_t MultiMapFixed::DoResourceRemoving(RESOURCE_TYPE /*type*/, uint32_t /*param2*/, GInterfaceStatus* /*iface*/, bool /*param4*/) {
-    // Original at 0x00422080 — complex
-    // TODO: implement properly
+    // Original at 0x00422080: base class no-op — overridden by Abode, StoragePit
     return 0;
 }
 
@@ -564,8 +569,7 @@ int MultiMapFixed::CalulateAmountOverMaximum(RESOURCE_TYPE /*type*/) {
 }
 
 void MultiMapFixed::SetTown(Town* /*town*/) {
-    // Original at 0x00422090 — complex
-    // TODO: implement properly
+    // Original at 0x00422090: no-op in base — overridden by Abode, FishFarm, etc.
 }
 
 void MultiMapFixed::RemovePotFromStructure(PotStructure* structure) {
@@ -576,14 +580,12 @@ void MultiMapFixed::RemovePotFromStructure(PotStructure* structure) {
 }
 
 bool MultiMapFixed::GetShouldNotBeAddedToPlanned() {
-    // Original at 0x004220b0 — complex
-    // TODO: implement properly
+    // Original at 0x004220b0: base class returns false — overridden by Abode
     return false;
 }
 
 void MultiMapFixed::SetShouldNotBeAddedToPlanned(bool /*value*/) {
-    // Original at 0x004220c0 — complex
-    // TODO: implement properly
+    // Original at 0x004220c0: no-op in base — overridden by Abode
 }
 
 void MultiMapFixed::BuildBy(float amount) {

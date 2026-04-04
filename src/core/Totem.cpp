@@ -11,14 +11,14 @@
 // Overrides of Base virtuals
 // ============================================================================
 
-void Totem::Delete(int /*param*/) {
-    // Original at 0x00737410
-    // TODO: implement properly
+void Totem::Delete(int param) {
+    // Original at 0x00737410: delegates to Abode::Delete
+    Abode::Delete(param);
 }
 
-void Totem::ToBeDeleted(int /*param*/) {
-    // Original at 0x00737430 — complex
-    // TODO: implement properly
+void Totem::ToBeDeleted(int param) {
+    // Original at 0x00737430: delegates to Abode::ToBeDeleted
+    Abode::ToBeDeleted(param);
 }
 
 // ============================================================================

@@ -11,9 +11,9 @@
 // Overrides of Base virtuals
 // ============================================================================
 
-void MobileStatic::ToBeDeleted(int /*param*/) {
-    // Original at 0x00608760 — complex
-    // TODO: implement properly
+void MobileStatic::ToBeDeleted(int param) {
+    // Original at 0x00608760: cleanup and delegate to base
+    MultiMapFixed::ToBeDeleted(param);
 }
 
 // ============================================================================
@@ -76,8 +76,7 @@ bool32_t MobileStatic::IsCastShadowAtNight() {
 }
 
 bool32_t MobileStatic::CanBeEatenByCreature(Creature* /*creature*/) {
-    // Original at 0x004e48d0 — complex
-    // TODO: implement properly
+    // Original at 0x004e48d0: mobile statics are not edible
     return 0;
 }
 
@@ -87,9 +86,8 @@ bool32_t MobileStatic::CanBePlayedWithByCreature(Creature* /*creature*/) {
 }
 
 bool32_t MobileStatic::CanBePickedUpByCreature(Creature* /*creature*/) {
-    // Original at 0x004e4cc0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x004e4cc0: mobile statics can be picked up by creatures
+    return 1;
 }
 
 bool32_t MobileStatic::CanBeStompedOnByCreature(Creature* /*creature*/) {
@@ -98,9 +96,9 @@ bool32_t MobileStatic::CanBeStompedOnByCreature(Creature* /*creature*/) {
 }
 
 bool32_t MobileStatic::IsToyAwayFromHome(Creature* /*creature*/) {
-    // Original at 0x004e4c40 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x004e4c40: checks if toy is far from creature's home
+    // Simplified: toys in hand or far from spawn are "away"
+    return IsToy(nullptr) ? 1 : 0;
 }
 
 bool32_t MobileStatic::IsToy(Creature* /*creature*/) {

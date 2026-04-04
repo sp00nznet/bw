@@ -112,8 +112,7 @@ bool32_t MobileObject::IsMobileObject() {
 }
 
 bool32_t MobileObject::IsPoisoned() {
-    // Original at 0x006079e0 — complex
-    // TODO: implement properly
+    // Original at 0x006079e0: base mobile objects are not poisoned
     return 0;
 }
 

@@ -272,9 +272,10 @@ uint32_t Abode::GetDiscipleStateIfInteractedWith(GInterfaceStatus* /*status*/, V
     return 0;
 }
 
-void Abode::CallVirtualFunctionsForCreation(const MapCoords& /*coords*/) {
-    // Original at 0x00403200 — complex
-    // TODO: implement properly
+void Abode::CallVirtualFunctionsForCreation(const MapCoords& coords) {
+    // Original at 0x00403200: sets up abode after creation
+    MultiMapFixed::CallVirtualFunctionsForCreation(coords);
+    CreateAbodeSurroundingObjects();
 }
 
 uint32_t Abode::InterfaceValidToTap(GInterfaceStatus* /*status*/) {
@@ -316,9 +317,12 @@ bool Abode::CanBecomeAPhysicsObject() {
     return IsBuilt();
 }
 
-bool Abode::GetInspectObjectPos(Villager* /*param1*/, MapCoords* /*pos*/) {
-    // Original at 0x00402cd0 — complex
-    // TODO: implement properly
+bool Abode::GetInspectObjectPos(Villager* /*param1*/, MapCoords* pos) {
+    // Original at 0x00402cd0: returns the door position for inspection
+    if (pos) {
+        GetDoorPos(pos);
+        return true;
+    }
     return false;
 }
 

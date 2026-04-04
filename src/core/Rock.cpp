@@ -21,19 +21,25 @@ void Rock::SetPlayer(GPlayer* p) {
     player = p;
 }
 
-uint32_t Rock::AddResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
+uint32_t Rock::AddResource(RESOURCE_TYPE type, uint32_t amount,
                             GInterfaceStatus* /*status*/, bool /*param4*/,
                             const MapCoords& /*coords*/, int /*param6*/) {
-    // Original at 0x006e7170 — complex
-    // TODO: implement properly
+    // Original at 0x006e7170: rocks accept ore resources
+    if (type == GetResourceType()) {
+        field_0x88 += amount;
+        return amount;
+    }
     return 0;
 }
 
-uint32_t Rock::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
+uint32_t Rock::RemoveResource(RESOURCE_TYPE type, uint32_t amount,
                                GInterfaceStatus* /*status*/, bool* /*param4*/) {
-    // Original at 0x006e70d0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x006e70d0: remove ore from rock
+    if (type != GetResourceType()) return 0;
+    uint32_t available = field_0x88;
+    uint32_t removed = (amount <= available) ? amount : available;
+    field_0x88 -= removed;
+    return removed;
 }
 
 char* Rock::GetDebugText() {
