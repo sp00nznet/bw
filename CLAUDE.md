@@ -24,13 +24,13 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 02b730a)
+## Current Stats (as of commit db0eb21)
 - **600 headers** in `src/include/black/`
 - **251 .cpp files** in `src/core/`
 - **42,800+ lines** of C++ total (core + viewer)
-- **187 commits**, all pushed to GitHub
+- **191 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
-- **~1052 stubs remaining** (~350 intentional base-class defaults, ~700 real)
+- **~246 TODOs remaining** (~85 blocked on save/render/physics, ~160 real logic)
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
@@ -171,11 +171,23 @@ LHVM: 25+ typed native function stubs (fire, poison, resource, leash, state quer
 MultiMapFixed: ReduceLife (damage flag), RemoveDamage, GetResourcePos/NearestEdge
 WorshipSite: GetScriptObjectType, GetDistanceFromObject_1
 
+### Batch 42: Method body bulk pass — entity lifecycle, physics, resources (4 commits)
+MobileStatic: GetXAngle/GetZAngle/SetXYZAngles (field_0x80 angles), GetPhysicsConstantsType/GetResourceType/GetDefaultResource from info offsets, CanBecomeAPhysicsObject, CreatureMustAvoid (fence check), BlocksTownClearArea, GetPlayer delegation
+MobileObject: GetXAngle/SetXYZAngles (field_0x5c/0x60), GetPlayer/GetDefaultResource/GetPhysicsConstantsType/GetHoldType from info, CanBecomeAPhysicsObject
+Abode: Delete/ToBeDeleted lifecycle chain, InsertMapObject+surrounding objects, RemoveDamage, MakeFunctional/StopBeingFunctional/DeleteDependancys, DoResourceAdding/DoResourceRemoving delegation, CanBeStomped/CanBeKicked, GetPhysicsConstantsType from info, villager management (Add/Remove/RemoveAll)
+Rock: GetResourceType/GetDefaultResource, GetPhysicsConstantsType delegation
+Pot: ToBeDeleted, GetDefaultResource, IsPartOfStructure, SetSpeedUp/SetMultiMapFixed flag ops
+Town: AddStructureToTown (CastAbode + list prepend), AddVillagerToTown (abode assignment), RemoveVillager cleanup
+SpellSeed: GetPower/GetPSysPower, GetHoldRadius/LoweringMultiplier/YRotate from info, GetMesh, InsertMapObject/RemoveMapObject delegation
+MultiMapFixed: IsObjectInMap_0/IsObjectFullyInMap (flag checks), GetArrivePos→GetDoorPos delegation
+LHVM: Native_GET_DISTANCE (actual 3D Euclidean distance)
+Villager: SetTown stub
+
 ## What's Next (priority order)
-1. **Method bodies** — translate remaining Ghidra decompilation (~1400 stubs)
-2. **Villager state machine** — implement VillagerStates ProcessState dispatch
-3. **Save/Load system** — binary format for entity serialization
-4. **LHVM native function bodies** — fill in ~375 remaining stubs as subsystems come online
+1. **Method bodies** — translate remaining ~246 TODO stubs (~85 blocked on save/render/physics)
+2. **Save/Load system** — binary format for entity serialization (~24 methods)
+3. **LHVM native wiring** — connect ~32 remaining natives to game systems
+4. **Interface/hand interaction** — SpellSeed/Pot/MobileStatic apply/tap methods
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
