@@ -1,0 +1,483 @@
+// ============================================================
+// Black & White Decompilation by Name Pattern
+// Binary: runblack_decrypted.exe
+// Patterns: 51
+// Date: Sat Apr 04 00:52:46 PDT 2026
+// ============================================================
+
+// NOT FOUND: ?Process@Town@@
+
+// NOT FOUND: ?Birthday@Town@@
+
+// NOT FOUND: ?ProcessTownEmergency@Town@@
+
+// NOT FOUND: ?FindAbodeWithSpaceInTown@Town@@
+
+// NOT FOUND: ?GetRadius@Town@@
+
+// NOT FOUND: ?RequestBestPlanned@Town@@
+
+// NOT FOUND: ?GetDesireToBeBuilt@Town@@
+
+// NOT FOUND: ?GetCitadel@Town@@
+
+// NOT FOUND: ?GetWorshipSite@Town@@
+
+// NOT FOUND: ?AddAbodeToTownStats@Town@@
+
+// NOT FOUND: ?AddBuildingSite@Town@@
+
+// NOT FOUND: ?RemoveBuildingSite@Town@@
+
+// NOT FOUND: ?AddPlanned@Town@@
+
+// NOT FOUND: ?AllVillagersCheckNeedNewAbode@Town@@
+
+// NOT FOUND: ?GetTemporaryResourceStorePotOrPos@Town@@
+
+// NOT FOUND: ?Process@Abode@@
+
+// NOT FOUND: ?AddVillagerToAbode@Abode@@
+
+// NOT FOUND: ?RemoveAliveVillagerFromAbode@Abode@@
+
+// NOT FOUND: ?AddResource@Abode@@
+
+// NOT FOUND: ?RemoveResource@Abode@@
+
+// NOT FOUND: ?DoResourceAdding@Abode@@
+
+// NOT FOUND: ?DoResourceRemoving@Abode@@
+
+// NOT FOUND: ?CallVirtualFunctionsForCreation@Abode@@
+
+// NOT FOUND: ?MakeFunctional@Abode@@
+
+// NOT FOUND: ?StopBeingFunctional@Abode@@
+
+// NOT FOUND: ?Built@Abode@@
+
+// NOT FOUND: ?ConvertToPlanned@Abode@@
+
+// ========================================
+// Pattern: ?CreateBuildingSite@MultiMapFixed@@
+// Function: ?CreateBuildingSite@MultiMapFixed@@UAE_NXZ
+// Address: 0x00505740
+// Size: 67 bytes
+// ========================================
+
+
+undefined4 * _CreateBuildingSite_MultiMapFixed__UAE_NXZ(void)
+
+{
+  undefined4 *puVar1;
+  undefined4 in_ECX;
+  
+  puVar1 = (undefined4 *)FUN_004300a0(0x648,s_C__dev_black_Fixed_cpp_00b170e4,0x50b);
+  if (puVar1 != (undefined4 *)0x0) {
+    FUN_00433fe0(in_ECX);
+    *puVar1 = &vftable_StandardBuildingSite;
+    puVar1[0x191] = 0;
+    return puVar1;
+  }
+  return (undefined4 *)0x0;
+}
+
+
+
+// ========================================
+// Pattern: ?CallVirtualFunctionsForCreation@MultiMapFixed@@
+// Function: ?CallVirtualFunctionsForCreation@MultiMapFixed@@UAEXABUMapCoords@@@Z
+// Address: 0x00504b80
+// Size: 447 bytes
+// ========================================
+
+
+void _CallVirtualFunctionsForCreation_MultiMapFixed__UAEXABUMapCoords___Z(void)
+
+{
+  int iVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  int iVar5;
+  int iVar6;
+  int *in_ECX;
+  float10 fVar7;
+  int *piStack_4;
+  
+  (**(code **)(*in_ECX + 0x538))();
+  (**(code **)(*in_ECX + 0x608))();
+  (**(code **)(*(int *)in_ECX[0x10] + 0xf4))(0,0);
+  fVar7 = (float10)(**(code **)(*in_ECX + 0x120))();
+  fVar2 = (float)fVar7;
+  fVar7 = (float10)(**(code **)(*in_ECX + 0x508))();
+  fVar3 = (float)fVar7;
+  iVar6 = *piStack_4;
+  iVar5 = in_ECX[0x10];
+  iVar1 = piStack_4[1];
+  fVar4 = (float)piStack_4[2];
+  fVar7 = (float10)FUN_00761280(iVar5 + 0x50);
+  if (fVar3 == 0.0) {
+    if (fVar2 == 1.0) {
+      FUN_004022b0();
+    }
+    else {
+      FUN_004f5940(fVar2);
+      FUN_004022f0();
+    }
+  }
+  else if (fVar2 == 1.0) {
+    FUN_004022b0();
+    FUN_004f5f10(fVar3);
+  }
+  else {
+    *(undefined4 *)(iVar5 + 0x40) = 0;
+    *(undefined4 *)(iVar5 + 0x3c) = 0;
+    *(undefined4 *)(iVar5 + 0x38) = 0;
+    *(undefined4 *)(iVar5 + 0x30) = 0;
+    *(undefined4 *)(iVar5 + 0x2c) = 0;
+    *(undefined4 *)(iVar5 + 0x28) = 0;
+    *(undefined4 *)(iVar5 + 0x20) = 0;
+    *(undefined4 *)(iVar5 + 0x1c) = 0;
+    *(undefined4 *)(iVar5 + 0x18) = 0;
+    *(float *)(iVar5 + 0x34) = fVar2;
+    *(float *)(iVar5 + 0x14) = fVar2;
+    *(float *)(iVar5 + 0x24) = fVar2;
+    *(float *)(iVar5 + 0x38) = (float)iVar6 * 0.00015258789 + *(float *)(iVar5 + 0x38);
+    *(float *)(iVar5 + 0x3c) = (float)(fVar7 + (float10)fVar4) + *(float *)(iVar5 + 0x3c);
+    *(float *)(iVar5 + 0x40) = (float)iVar1 * 0.00015258789 + *(float *)(iVar5 + 0x40);
+    FUN_004f5f10(fVar3);
+  }
+  *(float *)(iVar5 + 0x48) = fVar3;
+  *(float *)(iVar5 + 0x44) = fVar2;
+  (**(code **)(*in_ECX + 0x850))();
+  FUN_00504d40();
+  if (((*(byte *)(in_ECX + 9) & 4) == 0) && ((*(byte *)((int)in_ECX + 10) & 0x11) == 0)) {
+    (**(code **)(*in_ECX + 0x544))();
+  }
+  iVar6 = (**(code **)(*in_ECX + 0x890))();
+  if (iVar6 != 1) {
+    (**(code **)(*(int *)in_ECX[0x10] + 0x88))();
+    (**(code **)(*(int *)in_ECX[0x10] + 0x80))();
+  }
+  return;
+}
+
+
+
+// ========================================
+// Pattern: ?GetDiscipleStateIfInteractedWith@MultiMapFixed@@
+// Function: ?GetDiscipleStateIfInteractedWith@MultiMapFixed@@UAEIPAVGInterfaceStatus@@PAVVillager@@@Z
+// Address: 0x004eeb30
+// Size: 31 bytes
+// ========================================
+
+
+float10 _GetDiscipleStateIfInteractedWith_MultiMapFixed__UAEIPAVGInterfaceStatus__PAVVillager___Z
+                  (void)
+
+{
+  int *in_ECX;
+  float10 fVar1;
+  
+  fVar1 = (float10)(**(code **)(*in_ECX + 0x120))();
+  return fVar1 * fVar1 * fVar1 * (float10)*(float *)(in_ECX[0x25] + 0xac);
+}
+
+
+
+// ========================================
+// Pattern: ?DoCreatureMimicAfterAddingResource@MultiMapFixed@@
+// Function: ?DoCreatureMimicAfterAddingResource@MultiMapFixed@@UAE_NW4RESOURCE_TYPE@@PAVGInterfaceStatus@@@Z
+// Address: 0x005053e0
+// Size: 61 bytes
+// ========================================
+
+
+undefined4
+_DoCreatureMimicAfterAddingResource_MultiMapFixed__UAE_NW4RESOURCE_TYPE__PAVGInterfaceStatus___Z
+          (int *param_1)
+
+{
+  int iVar1;
+  int *in_ECX;
+  int unaff_retaddr;
+  undefined4 uVar2;
+  undefined4 uVar3;
+  
+  iVar1 = (**(code **)(*in_ECX + 0x318))(0);
+  if ((iVar1 != 0) && (unaff_retaddr == 1)) {
+    uVar3 = 0;
+    uVar2 = 7;
+    (**(code **)(*param_1 + 0x1c))(param_1,7);
+    FUN_004cb260(param_1,uVar2,in_ECX,uVar3);
+    return 1;
+  }
+  return 0;
+}
+
+
+
+// ========================================
+// Pattern: ?DeleteObjectAndTakeResource@MultiMapFixed@@
+// Function: ?DeleteObjectAndTakeResource@MultiMapFixed@@UAE_NPAVObject@@PAVGInterfaceStatus@@@Z
+// Address: 0x00505610
+// Size: 35 bytes
+// ========================================
+
+
+undefined4
+_DeleteObjectAndTakeResource_MultiMapFixed__UAE_NPAVObject__PAVGInterfaceStatus___Z
+          (undefined4 param_1,undefined4 param_2)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x74) != 0) {
+    FUN_005ecb70(param_1,param_2);
+    return 1;
+  }
+  return 0;
+}
+
+
+
+// ========================================
+// Pattern: ?Built@MultiMapFixed@@
+// Function: ?Built@MultiMapFixed@@UAE_NXZ
+// Address: 0x00504e10
+// Size: 152 bytes
+// ========================================
+
+
+undefined4 _Built_MultiMapFixed__UAE_NXZ(void)
+
+{
+  int iVar1;
+  int *in_ECX;
+  
+  if ((int *)in_ECX[0x1d] != (int *)0x0) {
+    (**(code **)(*(int *)in_ECX[0x1d] + 0xc))(0);
+  }
+  iVar1 = (**(code **)(*in_ECX + 0x8c0))();
+  if (iVar1 != 0) {
+    iVar1 = (**(code **)(*in_ECX + 0x8c4))();
+    if (iVar1 != 0x804) {
+      iVar1 = (**(code **)(*in_ECX + 0x48))();
+      if (iVar1 != 0) {
+        (**(code **)(*in_ECX + 0x1c))(0);
+        FUN_0067efc0();
+      }
+    }
+  }
+  if (in_ECX[0x10] != 0) {
+    iVar1 = (**(code **)(*in_ECX + 0x210))();
+    if (iVar1 == 0) {
+      (**(code **)(*(int *)in_ECX[0x10] + 0x80))();
+      FUN_005a2b10();
+    }
+  }
+  *(byte *)(in_ECX + 0x16) = *(byte *)(in_ECX + 0x16) & 0xfd | 8;
+  in_ECX[0x17] = 0x3f800000;
+  return 1;
+}
+
+
+
+// ========================================
+// Pattern: ?StartOnFire@MultiMapFixed@@
+// Function: ?StartOnFire@MultiMapFixed@@UAEXXZ
+// Address: 0x00504eb0
+// Size: 8 bytes
+// ========================================
+
+
+void _StartOnFire_MultiMapFixed__UAEXXZ(void)
+
+{
+  FUN_0067f9a0();
+  return;
+}
+
+
+
+// ========================================
+// Pattern: ?GetMapChild@MultiMapFixed@@
+// Function: ?GetMapChild@MultiMapFixed@@UAEPAVObject@@PBUMapCell@@@Z
+// Address: 0x00504700
+// Size: 24 bytes
+// ========================================
+
+
+undefined4 _GetMapChild_MultiMapFixed__UAEPAVObject__PBUMapCell___Z(undefined4 param_1)
+
+{
+  undefined4 *puVar1;
+  
+  puVar1 = (undefined4 *)FUN_00503fb0(param_1);
+  if (puVar1 != (undefined4 *)0x0) {
+    return *puVar1;
+  }
+  return 0;
+}
+
+
+
+// ========================================
+// Pattern: ?SetMapChild@MultiMapFixed@@
+// Function: ?SetMapChild@MultiMapFixed@@UAEXPAVObject@@PAUMapCell@@@Z
+// Address: 0x00504720
+// Size: 82 bytes
+// ========================================
+
+
+void _SetMapChild_MultiMapFixed__UAEXPAVObject__PAUMapCell___Z(undefined4 param_1)
+
+{
+  short sVar1;
+  int in_ECX;
+  uint uVar2;
+  
+  uVar2 = 0;
+  if (*(int *)(in_ECX + 0x6c) != 0) {
+    while ((sVar1 = FUN_005bea50(), sVar1 != *(short *)(*(int *)(in_ECX + 0x68) + 4 + uVar2 * 8) ||
+           (sVar1 = FUN_005bea70(), sVar1 != *(short *)(*(int *)(in_ECX + 0x68) + 6 + uVar2 * 8))))
+    {
+      uVar2 = uVar2 + 1;
+      if (*(uint *)(in_ECX + 0x6c) <= uVar2) {
+        return;
+      }
+    }
+    *(undefined4 *)(*(int *)(in_ECX + 0x68) + uVar2 * 8) = param_1;
+  }
+  return;
+}
+
+
+
+// ========================================
+// Pattern: ?MoveMapObject@MultiMapFixed@@
+// Function: ?MoveMapObject@MultiMapFixed@@UAEHPAUMapCoords@@@Z
+// Address: 0x005047e0
+// Size: 54 bytes
+// ========================================
+
+
+undefined4 _MoveMapObject_MultiMapFixed__UAEHPAUMapCoords___Z(undefined4 param_1)
+
+{
+  int iVar1;
+  int *in_ECX;
+  
+  iVar1 = FUN_005c1400(in_ECX + 5);
+  if (iVar1 == 0) {
+    (**(code **)(*in_ECX + 0x560))(param_1);
+    return 7;
+  }
+  return 6;
+}
+
+
+
+// ========================================
+// Pattern: ?ProcessState@Villager@@
+// Function: ?ProcessState@Villager@@UAEIXZ
+// Address: 0x006e01e0
+// Size: 235 bytes
+// ========================================
+
+
+undefined4 _ProcessState_Villager__UAEIXZ(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  
+  *(short *)(in_ECX + 0x90) = *(short *)(in_ECX + 0x90) + 1;
+  FUN_006e2f30();
+  if (*(int *)(&DAT_00c2a348 + (uint)*(byte *)(in_ECX + 0x8c) * 0x90) != 0) {
+    (**(code **)(&DAT_00c2a348 + (uint)*(byte *)(in_ECX + 0x8c) * 0x90))();
+  }
+  if (*(int *)(&DAT_00c2a348 + (uint)*(byte *)(in_ECX + 0x8d) * 0x90) != 0) {
+    (**(code **)(&DAT_00c2a348 + (uint)*(byte *)(in_ECX + 0x8d) * 0x90))();
+  }
+  if ((*(ushort *)(in_ECX + 0xe0) & 0x800) != 0) {
+    iVar1 = FUN_005ab3c0(1);
+    if (iVar1 != 0) {
+      FUN_006e02d0();
+    }
+    return 1;
+  }
+  FUN_006e05d0();
+  uVar2 = FUN_006e1d10();
+  return uVar2;
+}
+
+
+
+// NOT FOUND: ?SetTown@Villager@@
+
+// NOT FOUND: ?DecideWhatToDo@Villager@@
+
+// NOT FOUND: ?Load@Abode@@
+
+// NOT FOUND: ?Save@Abode@@
+
+// NOT FOUND: ?Load@MultiMapFixed@@
+
+// ========================================
+// Pattern: ?Save@MultiMapFixed@@
+// Function: ?Save@MultiMapFixed@@UAEIPAVGameOSFile@@@Z
+// Address: 0x00505420
+// Size: 181 bytes
+// ========================================
+
+
+undefined4 _Save_MultiMapFixed__UAEIPAVGameOSFile___Z(int param_1)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = _Save_Fixed__UAEIPAVGameOSFile___Z(param_1);
+  if (iVar1 != 0) {
+    if (DAT_00b19ac8 != 0) {
+      iVar1 = FUN_0072be90((byte *)(in_ECX + 0x58),1,0);
+      if (iVar1 == 3) {
+        DAT_00b19ac8 = 0;
+      }
+      *(uint *)(param_1 + 0x214) = *(int *)(param_1 + 0x214) + *(byte *)(in_ECX + 0x58) + 1;
+      if (DAT_00b19ac8 != 0) {
+        iVar1 = FUN_0072be90((byte *)(in_ECX + 0x5c),4,0);
+        if (iVar1 == 3) {
+          DAT_00b19ac8 = 0;
+        }
+        *(uint *)(param_1 + 0x214) = *(int *)(param_1 + 0x214) + *(byte *)(in_ECX + 0x5c) + 4;
+      }
+    }
+    FUN_00531bc0(*(undefined4 *)(in_ECX + 100));
+    FUN_00531bc0(*(undefined4 *)(in_ECX + 0x74));
+    return 1;
+  }
+  return 0;
+}
+
+
+
+// NOT FOUND: ?ProcessTurn@GGame@@
+
+// NOT FOUND: ?EndTurn@GGame@@
+
+// NOT FOUND: ?StartTurn@GGame@@
+
+// NOT FOUND: ?GetTribe@GGame@@
+
+// NOT FOUND: ?Init@GGame@@
+
+// NOT FOUND: ?Loop@GGame@@
+
+// NOT FOUND: ?StartGame@GGame@@
+
+// Summary: 12 found, 39 missing

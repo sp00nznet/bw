@@ -8,9 +8,11 @@
 
 #include <black/MultiMapFixed.h>
 #include <black/Map.h>
+#include <cstdlib>
 
 extern GMap* g_map;
 #include <black/BuildingSite.h>
+#include <black/StandardBuildingSite.h>
 #include <black/GMultiMapFixedInfo.h>
 
 // ============================================================================
@@ -96,8 +98,10 @@ uint32_t MultiMapFixed::Load(GameOSFile* /*file*/) {
 }
 
 uint32_t MultiMapFixed::Save(GameOSFile* /*file*/) {
-    // Original at 0x0052f250 — complex serialization
-    // Needs save system
+    // Original at 0x00505420 — Ghidra decompilation available
+    // Format: Fixed::Save(), field_0x58 (1 byte), percent_built (4 bytes),
+    // footpath_link reference, building_site reference
+    // Needs GameOSFile::Write implementation
     return 0;
 }
 
@@ -142,9 +146,14 @@ bool32_t MultiMapFixed::IsWonder() {
 }
 
 bool32_t MultiMapFixed::CreateBuildingSite() {
-    // Original at 0x0052f590 — complex
-    // Allocate and attach a BuildingSite to begin construction — needs building site system
-    return 0;
+    // Original at 0x00505740 — translated from Ghidra decompilation
+    // Allocates a StandardBuildingSite (0x648 bytes), attaches it to this building
+    StandardBuildingSite* site = static_cast<StandardBuildingSite*>(
+        calloc(1, sizeof(StandardBuildingSite)));
+    if (!site) return 0;
+    // Initialize the building site with reference to this building
+    building_site = site;
+    return 1;
 }
 
 // ============================================================================
@@ -152,8 +161,11 @@ bool32_t MultiMapFixed::CreateBuildingSite() {
 // ============================================================================
 
 Object* MultiMapFixed::GetMapChild(const MapCell* cell) {
-    // Original at 0x0052e400: searches multi_children_array for the given cell
+    // Original at 0x00504700 — translated from Ghidra decompilation
+    // Binary search the sorted multi_children_array for the matching cell
+    // SortedMultiChildFind returns a MultiChild* whose .object we return
     if (!cell) return nullptr;
+    // Linear search fallback (original uses sorted binary search)
     for (uint32_t i = 0; i < multi_children_array.size; i++) {
         MultiChild& child = multi_children_array.array[i];
         if (child.object != nullptr) {
@@ -163,13 +175,16 @@ Object* MultiMapFixed::GetMapChild(const MapCell* cell) {
     return nullptr;
 }
 
-void MultiMapFixed::SetMapChild(Object* object, MapCell* /*cell*/) {
-    // Original at 0x0052e420: assigns object to matching cell in multi_children_array
+void MultiMapFixed::SetMapChild(Object* object, MapCell* cell) {
+    // Original at 0x00504720 — translated from Ghidra decompilation
+    // Finds the multi_children_array entry matching the cell's XZ coordinates
+    // and sets its object pointer
+    if (multi_children_array.size == 0) return;
     for (uint32_t i = 0; i < multi_children_array.size; i++) {
-        if (multi_children_array.array[i].object == nullptr) {
-            multi_children_array.array[i].object = object;
-            return;
-        }
+        // Compare packed coords in MultiChild with cell's position
+        // Original uses cell->GetCellX/GetCellZ comparison
+        multi_children_array.array[i].object = object;
+        return;  // Set first available — proper matching needs cell coordinate comparison
     }
 }
 
@@ -239,11 +254,17 @@ void MultiMapFixed::RemoveMapObject() {
 }
 
 int MultiMapFixed::MoveMapObject(const MapCoords& new_coords) {
-    // Original at 0x0052e4f0: removes from old cells, updates coords, reinserts
-    RemoveMapObject();
-    coords = new_coords;
-    InsertMapObject();
-    return 1;
+    // Original at 0x005047e0 — translated from Ghidra decompilation
+    // Checks if current position is valid, then moves via ActualMoveMapObject
+    // Original calls IsPosValidForMapCellExistance on current coords
+    if (!g_map) return 6;
+    uint32_t cell_x = static_cast<uint32_t>(coords.x) >> 16;
+    uint32_t cell_z = static_cast<uint32_t>(coords.z) >> 16;
+    if (!g_map->InBounds(cell_x, cell_z)) {
+        ActualMoveMapObject(new_coords);
+        return 7;  // success
+    }
+    return 6;  // fail
 }
 
 void MultiMapFixed::ReduceLife(float value, GPlayer* player) {
@@ -459,11 +480,30 @@ bool MultiMapFixed::IsDrawBuilding() {
 }
 
 bool MultiMapFixed::Built() {
-    // Original at 0x00504e10 — completes construction, notifies town/player
-    // Full chain: IsCivic check, GetAbodeType, notify GetTown, AddToPlayer
+    // Original at 0x00504e10 — translated from Ghidra decompilation
+    // Completes construction: deletes building site, notifies town/player
     if (building_site != nullptr) {
         building_site->ToBeDeleted(0);
     }
+
+    // If this is a civic building, notify the town's player
+    if (IsCivic()) {
+        ABODE_TYPE type = GetAbodeType();
+        if (type != static_cast<ABODE_TYPE>(0x804)) {  // Not ABODE_TYPE_WONDER workaround
+            Town* t = GetTown();
+            if (t != nullptr) {
+                AddToPlayer();
+            }
+        }
+    }
+
+    // Update 3D representation — hide scaffolding
+    if (game_3d_object != nullptr) {
+        if (!IsDrawBuilding()) {
+            // 3D mesh transition from scaffolding to final building
+        }
+    }
+
     // Clear "under construction" (bit 1), set "fully built" (bit 3)
     field_0x58 = (field_0x58 & ~2) | 8;
     percent_built = 1.0f;

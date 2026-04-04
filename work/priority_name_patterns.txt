@@ -1,0 +1,65 @@
+// Priority method names for Ghidra name-based decompilation
+// These are MSVC mangled name fragments that should match function symbols
+
+// === Town Core ===
+?Process@Town@@
+?Birthday@Town@@
+?ProcessTownEmergency@Town@@
+?FindAbodeWithSpaceInTown@Town@@
+?GetRadius@Town@@
+?RequestBestPlanned@Town@@
+?GetDesireToBeBuilt@Town@@
+?GetCitadel@Town@@
+?GetWorshipSite@Town@@
+?AddAbodeToTownStats@Town@@
+?AddBuildingSite@Town@@
+?RemoveBuildingSite@Town@@
+?AddPlanned@Town@@
+?AllVillagersCheckNeedNewAbode@Town@@
+?GetTemporaryResourceStorePotOrPos@Town@@
+
+// === Abode ===
+?Process@Abode@@
+?AddVillagerToAbode@Abode@@
+?RemoveAliveVillagerFromAbode@Abode@@
+?AddResource@Abode@@
+?RemoveResource@Abode@@
+?DoResourceAdding@Abode@@
+?DoResourceRemoving@Abode@@
+?CallVirtualFunctionsForCreation@Abode@@
+?MakeFunctional@Abode@@
+?StopBeingFunctional@Abode@@
+?Built@Abode@@
+?ConvertToPlanned@Abode@@
+
+// === MultiMapFixed ===
+?CreateBuildingSite@MultiMapFixed@@
+?CallVirtualFunctionsForCreation@MultiMapFixed@@
+?GetDiscipleStateIfInteractedWith@MultiMapFixed@@
+?DoCreatureMimicAfterAddingResource@MultiMapFixed@@
+?DeleteObjectAndTakeResource@MultiMapFixed@@
+?Built@MultiMapFixed@@
+?StartOnFire@MultiMapFixed@@
+?GetMapChild@MultiMapFixed@@
+?SetMapChild@MultiMapFixed@@
+?MoveMapObject@MultiMapFixed@@
+
+// === Villager ===
+?ProcessState@Villager@@
+?SetTown@Villager@@
+?DecideWhatToDo@Villager@@
+
+// === Serialization ===
+?Load@Abode@@
+?Save@Abode@@
+?Load@MultiMapFixed@@
+?Save@MultiMapFixed@@
+
+// === GGame ===
+?ProcessTurn@GGame@@
+?EndTurn@GGame@@
+?StartTurn@GGame@@
+?GetTribe@GGame@@
+?Init@GGame@@
+?Loop@GGame@@
+?StartGame@GGame@@
