@@ -112,14 +112,16 @@ static void Native_SET_POSITION(LHVM* vm) {
 }
 
 static void Native_GET_DISTANCE(LHVM* vm) {
-    vm->PopFloat(); // z2
-    vm->PopFloat(); // y2
-    vm->PopFloat(); // x2
-    vm->PopFloat(); // z1
-    vm->PopFloat(); // y1
-    vm->PopFloat(); // x1
-    // TODO: compute actual distance
-    vm->PushFloat(0.0f);
+    float z2 = vm->PopFloat();
+    float y2 = vm->PopFloat();
+    float x2 = vm->PopFloat();
+    float z1 = vm->PopFloat();
+    float y1 = vm->PopFloat();
+    float x1 = vm->PopFloat();
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float dz = z2 - z1;
+    vm->PushFloat(sqrtf(dx * dx + dy * dy + dz * dz));
 }
 
 // --- Object functions ---

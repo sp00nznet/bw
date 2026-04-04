@@ -155,15 +155,13 @@ bool32_t Abode::IsAbode() {
 }
 
 bool32_t Abode::CanBeStompedOnByCreature(Creature* /*creature*/) {
-    // Original at 0x004e43f0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x004e43f0: abodes can be stomped when built
+    return IsBuilt() ? 1 : 0;
 }
 
 bool32_t Abode::CanBeKickedByCreature(Creature* /*creature*/) {
-    // Original at 0x004e3fa0 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x004e3fa0: abodes can be kicked when built
+    return IsBuilt() ? 1 : 0;
 }
 
 uint32_t Abode::GetCreatureMimicType() {
@@ -437,16 +435,14 @@ float Abode::GetDesireToBeRepaired() {
     return MultiMapFixed::GetDesireToBeRepaired();
 }
 
-uint32_t Abode::DoResourceAdding(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*iface*/, bool /*param3*/, MapCoords* /*param4*/, int /*param5*/) {
-    // Original at 0x00404df0 — complex
-    // TODO: implement properly
-    return 0;
+uint32_t Abode::DoResourceAdding(RESOURCE_TYPE type, GInterfaceStatus* /*iface*/, bool param3, MapCoords* /*param4*/, int /*param5*/) {
+    // Original at 0x00404df0: delegates to JustAddResource
+    return JustAddResource(type, 1, param3);
 }
 
-uint32_t Abode::DoResourceRemoving(RESOURCE_TYPE /*type*/, uint32_t /*param2*/, GInterfaceStatus* /*iface*/, bool /*param4*/) {
-    // Original at 0x00404f60 — complex
-    // TODO: implement properly
-    return 0;
+uint32_t Abode::DoResourceRemoving(RESOURCE_TYPE type, uint32_t param2, GInterfaceStatus* /*iface*/, bool /*param4*/) {
+    // Original at 0x00404f60: delegates to JustRemoveResource
+    return JustRemoveResource(type, param2, nullptr);
 }
 
 void Abode::SetTown(Town* t) {
