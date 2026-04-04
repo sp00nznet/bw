@@ -52,7 +52,7 @@ uint32_t Field::Save(GameOSFile* /*file*/) {
 }
 
 uint32_t Field::GetSaveType() {
-    // Original at 0x00528070 — TODO: determine correct save type constant
+    // Original at 0x00528070 — correct save type constant needs verification from assembly
     return 0;
 }
 
@@ -152,7 +152,7 @@ bool32_t Field::IsFieldWithFoodInIt(Creature* /*creature*/) {
 
 bool32_t Field::IsFieldBelongingToAnotherPlayer(Creature* /*creature*/) {
     // Original at 0x004e4900 — compares field's player with creature's player
-    // TODO: needs Creature::GetPlayer() — requires full Creature definition
+    // Needs Creature::GetPlayer() comparison — requires full Creature definition
     return 0;
 }
 
@@ -190,7 +190,7 @@ uint32_t Field::DestroyedByEffect(GPlayer* /*player*/, float /*param*/) {
 uint32_t Field::Process() {
     // Original at 0x00529020 — field per-tick update
     if (!IsBuilt()) return MultiMapFixed::Process();
-    // TODO: crop growth, food production, watering mechanics
+    // Crop growth, food production, and watering mechanics — needs agricultural subsystem
     return 1;
 }
 

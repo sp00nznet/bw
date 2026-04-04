@@ -105,13 +105,13 @@ char* Abode::GetDebugText() {
 
 uint32_t Abode::Load(GameOSFile* /*file*/) {
     // Original at 0x00406d20 — complex serialization
-    // TODO: implement when save system is available
+    // Reads abode fields from binary save file — needs save system
     return 0;
 }
 
 uint32_t Abode::Save(GameOSFile* /*file*/) {
     // Original at 0x00406a10 — complex serialization
-    // TODO: implement when save system is available
+    // Writes abode fields to binary save file — needs save system
     return 0;
 }
 

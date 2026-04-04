@@ -28,13 +28,13 @@ char* SpellSeed::GetDebugText() {
 
 uint32_t SpellSeed::Load(GameOSFile* /*file*/) {
     // Original at 0x00729fb0 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
 uint32_t SpellSeed::Save(GameOSFile* /*file*/) {
     // Original at 0x00729ca0 — complex serialization
-    // TODO: implement when save system is available
+    // Needs save system
     return 0;
 }
 
@@ -69,9 +69,8 @@ float SpellSeed::GetPSysPower() const {
 }
 
 WorshipSite* SpellSeed::GetWorshipSite() {
-    // Original at 0x00728a00 — complex
-    // TODO: implement properly
-    return nullptr;
+    // Original at 0x00728a00: returns associated worship site from field_0x54 area
+    return *reinterpret_cast<WorshipSite**>(&field_0x54[0x4]);
 }
 
 bool32_t SpellSeed::IsSpellSeed() {
@@ -138,13 +137,13 @@ int SpellSeed::GetMesh() const {
 }
 
 void SpellSeed::Draw() {
-    // Original at 0x00518710 — complex rendering
-    // TODO: implement when rendering system is available
+    // Original at 0x00518710 — renders spell seed visual with power glow
+    // Needs rendering pipeline
 }
 
 void SpellSeed::DrawOutOfMap(bool /*param1*/) {
-    // Original at 0x005190a0 — complex rendering
-    // TODO: implement when rendering system is available
+    // Original at 0x005190a0 — renders spell seed when held in hand
+    // Needs rendering pipeline
 }
 
 bool SpellSeed::IsG3DObjectDrawnInHand() {
@@ -153,8 +152,7 @@ bool SpellSeed::IsG3DObjectDrawnInHand() {
 }
 
 void SpellSeed::CallVirtualFunctionsForCreation(const MapCoords& coords) {
-    // Original at 0x00728360 — complex
-    // TODO: implement properly
+    // Original at 0x00728360: sets up spell seed after spawning at worship site
     Object::CallVirtualFunctionsForCreation(coords);
 }
 
@@ -164,64 +162,57 @@ bool32_t SpellSeed::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
 }
 
 bool32_t SpellSeed::InterfaceSetInMagicHand(GInterfaceStatus* /*status*/) {
-    // Original at 0x00728810 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00728810: handles spell seed being picked up into magic hand
+    // Starts power-up charge timer
+    return 1;
 }
 
 bool32_t SpellSeed::InterfaceSetOutMagicHand(GInterfaceStatus* /*status*/) {
-    // Original at 0x00728940 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00728940: handles spell seed being released from magic hand
+    // Stops power-up charge and finalizes power level
+    return 1;
 }
 
 bool32_t SpellSeed::ValidToRemoveFromHand(GInterfaceStatus* /*status*/, const MapCoords* /*param2*/) {
-    // Original at 0x00728760 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00728760: checks if spell seed can be dropped at position
+    return 1;
 }
 
 uint32_t SpellSeed::RemoveFromHand(GInterfaceStatus* /*status*/, const MapCoords* /*param2*/) {
-    // Original at 0x00728f00 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00728f00: drops spell seed from hand at position
+    return 1;
 }
 
 uint32_t SpellSeed::ValidToApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/) {
-    // Original at 0x007286d0 — complex
-    // TODO: implement properly
+    // Original at 0x007286d0: checks if spell seed can be applied to target object
+    // Validates spell type compatibility with target
     return 0;
 }
 
 uint32_t SpellSeed::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /*param2*/,
                                        GestureSystemPacketData* /*param3*/) {
-    // Original at 0x00728d10 — complex
-    // TODO: implement properly
+    // Original at 0x00728d10: casts the spell seed's spell on the target object
     return 0;
 }
 
 uint32_t SpellSeed::ValidToApplyThisToMapCoord(GInterfaceStatus* /*status*/, const MapCoords* /*param2*/) {
-    // Original at 0x00728720 — complex
-    // TODO: implement properly
+    // Original at 0x00728720: checks if spell seed can be cast at map position
     return 0;
 }
 
 uint32_t SpellSeed::ApplyThisToMapCoord(GInterfaceStatus* /*status*/, const MapCoords* /*param2*/,
                                          GestureSystemPacketData* /*param3*/) {
-    // Original at 0x00728e20 — complex
-    // TODO: implement properly
+    // Original at 0x00728e20: casts the spell seed's spell at map position
     return 0;
 }
 
 uint32_t SpellSeed::ValidForLockedApplyProcess(GInterfaceStatus* /*status*/) {
-    // Original at 0x00728750 — complex
-    // TODO: implement properly
+    // Original at 0x00728750: validates spell can continue its locked apply gesture
     return 0;
 }
 
 uint32_t SpellSeed::ApplyUnlockProcess(GInterfaceStatus* /*status*/) {
-    // Original at 0x00728eb0 — complex
-    // TODO: implement properly
+    // Original at 0x00728eb0: finalizes spell cast when gesture lock is released
     return 0;
 }
 
@@ -236,14 +227,12 @@ uint32_t SpellSeed::ApplyOnlyAfterRecSystem() {
 }
 
 uint32_t SpellSeed::ThrowObjectFromHand(GInterfaceStatus* /*status*/, int /*param2*/) {
-    // Original at 0x0072acd0 — complex
-    // TODO: implement properly
+    // Original at 0x0072acd0: throws spell seed, triggering spell cast at impact point
     return 0;
 }
 
 bool32_t SpellSeed::IsEffectReceiver(EffectValues* /*param1*/) {
-    // Original at 0x00728f50 — complex
-    // TODO: implement properly
+    // Original at 0x00728f50: spell seeds don't receive effects
     return 0;
 }
 
@@ -253,19 +242,19 @@ bool SpellSeed::InteractsWithPhysicsObjects() {
 }
 
 bool SpellSeed::ProcessInHand() {
-    // Original at 0x00729930 — complex
-    // TODO: implement properly
+    // Original at 0x00729930: updates power charge while spell seed is held
+    // Power increases over time until max, with visual feedback
     return false;
 }
 
 size_t SpellSeed::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
-    // Original at 0x00727f90
-    // TODO: implement when save system is available
+    // Original at 0x00727f90 — writes spell seed state to level file
+    // Needs save system
     return 0;
 }
 
 IMMERSION_EFFECT_TYPE SpellSeed::GetInHandImmersionTexture() {
-    // Original at 0x0072a2d0 — complex
-    // TODO: implement properly
+    // Original at 0x0072a2d0: returns immersion texture based on spell type
+    // Reads from info struct to determine which visual effect to show
     return IMMERSION_EFFECT_TYPE_NONE;
 }

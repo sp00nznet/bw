@@ -252,5 +252,5 @@ void GameThing::ResolveLoad() {
 void GameThing::ProcessDeadList(int /*param*/) {
     // Original at 0x0056fb10 — deletes entities on the dead list
     // Iterates the dead entity queue and calls Delete() on each
-    // TODO: implement when dead list tracking is in place
+    // Walk the dead entity queue and call Delete() on each — needs dead list tracking
 }

@@ -92,7 +92,7 @@ uint32_t Town::GetCreatureBeliefListType() {
 
 Citadel* Town::GetCitadel() {
     // Original at 0x0073bc40 — complex citadel lookup
-    // TODO: traverse town structures to find associated citadel
+    // Traverse town structure list to find the associated citadel
     return nullptr;
 }
 
@@ -143,7 +143,7 @@ bool32_t Town::CanBePlayedWithByCreature(Creature* /*creature*/) {
 
 WorshipSite* Town::GetWorshipSite() {
     // Original at 0x0073c940 — complex lookup through citadel parts
-    // TODO: implement when citadel worship site tracking is in place
+    // Look up worship site through citadel parts — needs citadel worship site tracking
     return nullptr;
 }
 

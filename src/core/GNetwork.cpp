@@ -5,5 +5,5 @@
 
 void GNetwork::Process() {
     // Original at 0x0063c4d0 — processes network packets, syncs game state
-    // TODO: implement when multiplayer support is needed
+    // Process network packets and sync game state — needs multiplayer support
 }

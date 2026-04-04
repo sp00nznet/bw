@@ -32,7 +32,7 @@ uint32_t Workshop::Process() {
     if (!IsBuilt()) {
         return MultiMapFixed::Process();
     }
-    // TODO: scaffold production, villager crafting
+    // Scaffold production queue and villager crafting tick — needs scaffold system
     return 1;
 }
 void Workshop::Draw() { /* 0x0051cbf0 */ }

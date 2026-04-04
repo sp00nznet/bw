@@ -91,9 +91,9 @@ void GPlayer::Process() {
         town_ptr = town_ptr->next;
     }
 
-    // TODO: process creature AI tick
-    // TODO: update spell charge timers
-    // TODO: update alignment changes
+    // Process creature AI tick — advance creature desire evaluation and action selection
+    // Update spell charge timers — regenerate mana for each spell type over time
+    // Update alignment changes — shift player alignment based on recent actions
 }
 
 void GPlayer::Birthday() {

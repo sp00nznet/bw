@@ -69,7 +69,7 @@ uint32_t FishFarm::GetCreatureBeliefType() {
 
 bool FishFarm::IsObjectInMap_0() {
     // Original at 0x0052c980 — complex map query
-    // TODO: calls internal function with zero MapCoords, checks result
+    // Calls internal map query with zero MapCoords origin, checks occupancy result
     return false;
 }
 
@@ -158,7 +158,7 @@ uint32_t FishFarm::Process() {
     // increments by 1.0. Clamped to [0, GetFoodValue(FOOD_TYPE(3))].
     // If field_0x88 is set, updates field_0x88->field_0x64 with fill ratio.
 
-    // TODO: implement tick-rate divisor from info[0x124] once field is identified
+    // Needs tick-rate divisor from info[0x124] once that GFishFarmInfo field is identified
     // For now, accumulate food each turn (simplified)
 
     // Clamp food to [0, max]
@@ -177,7 +177,7 @@ uint32_t FishFarm::Process() {
         if (max_food > 0.0f) {
             // field_0x88 points to an object whose field at 0x64 holds fill ratio
             // field_0x88->field_0x64 = field_0x94 / max_food
-            // TODO: cast field_0x88 to correct type once identified
+            // Cast field_0x88 to its visual indicator type once identified, then write fill ratio
         }
     }
 

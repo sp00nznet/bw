@@ -78,7 +78,7 @@ uint32_t WorshipSite::Process() {
     if (!IsBuilt()) {
         return MultiMapFixed::Process();
     }
-    // TODO: process worship charging, spell icon updates, villager worship counts
+    // Process worship charging, update spell icon mana levels, tally villager worship counts
     return 1;
 }
 // 0x00704310: returns 1

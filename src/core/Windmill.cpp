@@ -20,12 +20,12 @@ uint32_t Windmill::GetSaveType() {
 
 void Windmill::Draw() {
     // Original at 0x00516320 — complex (blade rotation animation)
-    // TODO: implement when rendering system is available
+    // Blade rotation animation — needs rendering system
 }
 
 void Windmill::CallVirtualFunctionsForCreation(const MapCoords& coords) {
     // Original at 0x00405950
     // Calls Abode::CallVirtualFunctionsForCreation, then creates sound tag
     Abode::CallVirtualFunctionsForCreation(coords);
-    // TODO: create SoundTag when sound system is available
+    // Create SoundTag for windmill ambient loop — needs sound system
 }

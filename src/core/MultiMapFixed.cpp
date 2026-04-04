@@ -37,24 +37,24 @@ GFootpathLink* MultiMapFixed::GetFootpathLink() {
 
 uint32_t MultiMapFixed::GetNearestPathTo(const MapCoords& /*coords*/, float /*param2*/, int /*param3*/) {
     // Original at 0x0052eeb0 — complex pathfinding
-    // TODO: implement when pathfinding system is available
+    // Compute nearest walkable path to coords — needs pathfinding system
     return 0;
 }
 
 void MultiMapFixed::UseFootpathIfNecessary(Living* /*living*/, const MapCoords* /*coords*/, uint8_t /*param3*/) {
     // Original at 0x0052eec0 — complex
-    // TODO: implement when pathfinding system is available
+    // Route living entity along footpath if one exists — needs pathfinding system
 }
 
 uint32_t MultiMapFixed::AddFootpath(GFootpath* /*footpath*/) {
     // Original at 0x0052ee10 — complex
-    // TODO: implement when footpath system is available
+    // Register footpath connection to this building — needs footpath system
     return 0;
 }
 
 uint32_t MultiMapFixed::RemoveFootpath(GFootpath* /*footpath*/) {
     // Original at 0x0052ee80 — complex
-    // TODO: implement when footpath system is available
+    // Unregister footpath connection from this building — needs footpath system
     return 0;
 }
 
@@ -143,7 +143,7 @@ bool32_t MultiMapFixed::IsWonder() {
 
 bool32_t MultiMapFixed::CreateBuildingSite() {
     // Original at 0x0052f590 — complex
-    // TODO: implement when building site system is available
+    // Allocate and attach a BuildingSite to begin construction — needs building site system
     return 0;
 }
 

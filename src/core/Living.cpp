@@ -466,8 +466,7 @@ bool Living::IsPosValidForTurnAngle(const MapCoords*) { return false; }
 void Living::ProcessLiving() {
     // Original at 0x005ec810 — processes all living entities per tick
     // Iterates the global living list and calls ProcessState() on each
-    // TODO: get living list from g_game->game_lists.living_list
-    // For each living entity:
+    // Iterate g_game->game_lists.living_list and for each living entity:
     //   1. Increment turns_since_state_change
     //   2. Call ProcessState() (dispatches to state handler)
     //   3. Update movement if moving

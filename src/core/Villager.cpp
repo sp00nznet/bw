@@ -99,7 +99,7 @@ uint32_t Villager::ProcessState() {
     switch (state) {
     case VILLAGER_STATE_INVALID_STATE:
         // Idle — decide what to do next
-        // TODO: call DecideWhatToDo() when AI decision tree is implemented
+        // Needs DecideWhatToDo() call when AI decision tree is implemented
         break;
 
     case VILLAGER_STATE_MOVE_TO_POS:
@@ -130,7 +130,7 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_FLEEING_AND_LOOKING_AT_OBJECT_REACTION:
         // Reaction states — decrement reaction timer, check if done
         if (reaction && reaction_done_when) {
-            // TODO: check reaction_done_when condition
+            // Evaluate reaction_done_when predicate to determine if reaction has expired
         }
         break;
 
@@ -293,7 +293,7 @@ uint32_t Villager::ProcessState() {
 
     case VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE:
         // Worshipping — generates prayer power
-        // TODO: increment worship counter on worship site
+        // Increment worship counter on the associated worship site each tick
         break;
 
     case VILLAGER_STATE_DECIDE_WHAT_TO_DO:

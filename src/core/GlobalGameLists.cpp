@@ -7,15 +7,15 @@ void GlobalGameLists::Process() {
     // Original at 0x0058e870 — iterates key game object lists and calls Process()
     // The original iterates many more lists; we process the most important ones.
 
-    // Process spells
-    // TODO: iterate spells list
+    // Process spells — iterate active spell effects and advance their state machines
+    // Requires spell linked list from global game data
 
-    // Process fire effects
-    // TODO: iterate fire_effects list
+    // Process fire effects — spread flames, decay burning objects
+    // Requires fire_effects linked list from global game data
 
-    // Process weather
-    // TODO: iterate weather_things list
+    // Process weather — update rain, storm, and climate effects
+    // Requires weather_things linked list from global game data
 
-    // Process reactions
-    // TODO: iterate reactions list
+    // Process reactions — evaluate and dispatch villager/creature reactions to events
+    // Requires reactions linked list from global game data
 }

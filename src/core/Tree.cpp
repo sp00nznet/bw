@@ -41,7 +41,7 @@ bool32_t Tree::CanBePlayedWithByCreature(Creature*) {
 bool32_t Tree::CanBePickedUpByCreature(Creature*) {
     // Creatures can pick up trees
     // Original at 0x004e4a80 — complex (checks tree size vs creature)
-    // TODO: implement properly when decompiled code available
+    // Needs size comparison between tree and creature from decompiled code
     return 1;
 }
 
@@ -132,7 +132,7 @@ float Tree::GetHowMuchCreatureWantsToLookAtMe() {
 
 bool Tree::BlocksTownClearArea() const {
     // Original at 0x0074c7f0 — complex (checks various conditions)
-    // TODO: implement properly when decompiled code available
+    // Checks tree state and town clear area conditions from decompiled code
     return true;
 }
 
@@ -176,7 +176,7 @@ float Tree::GetVillagerHugRadius() {
 
 float Tree::GetWoodValue() {
     // Original at 0x0074b7b0 — reads from GTreeInfo
-    // TODO: implement data-driven when GTreeInfo is available
+    // Read wood value from GTreeInfo data struct when available
     return 0.0f;
 }
 
@@ -199,7 +199,7 @@ int Tree::GetDefaultResource() {
 
 float Tree::ApplyWaterSpell(SpellWater*) {
     // Original at 0x0074c390 — complex water interaction
-    // TODO: implement when decompiled code available
+    // Apply water growth effect from SpellWater — needs decompiled water interaction logic
     return 0.0f;
 }
 
@@ -217,7 +217,7 @@ bool Tree::InteractsWithPhysicsObjects() {
 
 bool Tree::CreatureMustAvoid(Creature*) {
     // Original at 0x0074c0e0 — complex (checks tree state)
-    // TODO: implement when decompiled code available
+    // Check tree state (burning, falling, etc.) to determine avoidance — needs decompiled logic
     return true;
 }
 
@@ -247,5 +247,5 @@ Forest* Tree::GetForest() {
 
 void Tree::SetOnFire(float /*param1*/) {
     // Original at 0x0074c140 — complex fire system
-    // TODO: implement when decompiled code available
+    // Ignite tree and spawn fire particle effects — needs fire/particle system
 }

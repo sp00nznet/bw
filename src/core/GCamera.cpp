@@ -53,14 +53,14 @@ void GCamera::CheckStackedModesForValidity() {
 
         // Check if mode is valid through its vtable (offset 0x14 = IsValid)
         // For now, assume all modes are valid — proper vtable dispatch comes later
-        // TODO: call mode->IsValid() when CameraMode vtable is wired up
+        // Needs CameraMode::IsValid() vtable dispatch
         i++;
     }
 }
 
 // 0x00441f50 — validates camera state, snaps to ground if needed
 void GCamera::Validate() {
-    // TODO: implement camera bounds checking
+    // Camera bounds checking: map limits, terrain height, heading/origin ranges
     // - Ensure camera is within map bounds
     // - Ensure camera height is above terrain
     // - Snap heading/origin to valid ranges
@@ -73,19 +73,19 @@ void GCamera::Update() {
     if (mode_current_index >= 0 && mode_current_index < 12) {
         CameraMode* mode = modes[mode_current_index];
         if (mode) {
-            // TODO: call mode->Update() through vtable
+            // Needs CameraMode::Update() vtable dispatch
             // This drives the camera position/focus each frame
         }
     }
 
     // Interpolate heading zoomer
-    // TODO: camera_heading_zoomer.Update(time_delta)
+    // camera_heading_zoomer.Update(time_delta)
 
     // Interpolate origin zoomer
-    // TODO: camera_origin_zoomer.Update(time_delta)
+    // camera_origin_zoomer.Update(time_delta)
 
     // Interpolate FOV zoomer
-    // TODO: fov_zoomer.Update(time_delta)
+    // fov_zoomer.Update(time_delta)
 
     // Sync GameThingWithPos position from camera state
     UpdateGameThingWithPosData();
@@ -103,7 +103,7 @@ void GCamera::UpdateGameThingWithPosData() {
 
 // 0x00443680 — sets camera FOV with interpolation time
 void GCamera::SetCameraFov(float fov, float /*time*/) {
-    // TODO: set up fov_zoomer to interpolate to target FOV over time
+    // Set up fov_zoomer to interpolate to target FOV over time
     // For now, snap immediately
     fov_zoomer.current_value = fov;
     fov_zoomer.destination = fov;

@@ -18,7 +18,7 @@ void TownStats::Remove(Villager* villager) {
     // Original calls vtable[0xaf8] which is IsChild() on the Living hierarchy
     // If IsChild returns true: dec num_children (0x0c), else: dec num_adults (0x08)
     // For now, always decrement num_adults (children are less common)
-    // TODO: check villager IsChild status to choose correct counter
+    // Needs IsChild check to choose correct counter (num_children vs num_adults)
     num_adults--;
     // NOTE: The original also decrements tribe-specific counts (field_0x5c array),
     // subtracts carried resources from field_0xe4, and does further accounting.

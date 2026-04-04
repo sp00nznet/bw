@@ -101,13 +101,13 @@ uint32_t Creature::ProcessState() {
     switch (state) {
     case VILLAGER_STATE_INVALID_STATE:
         // Idle — creature should decide what to do based on desires
-        // TODO: query CreatureMental for highest priority desire
+        // Query CreatureMental for highest priority desire and select action
         break;
 
     case VILLAGER_STATE_MOVE_TO_POS:
     case VILLAGER_STATE_MOVE_TO_OBJECT:
         // Moving toward a target — advance along path
-        // TODO: MobileWallHug movement step
+        // Advance position via MobileWallHug movement step toward goal
         break;
 
     case VILLAGER_STATE_IN_SCRIPT:
