@@ -24,13 +24,13 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit d9b5c16)
+## Current Stats (as of commit 56b84fc)
 - **600 headers** in `src/include/black/`
 - **251 .cpp files** in `src/core/`
-- **43,000+ lines** of C++ total (core + viewer)
-- **194 commits**, all pushed to GitHub
+- **42,800+ lines** of C++ total (core + viewer)
+- **197 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
-- **~186 TODOs remaining** (~70 blocked on save/render/physics, ~116 wiring/logic)
+- **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
@@ -184,10 +184,12 @@ LHVM: Native_GET_DISTANCE (actual 3D Euclidean distance)
 Villager: SetTown stub
 
 ## What's Next (priority order)
-1. **Method bodies** — translate remaining ~246 TODO stubs (~85 blocked on save/render/physics)
-2. **Save/Load system** — binary format for entity serialization (~24 methods)
-3. **LHVM native wiring** — connect ~32 remaining natives to game systems
-4. **Interface/hand interaction** — SpellSeed/Pot/MobileStatic apply/tap methods
+1. **Save/Load system** — binary format for entity serialization (~24 stub methods ready)
+2. **LHVM native wiring** — connect camera/object/property natives to g_game systems
+3. **Physics system** — collision, impact, thrown objects (~20 stub methods ready)
+4. **Rendering pipeline** — Draw methods for all entity types (~15 stub methods ready)
+5. **Interface/hand interaction** — spell casting, pot dropping, totem dragging gestures
+6. **Audio engine** — sound effects, music, ambient audio integration
 
 ## Common Pitfalls (learned the hard way)
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
