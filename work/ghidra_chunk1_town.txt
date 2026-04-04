@@ -1,0 +1,31 @@
+Ghidra Chunk 1: Town Simulation Core — 15 addresses to decompile
+================================================================
+
+Navigate to each address in Ghidra, copy the Decompiler output.
+Binary: runblack_decrypted.exe (v1.0) or patched v1.41
+
+PRIORITY ORDER (decompile in this order for maximum impact):
+
+1. 0x00747380  Town::Process              — MAIN TOWN TICK (biggest impact)
+2. 0x0073b5d0  Town::Birthday             — pregnancy/aging
+3. 0x007477a0  Town::ProcessTownEmergency — starvation handling
+4. 0x0073b370  Town::FindAbodeWithSpaceInTown — housing algorithm
+5. 0x0073d6e0  Town::GetRadius            — influence radius calc
+6. 0x0073a650  Town::RequestBestPlanned   — AI building requests
+7. 0x0073a1a0  Town::GetDesireToBeBuilt   — construction priority
+8. 0x0073bc40  Town::GetCitadel           — citadel lookup
+9. 0x0073c940  Town::GetWorshipSite       — worship site lookup
+10. 0x00739a20  Town::AddAbodeToTownStats  — population tracking
+11. 0x0073b860  Town::AddBuildingSite      — construction start
+12. 0x0073ba20  Town::RemoveBuildingSite   — construction end
+13. 0x0073d080  Town::AddPlanned           — planned structures
+14. 0x0073d150  Town::AllVillagersCheckNeedNewAbode — housing redistribution
+15. 0x0073e900  Town::GetTemporaryResourceStorePotOrPos — resource delivery
+
+STRUCT REFERENCE:
+- Town is 0xF28 bytes, see src/include/black/Town.h
+- TownStats at offset 0x610 within Town
+- Abode list at offset 0x754 (LHListHead_Abode)
+- StoragePit list at offset (storage_pit_list field)
+- Desire array at offset (desire field)
+- Vendor: vendor/bw1-decomp/black/Town.h

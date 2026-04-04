@@ -7,6 +7,7 @@
 
 #include <black/Abode.h>
 #include <black/Town.h>
+#include <black/Villager.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -554,7 +555,22 @@ void Abode::RemoveAllVillagersFromAbode() {
 void Abode::AddVillagerToAbode(Villager* villager) {
     // Original at 0x00404060: adds villager to abode's villager list
     if (!villager) return;
-    // Add to count
+
+    // Set the villager's home to this abode
+    villager->SetHome(this);
+
+    // Track male/female for breeding pairs
+    if (villager->IsMaleVillager()) {
+        if (!male_female_villagers[0]) {
+            male_female_villagers[0] = villager;
+        }
+    } else if (villager->IsFemaleVillager()) {
+        if (!male_female_villagers[1]) {
+            male_female_villagers[1] = villager;
+        }
+    }
+
+    // Increment adult count
     adult_count++;
 }
 
@@ -601,6 +617,13 @@ int Abode::CalculateFoodNeededForDinner() {
 bool Abode::IsEnoughFoodForDinner() {
     // Original at 0x00404600: checks if food >= needed
     return static_cast<int>(resources[0]) >= CalculateFoodNeededForDinner();
+}
+
+TRIBE_TYPE Abode::GetTribeType() const {
+    // Original at 0x00405f40: reads tribe type from GAbodeInfo at offset 0x158
+    if (!info) return static_cast<TRIBE_TYPE>(0);
+    return *reinterpret_cast<const TRIBE_TYPE*>(
+        reinterpret_cast<const char*>(info) + 0x158);
 }
 
 bool32_t Abode::IsTooCrowded() {

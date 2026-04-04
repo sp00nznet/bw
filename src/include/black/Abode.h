@@ -128,6 +128,7 @@ struct Abode : public MultiMapFixed {
     int CalculateFoodNeededForDinner();
     bool IsEnoughFoodForDinner();
     bool32_t IsTooCrowded();
+    TRIBE_TYPE GetTribeType() const;
 
     // === Fields ===
     uint32_t        field_0x7c;              // 0x7C — bitfield byte (bit 2 = ShouldNotBeAddedToPlanned)
