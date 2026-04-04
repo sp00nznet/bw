@@ -305,6 +305,7 @@ add_library(bw_core STATIC
     core/LHVM.cpp
     # Utility functions
     core/GUtils.cpp
+    core/Zoomer.cpp
     # Terrain and entity factory (bridge to viewer)
     core/Terrain.cpp
     core/EntityFactory.cpp
