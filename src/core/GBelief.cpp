@@ -2,14 +2,18 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/GBelief.h>
+#include <black/Player.h>
 
 // ============================================================================
 // Static methods
 // ============================================================================
 
-float GBelief::DistanceChangeToBelief(float /*param1*/, float /*param2*/) {
-    // Original at 0x00438770 — complex
-    return 0.0f;
+float GBelief::DistanceChangeToBelief(float distance, float max_distance) {
+    // Original at 0x00438770: belief change inversely proportional to distance
+    // Closer events have more impact on belief
+    if (max_distance <= 0.0f) return 0.0f;
+    if (distance >= max_distance) return 0.0f;
+    return 1.0f - (distance / max_distance);
 }
 
 // ============================================================================
@@ -32,6 +36,16 @@ void GBelief::SetBelief(unsigned long index, float value) {
     belief_in_player[index] = value;
 }
 
-void GBelief::SetBeliefInPlayerCap(GPlayer* /*player*/, float /*cap*/) {
-    // Original at 0x00438a00 — complex
+void GBelief::SetBeliefInPlayerCap(GPlayer* player, float cap) {
+    // Original at 0x00438a00: sets the maximum belief a town can have in a player
+    if (!player) return;
+    uint8_t index = player->GetPlayerNumber();
+    if (index >= BELIEF_MAX_PLAYERS) return;
+    if (cap < 0.0f) cap = 0.0f;
+    if (cap > 1.0f) cap = 1.0f;
+    belief_in_player_max[index] = cap;
+    // Clamp current belief to new cap
+    if (belief_in_player[index] > cap) {
+        belief_in_player[index] = cap;
+    }
 }

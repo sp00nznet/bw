@@ -106,8 +106,12 @@ uint32_t Creature::ProcessState() {
 
     case VILLAGER_STATE_MOVE_TO_POS:
     case VILLAGER_STATE_MOVE_TO_OBJECT:
-        // Moving toward a target — advance along path
-        // Advance position via MobileWallHug movement step toward goal
+        // Moving toward a target — advance using MobileWallHug pathfinding
+        if (speed == 0) SetSpeed(400);  // Default creature walk speed
+        MoveToGoal();
+        if (move_state == MOVE_TO_STATES_ARRIVED) {
+            SetTopState(VILLAGER_STATE_INVALID_STATE);
+        }
         break;
 
     case VILLAGER_STATE_IN_SCRIPT:
