@@ -14,6 +14,48 @@
 #include <cstdlib>
 #include <cmath>
 
+// Forward-declare to avoid including Game.h/GCamera.h (which pull in Base with
+// virtual destructors, causing linker issues when viewer links bw_core).
+struct GGame;
+struct GCamera;
+extern GGame* g_game;
+
+// GGame offset constants
+static constexpr uint32_t GGAME_CAMERA_OFFSET = 0x2502C0;
+static constexpr uint32_t GGAME_GAME_TURN_OFFSET = 0x205A40; // data(0x205A30) + game_turn(0x10)
+
+// GCamera offset constants (from GCamera.h struct layout)
+static constexpr uint32_t GCAM_POS_OFFSET = 0x5C;       // LHPoint pos
+static constexpr uint32_t GCAM_DIRTY_OFFSET = 0x74;     // camera_dirty
+static constexpr uint32_t GCAM_HEADING_ZOOMER = 0x88;    // Zoomer3d camera_heading_zoomer
+static constexpr uint32_t GCAM_ORIGIN_ZOOMER = 0x118;    // Zoomer3d camera_origin_zoomer
+// Zoomer layout: current_value at +0x00, destination at +0x04
+// Zoomer3d layout: x at +0x00, y at +0x30, z at +0x60
+
+static GCamera* GetGameCamera() {
+    if (!g_game) return nullptr;
+    return *reinterpret_cast<GCamera**>(reinterpret_cast<char*>(g_game) + GGAME_CAMERA_OFFSET);
+}
+
+static uint32_t GetGameTurn() {
+    if (!g_game) return 0;
+    return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + GGAME_GAME_TURN_OFFSET);
+}
+
+// Camera field accessors via raw offsets
+static float& CamPosX(GCamera* cam) { return *reinterpret_cast<float*>(reinterpret_cast<char*>(cam) + GCAM_POS_OFFSET); }
+static float& CamPosY(GCamera* cam) { return *reinterpret_cast<float*>(reinterpret_cast<char*>(cam) + GCAM_POS_OFFSET + 4); }
+static float& CamPosZ(GCamera* cam) { return *reinterpret_cast<float*>(reinterpret_cast<char*>(cam) + GCAM_POS_OFFSET + 8); }
+static uint32_t& CamDirty(GCamera* cam) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(cam) + GCAM_DIRTY_OFFSET); }
+
+// Zoomer3d axis access: zoomer_offset + axis*0x30 + field_offset
+static float& ZoomerCurrent(GCamera* cam, uint32_t zoomer, int axis) {
+    return *reinterpret_cast<float*>(reinterpret_cast<char*>(cam) + zoomer + axis * 0x30 + 0x00);
+}
+static float& ZoomerDest(GCamera* cam, uint32_t zoomer, int axis) {
+    return *reinterpret_cast<float*>(reinterpret_cast<char*>(cam) + zoomer + axis * 0x30 + 0x04);
+}
+
 // ============================================================================
 // Native function stubs — each pops args and pushes default return values
 // These will be filled in as game subsystems are implemented.
@@ -25,47 +67,87 @@ static void NativeStub(LHVM* /*vm*/) {
 
 // --- Camera functions ---
 static void Native_SET_CAMERA_POSITION(LHVM* vm) {
-    vm->PopFloat(); // x
-    vm->PopFloat(); // y
-    vm->PopFloat(); // z
-    // Sets camera position instantly (needs GCamera wiring)
+    float z = vm->PopFloat();
+    float y = vm->PopFloat();
+    float x = vm->PopFloat();
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        CamPosX(cam) = x;
+        CamPosY(cam) = y;
+        CamPosZ(cam) = z;
+        CamDirty(cam) = 1;
+    }
 }
 
 static void Native_SET_CAMERA_FOCUS(LHVM* vm) {
-    vm->PopFloat(); // x
-    vm->PopFloat(); // y
-    vm->PopFloat(); // z
-    // Sets camera focus point instantly (needs GCamera wiring)
+    float z = vm->PopFloat();
+    float y = vm->PopFloat();
+    float x = vm->PopFloat();
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        // Focus stored across three Zoomer axes — snap to destination
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 0) = x;
+        ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 0) = x;
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 1) = y;
+        ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 1) = y;
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 2) = z;
+        ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 2) = z;
+        CamDirty(cam) = 1;
+    }
 }
 
 static void Native_MOVE_CAMERA_POSITION(LHVM* vm) {
-    vm->PopFloat(); // x
-    vm->PopFloat(); // y
-    vm->PopFloat(); // z
-    vm->PopFloat(); // time
-    // Smoothly moves camera position over time (needs GCamera wiring)
+    float z = vm->PopFloat();
+    float y = vm->PopFloat();
+    float x = vm->PopFloat();
+    float time = vm->PopFloat();
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        ZoomerDest(cam, GCAM_ORIGIN_ZOOMER, 0) = x;
+        ZoomerDest(cam, GCAM_ORIGIN_ZOOMER, 1) = y;
+        ZoomerDest(cam, GCAM_ORIGIN_ZOOMER, 2) = z;
+        CamDirty(cam) = 1;
+    }
 }
 
 static void Native_MOVE_CAMERA_FOCUS(LHVM* vm) {
-    vm->PopFloat(); // x
-    vm->PopFloat(); // y
-    vm->PopFloat(); // z
-    vm->PopFloat(); // time
-    // Smoothly moves camera focus over time (needs GCamera wiring)
+    float z = vm->PopFloat();
+    float y = vm->PopFloat();
+    float x = vm->PopFloat();
+    float time = vm->PopFloat();
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 0) = x;
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 1) = y;
+        ZoomerDest(cam, GCAM_HEADING_ZOOMER, 2) = z;
+        CamDirty(cam) = 1;
+    }
 }
 
 static void Native_GET_CAMERA_POSITION(LHVM* vm) {
-    // Returns current camera world position (needs GCamera wiring)
-    vm->PushFloat(0.0f); // x
-    vm->PushFloat(0.0f); // y
-    vm->PushFloat(0.0f); // z
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        vm->PushFloat(CamPosX(cam));
+        vm->PushFloat(CamPosY(cam));
+        vm->PushFloat(CamPosZ(cam));
+    } else {
+        vm->PushFloat(0.0f);
+        vm->PushFloat(0.0f);
+        vm->PushFloat(0.0f);
+    }
 }
 
 static void Native_GET_CAMERA_FOCUS(LHVM* vm) {
-    // Returns current camera focus point (needs GCamera wiring)
-    vm->PushFloat(0.0f); // x
-    vm->PushFloat(0.0f); // y
-    vm->PushFloat(0.0f); // z
+    GCamera* cam = GetGameCamera();
+    if (cam) {
+        vm->PushFloat(ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 0));
+        vm->PushFloat(ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 1));
+        vm->PushFloat(ZoomerCurrent(cam, GCAM_HEADING_ZOOMER, 2));
+    } else {
+        vm->PushFloat(0.0f);
+        vm->PushFloat(0.0f);
+        vm->PushFloat(0.0f);
+    }
 }
 
 static void Native_HAS_CAMERA_ARRIVED(LHVM* vm) {
@@ -180,11 +262,12 @@ static void Native_SQUARE_ROOT(LHVM* vm) {
 
 // --- Time functions ---
 static void Native_DLL_GETTIME(LHVM* vm) {
-    vm->PushFloat(0.0f); // Returns game time in seconds (needs g_game)
+    // Returns game time as seconds (game_turn / 10 fps)
+    vm->PushFloat(static_cast<float>(GetGameTurn()) / 10.0f);
 }
 
 static void Native_GET_GAME_TIME(LHVM* vm) {
-    vm->PushFloat(0.0f); // Returns game time in seconds (needs g_game)
+    vm->PushFloat(static_cast<float>(GetGameTurn()) / 10.0f);
 }
 
 static void Native_SET_GAME_TIME(LHVM* vm) {

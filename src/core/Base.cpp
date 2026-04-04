@@ -12,6 +12,16 @@
 //   CleanUpForSerialisation:  0x004017f0
 //   Dump:                     0x004017f0 (same as CleanUpForSerialisation - empty)
 
+// Original operator new/delete — uses standard heap allocation
+// The original game had a custom allocator, but for recompilation we use default
+void* Base::operator new(size_t size) {
+    return ::operator new(size);
+}
+
+void Base::operator delete(void* ptr, size_t /*size*/) {
+    ::operator delete(ptr);
+}
+
 void Base::Serialise(Archive& /*archive*/) {
     // Empty in base class — derived classes override
 }
