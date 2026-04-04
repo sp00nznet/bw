@@ -1,0 +1,4 @@
+// Test: 3 small functions to verify pipeline
+0x00747380  // Town::Process
+0x0073bc40  // Town::GetCitadel
+0x0073d6e0  // Town::GetRadius

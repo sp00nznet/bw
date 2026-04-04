@@ -1,0 +1,104 @@
+// ============================================================
+// All priority addresses for Ghidra batch decompilation
+// Black & White runblack_decrypted.exe (v1.0)
+// 83 methods across 8 chunks
+// ============================================================
+
+// === CHUNK 1: Town Simulation Core (15) — HIGH PRIORITY ===
+0x00747380  // Town::Process
+0x0073b5d0  // Town::Birthday
+0x007477a0  // Town::ProcessTownEmergency
+0x0073b370  // Town::FindAbodeWithSpaceInTown
+0x0073d6e0  // Town::GetRadius
+0x0073a650  // Town::RequestBestPlanned
+0x0073a1a0  // Town::GetDesireToBeBuilt
+0x0073bc40  // Town::GetCitadel
+0x0073c940  // Town::GetWorshipSite
+0x00739a20  // Town::AddAbodeToTownStats
+0x0073b860  // Town::AddBuildingSite
+0x0073ba20  // Town::RemoveBuildingSite
+0x0073d080  // Town::AddPlanned
+0x0073d150  // Town::AllVillagersCheckNeedNewAbode
+0x0073e900  // Town::GetTemporaryResourceStorePotOrPos
+
+// === CHUNK 2: Abode Lifecycle (12) — HIGH PRIORITY ===
+0x00404440  // Abode::Process (full)
+0x00404060  // Abode::AddVillagerToAbode (full)
+0x00404340  // Abode::RemoveAliveVillagerFromAbode (full)
+0x00404d90  // Abode::AddResource (full)
+0x00404f10  // Abode::RemoveResource (full)
+0x00404df0  // Abode::DoResourceAdding
+0x00404f60  // Abode::DoResourceRemoving
+0x00403200  // Abode::CallVirtualFunctionsForCreation
+0x004047e0  // Abode::MakeFunctional (full)
+0x004073c0  // Abode::StopBeingFunctional (full)
+0x00404720  // Abode::Built (full)
+0x00405050  // Abode::ConvertToPlanned
+
+// === CHUNK 3: Building Site System (10) — HIGH PRIORITY ===
+0x0052f590  // MultiMapFixed::CreateBuildingSite
+0x0052e890  // MultiMapFixed::CallVirtualFunctionsForCreation (full)
+0x0052f0d0  // MultiMapFixed::GetDiscipleStateIfInteractedWith
+0x0052f210  // MultiMapFixed::DoCreatureMimicAfterAddingResource
+0x0052f460  // MultiMapFixed::DeleteObjectAndTakeResource
+0x00504e10  // MultiMapFixed::Built (full notification chain)
+0x0052ec60  // MultiMapFixed::StartOnFire
+0x0052e400  // MultiMapFixed::GetMapChild (full)
+0x0052e420  // MultiMapFixed::SetMapChild (full)
+0x0052e4f0  // MultiMapFixed::MoveMapObject (full)
+
+// === CHUNK 4: Villager State Machine (10) — MEDIUM PRIORITY ===
+0x00755f30  // Villager::ProcessState (full 30+ states)
+0x00756530  // Villager::SetTown (full)
+0x00757600  // Villager::DecideWhatToDo
+0x00755e00  // Villager::GetVillagerName
+0x00753610  // Villager::AmILikelyToMove
+0x004e43f0  // CanBeStompedOnByCreature (shared)
+0x004e3fa0  // CanBeKickedByCreature (shared)
+0x004e4cc0  // CanBePickedUpByCreature (shared)
+0x004e48d0  // CanBeEatenByCreature (shared)
+0x004d1b60  // GetHowMuchCreatureWantsToLookAtMe (shared)
+
+// === CHUNK 5: Serialization Format (8) — MEDIUM PRIORITY ===
+0x00406d20  // Abode::Load
+0x00406a10  // Abode::Save
+0x0052f310  // MultiMapFixed::Load
+0x0052f250  // MultiMapFixed::Save
+0x006e7870  // Rock::Load
+0x006e77b0  // Rock::Save
+0x00608590  // MobileStatic::Load
+0x00554830  // GGame::Load (huge — game state format)
+
+// === CHUNK 6: GGame Loop (8) — MEDIUM PRIORITY ===
+0x0054e5c0  // GGame::ProcessTurn (full subsystem calls)
+0x0054e960  // GGame::EndTurn (full)
+0x0054e4f0  // GGame::StartTurn (full)
+0x0054cf20  // GGame::Loop
+0x0054f3b0  // GGame::Init
+0x005507d0  // GGame::LoopThroughPlayers (full)
+0x00552620  // GGame::GetTribe
+0x0054c190  // GGame::StartGame
+
+// === CHUNK 7: Interface/Hand Interaction (12) — LOWER PRIORITY ===
+0x00608bb0  // MobileStatic::ValidToApplyThisToObject
+0x00608c30  // MobileStatic::ApplyThisToObject
+0x0066dd50  // Pot::ValidToApplyThisToObject
+0x0066ddd0  // Pot::ApplyThisToObject
+0x0066de70  // Pot::ApplyThisToMapCoord
+0x007286d0  // SpellSeed::ValidToApplyThisToObject
+0x00728d10  // SpellSeed::ApplyThisToObject
+0x00728810  // SpellSeed::InterfaceSetInMagicHand
+0x00728940  // SpellSeed::InterfaceSetOutMagicHand
+0x00737520  // Totem::ValidForLockedSelectProcess
+0x00737570  // Totem::NetworkFriendlyStartLockedSelect
+0x00737610  // Totem::NetworkUnfriendlyLockedSelect
+
+// === CHUNK 8: Physics Callbacks (8) — LOWER PRIORITY ===
+0x00608fc0  // MobileStatic::ReactToPhysicsImpact
+0x00608de0  // MobileStatic::GetWorldMatrix
+0x00608f40  // MobileStatic::GetBoundingSphere
+0x00607a20  // MobileObject::ReactToPhysicsImpact
+0x00607560  // MobileObject::GetWorldMatrix
+0x006e7930  // Rock::ReactToPhysicsImpact
+0x0066dc90  // Pot::ReactToPhysicsImpact
+0x0066df00  // Pot::InitialisePhysicsFromHand
