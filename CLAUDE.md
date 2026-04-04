@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 45b49e3)
+## Current Stats (as of commit 99e0c13)
 - **600 headers** in `src/include/black/`
 - **252 .cpp files** in `src/core/`
-- **44,000+ lines** of C++ total (core + viewer)
-- **202 commits**, all pushed to GitHub
+- **44,100+ lines** of C++ total (core + viewer)
+- **205 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **bw_viewer links bw_core** — dual entity system with state sync
