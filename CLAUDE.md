@@ -24,11 +24,11 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit dfaba6e)
+## Current Stats (as of commit 45b49e3)
 - **600 headers** in `src/include/black/`
-- **251 .cpp files** in `src/core/`
-- **42,800+ lines** of C++ total (core + viewer)
-- **200 commits**, all pushed to GitHub
+- **252 .cpp files** in `src/core/`
+- **44,000+ lines** of C++ total (core + viewer)
+- **202 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **bw_viewer links bw_core** — dual entity system with state sync
@@ -183,9 +183,25 @@ MultiMapFixed: IsObjectInMap_0/IsObjectFullyInMap (flag checks), GetArrivePos→
 LHVM: Native_GET_DISTANCE (actual 3D Euclidean distance)
 Villager: SetTown stub
 
+### Batch 43: TODO cleanup + LHVM camera wiring + Zoomer implementation (15 commits)
+Cleared all 330 TODO comments: implemented ~80 method bodies, converted ~250 blocked
+stubs to descriptive comments documenting what each needs
+LHVM: Wired camera natives (SET/GET/MOVE_CAMERA_POSITION/FOCUS) to g_game->camera
+via offset-based access, wired DLL_GETTIME/GET_GAME_TIME to game_turn
+Zoomer.cpp: Full cubic Hermite interpolation system (SetPosition, SetDestinationWithSpeedAndTime,
+Update) — enables smooth camera transitions from CHL scripts
+GCamera::Update: Now calls Zoomer3d::Update on heading/origin/FOV zoomers
+GCamera::SetCameraFov: Uses Zoomer interpolation instead of snapping
+Base::operator new/delete: Defined (were declared but missing, caused viewer link errors)
+Abode: InterfaceValidToTap, InterfaceTap, GetDiscipleStateIfInteractedWith, ReactToPhysicsImpact
+Rock: AddResource/RemoveResource for ore
+Town: AddStructureToTown with CastAbode, full villager management
+MobileStatic/MobileObject: angles, physics types, creature predicates
+SpellSeed: GetWorshipSite from opaque field block
+
 ## What's Next (priority order)
 1. **Save/Load system** — binary format for entity serialization (~24 stub methods ready)
-2. **LHVM native wiring** — connect camera/object/property natives to g_game systems
+2. **LHVM object wiring** — connect object position/property natives to entity system
 3. **Physics system** — collision, impact, thrown objects (~20 stub methods ready)
 4. **Rendering pipeline** — Draw methods for all entity types (~15 stub methods ready)
 5. **Interface/hand interaction** — spell casting, pot dropping, totem dragging gestures
