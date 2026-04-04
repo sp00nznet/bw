@@ -125,6 +125,9 @@ struct Abode : public MultiMapFixed {
     uint8_t GetNumAdultsInAbode();
     int GetRoomLeftForAdults();
     int GetRoomLeftForChildren();
+    int CalculateFoodNeededForDinner();
+    bool IsEnoughFoodForDinner();
+    bool32_t IsTooCrowded();
 
     // === Fields ===
     uint32_t        field_0x7c;              // 0x7C — bitfield byte (bit 2 = ShouldNotBeAddedToPlanned)

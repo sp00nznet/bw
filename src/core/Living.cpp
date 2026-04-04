@@ -465,10 +465,9 @@ bool Living::IsPosValidForTurnAngle(const MapCoords*) { return false; }
 // Static methods
 void Living::ProcessLiving() {
     // Original at 0x005ec810 — processes all living entities per tick
-    // Iterates the global living list and calls ProcessState() on each
-    // Iterate g_game->game_lists.living_list and for each living entity:
-    //   1. Increment turns_since_state_change
-    //   2. Call ProcessState() (dispatches to state handler)
-    //   3. Update movement if moving
-    //   4. Check health/death conditions
+    // The viewer game loop calls Object::Process() directly on each entity,
+    // which dispatches to ProcessState() for Living types.
+    // This static method is called from GGame::ProcessTurn for bulk processing
+    // of the global living list. Since the viewer handles per-entity Process()
+    // calls, this remains a placeholder for the full game's global list iteration.
 }

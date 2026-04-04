@@ -249,7 +249,17 @@ uint32_t Abode::Process() {
     }
 
     // If functional, process normal abode tick
-    // Handles: villager food consumption, pregnancy timer, life decay for empty abodes
+    if (IsFunctional()) {
+        // Life decay for empty abodes — buildings deteriorate without occupants
+        if (adult_count == 0 && info) {
+            float decay = *reinterpret_cast<const float*>(
+                reinterpret_cast<const char*>(info) + 0x1B0); // emptyAbodeLifeReducer
+            if (decay > 0.0f) {
+                ReduceLife(decay, nullptr);
+            }
+        }
+    }
+
     return 1;
 }
 
@@ -581,4 +591,22 @@ int Abode::GetRoomLeftForChildren() {
     int32_t max_children = *reinterpret_cast<const int32_t*>(
         reinterpret_cast<const char*>(info) + 0x178);
     return max_children - static_cast<int>(field_0xb7);
+}
+
+int Abode::CalculateFoodNeededForDinner() {
+    // Original at 0x004045d0: food needed = (adults + children) * 1
+    return static_cast<int>(adult_count) + static_cast<int>(field_0xb7);
+}
+
+bool Abode::IsEnoughFoodForDinner() {
+    // Original at 0x00404600: checks if food >= needed
+    return static_cast<int>(resources[0]) >= CalculateFoodNeededForDinner();
+}
+
+bool32_t Abode::IsTooCrowded() {
+    // Original at 0x004046c0: checks population vs percentTooCrowded threshold
+    if (!info) return 0;
+    float percent = *reinterpret_cast<const float*>(
+        reinterpret_cast<const char*>(info) + 0x1A0); // percentTooCrowded
+    return (GetPercentAbodeFullWithAdults() > percent) ? 1 : 0;
 }

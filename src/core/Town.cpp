@@ -11,6 +11,9 @@
 #include <black/StoragePit.h>
 #include <black/Player.h>
 #include <black/Villager.h>
+#include <black/Game.h>
+
+extern GGame* g_game;
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -366,7 +369,10 @@ void Town::AdjustWorshipersWorshipping(long /*param1*/, int /*param2*/, int /*pa
 }
 
 GTribeInfo* Town::GetTribe() const {
-    // Original at 0x0073c840 — complex tribe info lookup
+    // Original at 0x0073c840: returns tribe info from game data
+    if (g_game) {
+        return g_game->GetTribe(tribe_type);
+    }
     return nullptr;
 }
 
