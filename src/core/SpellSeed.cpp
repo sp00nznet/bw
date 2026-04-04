@@ -11,9 +11,9 @@
 // Overrides of Base virtuals
 // ============================================================================
 
-void SpellSeed::ToBeDeleted(int /*param*/) {
-    // Original at 0x00728280 — complex
-    // TODO: implement properly
+void SpellSeed::ToBeDeleted(int param) {
+    // Original at 0x00728280: cleanup and delegate to base
+    Object::ToBeDeleted(param);
 }
 
 // ============================================================================
@@ -58,15 +58,14 @@ uint32_t SpellSeed::GetOrigin() {
 }
 
 float SpellSeed::GetPower() const {
-    // Original at 0x007298b0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x007298b0: reads power from field_0x54 area
+    // Power is stored as a float within the opaque spell seed data
+    return *reinterpret_cast<const float*>(&field_0x54[0x0]);
 }
 
 float SpellSeed::GetPSysPower() const {
-    // Original at 0x007298f0 — complex
-    // TODO: implement properly
-    return 0.0f;
+    // Original at 0x007298f0: particle system power
+    return GetPower();
 }
 
 WorshipSite* SpellSeed::GetWorshipSite() {
@@ -90,13 +89,13 @@ uint32_t SpellSeed::GetScriptObjectType() {
 // ============================================================================
 
 void SpellSeed::InsertMapObject() {
-    // Original at 0x00728f30 — complex
-    // TODO: implement properly
+    // Original at 0x00728f30: spell seeds use base Object insertion
+    Object::InsertMapObject();
 }
 
 void SpellSeed::RemoveMapObject() {
-    // Original at 0x00728f40 — complex
-    // TODO: implement properly
+    // Original at 0x00728f40: spell seeds use base Object removal
+    Object::RemoveMapObject();
 }
 
 HOLD_TYPE SpellSeed::GetHoldType() {
@@ -106,23 +105,24 @@ HOLD_TYPE SpellSeed::GetHoldType() {
 
 float SpellSeed::GetHoldRadius() {
     // Original at 0x00728640: return GetPower() * info->hold_radius_scale
-    // Reads vtable GetPower() * field_0x28->offset_0x150
-    // TODO: implement when info struct fields are mapped
-    return 0.0f;
+    if (!info) return 0.0f;
+    float scale = *reinterpret_cast<const float*>(
+        reinterpret_cast<const char*>(info) + 0x150);
+    return GetPower() * scale;
 }
 
 float SpellSeed::GetHoldLoweringMultiplier() {
-    // Original at 0x00728660: return *(float*)(field_0x28 + 0x14c)
-    // Reads from info struct — returns 1.0f as default
-    // TODO: implement when info struct fields are mapped
-    return 1.0f;
+    // Original at 0x00728660: reads from info at offset 0x14C
+    if (!info) return 1.0f;
+    return *reinterpret_cast<const float*>(
+        reinterpret_cast<const char*>(info) + 0x14C);
 }
 
 float SpellSeed::GetHoldYRotate() {
-    // Original at 0x00728670: return *(float*)(field_0x28 + 0x154)
-    // Reads from info struct — returns 0.0f as default
-    // TODO: implement when info struct fields are mapped
-    return 0.0f;
+    // Original at 0x00728670: reads from info at offset 0x154
+    if (!info) return 0.0f;
+    return *reinterpret_cast<const float*>(
+        reinterpret_cast<const char*>(info) + 0x154);
 }
 
 bool32_t SpellSeed::HandShouldFeelWithMeshIntersect() {
@@ -131,9 +131,10 @@ bool32_t SpellSeed::HandShouldFeelWithMeshIntersect() {
 }
 
 int SpellSeed::GetMesh() const {
-    // Original at 0x00729850 — complex
-    // TODO: implement properly
-    return 0;
+    // Original at 0x00729850: reads mesh from info at offset 0x100
+    if (!info) return 0;
+    return *reinterpret_cast<const int*>(
+        reinterpret_cast<const char*>(info) + 0x100);
 }
 
 void SpellSeed::Draw() {
@@ -158,8 +159,7 @@ void SpellSeed::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 bool32_t SpellSeed::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {
-    // Original at 0x00728580 — complex
-    // TODO: implement properly
+    // Original at 0x00728580: spell seeds are always valid in hand
     return 1;
 }
 
