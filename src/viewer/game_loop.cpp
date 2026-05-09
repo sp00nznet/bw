@@ -131,7 +131,7 @@ float GameState::GetTerrainHeight(float wx, float wz) const {
 
 bool GameState::Init(const std::string& script_path) {
     game_turn = 0;
-    delta_time = 1.0f / 30.0f;
+    delta_time = 1.0f / 10.0f;   // BW runs simulation at 10 Hz
     paused = false;
     use_bw_core = true;  // Enable bw_core entity creation
 

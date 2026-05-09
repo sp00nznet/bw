@@ -738,7 +738,16 @@ int main(int argc, char* argv[]) {
         }
         if (!running) break;
 
-        // Game tick
+        // Game tick — throttle simulation to BW's 10 Hz turn rate so that
+        // script OP_WAIT/OP_SLEEP timers and game_turn-driven natives match
+        // the original game's pacing. Hand input updates every render frame.
+        static double s_sim_accum_ms = 0.0;
+        static DWORD  s_last_tick    = GetTickCount();
+        DWORD now = GetTickCount();
+        s_sim_accum_ms += static_cast<double>(now - s_last_tick);
+        s_last_tick = now;
+        constexpr double SIM_STEP_MS = 100.0;  // 10 Hz
+
         if (g_game_mode) {
             g_game.cam_x = g_cam_x;
             g_game.cam_y = g_cam_y;
@@ -747,7 +756,17 @@ int main(int argc, char* argv[]) {
             g_game.cam_pitch = g_cam_pitch;
             g_game.cam_dist = g_cam_dist;
             g_game.UpdateHand(g_mouse_x, g_mouse_y, g_width, g_height);
-            g_game.ProcessTurn();
+
+            // Run as many sim steps as elapsed time accumulated, capped
+            // to 5 catch-up steps so a stalled frame doesn't snowball.
+            int steps = 0;
+            while (s_sim_accum_ms >= SIM_STEP_MS && steps < 5) {
+                g_game.ProcessTurn();
+                s_sim_accum_ms -= SIM_STEP_MS;
+                steps++;
+            }
+            if (s_sim_accum_ms > SIM_STEP_MS * 5)
+                s_sim_accum_ms = SIM_STEP_MS;  // drop excess on long stalls
         }
 
         Display();
