@@ -16,6 +16,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <unordered_map>
+
+// Forward decl matching LHVM.cpp's anonymous accessor pattern.
+struct GGame;
+extern GGame* g_game;
 #include <vector>
 
 namespace lhvm {
@@ -1821,6 +1825,339 @@ static void N_IS_AFFECTED_BY_SPELL_REAL(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 5 — audio, dialogue, UI, time (50)
+// ============================================================================
+
+namespace {
+
+struct AudioState {
+    std::unordered_map<int32_t, bool> sound_playing;     // sound id → is-playing
+    std::unordered_map<int32_t, bool> say_playing;       // SAY-line id → is-playing
+    std::unordered_map<uint32_t, int32_t> attached_tags; // object → sound tag
+    int32_t  current_music     = 0;
+    int32_t  last_music_line   = 0;
+    bool     music_playing     = false;
+    uint32_t music_attached_to = 0;
+    bool     game_sound_on     = true;
+};
+
+struct DialogueState {
+    bool     active         = false;
+    bool     ready          = true;
+    bool     widescreen     = false;
+    bool     widescreen_done= true;
+    int32_t  current_text   = 0;
+    int32_t  pending_temp   = 0;
+    bool     last_text_read = true;
+    int32_t  scroll_text_id = 0;
+    int32_t  draw_text_value = 0;
+};
+
+struct ScreenFadeState {
+    bool   in_progress = false;
+    float  finish_time = 0;     // in game seconds
+    float  r = 0, g = 0, b = 0;
+};
+
+AudioState     g_audio;
+DialogueState  g_dialogue;
+ScreenFadeState g_fade;
+float          g_game_speed         = 1.0f;
+float          g_game_time_base     = 0.0f;
+float          g_game_time_props[3] = { 0, 0, 0 };
+bool           g_help_system_on     = true;
+bool           g_hand_demo_playing  = false;
+int32_t        g_hand_demo_anim     = 0;
+bool           g_hand_demo_keys_ok  = true;
+float          g_bookmark_pos[3*8]  = {};
+
+void SetSoundPlaying(int32_t id, bool on) { g_audio.sound_playing[id] = on; }
+
+} // namespace
+
+// --- Sound effects -------------------------------------------------------
+
+static void N_PLAY_SOUND_EFFECT(LHVM* vm) {
+    vm->PopFloat();   // volume / random offset (varies)
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); // x, y, z
+    int32_t id = vm->PopInt();
+    SetSoundPlaying(id, true);
+}
+
+static void N_STOP_SOUND_EFFECT(LHVM* vm) {
+    vm->PopInt();   // bank id
+    int32_t id = vm->PopInt();
+    SetSoundPlaying(id, false);
+}
+
+static void N_SOUND_EXISTS(LHVM* vm) {
+    vm->PopInt();   // bank id
+    vm->PopInt();   // sample id
+    vm->PushBoolean(true);  // assume present until SAD bank loader lands
+}
+
+static void N_GAME_SOUND_PLAYING(LHVM* vm) {
+    int32_t id = vm->PopInt();
+    auto it = g_audio.sound_playing.find(id);
+    vm->PushBoolean(it != g_audio.sound_playing.end() && it->second);
+}
+
+static void N_GAME_PLAY_SAY_SOUND_EFFECT(LHVM* vm) {
+    vm->PopFloat();  // volume
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); // x, y, z
+    int32_t id = vm->PopInt();
+    g_audio.say_playing[id] = true;
+}
+
+static void N_ATTACH_SOUND_TAG(LHVM* vm) {
+    int32_t  tag = vm->PopInt();
+    uint32_t obj = vm->PopObject();
+    g_audio.attached_tags[obj] = tag;
+}
+
+static void N_DETACH_SOUND_TAG(LHVM* vm) {
+    uint32_t obj = vm->PopObject();
+    g_audio.attached_tags.erase(obj);
+}
+
+static void N_GAME_SET_MANA(LHVM* vm) {
+    vm->PopFloat();   // mana
+    vm->PopObject();  // player — applied via Game::SetMana when wired
+}
+
+// --- Music ---------------------------------------------------------------
+
+static void N_START_MUSIC(LHVM* vm) {
+    g_audio.current_music = vm->PopInt();
+    g_audio.music_playing = true;
+}
+
+static void N_STOP_MUSIC(LHVM* /*vm*/) {
+    g_audio.music_playing = false;
+    g_audio.music_attached_to = 0;
+}
+
+static void N_ATTACH_MUSIC(LHVM* vm) {
+    uint32_t obj = vm->PopObject();
+    int32_t  id  = vm->PopInt();
+    g_audio.current_music = id;
+    g_audio.music_playing = true;
+    g_audio.music_attached_to = obj;
+}
+
+static void N_DETACH_MUSIC(LHVM* vm) {
+    vm->PopObject();
+    g_audio.music_attached_to = 0;
+}
+
+static void N_LAST_MUSIC_LINE(LHVM* vm) {
+    int32_t v = vm->PopInt();
+    g_audio.last_music_line = v;
+    vm->PushInt(v);
+}
+
+// --- Dialogue / text -----------------------------------------------------
+
+static void N_RUN_TEXT(LHVM* vm) {
+    vm->PopInt();              // duration / flags
+    int32_t id = vm->PopInt();
+    g_dialogue.current_text = id;
+    g_dialogue.last_text_read = false;
+    vm->PushBoolean(true);
+}
+
+static void N_TEMP_TEXT(LHVM* vm) {
+    vm->PopInt();              // duration
+    int32_t id = vm->PopInt();
+    g_dialogue.pending_temp = id;
+}
+
+static void N_TEXT_READ(LHVM* vm) {
+    vm->PushBoolean(g_dialogue.last_text_read);
+}
+
+static void N_RUN_TEXT_WITH_NUMBER(LHVM* vm) {
+    vm->PopFloat();            // numeric arg interpolated into text
+    vm->PopInt();              // duration / flags
+    int32_t id = vm->PopInt();
+    g_dialogue.current_text = id;
+    g_dialogue.last_text_read = false;
+    vm->PushBoolean(true);
+}
+
+static void N_TEMP_TEXT_WITH_NUMBER(LHVM* vm) {
+    vm->PopFloat();
+    vm->PopInt();
+    int32_t id = vm->PopInt();
+    g_dialogue.pending_temp = id;
+}
+
+static void N_START_DIALOGUE(LHVM* /*vm*/) {
+    g_dialogue.active = true;
+    g_dialogue.ready  = false;
+}
+
+static void N_END_DIALOGUE(LHVM* /*vm*/) {
+    g_dialogue.active = false;
+    g_dialogue.ready  = true;
+}
+
+static void N_IS_DIALOGUE_READY(LHVM* vm) {
+    vm->PushBoolean(g_dialogue.ready);
+}
+
+static void N_GAME_CLEAR_DIALOGUE(LHVM* /*vm*/) {
+    g_dialogue.current_text = 0;
+    g_dialogue.pending_temp = 0;
+}
+
+static void N_GAME_CLOSE_DIALOGUE(LHVM* /*vm*/) {
+    g_dialogue.active = false;
+    g_dialogue.current_text = 0;
+}
+
+static void N_GAME_DRAW_TEXT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat();          // size, fade
+    vm->PopFloat(); vm->PopFloat();          // x, y
+    vm->PopInt();                            // colour
+    int32_t id = vm->PopInt();
+    g_dialogue.draw_text_value = id;
+}
+
+static void N_GAME_DRAW_TEMP_TEXT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PopInt();
+    int32_t id = vm->PopInt();
+    g_dialogue.pending_temp = id;
+}
+
+static void N_FADE_ALL_DRAW_TEXT(LHVM* vm) {
+    vm->PopFloat();
+    g_dialogue.draw_text_value = 0;
+}
+
+// --- Widescreen / fade ---------------------------------------------------
+
+static void N_SET_WIDESCREEN(LHVM* vm) {
+    g_dialogue.widescreen      = vm->PopBoolean();
+    g_dialogue.widescreen_done = false;
+}
+
+static void N_WIDESCREEN_TRANSISTION_FINISHED(LHVM* vm) {
+    g_dialogue.widescreen_done = true;
+    vm->PushBoolean(true);
+}
+
+static void N_SET_FADE(LHVM* vm) {
+    float t = vm->PopFloat();
+    g_fade.b = vm->PopFloat();
+    g_fade.g = vm->PopFloat();
+    g_fade.r = vm->PopFloat();
+    g_fade.in_progress = true;
+    g_fade.finish_time = t;
+}
+
+static void N_SET_FADE_IN(LHVM* vm) {
+    g_fade.finish_time = vm->PopFloat();
+    g_fade.in_progress = true;
+    g_fade.r = g_fade.g = g_fade.b = 0;
+}
+
+static void N_FADE_FINISHED(LHVM* vm) {
+    bool done = !g_fade.in_progress;
+    if (g_fade.in_progress && g_fade.finish_time <= 0.0f) {
+        g_fade.in_progress = false;
+        done = true;
+    }
+    vm->PushBoolean(done);
+}
+
+// --- Time / game speed ---------------------------------------------------
+
+static void N_SET_GAMESPEED(LHVM* vm) {
+    g_game_speed = vm->PopFloat();
+}
+
+static void N_SET_GAME_TIME(LHVM* vm) {
+    g_game_time_base = vm->PopFloat();
+}
+
+static void N_GET_REAL_TIME(LHVM* vm) {
+    // Wall-clock seconds since module load aren't tracked; mirror game time
+    // via g_game's game_turn (10 fps tick) so scripts comparing real-to-game
+    // see motion until host wiring overrides this.
+    if (!g_game) { vm->PushFloat(0); return; }
+    uint32_t turn = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + 0x205A40);
+    vm->PushFloat(static_cast<float>(turn) / 10.0f);
+}
+
+static void N_SET_GAME_TIME_PROPERTIES(LHVM* vm) {
+    g_game_time_props[2] = vm->PopFloat();
+    g_game_time_props[1] = vm->PopFloat();
+    g_game_time_props[0] = vm->PopFloat();
+}
+
+static void N_RESET_GAME_TIME_PROPERTIES(LHVM* /*vm*/) {
+    g_game_time_props[0] = g_game_time_props[1] = g_game_time_props[2] = 0;
+}
+
+static void N_KEY_DOWN(LHVM* vm) {
+    vm->PopInt();
+    vm->PushBoolean(false);  // wired by host once input plumbing is live
+}
+
+// --- Help / hand demo ----------------------------------------------------
+
+static void N_HELP_SYSTEM_ON(LHVM* vm) {
+    vm->PushBoolean(g_help_system_on);
+}
+
+static void N_SET_HELP_SYSTEM(LHVM* vm) {
+    g_help_system_on = vm->PopBoolean();
+}
+
+static void N_PLAY_HAND_DEMO(LHVM* vm) {
+    vm->PopBoolean();  // skipable
+    vm->PopBoolean();  // pause game time
+    g_hand_demo_anim = vm->PopInt();
+    g_hand_demo_playing = true;
+}
+
+static void N_HAND_DEMO_TRIGGER(LHVM* vm) {
+    vm->PushBoolean(g_hand_demo_playing);
+}
+
+static void N_SET_HAND_DEMO_KEYS(LHVM* vm) {
+    g_hand_demo_keys_ok = vm->PopBoolean();
+}
+
+// --- Bookmarks / map / interaction --------------------------------------
+
+static void N_SET_BOOKMARK_POSITION(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t slot = vm->PopInt();
+    if (slot >= 0 && slot < 8) {
+        g_bookmark_pos[slot*3 + 0] = x;
+        g_bookmark_pos[slot*3 + 1] = y;
+        g_bookmark_pos[slot*3 + 2] = z;
+    }
+}
+
+static void N_GET_INTERACTION_MAGNITUDE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(0.5f);   // mid magnitude until hand input integrates
+}
+
+static void N_LOAD_MAP(LHVM* vm) {
+    vm->PopInt();   // map slot / id — host must reload terrain
+}
+
+// --- Camera-control toggles (overrides existing chunk-1 stubs) ----------
+
+static void N_START_CAMERA_CONTROL(LHVM* /*vm*/) { g_dialogue.active = true; }
+static void N_END_CAMERA_CONTROL(LHVM* /*vm*/)   { g_dialogue.active = false; }
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -2039,6 +2376,54 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_SAY_SOUND_EFFECT_PLAYING,             "SAY_SOUND_EFFECT_PLAYING",             N_SAY_SOUND_EFFECT_PLAYING);
     vm->RegisterNativeFunction(NATIVE_ENABLE_DISABLE_MUSIC,                 "ENABLE_DISABLE_MUSIC",                 N_ENABLE_DISABLE_MUSIC);
     vm->RegisterNativeFunction(NATIVE_IS_AFFECTED_BY_SPELL,                 "IS_AFFECTED_BY_SPELL",                 N_IS_AFFECTED_BY_SPELL_REAL);
+
+    // --- Chunk 5: audio / dialogue / UI / time (50) ---
+    vm->RegisterNativeFunction(NATIVE_PLAY_SOUND_EFFECT,                    "PLAY_SOUND_EFFECT",                    N_PLAY_SOUND_EFFECT);
+    vm->RegisterNativeFunction(NATIVE_STOP_SOUND_EFFECT,                    "STOP_SOUND_EFFECT",                    N_STOP_SOUND_EFFECT);
+    vm->RegisterNativeFunction(NATIVE_SOUND_EXISTS,                         "SOUND_EXISTS",                         N_SOUND_EXISTS);
+    vm->RegisterNativeFunction(NATIVE_GAME_SOUND_PLAYING,                   "GAME_SOUND_PLAYING",                   N_GAME_SOUND_PLAYING);
+    vm->RegisterNativeFunction(NATIVE_GAME_PLAY_SAY_SOUND_EFFECT,           "GAME_PLAY_SAY_SOUND_EFFECT",           N_GAME_PLAY_SAY_SOUND_EFFECT);
+    vm->RegisterNativeFunction(NATIVE_ATTACH_SOUND_TAG,                     "ATTACH_SOUND_TAG",                     N_ATTACH_SOUND_TAG);
+    vm->RegisterNativeFunction(NATIVE_DETACH_SOUND_TAG,                     "DETACH_SOUND_TAG",                     N_DETACH_SOUND_TAG);
+    vm->RegisterNativeFunction(NATIVE_GAME_SET_MANA,                        "GAME_SET_MANA",                        N_GAME_SET_MANA);
+    vm->RegisterNativeFunction(NATIVE_START_MUSIC,                          "START_MUSIC",                          N_START_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_STOP_MUSIC,                           "STOP_MUSIC",                           N_STOP_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_ATTACH_MUSIC,                         "ATTACH_MUSIC",                         N_ATTACH_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_DETACH_MUSIC,                         "DETACH_MUSIC",                         N_DETACH_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_LAST_MUSIC_LINE,                      "LAST_MUSIC_LINE",                      N_LAST_MUSIC_LINE);
+    vm->RegisterNativeFunction(NATIVE_RUN_TEXT,                             "RUN_TEXT",                             N_RUN_TEXT);
+    vm->RegisterNativeFunction(NATIVE_TEMP_TEXT,                            "TEMP_TEXT",                            N_TEMP_TEXT);
+    vm->RegisterNativeFunction(NATIVE_TEXT_READ,                            "TEXT_READ",                            N_TEXT_READ);
+    vm->RegisterNativeFunction(NATIVE_RUN_TEXT_WITH_NUMBER,                 "RUN_TEXT_WITH_NUMBER",                 N_RUN_TEXT_WITH_NUMBER);
+    vm->RegisterNativeFunction(NATIVE_TEMP_TEXT_WITH_NUMBER,                "TEMP_TEXT_WITH_NUMBER",                N_TEMP_TEXT_WITH_NUMBER);
+    vm->RegisterNativeFunction(NATIVE_START_DIALOGUE,                       "START_DIALOGUE",                       N_START_DIALOGUE);
+    vm->RegisterNativeFunction(NATIVE_END_DIALOGUE,                         "END_DIALOGUE",                         N_END_DIALOGUE);
+    vm->RegisterNativeFunction(NATIVE_IS_DIALOGUE_READY,                    "IS_DIALOGUE_READY",                    N_IS_DIALOGUE_READY);
+    vm->RegisterNativeFunction(NATIVE_GAME_CLEAR_DIALOGUE,                  "GAME_CLEAR_DIALOGUE",                  N_GAME_CLEAR_DIALOGUE);
+    vm->RegisterNativeFunction(NATIVE_GAME_CLOSE_DIALOGUE,                  "GAME_CLOSE_DIALOGUE",                  N_GAME_CLOSE_DIALOGUE);
+    vm->RegisterNativeFunction(NATIVE_GAME_DRAW_TEXT,                       "GAME_DRAW_TEXT",                       N_GAME_DRAW_TEXT);
+    vm->RegisterNativeFunction(NATIVE_GAME_DRAW_TEMP_TEXT,                  "GAME_DRAW_TEMP_TEXT",                  N_GAME_DRAW_TEMP_TEXT);
+    vm->RegisterNativeFunction(NATIVE_FADE_ALL_DRAW_TEXT,                   "FADE_ALL_DRAW_TEXT",                   N_FADE_ALL_DRAW_TEXT);
+    vm->RegisterNativeFunction(NATIVE_SET_WIDESCREEN,                       "SET_WIDESCREEN",                       N_SET_WIDESCREEN);
+    vm->RegisterNativeFunction(NATIVE_WIDESCREEN_TRANSISTION_FINISHED,      "WIDESCREEN_TRANSISTION_FINISHED",      N_WIDESCREEN_TRANSISTION_FINISHED);
+    vm->RegisterNativeFunction(NATIVE_SET_FADE,                             "SET_FADE",                             N_SET_FADE);
+    vm->RegisterNativeFunction(NATIVE_SET_FADE_IN,                          "SET_FADE_IN",                          N_SET_FADE_IN);
+    vm->RegisterNativeFunction(NATIVE_FADE_FINISHED,                        "FADE_FINISHED",                        N_FADE_FINISHED);
+    vm->RegisterNativeFunction(NATIVE_SET_GAMESPEED,                        "SET_GAMESPEED",                        N_SET_GAMESPEED);
+    vm->RegisterNativeFunction(NATIVE_SET_GAME_TIME,                        "SET_GAME_TIME",                        N_SET_GAME_TIME);
+    vm->RegisterNativeFunction(NATIVE_GET_REAL_TIME,                        "GET_REAL_TIME",                        N_GET_REAL_TIME);
+    vm->RegisterNativeFunction(NATIVE_SET_GAME_TIME_PROPERTIES,             "SET_GAME_TIME_PROPERTIES",             N_SET_GAME_TIME_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_KEY_DOWN,                             "KEY_DOWN",                             N_KEY_DOWN);
+    vm->RegisterNativeFunction(NATIVE_HELP_SYSTEM_ON,                       "HELP_SYSTEM_ON",                       N_HELP_SYSTEM_ON);
+    vm->RegisterNativeFunction(NATIVE_SET_HELP_SYSTEM,                      "SET_HELP_SYSTEM",                      N_SET_HELP_SYSTEM);
+    vm->RegisterNativeFunction(NATIVE_PLAY_HAND_DEMO,                       "PLAY_HAND_DEMO",                       N_PLAY_HAND_DEMO);
+    vm->RegisterNativeFunction(NATIVE_HAND_DEMO_TRIGGER,                    "HAND_DEMO_TRIGGER",                    N_HAND_DEMO_TRIGGER);
+    vm->RegisterNativeFunction(NATIVE_SET_HAND_DEMO_KEYS,                   "SET_HAND_DEMO_KEYS",                   N_SET_HAND_DEMO_KEYS);
+    vm->RegisterNativeFunction(NATIVE_SET_BOOKMARK_POSITION,                "SET_BOOKMARK_POSITION",                N_SET_BOOKMARK_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_INTERACTION_MAGNITUDE,            "GET_INTERACTION_MAGNITUDE",            N_GET_INTERACTION_MAGNITUDE);
+    vm->RegisterNativeFunction(NATIVE_LOAD_MAP,                             "LOAD_MAP",                             N_LOAD_MAP);
+    vm->RegisterNativeFunction(NATIVE_START_CAMERA_CONTROL,                 "START_CAMERA_CONTROL",                 N_START_CAMERA_CONTROL);
+    vm->RegisterNativeFunction(NATIVE_END_CAMERA_CONTROL,                   "END_CAMERA_CONTROL",                   N_END_CAMERA_CONTROL);
 }
 
 } // namespace lhvm
