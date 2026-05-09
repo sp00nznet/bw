@@ -2158,6 +2158,288 @@ static void N_START_CAMERA_CONTROL(LHVM* /*vm*/) { g_dialogue.active = true; }
 static void N_END_CAMERA_CONTROL(LHVM* /*vm*/)   { g_dialogue.active = false; }
 
 // ============================================================================
+// Chunk 6 — camera, cinematic, follow, computer-player driving (50)
+// ============================================================================
+
+namespace {
+
+struct CameraStash {
+    float pos_x = 0, pos_y = 0, pos_z = 0;
+    float foc_x = 0, foc_y = 0, foc_z = 0;
+    float lens  = 60.0f;
+    bool  has_data = false;
+};
+
+struct CameraFollowState {
+    uint32_t focus_target    = 0;
+    uint32_t position_target = 0;
+    bool     dual_active     = false;
+    float    dual_x = 0, dual_y = 0, dual_z = 0;
+    float    shake_amount    = 0;
+    float    lens_value      = 60.0f;
+    bool     has_arrived     = true;
+    int32_t  zone            = 0;
+    bool     can_view        = true;
+};
+
+CameraStash       g_cam_stash;
+CameraFollowState g_cam_follow;
+
+struct ComputerPlayerState {
+    bool    enabled    = true;
+    int32_t personality= 0;
+    float   suppression= 0;
+    float   speed      = 1.0f;
+    float   attitude   = 0;
+    bool    ready      = true;
+    std::vector<std::tuple<int32_t,float,float,float>> action_queue;  // (action, x, y, z)
+};
+std::unordered_map<uint32_t, ComputerPlayerState> g_cp;
+
+std::unordered_map<uint64_t, float> g_player_ally;  // (a<<32|b) → strength
+
+uint64_t AllyKey(uint32_t a, uint32_t b) {
+    if (a > b) std::swap(a, b);
+    return (static_cast<uint64_t>(a) << 32) | b;
+}
+
+} // namespace
+
+static void N_HAS_CAMERA_ARRIVED(LHVM* vm)        { vm->PushBoolean(g_cam_follow.has_arrived); }
+
+static void N_FOCUS_FOLLOW(LHVM* vm) {
+    g_cam_follow.focus_target = vm->PopObject();
+    g_cam_follow.has_arrived  = false;
+}
+static void N_POSITION_FOLLOW(LHVM* vm) {
+    g_cam_follow.position_target = vm->PopObject();
+    g_cam_follow.has_arrived     = false;
+}
+static void N_SET_FOCUS_FOLLOW(LHVM* vm)    { g_cam_follow.focus_target    = vm->PopObject(); }
+static void N_SET_POSITION_FOLLOW(LHVM* vm) { g_cam_follow.position_target = vm->PopObject(); }
+
+static void N_SET_FOCUS_AND_POSITION_FOLLOW(LHVM* vm) {
+    g_cam_follow.position_target = vm->PopObject();
+    g_cam_follow.focus_target    = g_cam_follow.position_target;
+}
+
+static void N_FOCUS_AND_POSITION_FOLLOW(LHVM* vm) {
+    vm->PopFloat();   // distance
+    g_cam_follow.position_target = vm->PopObject();
+    g_cam_follow.focus_target    = g_cam_follow.position_target;
+    g_cam_follow.has_arrived     = false;
+}
+
+static void N_CAMERA_PROPERTIES(LHVM* vm) {
+    vm->PopBoolean();   // bool — height-aware
+    vm->PopFloat(); vm->PopFloat();  // angle, distance
+}
+
+static void N_SHAKE_CAMERA(LHVM* vm) {
+    vm->PopFloat();    // duration
+    g_cam_follow.shake_amount = vm->PopFloat();   // magnitude
+    vm->PopFloat();    // radius
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); // x, y, z
+}
+
+static void N_SET_CAMERA_ZONE(LHVM* vm) {
+    vm->PopInt();   // zone string id (CHL string offset)
+    g_cam_follow.zone += 1;  // increment to mark a transition
+}
+
+static void N_RUN_CAMERA_PATH(LHVM* vm) {
+    vm->PopInt();  // path id
+    g_cam_follow.has_arrived = false;
+}
+
+static void N_SET_CAMERA_LENS(LHVM* vm)  { g_cam_follow.lens_value = vm->PopFloat(); }
+static void N_MOVE_CAMERA_LENS(LHVM* vm) {
+    vm->PopFloat();  // duration
+    g_cam_follow.lens_value = vm->PopFloat();
+}
+
+static void N_STORE_CAMERA_DETAILS(LHVM* /*vm*/)   { g_cam_stash.has_data = true; }
+static void N_RESTORE_CAMERA_DETAILS(LHVM* /*vm*/) { g_cam_follow.has_arrived = false; }
+
+static void N_SET_CAMERA_POS_FOC_LENS(LHVM* vm) {
+    g_cam_follow.lens_value = vm->PopFloat();
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // foc x,y,z
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // pos x,y,z
+}
+
+static void N_MOVE_CAMERA_POS_FOC_LENS(LHVM* vm) {
+    vm->PopFloat();   // duration
+    g_cam_follow.lens_value = vm->PopFloat();
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    g_cam_follow.has_arrived = false;
+}
+
+static void N_GET_STORED_CAMERA_POSITION(LHVM* vm) {
+    vm->PushFloat(g_cam_stash.pos_x);
+    vm->PushFloat(g_cam_stash.pos_y);
+    vm->PushFloat(g_cam_stash.pos_z);
+}
+static void N_GET_STORED_CAMERA_FOCUS(LHVM* vm) {
+    vm->PushFloat(g_cam_stash.foc_x);
+    vm->PushFloat(g_cam_stash.foc_y);
+    vm->PushFloat(g_cam_stash.foc_z);
+}
+
+static void N_SET_CAMERA_TO_FACE_OBJECT(LHVM* vm) {
+    vm->PopFloat();   // distance
+    g_cam_follow.focus_target = vm->PopObject();
+}
+static void N_MOVE_CAMERA_TO_FACE_OBJECT(LHVM* vm) {
+    vm->PopFloat();   // duration
+    vm->PopFloat();   // distance
+    g_cam_follow.focus_target = vm->PopObject();
+    g_cam_follow.has_arrived  = false;
+}
+
+static void N_START_DUAL_CAMERA(LHVM* vm) {
+    g_cam_follow.dual_active = true;
+    vm->PopObject(); vm->PopObject();   // two targets
+}
+static void N_UPDATE_DUAL_CAMERA(LHVM* vm) {
+    vm->PopObject(); vm->PopObject();
+}
+static void N_RELEASE_DUAL_CAMERA(LHVM* /*vm*/) { g_cam_follow.dual_active = false; }
+static void N_CREATE_DUAL_CAMERA_WITH_POINT(LHVM* vm) {
+    g_cam_follow.dual_z = vm->PopFloat();
+    g_cam_follow.dual_y = vm->PopFloat();
+    g_cam_follow.dual_x = vm->PopFloat();
+    vm->PopObject();
+    g_cam_follow.dual_active = true;
+}
+
+static void N_SET_FOCUS_FOLLOW_COMPUTER_PLAYER(LHVM* vm)    { g_cam_follow.focus_target = vm->PopObject(); }
+static void N_SET_POSITION_FOLLOW_COMPUTER_PLAYER(LHVM* vm) { g_cam_follow.position_target = vm->PopObject(); }
+
+static void N_GAME_THING_CAN_VIEW_CAMERA(LHVM* vm) {
+    vm->PopFloat();  // angle
+    vm->PopObject();
+    vm->PushBoolean(g_cam_follow.can_view);
+}
+
+static void N_GAME_TYPE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    vm->PushInt(o ? static_cast<int32_t>(o->GetScriptObjectType()) : 0);
+}
+
+// --- Computer-player AI driver -----------------------------------------
+
+static void N_COMPUTER_PLAYER_READY(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_cp.find(h);
+    vm->PushBoolean(it == g_cp.end() || it->second.ready);
+}
+
+static void N_ENABLE_DISABLE_COMPUTER_PLAYER_311(LHVM* vm) {
+    bool on = vm->PopBoolean();
+    uint32_t h = vm->PopObject();
+    g_cp[h].enabled = on;
+}
+static void N_ENABLE_DISABLE_COMPUTER_PLAYER_345(LHVM* vm) {
+    bool on = vm->PopBoolean();
+    uint32_t h = vm->PopObject();
+    g_cp[h].enabled = on;
+}
+
+static void N_SET_COMPUTER_PLAYER_PERSONALITY(LHVM* vm) {
+    vm->PopFloat();   // weight
+    int32_t pers = vm->PopInt();
+    uint32_t h = vm->PopObject();
+    g_cp[h].personality = pers;
+}
+static void N_SET_COMPUTER_PLAYER_SUPPRESSION(LHVM* vm) {
+    float v = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    g_cp[h].suppression = v;
+}
+static void N_SET_COMPUTER_PLAYER_SPEED(LHVM* vm) {
+    float v = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    g_cp[h].speed = v;
+}
+static void N_SET_COMPUTER_PLAYER_ATTITUDE(LHVM* vm) {
+    float v = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    g_cp[h].attitude = v;
+}
+static void N_GET_COMPUTER_PLAYER_ATTITUDE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_cp.find(h);
+    vm->PushFloat(it == g_cp.end() ? 0.0f : it->second.attitude);
+}
+static void N_FORCE_COMPUTER_PLAYER_ACTION(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t action = vm->PopInt();
+    uint32_t h = vm->PopObject();
+    g_cp[h].action_queue.clear();
+    g_cp[h].action_queue.emplace_back(action, x, y, z);
+}
+static void N_QUEUE_COMPUTER_PLAYER_ACTION(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t action = vm->PopInt();
+    uint32_t h = vm->PopObject();
+    g_cp[h].action_queue.emplace_back(action, x, y, z);
+}
+static void N_GAME_CLEAR_COMPUTER_PLAYER_ACTIONS(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    g_cp[h].action_queue.clear();
+}
+static void N_RELEASE_COMPUTER_PLAYER(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    g_cp[h].enabled = false;
+    g_cp[h].action_queue.clear();
+}
+static void N_LOAD_COMPUTER_PLAYER_PERSONALITY(LHVM* vm) {
+    int32_t  pers = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    g_cp[h].personality = pers;
+}
+static void N_SAVE_COMPUTER_PLAYER_PERSONALITY(LHVM* vm) {
+    vm->PopInt();
+    vm->PopObject();
+}
+
+// --- Player ally relationship -----------------------------------------
+
+static void N_SET_PLAYER_ALLY(LHVM* vm) {
+    float    v = vm->PopFloat();
+    uint32_t b = vm->PopObject();
+    uint32_t a = vm->PopObject();
+    g_player_ally[AllyKey(a, b)] = v;
+}
+static void N_GET_PLAYER_ALLY(LHVM* vm) {
+    uint32_t b = vm->PopObject();
+    uint32_t a = vm->PopObject();
+    auto it = g_player_ally.find(AllyKey(a, b));
+    vm->PushFloat(it == g_player_ally.end() ? 0.0f : it->second);
+}
+
+// --- Animation / playback queries -------------------------------------
+
+static void N_PLAYED_PERCENTAGE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(1.0f);   // assume animation has finished
+}
+
+static void N_GET_OBJECT_DROPPED(LHVM* vm) {
+    vm->PopObject();
+    vm->PushObject(0);
+}
+
+static void N_REMOVE_REACTION(LHVM* vm) {
+    vm->PopObject(); vm->PopObject();
+}
+static void N_REMOVE_REACTION_OF_TYPE(LHVM* vm) {
+    vm->PopInt(); vm->PopObject(); vm->PopObject();
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -2424,6 +2706,57 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_LOAD_MAP,                             "LOAD_MAP",                             N_LOAD_MAP);
     vm->RegisterNativeFunction(NATIVE_START_CAMERA_CONTROL,                 "START_CAMERA_CONTROL",                 N_START_CAMERA_CONTROL);
     vm->RegisterNativeFunction(NATIVE_END_CAMERA_CONTROL,                   "END_CAMERA_CONTROL",                   N_END_CAMERA_CONTROL);
+
+    // --- Chunk 6: camera, cinematic, follow, computer player (50) ---
+    vm->RegisterNativeFunction(NATIVE_HAS_CAMERA_ARRIVED,                   "HAS_CAMERA_ARRIVED",                   N_HAS_CAMERA_ARRIVED);
+    vm->RegisterNativeFunction(NATIVE_FOCUS_FOLLOW,                         "FOCUS_FOLLOW",                         N_FOCUS_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_POSITION_FOLLOW,                      "POSITION_FOLLOW",                      N_POSITION_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_SET_FOCUS_FOLLOW,                     "SET_FOCUS_FOLLOW",                     N_SET_FOCUS_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_SET_POSITION_FOLLOW,                  "SET_POSITION_FOLLOW",                  N_SET_POSITION_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_SET_FOCUS_AND_POSITION_FOLLOW,        "SET_FOCUS_AND_POSITION_FOLLOW",        N_SET_FOCUS_AND_POSITION_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_FOCUS_AND_POSITION_FOLLOW,            "FOCUS_AND_POSITION_FOLLOW",            N_FOCUS_AND_POSITION_FOLLOW);
+    vm->RegisterNativeFunction(NATIVE_CAMERA_PROPERTIES,                    "CAMERA_PROPERTIES",                    N_CAMERA_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_SHAKE_CAMERA,                         "SHAKE_CAMERA",                         N_SHAKE_CAMERA);
+    vm->RegisterNativeFunction(NATIVE_SET_CAMERA_ZONE,                      "SET_CAMERA_ZONE",                      N_SET_CAMERA_ZONE);
+    vm->RegisterNativeFunction(NATIVE_RUN_CAMERA_PATH,                      "RUN_CAMERA_PATH",                      N_RUN_CAMERA_PATH);
+    vm->RegisterNativeFunction(NATIVE_SET_CAMERA_LENS,                      "SET_CAMERA_LENS",                      N_SET_CAMERA_LENS);
+    vm->RegisterNativeFunction(NATIVE_MOVE_CAMERA_LENS,                     "MOVE_CAMERA_LENS",                     N_MOVE_CAMERA_LENS);
+    vm->RegisterNativeFunction(NATIVE_STORE_CAMERA_DETAILS,                 "STORE_CAMERA_DETAILS",                 N_STORE_CAMERA_DETAILS);
+    vm->RegisterNativeFunction(NATIVE_RESTORE_CAMERA_DETAILS,               "RESTORE_CAMERA_DETAILS",               N_RESTORE_CAMERA_DETAILS);
+    vm->RegisterNativeFunction(NATIVE_SET_CAMERA_POS_FOC_LENS,              "SET_CAMERA_POS_FOC_LENS",              N_SET_CAMERA_POS_FOC_LENS);
+    vm->RegisterNativeFunction(NATIVE_MOVE_CAMERA_POS_FOC_LENS,             "MOVE_CAMERA_POS_FOC_LENS",             N_MOVE_CAMERA_POS_FOC_LENS);
+    vm->RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_POSITION,           "GET_STORED_CAMERA_POSITION",           N_GET_STORED_CAMERA_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_STORED_CAMERA_FOCUS,              "GET_STORED_CAMERA_FOCUS",              N_GET_STORED_CAMERA_FOCUS);
+    vm->RegisterNativeFunction(NATIVE_SET_CAMERA_TO_FACE_OBJECT,            "SET_CAMERA_TO_FACE_OBJECT",            N_SET_CAMERA_TO_FACE_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_MOVE_CAMERA_TO_FACE_OBJECT,           "MOVE_CAMERA_TO_FACE_OBJECT",           N_MOVE_CAMERA_TO_FACE_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_START_DUAL_CAMERA,                    "START_DUAL_CAMERA",                    N_START_DUAL_CAMERA);
+    vm->RegisterNativeFunction(NATIVE_UPDATE_DUAL_CAMERA,                   "UPDATE_DUAL_CAMERA",                   N_UPDATE_DUAL_CAMERA);
+    vm->RegisterNativeFunction(NATIVE_RELEASE_DUAL_CAMERA,                  "RELEASE_DUAL_CAMERA",                  N_RELEASE_DUAL_CAMERA);
+    vm->RegisterNativeFunction(NATIVE_CREATE_DUAL_CAMERA_WITH_POINT,        "CREATE_DUAL_CAMERA_WITH_POINT",        N_CREATE_DUAL_CAMERA_WITH_POINT);
+    vm->RegisterNativeFunction(NATIVE_SET_FOCUS_FOLLOW_COMPUTER_PLAYER,     "SET_FOCUS_FOLLOW_COMPUTER_PLAYER",     N_SET_FOCUS_FOLLOW_COMPUTER_PLAYER);
+    vm->RegisterNativeFunction(NATIVE_SET_POSITION_FOLLOW_COMPUTER_PLAYER,  "SET_POSITION_FOLLOW_COMPUTER_PLAYER",  N_SET_POSITION_FOLLOW_COMPUTER_PLAYER);
+    vm->RegisterNativeFunction(NATIVE_GAME_THING_CAN_VIEW_CAMERA,           "GAME_THING_CAN_VIEW_CAMERA",           N_GAME_THING_CAN_VIEW_CAMERA);
+    vm->RegisterNativeFunction(NATIVE_GAME_TYPE,                            "GAME_TYPE",                            N_GAME_TYPE);
+    vm->RegisterNativeFunction(NATIVE_COMPUTER_PLAYER_READY,                "COMPUTER_PLAYER_READY",                N_COMPUTER_PLAYER_READY);
+    vm->RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_311,   "ENABLE_DISABLE_COMPUTER_PLAYER_311",   N_ENABLE_DISABLE_COMPUTER_PLAYER_311);
+    vm->RegisterNativeFunction(NATIVE_ENABLE_DISABLE_COMPUTER_PLAYER_345,   "ENABLE_DISABLE_COMPUTER_PLAYER_345",   N_ENABLE_DISABLE_COMPUTER_PLAYER_345);
+    vm->RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_PERSONALITY,      "SET_COMPUTER_PLAYER_PERSONALITY",      N_SET_COMPUTER_PLAYER_PERSONALITY);
+    vm->RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_SUPPRESSION,      "SET_COMPUTER_PLAYER_SUPPRESSION",      N_SET_COMPUTER_PLAYER_SUPPRESSION);
+    vm->RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_SPEED,            "SET_COMPUTER_PLAYER_SPEED",            N_SET_COMPUTER_PLAYER_SPEED);
+    vm->RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_ATTITUDE,         "SET_COMPUTER_PLAYER_ATTITUDE",         N_SET_COMPUTER_PLAYER_ATTITUDE);
+    vm->RegisterNativeFunction(NATIVE_GET_COMPUTER_PLAYER_ATTITUDE,         "GET_COMPUTER_PLAYER_ATTITUDE",         N_GET_COMPUTER_PLAYER_ATTITUDE);
+    vm->RegisterNativeFunction(NATIVE_FORCE_COMPUTER_PLAYER_ACTION,         "FORCE_COMPUTER_PLAYER_ACTION",         N_FORCE_COMPUTER_PLAYER_ACTION);
+    vm->RegisterNativeFunction(NATIVE_QUEUE_COMPUTER_PLAYER_ACTION,         "QUEUE_COMPUTER_PLAYER_ACTION",         N_QUEUE_COMPUTER_PLAYER_ACTION);
+    vm->RegisterNativeFunction(NATIVE_GAME_CLEAR_COMPUTER_PLAYER_ACTIONS,   "GAME_CLEAR_COMPUTER_PLAYER_ACTIONS",   N_GAME_CLEAR_COMPUTER_PLAYER_ACTIONS);
+    vm->RegisterNativeFunction(NATIVE_RELEASE_COMPUTER_PLAYER,              "RELEASE_COMPUTER_PLAYER",              N_RELEASE_COMPUTER_PLAYER);
+    vm->RegisterNativeFunction(NATIVE_LOAD_COMPUTER_PLAYER_PERSONALITY,     "LOAD_COMPUTER_PLAYER_PERSONALITY",     N_LOAD_COMPUTER_PLAYER_PERSONALITY);
+    vm->RegisterNativeFunction(NATIVE_SAVE_COMPUTER_PLAYER_PERSONALITY,     "SAVE_COMPUTER_PLAYER_PERSONALITY",     N_SAVE_COMPUTER_PLAYER_PERSONALITY);
+    vm->RegisterNativeFunction(NATIVE_SET_PLAYER_ALLY,                      "SET_PLAYER_ALLY",                      N_SET_PLAYER_ALLY);
+    vm->RegisterNativeFunction(NATIVE_GET_PLAYER_ALLY,                      "GET_PLAYER_ALLY",                      N_GET_PLAYER_ALLY);
+    vm->RegisterNativeFunction(NATIVE_PLAYED_PERCENTAGE,                    "PLAYED_PERCENTAGE",                    N_PLAYED_PERCENTAGE);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_DROPPED,                   "GET_OBJECT_DROPPED",                   N_GET_OBJECT_DROPPED);
+    vm->RegisterNativeFunction(NATIVE_REMOVE_REACTION,                      "REMOVE_REACTION",                      N_REMOVE_REACTION);
+    vm->RegisterNativeFunction(NATIVE_REMOVE_REACTION_OF_TYPE,              "REMOVE_REACTION_OF_TYPE",              N_REMOVE_REACTION_OF_TYPE);
 }
 
 } // namespace lhvm
