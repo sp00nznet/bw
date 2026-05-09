@@ -8,9 +8,12 @@
 #include <black/LHVM.h>
 #include <black/Object.h>
 #include <black/Terrain.h>
+#include <black/EntityFactory.h>
+#include <black/Flock.h>
 #include <black/types.h>
 
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <unordered_map>
 #include <vector>
@@ -182,15 +185,40 @@ static void N_MOVE_GAME_THING(LHVM* vm) {
     o->obj_coords = c;
 }
 
+// SCRIPT_OBJECT_TYPE → EntityCategory mapping (chlasm/ScriptEnums.h).
+static EntityCategory CategoryForScriptType(int32_t script_type) {
+    switch (script_type) {
+    case 2:  return ENTITY_CAT_ABODE;       // ABODE
+    case 4:                                  // VILLAGER
+    case 5:  return ENTITY_CAT_VILLAGER;    // VILLAGER_CHILD
+    case 6:                                  // ANIMAL
+    case 21: return ENTITY_CAT_ANIMAL;      // BIRD
+    case 8:  return ENTITY_CAT_MOBILE;      // MOBILE_STATIC
+    case 47: return ENTITY_CAT_ROCK;        // ROCK
+    case 12: return ENTITY_CAT_CREATURE;    // CREATURE
+    case 22: return ENTITY_CAT_TREE;        // TREE
+    case 49: return ENTITY_CAT_BONFIRE;     // BONFIRE (if defined)
+    default: return ENTITY_CAT_FEATURE;     // safe fallback
+    }
+}
+
 static void N_CREATE(LHVM* vm) {
-    // The full CREATE pipeline depends on EntityFactory, which is wired by
-    // the host. For now we record the position so scripts that immediately
-    // GET_POSITION on the result get a sensible value, but no real entity
-    // is allocated yet. (Wired in chunk 2 once flock/script-object types
-    // are mapped to EntityFactory categories.)
-    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); // z, y, x
-    vm->PopInt();   vm->PopInt();                   // subtype, type
-    vm->PushObject(0);
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t subtype = vm->PopInt();
+    int32_t type    = vm->PopInt();
+    (void)y;  // altitude is recomputed from terrain inside EntityFactory
+
+    EntityCreateParams p = {};
+    p.world_x   = x;
+    p.world_z   = z;
+    p.angle     = 0.0f;
+    p.scale     = 1.0f;
+    p.mesh_id   = 0;
+    p.type_enum = static_cast<uint32_t>(subtype);
+    p.type_name = "";
+
+    Object* obj = EntityFactory::CreateEntity(CategoryForScriptType(type), p);
+    vm->PushObject(HandleFor(obj));
 }
 
 static void N_OBJECT_DELETE(LHVM* vm) {
@@ -577,6 +605,414 @@ static void N_GET_DESIRE(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 2 — flock subsystem, container iteration, spatial helpers
+// ============================================================================
+//
+// The Flock entity owns its members through a LivingDLList linked-list, but
+// wiring that up requires the Living node-prev/next plumbing. Until that
+// arrives we keep a parallel side-table keyed by flock handle so the script
+// view of membership is consistent with FLOCK_ATTACH/DETACH.
+
+namespace {
+
+std::unordered_map<uint32_t, std::vector<uint32_t>> g_flock_members;
+std::unordered_map<uint32_t, uint32_t>              g_object_to_flock;
+
+void FlockClear(uint32_t flock_h) {
+    auto it = g_flock_members.find(flock_h);
+    if (it == g_flock_members.end()) return;
+    for (uint32_t m : it->second) g_object_to_flock.erase(m);
+    g_flock_members.erase(it);
+}
+
+} // namespace
+
+static void N_FLOCK_CREATE(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    Flock* f = static_cast<Flock*>(calloc(1, sizeof(Flock)));
+    if (!f) { vm->PushObject(0); return; }
+    MapCoords c = MakeCoords(x, y, z);
+    f->coords = c;
+    f->SetDomainCentrePos(c);
+    uint32_t h = RegisterObject(reinterpret_cast<Object*>(f));
+    g_flock_members[h] = {};
+    vm->PushObject(h);
+}
+
+static void N_FLOCK_ATTACH(LHVM* vm) {
+    vm->PopBoolean();  // 'as leader' — leader role unmodelled for now
+    uint32_t member = vm->PopObject();
+    uint32_t flock  = vm->PopObject();
+    if (!flock || !member) return;
+    auto& members = g_flock_members[flock];
+    for (uint32_t m : members) if (m == member) return;
+    members.push_back(member);
+    g_object_to_flock[member] = flock;
+}
+
+static void N_FLOCK_DETACH(LHVM* vm) {
+    uint32_t member = vm->PopObject();
+    uint32_t flock  = vm->PopObject();
+    auto it = g_flock_members.find(flock);
+    if (it == g_flock_members.end()) return;
+    auto& v = it->second;
+    for (auto i = v.begin(); i != v.end(); ++i) {
+        if (*i == member) { v.erase(i); break; }
+    }
+    g_object_to_flock.erase(member);
+}
+
+static void N_FLOCK_DISBAND(LHVM* vm) {
+    uint32_t flock = vm->PopObject();
+    FlockClear(flock);
+    Object* o = LookupObject(flock);
+    if (o) {
+        free(o);
+        UnregisterObject(flock);
+    }
+}
+
+static void N_FLOCK_MEMBER(LHVM* vm) {
+    int32_t  index = vm->PopInt();
+    uint32_t flock = vm->PopObject();
+    auto it = g_flock_members.find(flock);
+    if (it == g_flock_members.end() || index < 0 ||
+        static_cast<size_t>(index) >= it->second.size()) {
+        vm->PushObject(0); return;
+    }
+    vm->PushObject(it->second[index]);
+}
+
+static void N_FLOCK_WITHIN_LIMITS(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(true);  // domain-radius check requires Flock::domain_radius wiring
+}
+
+static void N_GET_OBJECT_FLOCK(LHVM* vm) {
+    uint32_t obj = vm->PopObject();
+    auto it = g_object_to_flock.find(obj);
+    vm->PushObject(it == g_object_to_flock.end() ? 0 : it->second);
+}
+
+static void N_ID_SIZE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_flock_members.find(h);
+    vm->PushInt(it == g_flock_members.end()
+                    ? 0
+                    : static_cast<int32_t>(it->second.size()));
+}
+
+static void N_GET_FIRST_IN_CONTAINER(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_flock_members.find(h);
+    vm->PushObject((it == g_flock_members.end() || it->second.empty())
+                       ? 0
+                       : it->second.front());
+}
+
+static void N_GET_NEXT_IN_CONTAINER(LHVM* vm) {
+    uint32_t prev = vm->PopObject();
+    uint32_t cont = vm->PopObject();
+    auto it = g_flock_members.find(cont);
+    if (it == g_flock_members.end()) { vm->PushObject(0); return; }
+    const auto& v = it->second;
+    for (size_t i = 0; i < v.size(); i++) {
+        if (v[i] == prev && i + 1 < v.size()) { vm->PushObject(v[i+1]); return; }
+    }
+    vm->PushObject(0);
+}
+
+// --- Object-creation helpers --------------------------------------------
+
+static void N_CREATE_REWARD(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t reward_type = vm->PopInt();
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 1.0f;
+    p.type_enum = static_cast<uint32_t>(reward_type);
+    (void)y;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
+    vm->PushObject(HandleFor(obj));
+}
+
+static void N_CREATE_REWARD_IN_TOWN(LHVM* vm) {
+    vm->PopObject();   // town
+    vm->PopInt();      // reward type
+    // Town anchor + reward materialisation arrives with the town registry.
+    vm->PushObject(0);
+}
+
+static void N_CREATE_RANDOM_VILLAGER_OF_TRIBE(LHVM* vm) {
+    int32_t tribe = vm->PopInt();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 1.0f;
+    p.type_enum = static_cast<uint32_t>(tribe);
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_VILLAGER, p);
+    vm->PushObject(HandleFor(obj));
+}
+
+static void N_CREATE_MIST(LHVM* vm) {
+    // 7 floats: x, y, z, plus 4 mist parameters (radius, density, speed, life)
+    for (int i = 0; i < 7; i++) vm->PopFloat();
+    vm->PushObject(0);  // Mist allocation deferred until weather subsystem
+}
+
+static void N_LOAD_CREATURE(LHVM* vm) {
+    vm->PopInt();    // creature type
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    vm->PopObject(); // owning player
+    (void)y;
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 5.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    vm->PushObject(HandleFor(obj));
+}
+
+static void N_LOAD_MY_CREATURE(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    vm->PopObject(); // owning player
+    (void)y;
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 5.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    vm->PushObject(HandleFor(obj));
+}
+
+// --- Capacity / state queries -------------------------------------------
+
+static void N_OBJECT_CAPACITY(LHVM* vm) {
+    vm->PopObject();
+    vm->PushInt(0);  // wired in chunk 7 with Abode::GetMaxOccupants
+}
+
+static void N_OBJECT_ADULT_CAPACITY(LHVM* vm) {
+    vm->PopObject();
+    vm->PushInt(0);
+}
+
+static void N_ID_ADULT_SIZE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_flock_members.find(h);
+    vm->PushInt(it == g_flock_members.end()
+                    ? 0
+                    : static_cast<int32_t>(it->second.size()));
+}
+
+static void N_INSIDE_TEMPLE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(false);  // citadel-interior tracking unwired
+}
+
+static void N_IS_AFFECTED_BY_SPELL(LHVM* vm) {
+    vm->PopInt();
+    vm->PopObject();
+    vm->PushBoolean(false);
+}
+
+static void N_IS_AUTO_FIGHTING(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    vm->PushBoolean(s && (s->flags & FLAG_FIGHTING));
+}
+
+static void N_IS_SPELL_CHARGING(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(false);
+}
+
+static void N_IS_THAT_SPELL_CHARGING(LHVM* vm) {
+    vm->PopInt();
+    vm->PopObject();
+    vm->PushBoolean(false);
+}
+
+static void N_POS_VALID_FOR_CREATURE(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    // Reject positions below sea level; everything else is fine until the
+    // creature pathfinding mesh lands.
+    vm->PushBoolean(GetTerrainHeightAt(x, z) > 0.5f);
+}
+
+// --- Position queries on objects ----------------------------------------
+
+static void N_GET_TEMPLE_POSITION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { vm->PushFloat(WorldX(o)); vm->PushFloat(WorldY(o)); vm->PushFloat(WorldZ(o)); }
+    else   { vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0); }
+}
+
+static void N_GET_TEMPLE_ENTRANCE_POSITION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    // Entrance is offset from the citadel origin; without a CitadelEntrance
+    // walk we approximate as the centre.
+    if (o) { vm->PushFloat(WorldX(o)); vm->PushFloat(WorldY(o)); vm->PushFloat(WorldZ(o)); }
+    else   { vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0); }
+}
+
+static void N_GET_LAST_SPELL_CAST_POS(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0);
+}
+
+static void N_GET_FACING_CAMERA_POSITION(LHVM* vm) {
+    float dist = vm->PopFloat();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)dist;
+    // Pass-through until the camera basis is exposed: anchor at the input pos.
+    vm->PushFloat(x); vm->PushFloat(y); vm->PushFloat(z);
+}
+
+// --- Computer-player position helpers (logical only) --------------------
+
+static void N_GET_COMPUTER_PLAYER_POSITION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { vm->PushFloat(WorldX(o)); vm->PushFloat(WorldY(o)); vm->PushFloat(WorldZ(o)); }
+    else   { vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0); }
+}
+
+static void N_SET_COMPUTER_PLAYER_POSITION(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { o->SetPos(MakeCoords(x, y, z)); o->obj_coords = MakeCoords(x, y, z); }
+}
+
+static void N_MOVE_COMPUTER_PLAYER_POSITION(LHVM* vm) {
+    vm->PopFloat();   // speed
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { o->SetPos(MakeCoords(x, y, z)); o->obj_coords = MakeCoords(x, y, z); }
+}
+
+// --- Misc object queries ------------------------------------------------
+
+static void N_RESTART_OBJECT(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { o->life = 1.0f; o->SetLife(1.0f); }
+}
+
+static void N_OBJECT_CAST_BY_OBJECT(LHVM* vm) {
+    vm->PopObject();   // potentially-cast-by
+    vm->PopObject();   // target
+    vm->PushBoolean(false);  // spell-cast attribution unwired
+}
+
+static void N_OPPOSING_CREATURE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushObject(0);
+}
+
+static void N_GET_DEAD_LIVING(LHVM* vm) {
+    vm->PopObject();
+    vm->PushObject(0);
+}
+
+static void N_GET_FIRST_HELP(LHVM* vm) { vm->PopObject(); vm->PushObject(0); }
+static void N_GET_LAST_HELP(LHVM* vm)  { vm->PopObject(); vm->PushObject(0); }
+static void N_GET_HELP(LHVM* vm)       { vm->PopObject(); vm->PushInt(0); }
+
+static void N_OBJECT_RELATIVE_BELIEF(LHVM* vm) {
+    vm->PopObject(); vm->PopObject();
+    vm->PushFloat(0.5f);
+}
+
+static void N_GET_TOTEM_STATUE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushObject(0);  // worship-site totem lookup pending
+}
+
+static void N_GET_SPELL_ICON_IN_TEMPLE(LHVM* vm) {
+    vm->PopInt(); vm->PopObject();
+    vm->PushObject(0);
+}
+
+static void N_WITHIN_ROTATION(LHVM* vm) {
+    float tolerance = vm->PopFloat();
+    float target    = vm->PopFloat();
+    uint32_t h      = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (!o) { vm->PushBoolean(false); return; }
+    float diff = fabsf(o->y_angle - target);
+    if (diff > 3.14159265f) diff = 6.28318531f - diff;
+    vm->PushBoolean(diff <= tolerance);
+}
+
+// --- Town-aggregate queries ---------------------------------------------
+
+static void N_GET_TOWN_WORSHIP_DEATHS(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(0);
+}
+
+static void N_GET_TOWN_AND_VILLAGER_HEALTH(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(100.0f);
+}
+
+static void N_GET_SACRIFICE_TOTAL2(LHVM* vm) {
+    vm->PopObject();
+    vm->PushFloat(0);
+}
+
+static void N_GAME_ADD_FOR_BUILDING2(LHVM* vm) {
+    vm->PopFloat(); vm->PopObject();
+}
+
+// --- Spell-charge / temple state ----------------------------------------
+
+static void N_PLAYER_SPELL_CAST_TIME(LHVM* vm) {
+    vm->PopInt(); vm->PopObject();
+    vm->PushFloat(0);
+}
+
+static void N_PLAYER_SPELL_LAST_CAST(LHVM* vm) {
+    vm->PopInt(); vm->PopObject();
+    vm->PushFloat(0);
+}
+
+static void N_GET_MANA_FOR_SPELL(LHVM* vm) {
+    vm->PopInt(); vm->PopObject();
+    vm->PushFloat(50.0f);
+}
+
+// --- Attribute mutators that touch existing flags -----------------------
+
+static void N_SET_CREATURE_AUTO_FIGHTING(LHVM* vm) {
+    bool on = vm->PopBoolean();
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    if (!s) return;
+    if (on) s->flags |=  FLAG_FIGHTING;
+    else    s->flags &= ~FLAG_FIGHTING;
+}
+
+static void N_SET_FIGHT_EXIT(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    if (s) s->flags &= ~FLAG_FIGHTING;
+}
+
+static void N_SET_CAN_BUILD_WORSHIPSITE(LHVM* vm) {
+    vm->PopBoolean(); vm->PopObject();
+}
+
+static void N_SET_MAGIC_IN_OBJECT(LHVM* vm) {
+    vm->PopBoolean(); vm->PopInt(); vm->PopObject();
+}
+
+static void N_SET_MAGIC_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); vm->PopInt(); vm->PopObject();
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -633,6 +1069,63 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_GET_NEAREST_TOWN_OF_PLAYER,   "GET_NEAREST_TOWN_OF_PLAYER",   N_GET_NEAREST_TOWN_OF_PLAYER);
     vm->RegisterNativeFunction(NATIVE_GET_PLAYER_TOWN_TOTAL,        "GET_PLAYER_TOWN_TOTAL",        N_GET_PLAYER_TOWN_TOTAL);
     vm->RegisterNativeFunction(NATIVE_GET_DESIRE,                   "GET_DESIRE",                   N_GET_DESIRE);
+
+    // --- Chunk 2: spatial / flock / script-object types (50) ---
+    vm->RegisterNativeFunction(NATIVE_FLOCK_CREATE,                 "FLOCK_CREATE",                 N_FLOCK_CREATE);
+    vm->RegisterNativeFunction(NATIVE_FLOCK_ATTACH,                 "FLOCK_ATTACH",                 N_FLOCK_ATTACH);
+    vm->RegisterNativeFunction(NATIVE_FLOCK_DETACH,                 "FLOCK_DETACH",                 N_FLOCK_DETACH);
+    vm->RegisterNativeFunction(NATIVE_FLOCK_DISBAND,                "FLOCK_DISBAND",                N_FLOCK_DISBAND);
+    vm->RegisterNativeFunction(NATIVE_FLOCK_MEMBER,                 "FLOCK_MEMBER",                 N_FLOCK_MEMBER);
+    vm->RegisterNativeFunction(NATIVE_FLOCK_WITHIN_LIMITS,          "FLOCK_WITHIN_LIMITS",          N_FLOCK_WITHIN_LIMITS);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_FLOCK,             "GET_OBJECT_FLOCK",             N_GET_OBJECT_FLOCK);
+    vm->RegisterNativeFunction(NATIVE_ID_SIZE,                      "ID_SIZE",                      N_ID_SIZE);
+    vm->RegisterNativeFunction(NATIVE_GET_FIRST_IN_CONTAINER,       "GET_FIRST_IN_CONTAINER",       N_GET_FIRST_IN_CONTAINER);
+    vm->RegisterNativeFunction(NATIVE_GET_NEXT_IN_CONTAINER,        "GET_NEXT_IN_CONTAINER",        N_GET_NEXT_IN_CONTAINER);
+    vm->RegisterNativeFunction(NATIVE_CREATE_REWARD,                "CREATE_REWARD",                N_CREATE_REWARD);
+    vm->RegisterNativeFunction(NATIVE_CREATE_REWARD_IN_TOWN,        "CREATE_REWARD_IN_TOWN",        N_CREATE_REWARD_IN_TOWN);
+    vm->RegisterNativeFunction(NATIVE_CREATE_RANDOM_VILLAGER_OF_TRIBE, "CREATE_RANDOM_VILLAGER_OF_TRIBE", N_CREATE_RANDOM_VILLAGER_OF_TRIBE);
+    vm->RegisterNativeFunction(NATIVE_CREATE_MIST,                  "CREATE_MIST",                  N_CREATE_MIST);
+    vm->RegisterNativeFunction(NATIVE_LOAD_CREATURE,                "LOAD_CREATURE",                N_LOAD_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_LOAD_MY_CREATURE,             "LOAD_MY_CREATURE",             N_LOAD_MY_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_OBJECT_CAPACITY,              "OBJECT_CAPACITY",              N_OBJECT_CAPACITY);
+    vm->RegisterNativeFunction(NATIVE_OBJECT_ADULT_CAPACITY,        "OBJECT_ADULT_CAPACITY",        N_OBJECT_ADULT_CAPACITY);
+    vm->RegisterNativeFunction(NATIVE_ID_ADULT_SIZE,                "ID_ADULT_SIZE",                N_ID_ADULT_SIZE);
+    vm->RegisterNativeFunction(NATIVE_INSIDE_TEMPLE,                "INSIDE_TEMPLE",                N_INSIDE_TEMPLE);
+    vm->RegisterNativeFunction(NATIVE_IS_AFFECTED_BY_SPELL,         "IS_AFFECTED_BY_SPELL",         N_IS_AFFECTED_BY_SPELL);
+    vm->RegisterNativeFunction(NATIVE_IS_AUTO_FIGHTING,             "IS_AUTO_FIGHTING",             N_IS_AUTO_FIGHTING);
+    vm->RegisterNativeFunction(NATIVE_IS_SPELL_CHARGING,            "IS_SPELL_CHARGING",            N_IS_SPELL_CHARGING);
+    vm->RegisterNativeFunction(NATIVE_IS_THAT_SPELL_CHARGING,       "IS_THAT_SPELL_CHARGING",       N_IS_THAT_SPELL_CHARGING);
+    vm->RegisterNativeFunction(NATIVE_POS_VALID_FOR_CREATURE,       "POS_VALID_FOR_CREATURE",       N_POS_VALID_FOR_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_GET_TEMPLE_POSITION,          "GET_TEMPLE_POSITION",          N_GET_TEMPLE_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_TEMPLE_ENTRANCE_POSITION, "GET_TEMPLE_ENTRANCE_POSITION", N_GET_TEMPLE_ENTRANCE_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_LAST_SPELL_CAST_POS,      "GET_LAST_SPELL_CAST_POS",      N_GET_LAST_SPELL_CAST_POS);
+    vm->RegisterNativeFunction(NATIVE_GET_FACING_CAMERA_POSITION,   "GET_FACING_CAMERA_POSITION",   N_GET_FACING_CAMERA_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_COMPUTER_PLAYER_POSITION, "GET_COMPUTER_PLAYER_POSITION", N_GET_COMPUTER_PLAYER_POSITION);
+    vm->RegisterNativeFunction(NATIVE_SET_COMPUTER_PLAYER_POSITION, "SET_COMPUTER_PLAYER_POSITION", N_SET_COMPUTER_PLAYER_POSITION);
+    vm->RegisterNativeFunction(NATIVE_MOVE_COMPUTER_PLAYER_POSITION,"MOVE_COMPUTER_PLAYER_POSITION",N_MOVE_COMPUTER_PLAYER_POSITION);
+    vm->RegisterNativeFunction(NATIVE_RESTART_OBJECT,               "RESTART_OBJECT",               N_RESTART_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_OBJECT_CAST_BY_OBJECT,        "OBJECT_CAST_BY_OBJECT",        N_OBJECT_CAST_BY_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_OPPOSING_CREATURE,            "OPPOSING_CREATURE",            N_OPPOSING_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_GET_DEAD_LIVING,              "GET_DEAD_LIVING",              N_GET_DEAD_LIVING);
+    vm->RegisterNativeFunction(NATIVE_GET_FIRST_HELP,               "GET_FIRST_HELP",               N_GET_FIRST_HELP);
+    vm->RegisterNativeFunction(NATIVE_GET_LAST_HELP,                "GET_LAST_HELP",                N_GET_LAST_HELP);
+    vm->RegisterNativeFunction(NATIVE_GET_HELP,                     "GET_HELP",                     N_GET_HELP);
+    vm->RegisterNativeFunction(NATIVE_OBJECT_RELATIVE_BELIEF,       "OBJECT_RELATIVE_BELIEF",       N_OBJECT_RELATIVE_BELIEF);
+    vm->RegisterNativeFunction(NATIVE_GET_TOTEM_STATUE,             "GET_TOTEM_STATUE",             N_GET_TOTEM_STATUE);
+    vm->RegisterNativeFunction(NATIVE_GET_SPELL_ICON_IN_TEMPLE,     "GET_SPELL_ICON_IN_TEMPLE",     N_GET_SPELL_ICON_IN_TEMPLE);
+    vm->RegisterNativeFunction(NATIVE_WITHIN_ROTATION,              "WITHIN_ROTATION",              N_WITHIN_ROTATION);
+    vm->RegisterNativeFunction(NATIVE_GET_TOWN_WORSHIP_DEATHS,      "GET_TOWN_WORSHIP_DEATHS",      N_GET_TOWN_WORSHIP_DEATHS);
+    vm->RegisterNativeFunction(NATIVE_GET_TOWN_AND_VILLAGER_HEALTH_TOTAL, "GET_TOWN_AND_VILLAGER_HEALTH_TOTAL", N_GET_TOWN_AND_VILLAGER_HEALTH);
+    vm->RegisterNativeFunction(NATIVE_GET_SACRIFICE_TOTAL,           "GET_SACRIFICE_TOTAL",           N_GET_SACRIFICE_TOTAL2);
+    vm->RegisterNativeFunction(NATIVE_GAME_ADD_FOR_BUILDING,         "GAME_ADD_FOR_BUILDING",         N_GAME_ADD_FOR_BUILDING2);
+    vm->RegisterNativeFunction(NATIVE_PLAYER_SPELL_CAST_TIME,       "PLAYER_SPELL_CAST_TIME",       N_PLAYER_SPELL_CAST_TIME);
+    vm->RegisterNativeFunction(NATIVE_PLAYER_SPELL_LAST_CAST,       "PLAYER_SPELL_LAST_CAST",       N_PLAYER_SPELL_LAST_CAST);
+    vm->RegisterNativeFunction(NATIVE_GET_MANA_FOR_SPELL,           "GET_MANA_FOR_SPELL",           N_GET_MANA_FOR_SPELL);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_AUTO_FIGHTING,   "SET_CREATURE_AUTO_FIGHTING",   N_SET_CREATURE_AUTO_FIGHTING);
+    vm->RegisterNativeFunction(NATIVE_SET_FIGHT_EXIT,               "SET_FIGHT_EXIT",               N_SET_FIGHT_EXIT);
+    vm->RegisterNativeFunction(NATIVE_SET_CAN_BUILD_WORSHIPSITE,    "SET_CAN_BUILD_WORSHIPSITE",    N_SET_CAN_BUILD_WORSHIPSITE);
+    vm->RegisterNativeFunction(NATIVE_SET_MAGIC_IN_OBJECT,          "SET_MAGIC_IN_OBJECT",          N_SET_MAGIC_IN_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_SET_MAGIC_PROPERTIES,         "SET_MAGIC_PROPERTIES",         N_SET_MAGIC_PROPERTIES);
 }
 
 } // namespace lhvm
