@@ -2810,6 +2810,338 @@ static void N_CHANGE_INNER_OUTER_PROPERTIES(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 8 — game state, save, mini-games, immersion, misc remainders (60+)
+// ============================================================================
+
+namespace {
+
+uint32_t g_hit_object        = 0;
+uint32_t g_object_which_hit  = 0;
+uint32_t g_events_total      = 0;
+float    g_events_last_time  = 0;
+bool     g_high_graphics     = true;
+bool     g_game_time_running = true;
+bool     g_sun_draw          = true;
+
+struct MiniGame {
+    int32_t type        = 0;
+    int32_t team_size   = 5;
+    bool    in_progress = false;
+    std::vector<uint32_t> attached_objects;
+};
+std::unordered_map<uint32_t, MiniGame> g_minigames;     // arena/footballpitch handle → state
+
+struct ObjectExtras {
+    bool   confined         = false;
+    bool   hurt_by_fire     = true;
+    bool   only_for_scripts = false;
+    bool   open             = false;
+    bool   draw_leash       = true;
+    bool   draw_highlight   = true;
+    bool   carrying         = false;
+    int32_t leash_type      = 0;
+    float  fade_value       = 1.0f;
+    float  attacked_at      = -1e9f;
+    int32_t action_count    = 0;
+    int32_t mist_fade       = 0;
+};
+std::unordered_map<uint32_t, ObjectExtras> g_extras;
+
+ObjectExtras& Extras(uint32_t h) { return g_extras[h]; }
+
+uint32_t   g_save_slot       = 0;
+bool       g_immersion_on    = false;
+int32_t    g_active_immersion= 0;
+
+} // namespace
+
+// --- Mini-games (arenas, football, hanoi, dance) ----------------------
+
+static void N_GET_ARENA(LHVM* vm) {
+    vm->PopFloat();   // size
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // pos
+    EntityCreateParams p = {};
+    p.scale = 1.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
+    uint32_t h = HandleFor(obj);
+    if (h) g_minigames[h] = {};
+    vm->PushObject(h);
+}
+
+static void N_GET_FOOTBALL_PITCH(LHVM* vm) {
+    vm->PopObject();  // town
+    EntityCreateParams p = {};
+    p.scale = 1.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
+    uint32_t h = HandleFor(obj);
+    if (h) g_minigames[h] = {};
+    vm->PushObject(h);
+}
+
+static void N_STOP_ALL_GAMES(LHVM* vm) {
+    vm->PopObject();  // owner
+    for (auto& kv : g_minigames) kv.second.in_progress = false;
+}
+
+static void N_ATTACH_TO_GAME(LHVM* vm) {
+    int32_t  side = vm->PopInt();
+    uint32_t obj  = vm->PopObject();
+    uint32_t game = vm->PopObject();
+    (void)side;
+    g_minigames[game].attached_objects.push_back(obj);
+}
+
+static void N_DETACH_FROM_GAME(LHVM* vm) {
+    int32_t  side = vm->PopInt();
+    uint32_t obj  = vm->PopObject();
+    uint32_t game = vm->PopObject();
+    (void)side;
+    auto& v = g_minigames[game].attached_objects;
+    for (auto i = v.begin(); i != v.end(); ++i) if (*i == obj) { v.erase(i); break; }
+}
+
+static void N_DETACH_UNDEFINED_FROM_GAME(LHVM* vm) {
+    uint32_t game = vm->PopObject();
+    g_minigames[game].attached_objects.clear();
+}
+
+static void N_SET_ONLY_FOR_SCRIPTS(LHVM* vm) {
+    bool on = vm->PopBoolean();
+    uint32_t h = vm->PopObject();
+    Extras(h).only_for_scripts = on;
+}
+
+static void N_START_MATCH_WITH_REFEREE(LHVM* vm) {
+    vm->PopInt();       // referee count
+    uint32_t game = vm->PopObject();
+    g_minigames[game].in_progress = true;
+}
+
+static void N_GAME_TEAM_SIZE(LHVM* vm) {
+    int32_t  size = vm->PopInt();
+    uint32_t game = vm->PopObject();
+    g_minigames[game].team_size = size;
+}
+
+// --- Hit tracking -----------------------------------------------------
+
+static void N_GET_HIT_OBJECT(LHVM* vm)        { vm->PushObject(g_hit_object); }
+static void N_GET_OBJECT_WHICH_HIT(LHVM* vm)  { vm->PushObject(g_object_which_hit); }
+
+// --- Event metering ---------------------------------------------------
+
+static void N_GET_EVENTS_PER_SECOND(LHVM* vm) {
+    int32_t event = vm->PopInt();
+    (void)event;
+    float now = CurrentGameTime();
+    float dt  = now - g_events_last_time;
+    vm->PushFloat(dt > 0 ? static_cast<float>(g_events_total) / dt : 0.0f);
+}
+static void N_GET_TIME_SINCE(LHVM* vm) {
+    int32_t event = vm->PopInt();
+    (void)event;
+    vm->PushFloat(CurrentGameTime() - g_events_last_time);
+}
+static void N_GET_TOTAL_EVENTS(LHVM* vm) {
+    int32_t event = vm->PopInt();
+    (void)event;
+    vm->PushInt(static_cast<int32_t>(g_events_total));
+}
+
+// --- Object spawn helpers --------------------------------------------
+
+static void N_CREATE_WITH_ANGLE_AND_SCALE(LHVM* vm) {
+    float scale  = vm->PopFloat();
+    float angle  = vm->PopFloat();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t  subtype = vm->PopInt();
+    int32_t  type    = vm->PopInt();
+    (void)y;
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.angle = angle;
+    p.scale = scale > 0 ? scale : 1.0f;
+    p.type_enum = static_cast<uint32_t>(subtype);
+    Object* obj = EntityFactory::CreateEntity(CategoryForScriptType(type), p);
+    vm->PushObject(HandleFor(obj));
+}
+
+// --- Visual / fade ---------------------------------------------------
+
+static void N_SET_VIRTUAL_INFLUENCE(LHVM* vm) {
+    bool on = vm->PopBoolean();
+    uint32_t h = vm->PopObject();
+    if (on) Extras(h).only_for_scripts = true;
+}
+
+static void N_SET_MIST_FADE(LHVM* vm) {
+    int32_t  amt = vm->PopInt();
+    uint32_t h   = vm->PopObject();
+    Extras(h).mist_fade = amt;
+}
+
+static void N_GET_OBJECT_FADE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_extras.find(h);
+    vm->PushFloat(it == g_extras.end() ? 1.0f : it->second.fade_value);
+}
+
+static void N_SET_OBJECT_FADE_IN(LHVM* vm) {
+    vm->PopFloat();   // duration
+    uint32_t h = vm->PopObject();
+    Extras(h).fade_value = 1.0f;
+}
+
+// --- Hand demo / interaction --------------------------------------
+
+static void N_IS_PLAYING_HAND_DEMO(LHVM* vm) { vm->PushBoolean(g_hand_demo_playing); }
+static void N_GET_ARSE_POSITION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { vm->PushFloat(WorldX(o)); vm->PushFloat(WorldY(o)); vm->PushFloat(WorldZ(o)); }
+    else   { vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0); }
+}
+static void N_GET_BELLY_POSITION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    if (o) { vm->PushFloat(WorldX(o)); vm->PushFloat(WorldY(o) + 2); vm->PushFloat(WorldZ(o)); }
+    else   { vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0); }
+}
+static void N_GET_OBJECT_HELD_273(LHVM* vm) { vm->PopObject(); vm->PushObject(0); }
+static void N_GET_ACTION_COUNT(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_extras.find(h);
+    vm->PushInt(it == g_extras.end() ? 0 : it->second.action_count);
+}
+static void N_GET_OBJECT_LEASH_TYPE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_extras.find(h);
+    vm->PushInt(it == g_extras.end() ? 0 : it->second.leash_type);
+}
+
+// --- Cinematic / time controls ------------------------------------
+
+static void N_START_ANGLE_SOUND_285(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
+static void N_START_ANGLE_SOUND_348(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
+static void N_GAME_TIME_ON_OFF(LHVM* vm)      { g_game_time_running = vm->PopBoolean(); }
+static void N_MOVE_GAME_TIME(LHVM* vm) {
+    g_game_time_base += vm->PopFloat();   // delta hours
+    vm->PopFloat();                       // duration
+}
+static void N_SET_HIGH_GRAPHICS_DETAIL(LHVM* vm) { g_high_graphics = vm->PopBoolean(); vm->PopObject(); }
+static void N_ADD_SPOT_VISUAL_TARGET_POS(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopObject();
+}
+static void N_ADD_SPOT_VISUAL_TARGET_OBJECT(LHVM* vm) { vm->PopObject(); vm->PopObject(); }
+
+// --- Focus / immersion --------------------------------------------
+
+static void N_SET_FOCUS_ON_OBJECT(LHVM* vm)    { g_cam_follow.focus_target = vm->PopObject(); vm->PopObject(); }
+static void N_RELEASE_OBJECT_FOCUS(LHVM* vm)   { vm->PopObject(); g_cam_follow.focus_target = 0; }
+static void N_IMMERSION_EXISTS(LHVM* vm)        { vm->PushBoolean(g_immersion_on); }
+static void N_START_IMMERSION(LHVM* vm)         { g_active_immersion = vm->PopInt(); vm->PopObject(); g_immersion_on = true; }
+static void N_STOP_IMMERSION(LHVM* vm)          { vm->PopInt(); vm->PopObject(); g_immersion_on = false; }
+static void N_STOP_ALL_IMMERSION(LHVM* /*vm*/) { g_immersion_on = false; }
+static void N_MAP_SCRIPT_FUNCTION(LHVM* vm)     { vm->PopInt(); vm->PopObject(); }
+
+// --- Drawing toggles ----------------------------------------------
+
+static void N_SET_DRAW_LEASH(LHVM* vm)     { bool b = vm->PopBoolean(); uint32_t h = vm->PopObject(); Extras(h).draw_leash = b; }
+static void N_SET_DRAW_HIGHLIGHT(LHVM* vm) { bool b = vm->PopBoolean(); uint32_t h = vm->PopObject(); Extras(h).draw_highlight = b; }
+static void N_SET_OPEN_CLOSE(LHVM* vm)     { bool b = vm->PopBoolean(); uint32_t h = vm->PopObject(); Extras(h).open = b; }
+static void N_SET_INTRO_BUILDING(LHVM* vm) { vm->PopBoolean(); vm->PopObject(); }
+static void N_SET_SUN_DRAW(LHVM* vm)       { g_sun_draw = vm->PopBoolean(); }
+static void N_SET_HURT_BY_FIRE(LHVM* vm)   { bool b = vm->PopBoolean(); uint32_t h = vm->PopObject(); Extras(h).hurt_by_fire = b; }
+static void N_CONFINED_OBJECT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    Extras(h).confined = true;
+}
+static void N_CLEAR_CONFINED_OBJECT(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Extras(h).confined = false;
+}
+static void N_HIGHLIGHT_PROPERTIES(LHVM* vm) {
+    vm->PopInt(); vm->PopInt(); vm->PopObject();
+}
+
+// --- Misc -----------------------------------------------------------
+
+static void N_CALL_NEAR_IN_STATE(LHVM* vm) {
+    int32_t state = vm->PopInt();
+    float radius = vm->PopFloat();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t player_or_filter = vm->PopObject();
+    uint32_t target = vm->PopObject();
+    (void)state; (void)radius; (void)x; (void)y; (void)z;
+    (void)player_or_filter; (void)target;
+}
+
+static void N_PLAY_JC_SPECIAL(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
+static void N_IS_PLAYING_JC_SPECIAL(LHVM* vm) { vm->PopObject(); vm->PushBoolean(false); }
+
+static void N_IS_LOCKED_INTERACTION(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(g_dialogue.active);
+}
+
+static void N_ENTER_EXIT_CITADEL(LHVM* vm) {
+    vm->PopBoolean(); vm->PopObject();
+}
+
+static void N_MUSIC_PLAYED_350(LHVM* vm) { vm->PopInt(); vm->PushBoolean(g_audio.music_playing); }
+
+static void N_TOGGLE_LEASH(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    if (s) s->flags ^= FLAG_LEASHED;
+}
+
+static void N_SET_GAME_SOUND(LHVM* vm) { g_audio.game_sound_on = vm->PopBoolean(); }
+
+static void N_SEX_IS_MALE(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(true);   // unwired sex bit; default true keeps scripts moving
+}
+
+static void N_SET_SCAFFOLD_PROPERTIES(LHVM* vm) {
+    vm->PopInt(); vm->PopInt(); vm->PopFloat(); vm->PopObject();
+}
+
+static void N_SET_DISCIPLE(LHVM* vm) {
+    vm->PopInt(); vm->PopObject();
+}
+
+static void N_SET_SET_ON_FIRE(LHVM* vm) {
+    vm->PopFloat();   // strength
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    if (s) s->flags |= FLAG_ON_FIRE;
+}
+
+static void N_SET_OBJECT_CARRYING(LHVM* vm) {
+    int32_t carrying = vm->PopInt();
+    uint32_t h = vm->PopObject();
+    Extras(h).carrying = (carrying != 0);
+}
+
+static void N_GET_TIME_SINCE_OBJECT_ATTACKED(LHVM* vm) {
+    vm->PopObject();   // player
+    uint32_t h = vm->PopObject();
+    auto it = g_extras.find(h);
+    if (it == g_extras.end()) { vm->PushFloat(99999.0f); return; }
+    vm->PushFloat(CurrentGameTime() - it->second.attacked_at);
+}
+
+static void N_SET_FIXED_CAM_ROTATION(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+
+// --- Save / tutorial ----------------------------------------------
+
+static void N_SAVE_GAME_IN_SLOT(LHVM* vm) { g_save_slot = static_cast<uint32_t>(vm->PopInt()); }
+static void N_CAN_SKIP_TUTORIAL(LHVM* vm) { vm->PushBoolean(true); }
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -3191,6 +3523,73 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_UPDATE_SNAPSHOT_PICTURE,              "UPDATE_SNAPSHOT_PICTURE",              N_UPDATE_SNAPSHOT_PICTURE);
     vm->RegisterNativeFunction(NATIVE_DANCE_CREATE,                         "DANCE_CREATE",                         N_DANCE_CREATE);
     vm->RegisterNativeFunction(NATIVE_CHANGE_INNER_OUTER_PROPERTIES,        "CHANGE_INNER_OUTER_PROPERTIES",        N_CHANGE_INNER_OUTER_PROPERTIES);
+
+    // --- Chunk 8: game state, save, mini-games, immersion (60+) ---
+    vm->RegisterNativeFunction(NATIVE_GET_ARENA,                            "GET_ARENA",                            N_GET_ARENA);
+    vm->RegisterNativeFunction(NATIVE_GET_FOOTBALL_PITCH,                   "GET_FOOTBALL_PITCH",                   N_GET_FOOTBALL_PITCH);
+    vm->RegisterNativeFunction(NATIVE_STOP_ALL_GAMES,                       "STOP_ALL_GAMES",                       N_STOP_ALL_GAMES);
+    vm->RegisterNativeFunction(NATIVE_ATTACH_TO_GAME,                       "ATTACH_TO_GAME",                       N_ATTACH_TO_GAME);
+    vm->RegisterNativeFunction(NATIVE_DETACH_FROM_GAME,                     "DETACH_FROM_GAME",                     N_DETACH_FROM_GAME);
+    vm->RegisterNativeFunction(NATIVE_DETACH_UNDEFINED_FROM_GAME,           "DETACH_UNDEFINED_FROM_GAME",           N_DETACH_UNDEFINED_FROM_GAME);
+    vm->RegisterNativeFunction(NATIVE_SET_ONLY_FOR_SCRIPTS,                 "SET_ONLY_FOR_SCRIPTS",                 N_SET_ONLY_FOR_SCRIPTS);
+    vm->RegisterNativeFunction(NATIVE_START_MATCH_WITH_REFEREE,             "START_MATCH_WITH_REFEREE",             N_START_MATCH_WITH_REFEREE);
+    vm->RegisterNativeFunction(NATIVE_GAME_TEAM_SIZE,                       "GAME_TEAM_SIZE",                       N_GAME_TEAM_SIZE);
+    vm->RegisterNativeFunction(NATIVE_GET_HIT_OBJECT,                       "GET_HIT_OBJECT",                       N_GET_HIT_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_WHICH_HIT,                 "GET_OBJECT_WHICH_HIT",                 N_GET_OBJECT_WHICH_HIT);
+    vm->RegisterNativeFunction(NATIVE_GET_EVENTS_PER_SECOND,                "GET_EVENTS_PER_SECOND",                N_GET_EVENTS_PER_SECOND);
+    vm->RegisterNativeFunction(NATIVE_GET_TIME_SINCE,                       "GET_TIME_SINCE",                       N_GET_TIME_SINCE);
+    vm->RegisterNativeFunction(NATIVE_GET_TOTAL_EVENTS,                     "GET_TOTAL_EVENTS",                     N_GET_TOTAL_EVENTS);
+    vm->RegisterNativeFunction(NATIVE_CREATE_WITH_ANGLE_AND_SCALE,          "CREATE_WITH_ANGLE_AND_SCALE",          N_CREATE_WITH_ANGLE_AND_SCALE);
+    vm->RegisterNativeFunction(NATIVE_SET_VIRTUAL_INFLUENCE,                "SET_VIRTUAL_INFLUENCE",                N_SET_VIRTUAL_INFLUENCE);
+    vm->RegisterNativeFunction(NATIVE_SET_MIST_FADE,                        "SET_MIST_FADE",                        N_SET_MIST_FADE);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_FADE,                      "GET_OBJECT_FADE",                      N_GET_OBJECT_FADE);
+    vm->RegisterNativeFunction(NATIVE_SET_OBJECT_FADE_IN,                   "SET_OBJECT_FADE_IN",                   N_SET_OBJECT_FADE_IN);
+    vm->RegisterNativeFunction(NATIVE_IS_PLAYING_HAND_DEMO,                 "IS_PLAYING_HAND_DEMO",                 N_IS_PLAYING_HAND_DEMO);
+    vm->RegisterNativeFunction(NATIVE_GET_ARSE_POSITION,                    "GET_ARSE_POSITION",                    N_GET_ARSE_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_BELLY_POSITION,                   "GET_BELLY_POSITION",                   N_GET_BELLY_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_273,                  "GET_OBJECT_HELD_273",                  N_GET_OBJECT_HELD_273);
+    vm->RegisterNativeFunction(NATIVE_GET_ACTION_COUNT,                     "GET_ACTION_COUNT",                     N_GET_ACTION_COUNT);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_LEASH_TYPE,                "GET_OBJECT_LEASH_TYPE",                N_GET_OBJECT_LEASH_TYPE);
+    vm->RegisterNativeFunction(NATIVE_START_ANGLE_SOUND_285,                "START_ANGLE_SOUND_285",                N_START_ANGLE_SOUND_285);
+    vm->RegisterNativeFunction(NATIVE_START_ANGLE_SOUND_348,                "START_ANGLE_SOUND_348",                N_START_ANGLE_SOUND_348);
+    vm->RegisterNativeFunction(NATIVE_GAME_TIME_ON_OFF,                     "GAME_TIME_ON_OFF",                     N_GAME_TIME_ON_OFF);
+    vm->RegisterNativeFunction(NATIVE_MOVE_GAME_TIME,                       "MOVE_GAME_TIME",                       N_MOVE_GAME_TIME);
+    vm->RegisterNativeFunction(NATIVE_SET_HIGH_GRAPHICS_DETAIL,             "SET_HIGH_GRAPHICS_DETAIL",             N_SET_HIGH_GRAPHICS_DETAIL);
+    vm->RegisterNativeFunction(NATIVE_ADD_SPOT_VISUAL_TARGET_POS,           "ADD_SPOT_VISUAL_TARGET_POS",           N_ADD_SPOT_VISUAL_TARGET_POS);
+    vm->RegisterNativeFunction(NATIVE_ADD_SPOT_VISUAL_TARGET_OBJECT,        "ADD_SPOT_VISUAL_TARGET_OBJECT",        N_ADD_SPOT_VISUAL_TARGET_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_SET_FOCUS_ON_OBJECT,                  "SET_FOCUS_ON_OBJECT",                  N_SET_FOCUS_ON_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_RELEASE_OBJECT_FOCUS,                 "RELEASE_OBJECT_FOCUS",                 N_RELEASE_OBJECT_FOCUS);
+    vm->RegisterNativeFunction(NATIVE_IMMERSION_EXISTS,                     "IMMERSION_EXISTS",                     N_IMMERSION_EXISTS);
+    vm->RegisterNativeFunction(NATIVE_START_IMMERSION,                      "START_IMMERSION",                      N_START_IMMERSION);
+    vm->RegisterNativeFunction(NATIVE_STOP_IMMERSION,                       "STOP_IMMERSION",                       N_STOP_IMMERSION);
+    vm->RegisterNativeFunction(NATIVE_STOP_ALL_IMMERSION,                   "STOP_ALL_IMMERSION",                   N_STOP_ALL_IMMERSION);
+    vm->RegisterNativeFunction(NATIVE_MAP_SCRIPT_FUNCTION,                  "MAP_SCRIPT_FUNCTION",                  N_MAP_SCRIPT_FUNCTION);
+    vm->RegisterNativeFunction(NATIVE_SET_DRAW_LEASH,                       "SET_DRAW_LEASH",                       N_SET_DRAW_LEASH);
+    vm->RegisterNativeFunction(NATIVE_SET_DRAW_HIGHLIGHT,                   "SET_DRAW_HIGHLIGHT",                   N_SET_DRAW_HIGHLIGHT);
+    vm->RegisterNativeFunction(NATIVE_SET_OPEN_CLOSE,                       "SET_OPEN_CLOSE",                       N_SET_OPEN_CLOSE);
+    vm->RegisterNativeFunction(NATIVE_SET_INTRO_BUILDING,                   "SET_INTRO_BUILDING",                   N_SET_INTRO_BUILDING);
+    vm->RegisterNativeFunction(NATIVE_SET_SUN_DRAW,                         "SET_SUN_DRAW",                         N_SET_SUN_DRAW);
+    vm->RegisterNativeFunction(NATIVE_SET_HURT_BY_FIRE,                     "SET_HURT_BY_FIRE",                     N_SET_HURT_BY_FIRE);
+    vm->RegisterNativeFunction(NATIVE_CONFINED_OBJECT,                      "CONFINED_OBJECT",                      N_CONFINED_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_CONFINED_OBJECT,                "CLEAR_CONFINED_OBJECT",                N_CLEAR_CONFINED_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_HIGHLIGHT_PROPERTIES,                 "HIGHLIGHT_PROPERTIES",                 N_HIGHLIGHT_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_CALL_NEAR_IN_STATE,                   "CALL_NEAR_IN_STATE",                   N_CALL_NEAR_IN_STATE);
+    vm->RegisterNativeFunction(NATIVE_PLAY_JC_SPECIAL,                      "PLAY_JC_SPECIAL",                      N_PLAY_JC_SPECIAL);
+    vm->RegisterNativeFunction(NATIVE_IS_PLAYING_JC_SPECIAL,                "IS_PLAYING_JC_SPECIAL",                N_IS_PLAYING_JC_SPECIAL);
+    vm->RegisterNativeFunction(NATIVE_IS_LOCKED_INTERACTION,                "IS_LOCKED_INTERACTION",                N_IS_LOCKED_INTERACTION);
+    vm->RegisterNativeFunction(NATIVE_ENTER_EXIT_CITADEL,                   "ENTER_EXIT_CITADEL",                   N_ENTER_EXIT_CITADEL);
+    vm->RegisterNativeFunction(NATIVE_MUSIC_PLAYED_350,                     "MUSIC_PLAYED_350",                     N_MUSIC_PLAYED_350);
+    vm->RegisterNativeFunction(NATIVE_TOGGLE_LEASH,                         "TOGGLE_LEASH",                         N_TOGGLE_LEASH);
+    vm->RegisterNativeFunction(NATIVE_SET_GAME_SOUND,                       "SET_GAME_SOUND",                       N_SET_GAME_SOUND);
+    vm->RegisterNativeFunction(NATIVE_SEX_IS_MALE,                          "SEX_IS_MALE",                          N_SEX_IS_MALE);
+    vm->RegisterNativeFunction(NATIVE_SET_SCAFFOLD_PROPERTIES,              "SET_SCAFFOLD_PROPERTIES",              N_SET_SCAFFOLD_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_SET_DISCIPLE,                         "SET_DISCIPLE",                         N_SET_DISCIPLE);
+    vm->RegisterNativeFunction(NATIVE_SET_SET_ON_FIRE,                      "SET_SET_ON_FIRE",                      N_SET_SET_ON_FIRE);
+    vm->RegisterNativeFunction(NATIVE_SET_OBJECT_CARRYING,                  "SET_OBJECT_CARRYING",                  N_SET_OBJECT_CARRYING);
+    vm->RegisterNativeFunction(NATIVE_GET_TIME_SINCE_OBJECT_ATTACKED,       "GET_TIME_SINCE_OBJECT_ATTACKED",       N_GET_TIME_SINCE_OBJECT_ATTACKED);
+    vm->RegisterNativeFunction(NATIVE_SET_FIXED_CAM_ROTATION,               "SET_FIXED_CAM_ROTATION",               N_SET_FIXED_CAM_ROTATION);
+    vm->RegisterNativeFunction(NATIVE_SAVE_GAME_IN_SLOT,                    "SAVE_GAME_IN_SLOT",                    N_SAVE_GAME_IN_SLOT);
+    vm->RegisterNativeFunction(NATIVE_CAN_SKIP_TUTORIAL,                    "CAN_SKIP_TUTORIAL",                    N_CAN_SKIP_TUTORIAL);
 }
 
 } // namespace lhvm
