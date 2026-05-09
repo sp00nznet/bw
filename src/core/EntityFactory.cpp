@@ -14,6 +14,7 @@
 #include <black/Creature.h>
 #include <black/Terrain.h>
 #include <black/Map.h>
+#include <black/LHVMObjects.h>
 #include <cstdlib>
 #include <cstring>
 
@@ -37,21 +38,23 @@ static void InitObjectFromParams(Object* obj, const EntityCreateParams& params) 
 namespace EntityFactory {
 
 Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) {
+    Object* obj = nullptr;
     switch (category) {
-    case ENTITY_CAT_TREE:     return CreateTree(params);
-    case ENTITY_CAT_ABODE:    return CreateAbode(params);
-    case ENTITY_CAT_VILLAGER: return CreateVillager(params);
+    case ENTITY_CAT_TREE:     obj = CreateTree(params);         break;
+    case ENTITY_CAT_ABODE:    obj = CreateAbode(params);        break;
+    case ENTITY_CAT_VILLAGER: obj = CreateVillager(params);     break;
     case ENTITY_CAT_MOBILE:
-    case ENTITY_CAT_ROCK:     return CreateMobileStatic(params);
-    case ENTITY_CAT_CREATURE: return CreateCreature(params);
-    default: break;
+    case ENTITY_CAT_ROCK:     obj = CreateMobileStatic(params); break;
+    case ENTITY_CAT_CREATURE: obj = CreateCreature(params);     break;
+    default: {
+        // Generic feature fallback — allocate a Feature
+        Feature* feat = static_cast<Feature*>(calloc(1, sizeof(Feature)));
+        if (feat) { InitObjectFromParams(feat, params); obj = feat; }
+        break;
     }
-
-    // Generic feature fallback — allocate a Feature
-    Feature* feat = static_cast<Feature*>(calloc(1, sizeof(Feature)));
-    if (!feat) return nullptr;
-    InitObjectFromParams(feat, params);
-    return feat;
+    }
+    if (obj) lhvm::RegisterObject(obj);
+    return obj;
 }
 
 Object* CreateTree(const EntityCreateParams& params) {

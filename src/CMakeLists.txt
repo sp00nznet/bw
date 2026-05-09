@@ -303,6 +303,7 @@ add_library(bw_core STATIC
     # Script engine
     core/GScript.cpp
     core/LHVM.cpp
+    core/LHVMObjects.cpp
     # Utility functions
     core/GUtils.cpp
     core/Zoomer.cpp

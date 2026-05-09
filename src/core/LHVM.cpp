@@ -10,6 +10,7 @@
 //   [Data]     size + string constants
 
 #include <black/LHVM.h>
+#include <black/LHVMObjects.h>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -2175,6 +2176,9 @@ void LHVM::InitNativeFunctions() {
     RegisterNativeFunction(NATIVE_CAN_SKIP_CREATURE_TRAINING,    "CAN_SKIP_CREATURE_TRAINING",    Native_CAN_SKIP_CREATURE_TRAINING);
     RegisterNativeFunction(NATIVE_IS_KEEPING_OLD_CREATURE,       "IS_KEEPING_OLD_CREATURE",       Native_IS_KEEPING_OLD_CREATURE);
     RegisterNativeFunction(NATIVE_CURRENT_PROFILE_HAS_CREATURE,  "CURRENT_PROFILE_HAS_CREATURE",  Native_CURRENT_PROFILE_HAS_CREATURE);
+
+    // Override stubs for entity-touching natives — chunk 1 (50 functions).
+    lhvm::RegisterObjectNatives(this);
 }
 
 // ============================================================================
