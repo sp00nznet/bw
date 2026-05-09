@@ -67,6 +67,27 @@ void ClearClickedPosition();
 void NotifyObjectClicked(uint32_t handle);
 void NotifyPositionClicked(float x, float y, float z);
 
+// --- Entity spawn notifier (LHVM-allocated entities → host renderer) -----
+//
+// When a CHL native creates a new world entity (CREATE, FLOCK_CREATE,
+// LOAD_CREATURE, CREATE_REWARD, CREATE_HIGHLIGHT, POPULATE_CONTAINER,
+// GET_ARENA, GET_FOOTBALL_PITCH, etc.) the bindings allocate the Object*
+// through EntityFactory and register it. Hosts that draw a parallel
+// viewer-side representation can register a notifier here so they pick up
+// the new Object and add it to their render list. The notifier fires once
+// per new spawn; it does NOT fire for pre-existing entities created by the
+// host's own scene loader.
+
+struct SpawnInfo {
+    uint32_t handle;        // LHVM handle for the new Object*
+    Object*  obj;           // raw pointer (for direct host pairing)
+    int32_t  script_type;   // SCRIPT_OBJECT_TYPE the script asked for
+    int32_t  script_subtype;
+    float    x, y, z;
+};
+using EntitySpawnFn = void (*)(const SpawnInfo*);
+extern EntitySpawnFn g_entity_spawn_func;
+
 // --- Native registration -------------------------------------------------
 
 // Override the stub registrations in LHVM with wired implementations.

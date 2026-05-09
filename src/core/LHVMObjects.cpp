@@ -110,8 +110,17 @@ static Slot* SlotOf(uint32_t handle) {
 // Host services
 // ============================================================================
 
-HandQueryFn  g_hand_query_func  = nullptr;
-ClickQueryFn g_click_query_func = nullptr;
+HandQueryFn   g_hand_query_func   = nullptr;
+ClickQueryFn  g_click_query_func  = nullptr;
+EntitySpawnFn g_entity_spawn_func = nullptr;
+
+static void NotifySpawn(uint32_t handle, Object* obj,
+                        int32_t script_type, int32_t script_subtype,
+                        float x, float y, float z) {
+    if (!g_entity_spawn_func || handle == 0 || !obj) return;
+    SpawnInfo info = { handle, obj, script_type, script_subtype, x, y, z };
+    g_entity_spawn_func(&info);
+}
 
 namespace {
 ClickInfo g_click_latch = {};
@@ -234,7 +243,9 @@ static void N_CREATE(LHVM* vm) {
     p.type_name = "";
 
     Object* obj = EntityFactory::CreateEntity(CategoryForScriptType(type), p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, type, subtype, x, y, z);
+    vm->PushObject(h);
 }
 
 static void N_OBJECT_DELETE(LHVM* vm) {
@@ -652,6 +663,7 @@ static void N_FLOCK_CREATE(LHVM* vm) {
     f->SetDomainCentrePos(c);
     uint32_t h = RegisterObject(reinterpret_cast<Object*>(f));
     g_flock_members[h] = {};
+    NotifySpawn(h, reinterpret_cast<Object*>(f), 11 /* SCRIPT_OBJECT_TYPE_FLOCK */, 0, x, y, z);
     vm->PushObject(h);
 }
 
@@ -748,7 +760,9 @@ static void N_CREATE_REWARD(LHVM* vm) {
     p.type_enum = static_cast<uint32_t>(reward_type);
     (void)y;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 7 /* REWARD */, reward_type, x, y, z);
+    vm->PushObject(h);
 }
 
 static void N_CREATE_REWARD_IN_TOWN(LHVM* vm) {
@@ -766,7 +780,9 @@ static void N_CREATE_RANDOM_VILLAGER_OF_TRIBE(LHVM* vm) {
     p.world_x = x; p.world_z = z; p.scale = 1.0f;
     p.type_enum = static_cast<uint32_t>(tribe);
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_VILLAGER, p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 4 /* VILLAGER */, tribe, x, y, z);
+    vm->PushObject(h);
 }
 
 static void N_CREATE_MIST(LHVM* vm) {
@@ -776,24 +792,28 @@ static void N_CREATE_MIST(LHVM* vm) {
 }
 
 static void N_LOAD_CREATURE(LHVM* vm) {
-    vm->PopInt();    // creature type
+    int32_t  ctype = vm->PopInt();
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    vm->PopObject(); // owning player
+    vm->PopObject();
     (void)y;
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 12 /* CREATURE */, ctype, x, y, z);
+    vm->PushObject(h);
 }
 
 static void N_LOAD_MY_CREATURE(LHVM* vm) {
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    vm->PopObject(); // owning player
+    vm->PopObject();
     (void)y;
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 12 /* CREATURE */, 0, x, y, z);
+    vm->PushObject(h);
 }
 
 // --- Capacity / state queries -------------------------------------------
@@ -1310,7 +1330,6 @@ static void N_SWAP_CREATURE(LHVM* vm) {
 }
 
 static void N_CREATURE_CREATE_RELATIVE(LHVM* vm) {
-    // (cmag mode, x_offset, y_offset, z_offset, creature, (??)) → new creature
     vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
     uint32_t parent = vm->PopObject();
     Object* p = LookupObject(parent);
@@ -1318,7 +1337,9 @@ static void N_CREATURE_CREATE_RELATIVE(LHVM* vm) {
     if (p) { pr.world_x = WorldX(p); pr.world_z = WorldZ(p); }
     pr.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, pr);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 12 /* CREATURE */, 0, pr.world_x, 0, pr.world_z);
+    vm->PushObject(h);
 }
 
 // --- Fight queue ---------------------------------------------------------
@@ -1770,7 +1791,9 @@ static void N_CREATE_HIGHLIGHT(LHVM* vm) {
     p.type_enum = static_cast<uint32_t>(type);
     (void)y;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
-    vm->PushObject(HandleFor(obj));
+    uint32_t h = HandleFor(obj);
+    NotifySpawn(h, obj, 1 /* MARKER (highlight) */, type, x, y, z);
+    vm->PushObject(h);
 }
 
 // --- Poisoned-area queries ----------------------------------------------

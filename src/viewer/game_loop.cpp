@@ -3,10 +3,12 @@
 // Now bridges to bw_core for real entity logic.
 
 #include "game_loop.h"
+#include "mesh_names.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
 // bw_core integration
 #include <black/Terrain.h>
@@ -28,6 +30,64 @@ static const GameState* s_current_game_state = nullptr;
 // LHVM host services — translate the viewer's hand/click into the bw_core
 // handle space the VM speaks. Registered on game init so chunk-1's
 // GET_HAND_POSITION / GAME_THING_CLICKED / etc. return real values.
+// Default mesh lookup for LHVM-spawned entities. The G3D archive's mesh
+// order matches g_mesh_names so a name search yields the correct index.
+static int FindMeshIdByName(const char* name) {
+    for (int i = 0; i < g_mesh_name_count; i++) {
+        if (std::strcmp(g_mesh_names[i], name) == 0) return i;
+    }
+    return -1;
+}
+
+static int DefaultMeshForScriptType(int script_type) {
+    switch (script_type) {
+    case 2:                      return FindMeshIdByName("B_NORS_VILLAGECENTRE"); // ABODE
+    case 3: /* FEATURE */        return FindMeshIdByName("B_CAMPFIRE");
+    case 4:                                                                       // VILLAGER
+    case 5:                      return FindMeshIdByName("B_AMCN_VILLAGECENTRE"); // VILLAGER_CHILD (no villager mesh — use centre as proxy)
+    case 6: /* ANIMAL */         return FindMeshIdByName("A_COW_1");
+    case 7: /* REWARD */         return FindMeshIdByName("REWARD_CHEST_EXPLODE");
+    case 8: /* MOBILE_STATIC */  return FindMeshIdByName("U_BUCKET");
+    case 11: /* FLOCK */         return FindMeshIdByName("A_DOVE_1");
+    case 12: /* CREATURE */      return FindMeshIdByName("A_LION_1");
+    case 13: /* DEAD_TREE */     return FindMeshIdByName("O_BURNT_TREE");
+    case 21: /* BIRD */          return FindMeshIdByName("A_DOVE_1");
+    case 22: /* TREE */          return FindMeshIdByName("T_PINE");
+    case 47: /* ROCK */          return FindMeshIdByName("U_BUCKET"); // no rock entry, fallback
+    default:                     return FindMeshIdByName("T_BUSH");
+    }
+}
+
+static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
+    if (!info || !s_current_game_state) return;
+    auto* g = const_cast<GameState*>(s_current_game_state);
+
+    // Re-snap altitude to terrain so the new entity sits on the ground rather
+    // than at whatever Y the script supplied (often 0).
+    float ground = g->GetTerrainHeight(info->x, info->z);
+    float y = ground > info->y ? ground : info->y;
+
+    GameEntity e = {};
+    e.x = info->x;
+    e.y = y;
+    e.z = info->z;
+    e.angle = 0;
+    e.scale = 1.0f;
+    e.mesh_id = DefaultMeshForScriptType(info->script_type);
+    e.type = (info->script_type == 22) ? ENTITY_TREE
+           : (info->script_type == 2)  ? ENTITY_ABODE
+           : (info->script_type == 4 || info->script_type == 5) ? ENTITY_VILLAGER
+           : (info->script_type == 6 || info->script_type == 21) ? ENTITY_ANIMAL
+           : ENTITY_FEATURE;
+    e.alive = true;
+    e.selected = false;
+    e.physics_active = false;
+    e.name = "lhvm";
+
+    g->entities.push_back(e);
+    g->core_entities.push_back(info->obj);
+}
+
 static void HandQueryCallback(lhvm::HandInfo* out) {
     *out = {};
     if (!s_current_game_state) return;
@@ -91,7 +151,8 @@ bool GameState::Init(const std::string& script_path) {
     // Register terrain + LHVM host services
     s_current_game_state = this;
     g_terrain_height_func = TerrainHeightCallback;
-    lhvm::g_hand_query_func = HandQueryCallback;
+    lhvm::g_hand_query_func   = HandQueryCallback;
+    lhvm::g_entity_spawn_func = EntitySpawnCallback;
     printf("Game: Terrain + LHVM host services registered for bw_core\n"); fflush(stdout);
 
     // Load meshes
