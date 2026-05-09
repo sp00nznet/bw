@@ -34,6 +34,9 @@
 #include "game_loop.h"
 #include "mesh_names.h"
 
+#include <black/LHVMObjects.h>
+#include <black/Object.h>
+
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
 
@@ -497,6 +500,15 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
     case WM_LBUTTONDOWN:
         g_lmb_down = true;
+        if (g_game_mode) {
+            // Latch the click for the LHVM so GAME_THING_CLICKED /
+            // POSITION_CLICKED / GET_OBJECT_CLICKED can fire from scripts.
+            int hover = g_game.hand.hover_entity;
+            if (hover >= 0 && hover < static_cast<int>(g_game.core_entities.size())) {
+                lhvm::NotifyObjectClicked(lhvm::HandleFor(g_game.core_entities[hover]));
+            }
+            lhvm::NotifyPositionClicked(g_game.hand.x, g_game.hand.y, g_game.hand.z);
+        }
         if (g_game_mode && g_game.hand.hover_entity >= 0 && g_game.hand.held_entity < 0) {
             g_game.PickUpEntity(g_game.hand.hover_entity);
         } else {

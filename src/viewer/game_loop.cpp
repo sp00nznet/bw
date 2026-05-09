@@ -13,6 +13,7 @@
 #include <black/EntityFactory.h>
 #include <black/Object.h>
 #include <black/LHVM.h>
+#include <black/LHVMObjects.h>
 #include <black/types.h>
 
 namespace bw {
@@ -21,8 +22,30 @@ static const float GRAVITY = -9.8f * 2.0f;  // Scaled gravity
 static const float HAND_HOVER_HEIGHT = 30.0f;
 static const float PICK_RADIUS = 15.0f;
 
-// Static pointer to current GameState for terrain callback
+// Static pointer to current GameState for terrain/hand/click callbacks
 static const GameState* s_current_game_state = nullptr;
+
+// LHVM host services — translate the viewer's hand/click into the bw_core
+// handle space the VM speaks. Registered on game init so chunk-1's
+// GET_HAND_POSITION / GAME_THING_CLICKED / etc. return real values.
+static void HandQueryCallback(lhvm::HandInfo* out) {
+    *out = {};
+    if (!s_current_game_state) return;
+    const auto& h = s_current_game_state->hand;
+    out->x = h.x;
+    out->y = h.y;
+    out->z = h.z;
+    out->state = h.held_entity >= 0 ? 5  // HOLDING
+               : h.hover_entity >= 0 ? 1  // NORMAL over thing
+               : 1;
+    auto handle_for_index = [](int idx) -> uint32_t {
+        if (idx < 0 || !s_current_game_state) return 0;
+        if (idx >= static_cast<int>(s_current_game_state->core_entities.size())) return 0;
+        return lhvm::HandleFor(s_current_game_state->core_entities[idx]);
+    };
+    out->hover_object = handle_for_index(h.hover_entity);
+    out->held_object  = handle_for_index(h.held_entity);
+}
 
 // Terrain height callback for bw_core
 static float TerrainHeightCallback(float world_x, float world_z) {
@@ -65,10 +88,11 @@ bool GameState::Init(const std::string& script_path) {
         return false;
     }
 
-    // Register terrain height callback for bw_core
+    // Register terrain + LHVM host services
     s_current_game_state = this;
     g_terrain_height_func = TerrainHeightCallback;
-    printf("Game: Terrain height service registered for bw_core\n"); fflush(stdout);
+    lhvm::g_hand_query_func = HandQueryCallback;
+    printf("Game: Terrain + LHVM host services registered for bw_core\n"); fflush(stdout);
 
     // Load meshes
     printf("Game: Loading meshes...\n"); fflush(stdout);

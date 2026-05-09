@@ -140,6 +140,18 @@ HandInfo CurrentHand() {
 void ClearClickedObject()   { g_click_latch.thing_clicked = false;    g_click_latch.clicked_object = 0; }
 void ClearClickedPosition() { g_click_latch.position_clicked = false; g_click_latch.click_x = g_click_latch.click_y = g_click_latch.click_z = 0; }
 
+void NotifyObjectClicked(uint32_t handle) {
+    g_click_latch.thing_clicked    = true;
+    g_click_latch.clicked_object   = handle;
+}
+
+void NotifyPositionClicked(float x, float y, float z) {
+    g_click_latch.position_clicked = true;
+    g_click_latch.click_x = x;
+    g_click_latch.click_y = y;
+    g_click_latch.click_z = z;
+}
+
 // ============================================================================
 // Coordinate conversion helpers
 // ============================================================================

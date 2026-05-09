@@ -62,6 +62,11 @@ extern ClickQueryFn g_click_query_func;
 void ClearClickedObject();
 void ClearClickedPosition();
 
+// Hosts call these on user input. The latch holds the value until a script
+// consumes it via GAME_THING_CLICKED / POSITION_CLICKED, or until cleared.
+void NotifyObjectClicked(uint32_t handle);
+void NotifyPositionClicked(float x, float y, float z);
+
 // --- Native registration -------------------------------------------------
 
 // Override the stub registrations in LHVM with wired implementations.
