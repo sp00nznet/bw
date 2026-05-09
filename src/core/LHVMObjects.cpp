@@ -1013,6 +1013,403 @@ static void N_SET_MAGIC_PROPERTIES(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 3 — creature mind / belief / desire (50)
+// ============================================================================
+//
+// The 135KB CreatureMental struct will hold all of this in time, but until
+// the Living state machine and Creature::Process pull from it, we stage the
+// values in script-visible side-tables so SET → GET round-trips and
+// "is desire X above threshold" queries stay self-consistent.
+
+namespace {
+
+struct CreatureMind {
+    std::unordered_map<int32_t, float>   desire_value;
+    std::unordered_map<int32_t, float>   desire_maximum;
+    std::unordered_map<int32_t, bool>    desire_active;
+    std::unordered_map<int32_t, float>   agenda_priority;
+    std::unordered_map<int32_t, float>   distinction;
+    std::unordered_map<int64_t, float>   action_knowledge;       // (type<<32)|subtype → value
+    std::unordered_map<int32_t, int32_t> action_perform_count;   // action type → count
+    int32_t  only_desire        = -1;
+    bool     learn_everything   = false;
+    bool     in_dev_script      = false;
+    bool     auto_scale         = false;
+    bool     creature_help_enabled = true;
+    int32_t  player_handle      = 0;
+    uint32_t leashed_to_handle  = 0;
+    uint32_t interacting_with   = 0;
+    int32_t  fight_move_queued  = 0;
+    int32_t  fight_spell_queued = 0;
+    int32_t  fight_step_queued  = 0;
+    int32_t  fight_action       = 0;
+    int32_t  dev_stage          = 0;
+    int32_t  reaction           = -1;
+    int32_t  name_string_id     = 0;
+    bool     sound_on           = true;
+    bool     in_temple          = false;
+    float    home_x = 0, home_y = 0, home_z = 0;
+    float    creed_a = 0, creed_b = 0;
+    float    object_belief_scale = 1.0f;
+    bool     leash_works        = true;
+};
+
+std::unordered_map<uint32_t, CreatureMind> g_minds;
+
+CreatureMind& MindFor(uint32_t handle) { return g_minds[handle]; }
+
+inline int64_t ActionKey(int32_t type, int32_t subtype) {
+    return (static_cast<int64_t>(type) << 32) | static_cast<uint32_t>(subtype);
+}
+
+} // namespace
+
+// --- Learning ------------------------------------------------------------
+
+static void N_CREATURE_LEARN_EVERYTHING(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (h) MindFor(h).learn_everything = true;
+}
+
+static void N_CREATURE_LEARN_EVERYTHING_EXCLUDING(LHVM* vm) {
+    int32_t excluded = vm->PopInt();
+    uint32_t h = vm->PopObject();
+    if (!h) return;
+    auto& m = MindFor(h);
+    m.learn_everything = true;
+    m.action_knowledge.erase(ActionKey(excluded, 0));
+}
+
+static void N_CREATURE_SET_KNOWS_ACTION(LHVM* vm) {
+    float    know    = vm->PopFloat();
+    int32_t  subtype = vm->PopInt();
+    int32_t  type    = vm->PopInt();
+    uint32_t h       = vm->PopObject();
+    if (h) MindFor(h).action_knowledge[ActionKey(type, subtype)] = know;
+}
+
+static void N_CREATURE_LEARN_DISTINCTION(LHVM* vm) {
+    float    value = vm->PopFloat();
+    int32_t  type  = vm->PopInt();
+    uint32_t h     = vm->PopObject();
+    if (h) MindFor(h).distinction[type] = value;
+}
+
+// --- Desires / agenda ----------------------------------------------------
+
+static void N_CREATURE_SET_AGENDA_PRIORITY(LHVM* vm) {
+    float    pri  = vm->PopFloat();
+    int32_t  type = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (h) MindFor(h).agenda_priority[type] = pri;
+}
+
+static void N_CREATURE_TURN_OFF_ALL_DESIRES(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (!h) return;
+    auto& m = MindFor(h);
+    for (auto& kv : m.desire_active) kv.second = false;
+}
+
+static void N_CREATURE_SET_DESIRE_VALUE(LHVM* vm) {
+    float    val  = vm->PopFloat();
+    int32_t  type = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (h) MindFor(h).desire_value[type] = val;
+}
+
+static void N_CREATURE_SET_DESIRE_ACTIVATED(LHVM* vm) {
+    bool     on   = vm->PopBoolean();
+    int32_t  type = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (h) MindFor(h).desire_active[type] = on;
+}
+
+static void N_CREATURE_SET_DESIRE_MAXIMUM(LHVM* vm) {
+    float    mx   = vm->PopFloat();
+    int32_t  type = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (h) MindFor(h).desire_maximum[type] = mx;
+}
+
+static void N_CREATURE_DESIRE_IS(LHVM* vm) {
+    int32_t  type = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (!h) { vm->PushFloat(0); return; }
+    auto& m = MindFor(h);
+    auto it = m.desire_value.find(type);
+    vm->PushFloat(it == m.desire_value.end() ? 0.0f : it->second);
+}
+
+static void N_SET_CREATURE_ONLY_DESIRE(LHVM* vm) {
+    int32_t  desire = vm->PopInt();
+    uint32_t h      = vm->PopObject();
+    if (h) MindFor(h).only_desire = desire;
+}
+
+static void N_SET_CREATURE_ONLY_DESIRE_OFF(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (h) MindFor(h).only_desire = -1;
+}
+
+// --- Actions / counts ----------------------------------------------------
+
+static void N_CREATURE_DO_ACTION(LHVM* vm) {
+    vm->PopObject();   // target
+    int32_t  action = vm->PopInt();
+    uint32_t h      = vm->PopObject();
+    if (h) MindFor(h).action_perform_count[action] += 1;
+}
+
+static void N_CREATURE_INITIALISE_NUM_TIMES(LHVM* vm) {
+    int32_t  action = vm->PopInt();
+    uint32_t h      = vm->PopObject();
+    if (h) MindFor(h).action_perform_count[action] = 0;
+}
+
+static void N_CREATURE_GET_NUM_TIMES(LHVM* vm) {
+    int32_t  action = vm->PopInt();
+    uint32_t h      = vm->PopObject();
+    if (!h) { vm->PushInt(0); return; }
+    auto& counts = MindFor(h).action_perform_count;
+    auto it = counts.find(action);
+    vm->PushInt(it == counts.end() ? 0 : it->second);
+}
+
+static void N_CREATURE_FORCE_FINISH(LHVM* vm) {
+    vm->PopObject();  // creature — clearing the current action requires
+                      // the LivingAction state machine, deferred.
+}
+
+static void N_CALL_PLAYER_CREATURE(LHVM* vm) {
+    vm->PopObject();
+    // Calling the player's creature back home is a navigation issue — the
+    // creature object isn't tracked per-player yet, so this is a logical no-op.
+}
+
+// --- Configuration -------------------------------------------------------
+
+static void N_CREATURE_SET_PLAYER(LHVM* vm) {
+    int32_t  player = vm->PopInt();    // player handle (or index)
+    uint32_t h      = vm->PopObject();
+    if (h) MindFor(h).player_handle = player;
+}
+
+static void N_SET_CREATURE_HOME(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    if (!h) return;
+    auto& m = MindFor(h);
+    m.home_x = x; m.home_y = y; m.home_z = z;
+}
+
+static void N_SET_CREATURE_NAME(LHVM* vm) {
+    int32_t  name_id = vm->PopInt();
+    uint32_t h       = vm->PopObject();
+    if (h) MindFor(h).name_string_id = name_id;
+}
+
+static void N_SET_CREATURE_HELP(LHVM* vm) {
+    int32_t  level = vm->PopInt();
+    uint32_t h     = vm->PopObject();
+    if (h) MindFor(h).creature_help_enabled = (level != 0);
+}
+
+static void N_SET_CREATURE_DEV_STAGE(LHVM* vm) {
+    int32_t  stage = vm->PopInt();
+    uint32_t h     = vm->PopObject();
+    if (h) MindFor(h).dev_stage = stage;
+}
+
+static void N_SET_CREATURE_SOUND(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).sound_on = on;
+}
+
+static void N_SET_CREATURE_IN_TEMPLE(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).in_temple = on;
+}
+
+static void N_CREATURE_AUTOSCALE(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).auto_scale = on;
+}
+
+static void N_SET_CREATURE_CREED_PROPERTIES(LHVM* vm) {
+    float b = vm->PopFloat(), a = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    if (h) { auto& m = MindFor(h); m.creed_a = a; m.creed_b = b; }
+}
+
+static void N_SET_OBJECT_BELIEF_SCALE(LHVM* vm) {
+    float    scale = vm->PopFloat();
+    uint32_t h     = vm->PopObject();
+    if (h) MindFor(h).object_belief_scale = scale;
+}
+
+// --- State queries -------------------------------------------------------
+
+static void N_CREATURE_REACTION(LHVM* vm) {
+    int32_t  reaction = vm->PopInt();
+    uint32_t h        = vm->PopObject();
+    if (h) MindFor(h).reaction = reaction;
+}
+
+static void N_CREATURE_IN_DEV_SCRIPT(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).in_dev_script = on;
+}
+
+static void N_CREATURE_FORCE_FRIENDS(LHVM* vm) {
+    vm->PopObject(); vm->PopObject();
+    // Bilateral friendship — flag both creatures fighting=false in chunk 3
+    // would require resolving both handles; we leave the existing behaviour
+    // (no fight state set) since CreatureAttitudeToPlayer isn't wired yet.
+}
+
+static void N_CREATURE_INTERACTING_WITH(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (!h) { vm->PushBoolean(false); return; }
+    vm->PushBoolean(MindFor(h).interacting_with != 0);
+}
+
+static void N_CREATURE_SPELL_REVERSION(LHVM* vm) {
+    vm->PopBoolean(); vm->PopObject();
+    // Spell reversion toggles whether learned spells revert on use — the
+    // CreatureLearning slot for that flag isn't surfaced yet, so we accept
+    // and discard the value.
+}
+
+static void N_SWAP_CREATURE(LHVM* vm) {
+    uint32_t b = vm->PopObject();
+    uint32_t a = vm->PopObject();
+    auto ia = g_minds.find(a);
+    auto ib = g_minds.find(b);
+    if (ia != g_minds.end() && ib != g_minds.end()) std::swap(ia->second, ib->second);
+}
+
+static void N_CREATURE_CREATE_RELATIVE(LHVM* vm) {
+    // (cmag mode, x_offset, y_offset, z_offset, creature, (??)) → new creature
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    uint32_t parent = vm->PopObject();
+    Object* p = LookupObject(parent);
+    EntityCreateParams pr = {};
+    if (p) { pr.world_x = WorldX(p); pr.world_z = WorldZ(p); }
+    pr.scale = 5.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, pr);
+    vm->PushObject(HandleFor(obj));
+}
+
+// --- Fight queue ---------------------------------------------------------
+
+static void N_SET_CREATURE_QUEUE_FIGHT_MOVE(LHVM* vm) {
+    int32_t  mv = vm->PopInt();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).fight_move_queued = mv;
+}
+
+static void N_SET_CREATURE_QUEUE_FIGHT_SPELL(LHVM* vm) {
+    int32_t  sp = vm->PopInt();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).fight_spell_queued = sp;
+}
+
+static void N_SET_CREATURE_QUEUE_FIGHT_STEP(LHVM* vm) {
+    int32_t  st = vm->PopInt();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).fight_step_queued = st;
+}
+
+static void N_GET_CREATURE_FIGHT_ACTION(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (!h) { vm->PushInt(0); return; }
+    vm->PushInt(MindFor(h).fight_action);
+}
+
+static void N_CREATURE_FIGHT_QUEUE_HITS(LHVM* vm) {
+    int32_t  hits = vm->PopInt();
+    uint32_t h    = vm->PopObject();
+    if (h) MindFor(h).fight_action = hits;
+}
+
+// --- Hand / leash --------------------------------------------------------
+
+static void N_IN_CREATURE_HAND(LHVM* vm) {
+    uint32_t obj      = vm->PopObject();
+    uint32_t creature = vm->PopObject();
+    if (!creature) { vm->PushBoolean(false); return; }
+    vm->PushBoolean(MindFor(creature).interacting_with == obj && obj != 0);
+}
+
+static void N_SET_LEASH_WORKS(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t h  = vm->PopObject();
+    if (h) MindFor(h).leash_works = on;
+}
+
+static void N_ATTACH_OBJECT_LEASH_TO_OBJECT(LHVM* vm) {
+    uint32_t target  = vm->PopObject();
+    uint32_t leashed = vm->PopObject();
+    if (!leashed) return;
+    Slot* s = SlotOf(leashed);
+    if (s) s->flags |= FLAG_LEASHED;
+    MindFor(leashed).leashed_to_handle = target;
+}
+
+static void N_ATTACH_OBJECT_LEASH_TO_HAND(LHVM* vm) {
+    uint32_t leashed = vm->PopObject();
+    if (!leashed) return;
+    Slot* s = SlotOf(leashed);
+    if (s) s->flags |= FLAG_LEASHED;
+    MindFor(leashed).leashed_to_handle = 0;  // 0 = the hand
+}
+
+static void N_DETACH_OBJECT_LEASH(LHVM* vm) {
+    uint32_t leashed = vm->PopObject();
+    if (!leashed) return;
+    Slot* s = SlotOf(leashed);
+    if (s) s->flags &= ~FLAG_LEASHED;
+    g_minds[leashed].leashed_to_handle = 0;
+}
+
+// --- Player-belief / desire-boost ---------------------------------------
+
+static void N_SET_PLAYER_BELIEF(LHVM* vm) {
+    vm->PopFloat();   // belief value
+    vm->PopObject();  // town
+    vm->PopObject();  // player
+    // Real BELIEF setting goes through Town::SetBeliefInPlayer (already
+    // implemented). Without a town registry we can't resolve which Town
+    // owns this handle yet, so this stays logical until chunk 7.
+}
+
+static void N_SET_TOWN_DESIRE_BOOST(LHVM* vm) {
+    vm->PopFloat(); vm->PopInt(); vm->PopObject();
+}
+
+static void N_CLEAR_ACTOR_MIND(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    g_minds.erase(h);
+}
+
+// --- Profile/training queries -------------------------------------------
+
+static void N_CAN_SKIP_CREATURE_TRAINING(LHVM* vm)   { vm->PushBoolean(true); }
+static void N_IS_KEEPING_OLD_CREATURE(LHVM* vm)       { vm->PushBoolean(false); }
+static void N_CURRENT_PROFILE_HAS_CREATURE(LHVM* vm)  { vm->PushBoolean(false); }
+
+static void N_GET_TARGET_OBJECT(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    if (!h) { vm->PushObject(0); return; }
+    vm->PushObject(MindFor(h).interacting_with);
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -1126,6 +1523,60 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_SET_CAN_BUILD_WORSHIPSITE,    "SET_CAN_BUILD_WORSHIPSITE",    N_SET_CAN_BUILD_WORSHIPSITE);
     vm->RegisterNativeFunction(NATIVE_SET_MAGIC_IN_OBJECT,          "SET_MAGIC_IN_OBJECT",          N_SET_MAGIC_IN_OBJECT);
     vm->RegisterNativeFunction(NATIVE_SET_MAGIC_PROPERTIES,         "SET_MAGIC_PROPERTIES",         N_SET_MAGIC_PROPERTIES);
+
+    // --- Chunk 3: creature mind / belief / desire (50) ---
+    vm->RegisterNativeFunction(NATIVE_CREATURE_LEARN_EVERYTHING,            "CREATURE_LEARN_EVERYTHING",            N_CREATURE_LEARN_EVERYTHING);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_LEARN_EVERYTHING_EXCLUDING,  "CREATURE_LEARN_EVERYTHING_EXCLUDING",  N_CREATURE_LEARN_EVERYTHING_EXCLUDING);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_KNOWS_ACTION,            "CREATURE_SET_KNOWS_ACTION",            N_CREATURE_SET_KNOWS_ACTION);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_LEARN_DISTINCTION_ABOUT_ACTIVITY_OBJECT, "CREATURE_LEARN_DISTINCTION_ABOUT_ACTIVITY_OBJECT", N_CREATURE_LEARN_DISTINCTION);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_AGENDA_PRIORITY,         "CREATURE_SET_AGENDA_PRIORITY",         N_CREATURE_SET_AGENDA_PRIORITY);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_TURN_OFF_ALL_DESIRES,        "CREATURE_TURN_OFF_ALL_DESIRES",        N_CREATURE_TURN_OFF_ALL_DESIRES);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_VALUE,            "CREATURE_SET_DESIRE_VALUE",            N_CREATURE_SET_DESIRE_VALUE);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_ACTIVATED_78,     "CREATURE_SET_DESIRE_ACTIVATED_78",     N_CREATURE_SET_DESIRE_ACTIVATED);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_ACTIVATED_79,     "CREATURE_SET_DESIRE_ACTIVATED_79",     N_CREATURE_SET_DESIRE_ACTIVATED);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_DESIRE_MAXIMUM,          "CREATURE_SET_DESIRE_MAXIMUM",          N_CREATURE_SET_DESIRE_MAXIMUM);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_DESIRE_IS,                   "CREATURE_DESIRE_IS",                   N_CREATURE_DESIRE_IS);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE,             "SET_CREATURE_ONLY_DESIRE",             N_SET_CREATURE_ONLY_DESIRE);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_ONLY_DESIRE_OFF,         "SET_CREATURE_ONLY_DESIRE_OFF",         N_SET_CREATURE_ONLY_DESIRE_OFF);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_DO_ACTION,                   "CREATURE_DO_ACTION",                   N_CREATURE_DO_ACTION);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION, "CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION", N_CREATURE_INITIALISE_NUM_TIMES);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_GET_NUM_TIMES_ACTION_PERFORMED, "CREATURE_GET_NUM_TIMES_ACTION_PERFORMED", N_CREATURE_GET_NUM_TIMES);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_FORCE_FINISH,                "CREATURE_FORCE_FINISH",                N_CREATURE_FORCE_FINISH);
+    vm->RegisterNativeFunction(NATIVE_CALL_PLAYER_CREATURE,                 "CALL_PLAYER_CREATURE",                 N_CALL_PLAYER_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SET_PLAYER,                  "CREATURE_SET_PLAYER",                  N_CREATURE_SET_PLAYER);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_HOME,                    "SET_CREATURE_HOME",                    N_SET_CREATURE_HOME);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_NAME,                    "SET_CREATURE_NAME",                    N_SET_CREATURE_NAME);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_HELP,                    "SET_CREATURE_HELP",                    N_SET_CREATURE_HELP);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_DEV_STAGE,               "SET_CREATURE_DEV_STAGE",               N_SET_CREATURE_DEV_STAGE);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_SOUND,                   "SET_CREATURE_SOUND",                   N_SET_CREATURE_SOUND);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_IN_TEMPLE,               "SET_CREATURE_IN_TEMPLE",               N_SET_CREATURE_IN_TEMPLE);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_AUTOSCALE,                   "CREATURE_AUTOSCALE",                   N_CREATURE_AUTOSCALE);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_CREED_PROPERTIES,        "SET_CREATURE_CREED_PROPERTIES",        N_SET_CREATURE_CREED_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_SET_OBJECT_BELIEF_SCALE,              "SET_OBJECT_BELIEF_SCALE",              N_SET_OBJECT_BELIEF_SCALE);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_REACTION,                    "CREATURE_REACTION",                    N_CREATURE_REACTION);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_IN_DEV_SCRIPT,               "CREATURE_IN_DEV_SCRIPT",               N_CREATURE_IN_DEV_SCRIPT);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_FORCE_FRIENDS,               "CREATURE_FORCE_FRIENDS",               N_CREATURE_FORCE_FRIENDS);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_INTERACTING_WITH,            "CREATURE_INTERACTING_WITH",            N_CREATURE_INTERACTING_WITH);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_SPELL_REVERSION,             "CREATURE_SPELL_REVERSION",             N_CREATURE_SPELL_REVERSION);
+    vm->RegisterNativeFunction(NATIVE_SWAP_CREATURE,                        "SWAP_CREATURE",                        N_SWAP_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_CREATE_RELATIVE_TO_CREATURE, "CREATURE_CREATE_RELATIVE_TO_CREATURE", N_CREATURE_CREATE_RELATIVE);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_QUEUE_FIGHT_MOVE,        "SET_CREATURE_QUEUE_FIGHT_MOVE",        N_SET_CREATURE_QUEUE_FIGHT_MOVE);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_QUEUE_FIGHT_SPELL,       "SET_CREATURE_QUEUE_FIGHT_SPELL",       N_SET_CREATURE_QUEUE_FIGHT_SPELL);
+    vm->RegisterNativeFunction(NATIVE_SET_CREATURE_QUEUE_FIGHT_STEP,        "SET_CREATURE_QUEUE_FIGHT_STEP",        N_SET_CREATURE_QUEUE_FIGHT_STEP);
+    vm->RegisterNativeFunction(NATIVE_GET_CREATURE_FIGHT_ACTION,            "GET_CREATURE_FIGHT_ACTION",            N_GET_CREATURE_FIGHT_ACTION);
+    vm->RegisterNativeFunction(NATIVE_CREATURE_FIGHT_QUEUE_HITS,            "CREATURE_FIGHT_QUEUE_HITS",            N_CREATURE_FIGHT_QUEUE_HITS);
+    vm->RegisterNativeFunction(NATIVE_IN_CREATURE_HAND,                     "IN_CREATURE_HAND",                     N_IN_CREATURE_HAND);
+    vm->RegisterNativeFunction(NATIVE_SET_LEASH_WORKS,                      "SET_LEASH_WORKS",                      N_SET_LEASH_WORKS);
+    vm->RegisterNativeFunction(NATIVE_ATTACH_OBJECT_LEASH_TO_OBJECT,        "ATTACH_OBJECT_LEASH_TO_OBJECT",        N_ATTACH_OBJECT_LEASH_TO_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_ATTACH_OBJECT_LEASH_TO_HAND,          "ATTACH_OBJECT_LEASH_TO_HAND",          N_ATTACH_OBJECT_LEASH_TO_HAND);
+    vm->RegisterNativeFunction(NATIVE_DETACH_OBJECT_LEASH,                  "DETACH_OBJECT_LEASH",                  N_DETACH_OBJECT_LEASH);
+    vm->RegisterNativeFunction(NATIVE_SET_PLAYER_BELIEF,                    "SET_PLAYER_BELIEF",                    N_SET_PLAYER_BELIEF);
+    vm->RegisterNativeFunction(NATIVE_SET_TOWN_DESIRE_BOOST,                "SET_TOWN_DESIRE_BOOST",                N_SET_TOWN_DESIRE_BOOST);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_ACTOR_MIND,                     "CLEAR_ACTOR_MIND",                     N_CLEAR_ACTOR_MIND);
+    vm->RegisterNativeFunction(NATIVE_CAN_SKIP_CREATURE_TRAINING,           "CAN_SKIP_CREATURE_TRAINING",           N_CAN_SKIP_CREATURE_TRAINING);
+    vm->RegisterNativeFunction(NATIVE_IS_KEEPING_OLD_CREATURE,              "IS_KEEPING_OLD_CREATURE",              N_IS_KEEPING_OLD_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_CURRENT_PROFILE_HAS_CREATURE,         "CURRENT_PROFILE_HAS_CREATURE",         N_CURRENT_PROFILE_HAS_CREATURE);
+    vm->RegisterNativeFunction(NATIVE_GET_TARGET_OBJECT,                    "GET_TARGET_OBJECT",                    N_GET_TARGET_OBJECT);
 }
 
 } // namespace lhvm
