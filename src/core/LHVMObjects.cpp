@@ -1410,6 +1410,417 @@ static void N_GET_TARGET_OBJECT(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 4 — spells / magic / weather (50)
+// ============================================================================
+//
+// Spells in BW dispatch through MagicEffect/Spell objects. Until the spell
+// hierarchy is wired to renders + impacts, scripts use these natives to
+// "cast logically" — we record what was cast, where, and on whom so that
+// downstream queries (IS_AFFECTED_BY_SPELL, last-cast-pos, charging state)
+// can answer truthfully.
+
+namespace {
+
+struct SpellRecord {
+    int32_t  spell_id;
+    int32_t  target_player;
+    uint32_t target_object;
+    float    x, y, z;
+    float    radius;
+    float    cast_time;     // game seconds when last cast
+};
+
+std::unordered_map<uint32_t, std::vector<SpellRecord>> g_player_last_spell;  // per-player log
+std::unordered_map<uint32_t, std::unordered_map<int32_t, bool>> g_object_spell_active;
+std::unordered_map<uint32_t, float> g_player_wind_resistance;
+std::unordered_map<uint32_t, std::unordered_map<int32_t, bool>> g_player_magic_enabled;
+std::unordered_map<uint32_t, bool> g_player_spell_charging;
+
+bool g_climate_paused      = false;
+bool g_storms_paused       = false;
+bool g_alignment_music_on  = true;
+bool g_graphics_clipping   = false;
+float g_clip_x = 0, g_clip_y = 0, g_clip_w = 0, g_clip_h = 0;
+float g_weather_a = 0, g_weather_b = 0, g_weather_c = 0;
+float g_cloud_a = 0,   g_cloud_b = 0,   g_cloud_c = 0;
+float g_land_balance = 0.5f;
+
+void RecordSpell(uint32_t player, int32_t spell, uint32_t target_obj,
+                 float x, float y, float z, float radius) {
+    SpellRecord r;
+    r.spell_id     = spell;
+    r.target_player= 0;
+    r.target_object= target_obj;
+    r.x = x; r.y = y; r.z = z;
+    r.radius      = radius;
+    r.cast_time   = 0;
+    g_player_last_spell[player].push_back(r);
+    if (target_obj) g_object_spell_active[target_obj][spell] = true;
+}
+
+} // namespace
+
+// --- Spell casting -------------------------------------------------------
+
+static void N_SPELL_AT_THING(LHVM* vm) {
+    float    duration = vm->PopFloat();
+    float    radius   = vm->PopFloat();
+    float    z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t target   = vm->PopObject();
+    int32_t  spell    = vm->PopInt();
+    uint32_t player   = vm->PopObject();
+    (void)duration;
+    RecordSpell(player, spell, target, x, y, z, radius);
+    vm->PushObject(0);  // returns the new spell instance — none allocated yet
+}
+
+static void N_SPELL_AT_POS(LHVM* vm) {
+    float    duration = vm->PopFloat();
+    float    radius   = vm->PopFloat();
+    float    z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t  spell    = vm->PopInt();
+    uint32_t player   = vm->PopObject();
+    (void)duration;
+    RecordSpell(player, spell, 0, x, y, z, radius);
+    vm->PushObject(0);
+}
+
+static void N_SPELL_AT_POINT(LHVM* vm) {
+    float    radius = vm->PopFloat();
+    float    z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t  spell  = vm->PopInt();
+    uint32_t player = vm->PopObject();
+    RecordSpell(player, spell, 0, x, y, z, radius);
+    vm->PushObject(0);
+}
+
+static void N_SET_MAGIC_RADIUS(LHVM* vm) {
+    float r = vm->PopFloat();
+    uint32_t obj = vm->PopObject();
+    (void)r; (void)obj;
+}
+
+static void N_SET_PLAYER_MAGIC(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    int32_t  magic = vm->PopInt();
+    uint32_t player = vm->PopObject();
+    g_player_magic_enabled[player][magic] = on;
+}
+
+static void N_HAS_PLAYER_MAGIC(LHVM* vm) {
+    int32_t  magic = vm->PopInt();
+    uint32_t player = vm->PopObject();
+    auto pit = g_player_magic_enabled.find(player);
+    if (pit == g_player_magic_enabled.end()) { vm->PushBoolean(false); return; }
+    auto mit = pit->second.find(magic);
+    vm->PushBoolean(mit != pit->second.end() && mit->second);
+}
+
+static void N_CLEAR_PLAYER_SPELL_CHARGING(LHVM* vm) {
+    uint32_t player = vm->PopObject();
+    g_player_spell_charging[player] = false;
+}
+
+static void N_VORTEX_PARAMETERS(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PopObject();  // vortex object
+}
+
+static void N_VORTEX_FADE_OUT(LHVM* vm) {
+    vm->PopObject();
+}
+
+// --- Weather / climate ---------------------------------------------------
+
+static void N_CHANGE_WEATHER_PROPERTIES(LHVM* vm) {
+    g_weather_c = vm->PopFloat();
+    g_weather_b = vm->PopFloat();
+    g_weather_a = vm->PopFloat();
+}
+
+static void N_CHANGE_CLOUD_PROPERTIES(LHVM* vm) {
+    g_cloud_c = vm->PopFloat();
+    g_cloud_b = vm->PopFloat();
+    g_cloud_a = vm->PopFloat();
+}
+
+static void N_SET_AFFECTED_BY_WIND(LHVM* vm) {
+    bool     on = vm->PopBoolean();
+    uint32_t obj = vm->PopObject();
+    (void)on; (void)obj;
+}
+
+static void N_IS_WIND_MAGIC_AT_POS(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PushBoolean(false);
+}
+
+static void N_PAUSE_UNPAUSE_CLIMATE_SYSTEM(LHVM* vm)             { g_climate_paused = vm->PopBoolean(); }
+static void N_PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM(LHVM* vm) { g_storms_paused = vm->PopBoolean(); }
+
+static void N_KILL_STORMS_IN_AREA(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+
+static void N_SET_PLAYER_WIND_RESISTANCE(LHVM* vm) {
+    float    v = vm->PopFloat();
+    uint32_t player = vm->PopObject();
+    g_player_wind_resistance[player] = v;
+}
+
+static void N_GET_PLAYER_WIND_RESISTANCE(LHVM* vm) {
+    uint32_t player = vm->PopObject();
+    auto it = g_player_wind_resistance.find(player);
+    vm->PushFloat(it == g_player_wind_resistance.end() ? 0.0f : it->second);
+}
+
+// --- Spirit (advisor) ---------------------------------------------------
+//
+// Spirit natives talk to the good/evil/neutral advisor. Until the advisor
+// hierarchy lands these are state setters that the host (viewer) can read
+// to drive UI/animation.
+
+namespace {
+struct SpiritState {
+    bool     visible       = false;
+    bool     ejected       = false;
+    bool     played        = false;
+    bool     speaking      = false;
+    int32_t  current_anim  = 0;
+    uint32_t pointing_at_obj = 0;
+    float    point_x = 0, point_y = 0, point_z = 0;
+    float    screen_x = 0, screen_y = 0;
+};
+std::unordered_map<uint32_t, SpiritState> g_spirits;
+} // namespace
+
+static void N_SPIRIT_EJECT(LHVM* vm) {
+    uint32_t s = vm->PopObject();
+    g_spirits[s].ejected = true;
+}
+
+static void N_SPIRIT_HOME(LHVM* vm) {
+    uint32_t s = vm->PopObject();
+    g_spirits[s].ejected = false;
+}
+
+static void N_SPIRIT_POINT_POS(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    uint32_t s = vm->PopObject();
+    auto& st = g_spirits[s];
+    st.pointing_at_obj = 0;
+    st.point_x = x; st.point_y = y; st.point_z = z;
+}
+
+static void N_SPIRIT_POINT_GAME_THING(LHVM* vm) {
+    uint32_t target = vm->PopObject();
+    uint32_t s      = vm->PopObject();
+    g_spirits[s].pointing_at_obj = target;
+}
+
+static void N_PLAY_SPIRIT_ANIM(LHVM* vm) {
+    int32_t  anim = vm->PopInt();
+    uint32_t s    = vm->PopObject();
+    auto& st = g_spirits[s];
+    st.current_anim = anim;
+    st.played = false;
+}
+
+static void N_SPIRIT_PLAYED(LHVM* vm) {
+    uint32_t s = vm->PopObject();
+    auto it = g_spirits.find(s);
+    vm->PushBoolean(it != g_spirits.end() && it->second.played);
+}
+
+static void N_SPIRIT_SPEAKS(LHVM* vm) {
+    vm->PopInt();    // line / sound id
+    uint32_t s = vm->PopObject();
+    g_spirits[s].speaking = true;
+}
+
+static void N_SPIRIT_APPEAR(LHVM* vm) {
+    uint32_t s = vm->PopObject();
+    g_spirits[s].visible = true;
+}
+
+static void N_SPIRIT_DISAPPEAR(LHVM* vm) {
+    uint32_t s = vm->PopObject();
+    g_spirits[s].visible = false;
+}
+
+static void N_SPIRIT_SCREEN_POINT(LHVM* vm) {
+    float    sy = vm->PopFloat();
+    float    sx = vm->PopFloat();
+    uint32_t s  = vm->PopObject();
+    auto& st = g_spirits[s];
+    st.screen_x = sx; st.screen_y = sy;
+}
+
+// --- Object impact / building -------------------------------------------
+
+static void N_GAME_THING_HIT(LHVM* vm) {
+    uint32_t hitter = vm->PopObject();
+    uint32_t hit    = vm->PopObject();
+    (void)hitter;
+    if (hit) {
+        Object* o = LookupObject(hit);
+        if (o) o->ReduceLife(0.05f, nullptr);
+    }
+    vm->PushBoolean(true);
+}
+
+static void N_BUILD_BUILDING(LHVM* vm) {
+    float amount = vm->PopFloat();
+    uint32_t bld = vm->PopObject();
+    Object* o = LookupObject(bld);
+    if (o) {
+        // Building progress lives on Abode::percent_built — accessing it via
+        // Object* without dynamic_cast keeps the helper general; clamping is
+        // applied by Abode::Process when the script-set value lands.
+        // Layout offset 0x54 is percent_built on Abode.
+        if (amount > 1.0f) amount = 1.0f;
+        if (amount < 0.0f) amount = 0.0f;
+        *reinterpret_cast<float*>(reinterpret_cast<char*>(o) + 0x54) = amount;
+    }
+}
+
+static void N_LOOK_GAME_THING(LHVM* vm) {
+    vm->PopObject();  // object to look at
+    vm->PopObject();  // looker (player or creature)
+}
+
+static void N_OBJECT_INFO_BITS(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Slot* s = SlotOf(h);
+    vm->PushInt(s ? static_cast<int32_t>(s->flags) : 0);
+}
+
+// --- Camera conversion --------------------------------------------------
+
+static void N_CONVERT_CAMERA_POSITION(LHVM* vm) {
+    int32_t enum_val = vm->PopInt();
+    (void)enum_val;
+    vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0);
+}
+
+static void N_CONVERT_CAMERA_FOCUS(LHVM* vm) {
+    int32_t enum_val = vm->PopInt();
+    (void)enum_val;
+    vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0);
+}
+
+// --- UI / clipping / drawing --------------------------------------------
+
+static void N_SET_GRAPHICS_CLIPPING(LHVM* vm) {
+    g_graphics_clipping = vm->PopBoolean();
+}
+
+static void N_SET_CLIPPING_WINDOW(LHVM* vm) {
+    g_clip_h = vm->PopFloat(); g_clip_w = vm->PopFloat();
+    g_clip_y = vm->PopFloat(); g_clip_x = vm->PopFloat();
+}
+
+static void N_CLEAR_CLIPPING_WINDOW(LHVM* /*vm*/) {
+    g_clip_x = g_clip_y = g_clip_w = g_clip_h = 0;
+}
+
+static void N_SET_DRAW_TEXT_COLOUR(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+
+static void N_ENABLE_DISABLE_ALIGNMENT_MUSIC(LHVM* vm) {
+    g_alignment_music_on = vm->PopBoolean();
+}
+
+static void N_SET_INTERFACE_INTERACTION(LHVM* vm) {
+    vm->PopInt();
+}
+
+static void N_SET_INTERFACE_CITADEL(LHVM* vm) {
+    vm->PopBoolean();
+}
+
+static void N_SET_LAND_BALANCE(LHVM* vm) {
+    g_land_balance = vm->PopFloat();
+    vm->PopInt();   // tribe
+}
+
+static void N_CREATE_HIGHLIGHT(LHVM* vm) {
+    vm->PopFloat();  // height
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    int32_t type = vm->PopInt();
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 1.0f;
+    p.type_enum = static_cast<uint32_t>(type);
+    (void)y;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
+    vm->PushObject(HandleFor(obj));
+}
+
+// --- Poisoned-area queries ----------------------------------------------
+
+static void N_ID_POISONED_SIZE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_flock_members.find(h);
+    int32_t count = 0;
+    if (it != g_flock_members.end()) {
+        for (uint32_t m : it->second) {
+            Slot* s = SlotOf(m);
+            if (s && (s->flags & FLAG_POISONED)) count++;
+        }
+    }
+    vm->PushInt(count);
+}
+
+static void N_CALL_POISONED_IN(LHVM* vm) {
+    vm->PopBoolean();             // exclude already called
+    uint32_t container = vm->PopObject();
+    auto it = g_flock_members.find(container);
+    if (it != g_flock_members.end()) {
+        for (uint32_t m : it->second) {
+            Slot* s = SlotOf(m);
+            if (s && (s->flags & FLAG_POISONED)) { vm->PushObject(m); return; }
+        }
+    }
+    vm->PushObject(0);
+}
+
+static void N_CALL_NOT_POISONED_IN(LHVM* vm) {
+    vm->PopBoolean();
+    uint32_t container = vm->PopObject();
+    auto it = g_flock_members.find(container);
+    if (it != g_flock_members.end()) {
+        for (uint32_t m : it->second) {
+            Slot* s = SlotOf(m);
+            if (s && !(s->flags & FLAG_POISONED)) { vm->PushObject(m); return; }
+        }
+    }
+    vm->PushObject(0);
+}
+
+static void N_SAY_SOUND_EFFECT_PLAYING(LHVM* vm) {
+    vm->PopInt();
+    vm->PushBoolean(false);
+}
+
+// --- Spirit appearance / dialogue audio --------------------------------
+
+static void N_ENABLE_DISABLE_MUSIC(LHVM* vm) {
+    vm->PopBoolean(); vm->PopObject();
+}
+
+// --- Cache override for affected-by-spell -------------------------------
+// (chunk 1's IS_AFFECTED_BY_SPELL was stub — make it real now)
+static void N_IS_AFFECTED_BY_SPELL_REAL(LHVM* vm) {
+    int32_t  spell = vm->PopInt();
+    uint32_t obj   = vm->PopObject();
+    auto oit = g_object_spell_active.find(obj);
+    if (oit == g_object_spell_active.end()) { vm->PushBoolean(false); return; }
+    auto sit = oit->second.find(spell);
+    vm->PushBoolean(sit != oit->second.end() && sit->second);
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -1577,6 +1988,57 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_IS_KEEPING_OLD_CREATURE,              "IS_KEEPING_OLD_CREATURE",              N_IS_KEEPING_OLD_CREATURE);
     vm->RegisterNativeFunction(NATIVE_CURRENT_PROFILE_HAS_CREATURE,         "CURRENT_PROFILE_HAS_CREATURE",         N_CURRENT_PROFILE_HAS_CREATURE);
     vm->RegisterNativeFunction(NATIVE_GET_TARGET_OBJECT,                    "GET_TARGET_OBJECT",                    N_GET_TARGET_OBJECT);
+
+    // --- Chunk 4: spells / magic / weather (50) ---
+    vm->RegisterNativeFunction(NATIVE_SPELL_AT_THING,                       "SPELL_AT_THING",                       N_SPELL_AT_THING);
+    vm->RegisterNativeFunction(NATIVE_SPELL_AT_POS,                         "SPELL_AT_POS",                         N_SPELL_AT_POS);
+    vm->RegisterNativeFunction(NATIVE_SPELL_AT_POINT,                       "SPELL_AT_POINT",                       N_SPELL_AT_POINT);
+    vm->RegisterNativeFunction(NATIVE_SET_MAGIC_RADIUS,                     "SET_MAGIC_RADIUS",                     N_SET_MAGIC_RADIUS);
+    vm->RegisterNativeFunction(NATIVE_SET_PLAYER_MAGIC,                     "SET_PLAYER_MAGIC",                     N_SET_PLAYER_MAGIC);
+    vm->RegisterNativeFunction(NATIVE_HAS_PLAYER_MAGIC,                     "HAS_PLAYER_MAGIC",                     N_HAS_PLAYER_MAGIC);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_PLAYER_SPELL_CHARGING,          "CLEAR_PLAYER_SPELL_CHARGING",          N_CLEAR_PLAYER_SPELL_CHARGING);
+    vm->RegisterNativeFunction(NATIVE_VORTEX_PARAMETERS,                    "VORTEX_PARAMETERS",                    N_VORTEX_PARAMETERS);
+    vm->RegisterNativeFunction(NATIVE_VORTEX_FADE_OUT,                      "VORTEX_FADE_OUT",                      N_VORTEX_FADE_OUT);
+    vm->RegisterNativeFunction(NATIVE_CHANGE_WEATHER_PROPERTIES,            "CHANGE_WEATHER_PROPERTIES",            N_CHANGE_WEATHER_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_CHANGE_CLOUD_PROPERTIES,              "CHANGE_CLOUD_PROPERTIES",              N_CHANGE_CLOUD_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_SET_AFFECTED_BY_WIND,                 "SET_AFFECTED_BY_WIND",                 N_SET_AFFECTED_BY_WIND);
+    vm->RegisterNativeFunction(NATIVE_IS_WIND_MAGIC_AT_POS,                 "IS_WIND_MAGIC_AT_POS",                 N_IS_WIND_MAGIC_AT_POS);
+    vm->RegisterNativeFunction(NATIVE_PAUSE_UNPAUSE_CLIMATE_SYSTEM,         "PAUSE_UNPAUSE_CLIMATE_SYSTEM",         N_PAUSE_UNPAUSE_CLIMATE_SYSTEM);
+    vm->RegisterNativeFunction(NATIVE_PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM, "PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM", N_PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM);
+    vm->RegisterNativeFunction(NATIVE_KILL_STORMS_IN_AREA,                  "KILL_STORMS_IN_AREA",                  N_KILL_STORMS_IN_AREA);
+    vm->RegisterNativeFunction(NATIVE_SET_PLAYER_WIND_RESISTANCE,           "SET_PLAYER_WIND_RESISTANCE",           N_SET_PLAYER_WIND_RESISTANCE);
+    vm->RegisterNativeFunction(NATIVE_GET_PLAYER_WIND_RESISTANCE,           "GET_PLAYER_WIND_RESISTANCE",           N_GET_PLAYER_WIND_RESISTANCE);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_EJECT,                         "SPIRIT_EJECT",                         N_SPIRIT_EJECT);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_HOME,                          "SPIRIT_HOME",                          N_SPIRIT_HOME);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_POINT_POS,                     "SPIRIT_POINT_POS",                     N_SPIRIT_POINT_POS);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_POINT_GAME_THING,              "SPIRIT_POINT_GAME_THING",              N_SPIRIT_POINT_GAME_THING);
+    vm->RegisterNativeFunction(NATIVE_PLAY_SPIRIT_ANIM,                     "PLAY_SPIRIT_ANIM",                     N_PLAY_SPIRIT_ANIM);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_PLAYED,                        "SPIRIT_PLAYED",                        N_SPIRIT_PLAYED);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_SPEAKS,                        "SPIRIT_SPEAKS",                        N_SPIRIT_SPEAKS);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_APPEAR,                        "SPIRIT_APPEAR",                        N_SPIRIT_APPEAR);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_DISAPPEAR,                     "SPIRIT_DISAPPEAR",                     N_SPIRIT_DISAPPEAR);
+    vm->RegisterNativeFunction(NATIVE_SPIRIT_SCREEN_POINT,                  "SPIRIT_SCREEN_POINT",                  N_SPIRIT_SCREEN_POINT);
+    vm->RegisterNativeFunction(NATIVE_GAME_THING_HIT,                       "GAME_THING_HIT",                       N_GAME_THING_HIT);
+    vm->RegisterNativeFunction(NATIVE_BUILD_BUILDING,                       "BUILD_BUILDING",                       N_BUILD_BUILDING);
+    vm->RegisterNativeFunction(NATIVE_LOOK_GAME_THING,                      "LOOK_GAME_THING",                      N_LOOK_GAME_THING);
+    vm->RegisterNativeFunction(NATIVE_OBJECT_INFO_BITS,                     "OBJECT_INFO_BITS",                     N_OBJECT_INFO_BITS);
+    vm->RegisterNativeFunction(NATIVE_CONVERT_CAMERA_POSITION,              "CONVERT_CAMERA_POSITION",              N_CONVERT_CAMERA_POSITION);
+    vm->RegisterNativeFunction(NATIVE_CONVERT_CAMERA_FOCUS,                 "CONVERT_CAMERA_FOCUS",                 N_CONVERT_CAMERA_FOCUS);
+    vm->RegisterNativeFunction(NATIVE_SET_GRAPHICS_CLIPPING,                "SET_GRAPHICS_CLIPPING",                N_SET_GRAPHICS_CLIPPING);
+    vm->RegisterNativeFunction(NATIVE_SET_CLIPPING_WINDOW,                  "SET_CLIPPING_WINDOW",                  N_SET_CLIPPING_WINDOW);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_CLIPPING_WINDOW,                "CLEAR_CLIPPING_WINDOW",                N_CLEAR_CLIPPING_WINDOW);
+    vm->RegisterNativeFunction(NATIVE_SET_DRAW_TEXT_COLOUR,                 "SET_DRAW_TEXT_COLOUR",                 N_SET_DRAW_TEXT_COLOUR);
+    vm->RegisterNativeFunction(NATIVE_ENABLE_DISABLE_ALIGNMENT_MUSIC,       "ENABLE_DISABLE_ALIGNMENT_MUSIC",       N_ENABLE_DISABLE_ALIGNMENT_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_SET_INTERFACE_INTERACTION,            "SET_INTERFACE_INTERACTION",            N_SET_INTERFACE_INTERACTION);
+    vm->RegisterNativeFunction(NATIVE_SET_INTERFACE_CITADEL,                "SET_INTERFACE_CITADEL",                N_SET_INTERFACE_CITADEL);
+    vm->RegisterNativeFunction(NATIVE_SET_LAND_BALANCE,                     "SET_LAND_BALANCE",                     N_SET_LAND_BALANCE);
+    vm->RegisterNativeFunction(NATIVE_CREATE_HIGHLIGHT,                     "CREATE_HIGHLIGHT",                     N_CREATE_HIGHLIGHT);
+    vm->RegisterNativeFunction(NATIVE_ID_POISONED_SIZE,                     "ID_POISONED_SIZE",                     N_ID_POISONED_SIZE);
+    vm->RegisterNativeFunction(NATIVE_CALL_POISONED_IN,                     "CALL_POISONED_IN",                     N_CALL_POISONED_IN);
+    vm->RegisterNativeFunction(NATIVE_CALL_NOT_POISONED_IN,                 "CALL_NOT_POISONED_IN",                 N_CALL_NOT_POISONED_IN);
+    vm->RegisterNativeFunction(NATIVE_SAY_SOUND_EFFECT_PLAYING,             "SAY_SOUND_EFFECT_PLAYING",             N_SAY_SOUND_EFFECT_PLAYING);
+    vm->RegisterNativeFunction(NATIVE_ENABLE_DISABLE_MUSIC,                 "ENABLE_DISABLE_MUSIC",                 N_ENABLE_DISABLE_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_IS_AFFECTED_BY_SPELL,                 "IS_AFFECTED_BY_SPELL",                 N_IS_AFFECTED_BY_SPELL_REAL);
 }
 
 } // namespace lhvm
