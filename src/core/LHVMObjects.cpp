@@ -2440,6 +2440,376 @@ static void N_REMOVE_REACTION_OF_TYPE(LHVM* vm) {
 }
 
 // ============================================================================
+// Chunk 7 — town/player/influence, timers, animation, dance, music, calendar
+// ============================================================================
+
+namespace {
+
+struct Timer {
+    float total_seconds   = 0;
+    float started_at_turn = 0;   // game seconds when set
+    bool  visible         = false;
+};
+std::unordered_map<uint32_t, Timer> g_timers;
+
+float CurrentGameTime() {
+    if (!g_game) return 0;
+    uint32_t turn = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + 0x205A40);
+    return static_cast<float>(turn) / 10.0f;
+}
+
+struct InfluenceSource {
+    bool   from_object;
+    uint32_t source_handle;
+    float  x, z;
+    float  radius;
+    int32_t player;
+    bool   antiplayer;     // negative influence
+};
+std::vector<InfluenceSource> g_influences;
+
+uint32_t g_next_dance = 1;
+std::unordered_map<uint32_t, std::vector<uint32_t>> g_dance_members;
+
+float g_temperature = 20.0f;
+float g_inclusion_distance = 100.0f;
+bool  g_attack_own_town = false;
+
+struct WalkPath {
+    std::vector<MapCoords> nodes;
+    float percent = 0.0f;
+};
+std::unordered_map<uint32_t, WalkPath> g_walk_paths;
+
+} // namespace
+
+static void N_INFLUENCE_OBJECT(LHVM* vm) {
+    bool antiplayer = vm->PopBoolean();
+    int32_t fixed = vm->PopInt();
+    (void)fixed;
+    float radius = vm->PopFloat();
+    uint32_t obj = vm->PopObject();
+    InfluenceSource s = {};
+    s.from_object = true;
+    s.source_handle = obj;
+    s.radius = radius;
+    s.antiplayer = antiplayer;
+    Object* o = LookupObject(obj);
+    if (o) { s.x = WorldX(o); s.z = WorldZ(o); }
+    g_influences.push_back(s);
+    vm->PushObject(0);
+}
+
+static void N_INFLUENCE_POSITION(LHVM* vm) {
+    bool antiplayer = vm->PopBoolean();
+    int32_t fixed = vm->PopInt();
+    (void)fixed;
+    float radius = vm->PopFloat();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    InfluenceSource s = {};
+    s.from_object = false;
+    s.x = x; s.z = z; s.radius = radius;
+    s.antiplayer = antiplayer;
+    g_influences.push_back(s);
+    vm->PushObject(0);
+}
+
+// Override chunk 1's GET_INFLUENCE with a real walking sum
+static void N_GET_INFLUENCE_REAL(LHVM* vm) {
+    int32_t player = vm->PopInt();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    float total = 0.0f;
+    for (const auto& s : g_influences) {
+        float dx = s.x - x, dz = s.z - z;
+        float d2 = dx*dx + dz*dz;
+        if (d2 > s.radius * s.radius) continue;
+        float w = 1.0f - sqrtf(d2) / s.radius;
+        total += s.antiplayer ? -w : w;
+    }
+    (void)player;
+    vm->PushFloat(total);
+}
+
+// --- Special effects + animation overrides -----------------------------
+
+static void N_SPECIAL_EFFECT_POSITION(LHVM* vm) {
+    vm->PopFloat();   // strength
+    vm->PopInt();     // effect type
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // pos
+    vm->PushObject(0);
+}
+static void N_SPECIAL_EFFECT_OBJECT(LHVM* vm) {
+    vm->PopFloat();   // strength
+    vm->PopInt();
+    vm->PopObject();
+    vm->PushObject(0);
+}
+
+static void N_OVERRIDE_STATE_ANIMATION(LHVM* vm) {
+    vm->PopInt();    // state
+    vm->PopObject();
+}
+
+static void N_PLAYED(LHVM* vm) {
+    vm->PopObject();
+    vm->PushBoolean(true);   // assume played
+}
+
+static void N_CLEAR_DROPPED_BY_OBJECT(LHVM* vm) {
+    vm->PopObject();
+}
+
+static void N_CREATE_REACTION(LHVM* vm) {
+    vm->PopFloat();   // duration
+    vm->PopInt();     // reaction type
+    vm->PopObject();  // target
+    vm->PopObject();  // source
+}
+
+static void N_POPULATE_CONTAINER(LHVM* vm) {
+    int32_t  type    = vm->PopInt();
+    int32_t  count   = vm->PopInt();
+    float    radius  = vm->PopFloat();
+    uint32_t cont    = vm->PopObject();
+    Object* c = LookupObject(cont);
+    auto& members = g_flock_members[cont];
+    for (int32_t i = 0; i < count; i++) {
+        EntityCreateParams p = {};
+        if (c) {
+            float ang = (i * 6.28318f) / static_cast<float>(count);
+            p.world_x = WorldX(c) + cosf(ang) * radius;
+            p.world_z = WorldZ(c) + sinf(ang) * radius;
+        }
+        p.scale = 1.0f;
+        p.type_enum = static_cast<uint32_t>(type);
+        Object* obj = EntityFactory::CreateEntity(CategoryForScriptType(type), p);
+        if (obj) {
+            uint32_t mh = HandleFor(obj);
+            members.push_back(mh);
+            g_object_to_flock[mh] = cont;
+        }
+    }
+}
+
+static void N_ADD_REFERENCE(LHVM* vm)    { vm->PopObject(); vm->PushInt(0); }
+static void N_REMOVE_REFERENCE(LHVM* vm) { vm->PopObject(); vm->PushInt(0); }
+
+// --- Calendar / real time ----------------------------------------------
+
+static void N_GET_REAL_DAY_115(LHVM* vm) { vm->PushInt(1); }
+static void N_GET_REAL_DAY_116(LHVM* vm) { vm->PushInt(1); }
+static void N_GET_REAL_MONTH(LHVM* vm)   { vm->PushInt(1); }
+static void N_GET_REAL_YEAR(LHVM* vm)    { vm->PushInt(2001); }
+
+static void N_GET_MOON_PERCENTAGE(LHVM* vm) {
+    // Synodic month proxy: cycle game time over 30 in-game days.
+    float t = CurrentGameTime();
+    float cycle = fmodf(t, 30.0f) / 30.0f;
+    vm->PushFloat(0.5f - 0.5f * cosf(cycle * 6.28318f));
+}
+
+static void N_CHANGE_LIGHTNING_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+static void N_CHANGE_TIME_FADE_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat();
+}
+
+// --- Look / pointing helpers -------------------------------------------
+
+static void N_GET_TARGET_RELATIVE_POS(LHVM* vm) {
+    vm->PopObject();   // target
+    vm->PopObject();   // source
+    vm->PushFloat(0); vm->PushFloat(0); vm->PushFloat(0);
+}
+
+static void N_STOP_POINTING(LHVM* vm) { vm->PopObject(); }
+static void N_STOP_LOOKING(LHVM* vm)  { vm->PopObject(); }
+
+static void N_LOOK_AT_POSITION(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // pos
+    vm->PopObject();   // looker
+}
+
+static void N_CLING_SPIRIT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat();
+    uint32_t s = vm->PopObject();
+    g_spirits[s].visible = true;
+}
+
+static void N_FLY_SPIRIT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat();
+    vm->PopObject();
+}
+
+// --- Walking paths -----------------------------------------------------
+
+static void N_WALK_PATH(LHVM* vm) {
+    vm->PopFloat();   // start delay
+    vm->PopBoolean(); // backwards
+    int32_t  path_id = vm->PopInt();
+    uint32_t obj     = vm->PopObject();
+    (void)path_id;
+    g_walk_paths[obj].percent = 0.0f;
+}
+
+static void N_GET_WALK_PATH_PERCENTAGE(LHVM* vm) {
+    uint32_t obj = vm->PopObject();
+    auto it = g_walk_paths.find(obj);
+    vm->PushFloat(it == g_walk_paths.end() ? 0.0f : it->second.percent);
+}
+
+// --- Music --------------------------------------------------------------
+
+static void N_RESTART_MUSIC(LHVM* /*vm*/)         { g_audio.music_playing = true; }
+static void N_MUSIC_PLAYED_191(LHVM* vm)          { vm->PopInt(); vm->PushBoolean(g_audio.music_playing); }
+static void N_GET_MUSIC_OBJ_DISTANCE(LHVM* vm)    { vm->PopObject(); vm->PushFloat(0); }
+static void N_GET_MUSIC_ENUM_DISTANCE(LHVM* vm)   { vm->PopInt(); vm->PushFloat(0); }
+static void N_SET_MUSIC_PLAY_POSITION(LHVM* vm)   { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); }
+static void N_MOVE_MUSIC(LHVM* vm)                { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); }
+
+// --- Hit / held / slowest ----------------------------------------------
+
+static void N_CLEAR_HIT_OBJECT(LHVM* /*vm*/) {}
+static void N_GET_SLOWEST_SPEED(LHVM* vm)    { vm->PopObject(); vm->PushFloat(50.0f); }
+static void N_GET_OBJECT_HELD_199(LHVM* vm)  { vm->PopObject(); vm->PushObject(0); }
+
+// --- Animation / AVI ---------------------------------------------------
+
+static void N_SET_ANIMATION_MODIFY(LHVM* vm) {
+    vm->PopBoolean(); vm->PopObject();
+}
+static void N_SET_AVI_SEQUENCE(LHVM* vm) {
+    vm->PopBoolean(); vm->PopInt();
+}
+static void N_PLAY_GESTURE(LHVM* vm) {
+    vm->PopFloat(); vm->PopInt(); vm->PopInt(); vm->PopInt(); vm->PopObject();
+}
+
+// --- Input / dev ---------------------------------------------------
+
+static void N_DEV_FUNCTION(LHVM* vm)         { vm->PopInt(); }
+static void N_HAS_MOUSE_WHEEL(LHVM* vm)      { vm->PushBoolean(true); }
+static void N_NUM_MOUSE_BUTTONS(LHVM* vm)    { vm->PushInt(3); }
+
+// --- Timers ------------------------------------------------------------
+
+static void N_CREATE_TIMER(LHVM* vm) {
+    float seconds = vm->PopFloat();
+    EntityCreateParams p = {};
+    p.scale = 1.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
+    uint32_t h = HandleFor(obj);
+    if (h) g_timers[h] = { seconds, CurrentGameTime(), false };
+    vm->PushObject(h);
+}
+
+static void N_SET_TIMER_TIME(LHVM* vm) {
+    float seconds = vm->PopFloat();
+    uint32_t h = vm->PopObject();
+    auto it = g_timers.find(h);
+    if (it != g_timers.end()) {
+        it->second.total_seconds   = seconds;
+        it->second.started_at_turn = CurrentGameTime();
+    }
+}
+
+static void N_GET_TIMER_TIME_REMAINING(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_timers.find(h);
+    if (it == g_timers.end()) { vm->PushFloat(0); return; }
+    float elapsed = CurrentGameTime() - it->second.started_at_turn;
+    float left    = it->second.total_seconds - elapsed;
+    vm->PushFloat(left < 0 ? 0.0f : left);
+}
+
+static void N_GET_TIMER_TIME_SINCE_SET(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    auto it = g_timers.find(h);
+    if (it == g_timers.end()) { vm->PushFloat(0); return; }
+    vm->PushFloat(CurrentGameTime() - it->second.started_at_turn);
+}
+
+static void N_GET_INCLUSION_DISTANCE(LHVM* vm) {
+    vm->PushFloat(g_inclusion_distance);
+}
+
+// --- Game speed / temperature -----------------------------------------
+
+static void N_START_GAME_SPEED(LHVM* /*vm*/) { g_game_speed = 1.0f; }
+static void N_END_GAME_SPEED(LHVM* /*vm*/)   { g_game_speed = 0.0f; }
+static void N_SET_TEMPERATURE(LHVM* vm)      { g_temperature = vm->PopFloat(); }
+
+// --- Town interactions -------------------------------------------------
+
+static void N_SET_ATTACK_OWN_TOWN(LHVM* vm) {
+    g_attack_own_town = vm->PopBoolean();
+    vm->PopObject();
+}
+
+static void N_CALL_BUILDING_IN_TOWN(LHVM* vm) {
+    vm->PopObject();   // exclude
+    vm->PopObject();   // town
+    int32_t type = vm->PopInt();
+    (void)type;
+    vm->PushObject(0);
+}
+
+static void N_CALL_COMPUTER_PLAYER(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PopObject();
+}
+
+static void N_THING_JC_SPECIAL(LHVM* vm) {
+    vm->PopObject(); vm->PopInt();
+    vm->PushBoolean(false);
+}
+
+static void N_GAME_SUB_TYPE(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    Object* o = LookupObject(h);
+    // Sub-type lives on each entity's info struct; without the info table
+    // walk we report 0 (the "generic" subtype) so type-only IS_OF_TYPE wins.
+    (void)o;
+    vm->PushInt(0);
+}
+
+// --- Stop scripts -----------------------------------------------------
+
+static void N_STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING(LHVM* vm) { vm->PopInt(); }
+static void N_STOP_SCRIPTS_IN_FILES(LHVM* vm)               { vm->PopInt(); }
+
+// --- Snapshot / pictures (no-op until save subsystem) ----------------
+
+static void N_SNAPSHOT(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+    vm->PopFloat(); vm->PopFloat(); vm->PopInt();
+    vm->PushObject(0);
+}
+static void N_UPDATE_SNAPSHOT(LHVM* /*vm*/) {}
+static void N_UPDATE_SNAPSHOT_PICTURE(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+
+// --- Dance subsystem -------------------------------------------------
+
+static void N_DANCE_CREATE(LHVM* vm) {
+    vm->PopFloat();   // duration
+    vm->PopInt();     // dance type
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();   // pos
+    vm->PopObject();  // owner
+    uint32_t h = g_next_dance++;
+    g_dance_members[h] = {};
+    vm->PushObject(h);
+}
+
+static void N_CHANGE_INNER_OUTER_PROPERTIES(LHVM* vm) {
+    vm->PopFloat(); vm->PopFloat(); vm->PopFloat();
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
@@ -2757,6 +3127,70 @@ void RegisterObjectNatives(LHVM* vm) {
     vm->RegisterNativeFunction(NATIVE_GET_OBJECT_DROPPED,                   "GET_OBJECT_DROPPED",                   N_GET_OBJECT_DROPPED);
     vm->RegisterNativeFunction(NATIVE_REMOVE_REACTION,                      "REMOVE_REACTION",                      N_REMOVE_REACTION);
     vm->RegisterNativeFunction(NATIVE_REMOVE_REACTION_OF_TYPE,              "REMOVE_REACTION_OF_TYPE",              N_REMOVE_REACTION_OF_TYPE);
+
+    // --- Chunk 7: town/player/influence, timers, animation, music (50) ---
+    vm->RegisterNativeFunction(NATIVE_INFLUENCE_OBJECT,                     "INFLUENCE_OBJECT",                     N_INFLUENCE_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_INFLUENCE_POSITION,                   "INFLUENCE_POSITION",                   N_INFLUENCE_POSITION);
+    vm->RegisterNativeFunction(NATIVE_GET_INFLUENCE,                        "GET_INFLUENCE",                        N_GET_INFLUENCE_REAL);
+    vm->RegisterNativeFunction(NATIVE_SPECIAL_EFFECT_POSITION,              "SPECIAL_EFFECT_POSITION",              N_SPECIAL_EFFECT_POSITION);
+    vm->RegisterNativeFunction(NATIVE_SPECIAL_EFFECT_OBJECT,                "SPECIAL_EFFECT_OBJECT",                N_SPECIAL_EFFECT_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_OVERRIDE_STATE_ANIMATION,             "OVERRIDE_STATE_ANIMATION",             N_OVERRIDE_STATE_ANIMATION);
+    vm->RegisterNativeFunction(NATIVE_PLAYED,                               "PLAYED",                               N_PLAYED);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_DROPPED_BY_OBJECT,              "CLEAR_DROPPED_BY_OBJECT",              N_CLEAR_DROPPED_BY_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_CREATE_REACTION,                      "CREATE_REACTION",                      N_CREATE_REACTION);
+    vm->RegisterNativeFunction(NATIVE_POPULATE_CONTAINER,                   "POPULATE_CONTAINER",                   N_POPULATE_CONTAINER);
+    vm->RegisterNativeFunction(NATIVE_ADD_REFERENCE,                        "ADD_REFERENCE",                        N_ADD_REFERENCE);
+    vm->RegisterNativeFunction(NATIVE_REMOVE_REFERENCE,                     "REMOVE_REFERENCE",                     N_REMOVE_REFERENCE);
+    vm->RegisterNativeFunction(NATIVE_GET_REAL_DAY_115,                     "GET_REAL_DAY_115",                     N_GET_REAL_DAY_115);
+    vm->RegisterNativeFunction(NATIVE_GET_REAL_DAY_116,                     "GET_REAL_DAY_116",                     N_GET_REAL_DAY_116);
+    vm->RegisterNativeFunction(NATIVE_GET_REAL_MONTH,                       "GET_REAL_MONTH",                       N_GET_REAL_MONTH);
+    vm->RegisterNativeFunction(NATIVE_GET_REAL_YEAR,                        "GET_REAL_YEAR",                        N_GET_REAL_YEAR);
+    vm->RegisterNativeFunction(NATIVE_GET_MOON_PERCENTAGE,                  "GET_MOON_PERCENTAGE",                  N_GET_MOON_PERCENTAGE);
+    vm->RegisterNativeFunction(NATIVE_CHANGE_LIGHTNING_PROPERTIES,          "CHANGE_LIGHTNING_PROPERTIES",          N_CHANGE_LIGHTNING_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_CHANGE_TIME_FADE_PROPERTIES,          "CHANGE_TIME_FADE_PROPERTIES",          N_CHANGE_TIME_FADE_PROPERTIES);
+    vm->RegisterNativeFunction(NATIVE_GET_TARGET_RELATIVE_POS,              "GET_TARGET_RELATIVE_POS",              N_GET_TARGET_RELATIVE_POS);
+    vm->RegisterNativeFunction(NATIVE_STOP_POINTING,                        "STOP_POINTING",                        N_STOP_POINTING);
+    vm->RegisterNativeFunction(NATIVE_STOP_LOOKING,                         "STOP_LOOKING",                         N_STOP_LOOKING);
+    vm->RegisterNativeFunction(NATIVE_LOOK_AT_POSITION,                     "LOOK_AT_POSITION",                     N_LOOK_AT_POSITION);
+    vm->RegisterNativeFunction(NATIVE_CLING_SPIRIT,                         "CLING_SPIRIT",                         N_CLING_SPIRIT);
+    vm->RegisterNativeFunction(NATIVE_FLY_SPIRIT,                           "FLY_SPIRIT",                           N_FLY_SPIRIT);
+    vm->RegisterNativeFunction(NATIVE_WALK_PATH,                            "WALK_PATH",                            N_WALK_PATH);
+    vm->RegisterNativeFunction(NATIVE_GET_WALK_PATH_PERCENTAGE,             "GET_WALK_PATH_PERCENTAGE",             N_GET_WALK_PATH_PERCENTAGE);
+    vm->RegisterNativeFunction(NATIVE_RESTART_MUSIC,                        "RESTART_MUSIC",                        N_RESTART_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_MUSIC_PLAYED_191,                     "MUSIC_PLAYED_191",                     N_MUSIC_PLAYED_191);
+    vm->RegisterNativeFunction(NATIVE_GET_MUSIC_OBJ_DISTANCE,               "GET_MUSIC_OBJ_DISTANCE",               N_GET_MUSIC_OBJ_DISTANCE);
+    vm->RegisterNativeFunction(NATIVE_GET_MUSIC_ENUM_DISTANCE,              "GET_MUSIC_ENUM_DISTANCE",              N_GET_MUSIC_ENUM_DISTANCE);
+    vm->RegisterNativeFunction(NATIVE_SET_MUSIC_PLAY_POSITION,              "SET_MUSIC_PLAY_POSITION",              N_SET_MUSIC_PLAY_POSITION);
+    vm->RegisterNativeFunction(NATIVE_MOVE_MUSIC,                           "MOVE_MUSIC",                           N_MOVE_MUSIC);
+    vm->RegisterNativeFunction(NATIVE_CLEAR_HIT_OBJECT,                     "CLEAR_HIT_OBJECT",                     N_CLEAR_HIT_OBJECT);
+    vm->RegisterNativeFunction(NATIVE_GET_SLOWEST_SPEED,                    "GET_SLOWEST_SPEED",                    N_GET_SLOWEST_SPEED);
+    vm->RegisterNativeFunction(NATIVE_GET_OBJECT_HELD_199,                  "GET_OBJECT_HELD_199",                  N_GET_OBJECT_HELD_199);
+    vm->RegisterNativeFunction(NATIVE_SET_ANIMATION_MODIFY,                 "SET_ANIMATION_MODIFY",                 N_SET_ANIMATION_MODIFY);
+    vm->RegisterNativeFunction(NATIVE_SET_AVI_SEQUENCE,                     "SET_AVI_SEQUENCE",                     N_SET_AVI_SEQUENCE);
+    vm->RegisterNativeFunction(NATIVE_PLAY_GESTURE,                         "PLAY_GESTURE",                         N_PLAY_GESTURE);
+    vm->RegisterNativeFunction(NATIVE_DEV_FUNCTION,                         "DEV_FUNCTION",                         N_DEV_FUNCTION);
+    vm->RegisterNativeFunction(NATIVE_HAS_MOUSE_WHEEL,                      "HAS_MOUSE_WHEEL",                      N_HAS_MOUSE_WHEEL);
+    vm->RegisterNativeFunction(NATIVE_NUM_MOUSE_BUTTONS,                    "NUM_MOUSE_BUTTONS",                    N_NUM_MOUSE_BUTTONS);
+    vm->RegisterNativeFunction(NATIVE_CREATE_TIMER,                         "CREATE_TIMER",                         N_CREATE_TIMER);
+    vm->RegisterNativeFunction(NATIVE_SET_TIMER_TIME,                       "SET_TIMER_TIME",                       N_SET_TIMER_TIME);
+    vm->RegisterNativeFunction(NATIVE_GET_TIMER_TIME_REMAINING,             "GET_TIMER_TIME_REMAINING",             N_GET_TIMER_TIME_REMAINING);
+    vm->RegisterNativeFunction(NATIVE_GET_TIMER_TIME_SINCE_SET,             "GET_TIMER_TIME_SINCE_SET",             N_GET_TIMER_TIME_SINCE_SET);
+    vm->RegisterNativeFunction(NATIVE_GET_INCLUSION_DISTANCE,               "GET_INCLUSION_DISTANCE",               N_GET_INCLUSION_DISTANCE);
+    vm->RegisterNativeFunction(NATIVE_START_GAME_SPEED,                     "START_GAME_SPEED",                     N_START_GAME_SPEED);
+    vm->RegisterNativeFunction(NATIVE_END_GAME_SPEED,                       "END_GAME_SPEED",                       N_END_GAME_SPEED);
+    vm->RegisterNativeFunction(NATIVE_SET_TEMPERATURE,                      "SET_TEMPERATURE",                      N_SET_TEMPERATURE);
+    vm->RegisterNativeFunction(NATIVE_SET_ATTACK_OWN_TOWN,                  "SET_ATTACK_OWN_TOWN",                  N_SET_ATTACK_OWN_TOWN);
+    vm->RegisterNativeFunction(NATIVE_CALL_BUILDING_IN_TOWN,                "CALL_BUILDING_IN_TOWN",                N_CALL_BUILDING_IN_TOWN);
+    vm->RegisterNativeFunction(NATIVE_CALL_COMPUTER_PLAYER,                 "CALL_COMPUTER_PLAYER",                 N_CALL_COMPUTER_PLAYER);
+    vm->RegisterNativeFunction(NATIVE_THING_JC_SPECIAL,                     "THING_JC_SPECIAL",                     N_THING_JC_SPECIAL);
+    vm->RegisterNativeFunction(NATIVE_GAME_SUB_TYPE,                        "GAME_SUB_TYPE",                        N_GAME_SUB_TYPE);
+    vm->RegisterNativeFunction(NATIVE_STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING,  "STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING",  N_STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING);
+    vm->RegisterNativeFunction(NATIVE_STOP_SCRIPTS_IN_FILES,                "STOP_SCRIPTS_IN_FILES",                N_STOP_SCRIPTS_IN_FILES);
+    vm->RegisterNativeFunction(NATIVE_SNAPSHOT,                             "SNAPSHOT",                             N_SNAPSHOT);
+    vm->RegisterNativeFunction(NATIVE_UPDATE_SNAPSHOT,                      "UPDATE_SNAPSHOT",                      N_UPDATE_SNAPSHOT);
+    vm->RegisterNativeFunction(NATIVE_UPDATE_SNAPSHOT_PICTURE,              "UPDATE_SNAPSHOT_PICTURE",              N_UPDATE_SNAPSHOT_PICTURE);
+    vm->RegisterNativeFunction(NATIVE_DANCE_CREATE,                         "DANCE_CREATE",                         N_DANCE_CREATE);
+    vm->RegisterNativeFunction(NATIVE_CHANGE_INNER_OUTER_PROPERTIES,        "CHANGE_INNER_OUTER_PROPERTIES",        N_CHANGE_INNER_OUTER_PROPERTIES);
 }
 
 } // namespace lhvm
