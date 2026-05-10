@@ -466,6 +466,45 @@ static void DrawText2D(float x, float y, const char* text) {
     glPopAttrib();
 }
 
+static void RenderInfluenceMap() {
+    lhvm::InfluenceSourceView sources[64];
+    uint32_t n = lhvm::SnapshotInfluences(sources, 64);
+    if (n == 0) return;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(2.0f);
+
+    for (uint32_t i = 0; i < n; i++) {
+        const auto& s = sources[i];
+        if (s.antiplayer) glColor4f(1.0f, 0.2f, 0.2f, 0.6f);
+        else              glColor4f(0.2f, 1.0f, 0.4f, 0.6f);
+
+        // Sample terrain altitude at the source for the ring centre — the
+        // ring sits a small offset above ground so it isn't z-fought away.
+        float cy = g_game.GetTerrainHeight(s.x, s.z) + 0.5f;
+
+        glBegin(GL_LINE_LOOP);
+        const int segments = 32;
+        for (int k = 0; k < segments; k++) {
+            float a = (k / static_cast<float>(segments)) * 6.28318531f;
+            float rx = s.x + cosf(a) * s.radius;
+            float rz = s.z + sinf(a) * s.radius;
+            float ry = g_game.GetTerrainHeight(rx, rz) + 0.5f;
+            glVertex3f(rx, ry, rz);
+        }
+        glEnd();
+        // Vertical mast for visibility from grazing camera angles
+        glBegin(GL_LINES);
+        glVertex3f(s.x, cy, s.z);
+        glVertex3f(s.x, cy + 8.0f, s.z);
+        glEnd();
+    }
+
+    glLineWidth(1.0f);
+    glEnable(GL_LIGHTING);
+}
+
 static void RenderHUD() {
     if (!g_show_hud) return;
 
@@ -556,6 +595,7 @@ static void Display() {
         if (g_world_mode && !g_game_mode) RenderWorldEntities();
         if (g_game_mode) RenderGameEntities();
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        if (g_game_mode) RenderInfluenceMap();
     } else if (g_active_model) {
         float extent = g_active_model->GetExtent();
         if (extent < 1.0f) extent = 1.0f;

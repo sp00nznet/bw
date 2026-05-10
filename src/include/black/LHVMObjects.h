@@ -110,6 +110,17 @@ DialogueSnapshot SnapshotDialogue();
 // Number of objects currently registered in the handle table.
 uint32_t RegisteredObjectCount();
 
+// Influence-source enumeration — used by the host to render the influence
+// map. Returns the number of sources copied into out (capped at out_max).
+struct InfluenceSourceView {
+    float    x, z;
+    float    radius;
+    int32_t  player;
+    bool     antiplayer;
+    bool     from_object;
+};
+uint32_t SnapshotInfluences(InfluenceSourceView* out, uint32_t out_max);
+
 // String-table accessor — calls through to the active LHVM instance and
 // returns the data-section string at the given offset, or "" if out of range.
 const char* DataString(LHVM* vm, uint32_t offset);

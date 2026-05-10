@@ -3271,6 +3271,21 @@ uint32_t RegisteredObjectCount() {
     return static_cast<uint32_t>(g_slots.size() - 1 - g_free.size());
 }
 
+uint32_t SnapshotInfluences(InfluenceSourceView* out, uint32_t out_max) {
+    uint32_t n = 0;
+    for (const auto& s : g_influences) {
+        if (n >= out_max) break;
+        out[n].x           = s.x;
+        out[n].z           = s.z;
+        out[n].radius      = s.radius;
+        out[n].player      = s.player;
+        out[n].antiplayer  = s.antiplayer;
+        out[n].from_object = s.from_object;
+        n++;
+    }
+    return n;
+}
+
 const char* DataString(LHVM* vm, uint32_t offset) {
     if (!vm) return "";
     return vm->GetString(offset);
