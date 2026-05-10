@@ -141,6 +141,17 @@ struct SpiritPointView {
 };
 uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max);
 
+// Camera follow / cinematic state from chunk 6.
+struct CameraFollowSnapshot {
+    uint32_t focus_target;
+    uint32_t position_target;
+    bool     dual_active;
+    bool     has_arrived;
+    float    lens_value;
+    float    shake_amount;
+};
+CameraFollowSnapshot SnapshotCameraFollow();
+
 // String-table accessor — calls through to the active LHVM instance and
 // returns the data-section string at the given offset, or "" if out of range.
 const char* DataString(LHVM* vm, uint32_t offset);

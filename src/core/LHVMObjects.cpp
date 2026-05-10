@@ -3292,6 +3292,17 @@ ClickSnapshot SnapshotClick() {
     return s;
 }
 
+CameraFollowSnapshot SnapshotCameraFollow() {
+    CameraFollowSnapshot s = {};
+    s.focus_target    = g_cam_follow.focus_target;
+    s.position_target = g_cam_follow.position_target;
+    s.dual_active     = g_cam_follow.dual_active;
+    s.has_arrived     = g_cam_follow.has_arrived;
+    s.lens_value      = g_cam_follow.lens_value;
+    s.shake_amount    = g_cam_follow.shake_amount;
+    return s;
+}
+
 uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max) {
     uint32_t n = 0;
     for (const auto& kv : g_spirits) {

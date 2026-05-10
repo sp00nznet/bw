@@ -977,6 +977,36 @@ int main(int argc, char* argv[]) {
         s_last_tick = now;
         constexpr double SIM_STEP_MS = 100.0;  // 10 Hz
 
+        // Camera follow — if a CHL native asked the camera to track a
+        // target, pull its position out of the LHVM handle table and
+        // slide our viewer camera toward it. Lerp gives a smooth ride
+        // rather than a snap on every native call.
+        if (g_game_mode) {
+            auto cf = lhvm::SnapshotCameraFollow();
+            uint32_t target = cf.focus_target ? cf.focus_target : cf.position_target;
+            if (target != 0) {
+                Object* obj = lhvm::LookupObject(target);
+                if (obj) {
+                    float tx = static_cast<float>(obj->coords.x) / 65536.0f;
+                    float tz = static_cast<float>(obj->coords.z) / 65536.0f;
+                    float ty = obj->coords.altitude;
+                    const float k = 0.08f;   // ease-in factor per frame
+                    g_cam_x += (tx - g_cam_x) * k;
+                    g_cam_z += (tz - g_cam_z) * k;
+                    g_cam_y += ((ty + 25.0f) - g_cam_y) * k;
+                }
+            }
+            // Shake decays each frame
+            if (cf.shake_amount > 0.0f) {
+                static unsigned s_rng = 0x12345678u;
+                s_rng = s_rng * 1103515245u + 12345u;
+                float dx = (((s_rng >> 16) & 0xFF) / 255.0f - 0.5f) * cf.shake_amount;
+                s_rng = s_rng * 1103515245u + 12345u;
+                float dy = (((s_rng >> 16) & 0xFF) / 255.0f - 0.5f) * cf.shake_amount;
+                g_cam_x += dx; g_cam_y += dy;
+            }
+        }
+
         if (g_game_mode) {
             g_game.cam_x = g_cam_x;
             g_game.cam_y = g_cam_y;
