@@ -88,6 +88,32 @@ struct SpawnInfo {
 using EntitySpawnFn = void (*)(const SpawnInfo*);
 extern EntitySpawnFn g_entity_spawn_func;
 
+// --- Host introspection (for HUD / debug) --------------------------------
+//
+// Snapshot the current state of side-tables that downstream modules might
+// want to display. These functions are pure reads — safe to call from any
+// thread that doesn't simultaneously fire natives.
+
+struct DialogueSnapshot {
+    bool     active;
+    bool     ready;
+    bool     widescreen;
+    int32_t  current_text_id;     // RUN_TEXT id (0 = none)
+    int32_t  pending_temp_id;     // TEMP_TEXT id (0 = none)
+    int32_t  draw_text_id;        // GAME_DRAW_TEXT id (0 = none)
+    int32_t  current_music_id;
+    bool     music_playing;
+    bool     hand_demo_playing;
+};
+DialogueSnapshot SnapshotDialogue();
+
+// Number of objects currently registered in the handle table.
+uint32_t RegisteredObjectCount();
+
+// String-table accessor — calls through to the active LHVM instance and
+// returns the data-section string at the given offset, or "" if out of range.
+const char* DataString(LHVM* vm, uint32_t offset);
+
 // --- Native registration -------------------------------------------------
 
 // Override the stub registrations in LHVM with wired implementations.

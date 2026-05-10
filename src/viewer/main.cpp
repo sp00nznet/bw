@@ -71,6 +71,8 @@ static bool            g_lmb_down = false, g_rmb_down = false;
 static std::map<uint32_t, GLuint> g_gl_textures; // skin_id → GL texture
 
 static bool         g_wireframe  = false;
+static bool         g_show_hud   = true;        // toggled with F1
+static GLuint       g_font_base  = 0;           // wglUseFontBitmaps display lists
 static float        g_cam_yaw    = 30.0f;
 static float        g_cam_pitch  = 20.0f;
 static float        g_cam_dist   = 5.0f;
@@ -429,6 +431,103 @@ static void RenderGrid(float extent) {
     glEnable(GL_LIGHTING);
 }
 
+// ============================================================================
+// Bitmap-font text overlay (Windows GDI → wglUseFontBitmaps display lists)
+// ============================================================================
+
+static void InitTextOverlay() {
+    if (g_font_base != 0) return;
+    HFONT font = CreateFontA(
+        16,                                 // height
+        0, 0, 0,                            // width, escapement, orientation
+        FW_BOLD,
+        FALSE, FALSE, FALSE,                // italic, underline, strikeout
+        ANSI_CHARSET,
+        OUT_TT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        ANTIALIASED_QUALITY,
+        FF_DONTCARE | DEFAULT_PITCH,
+        "Consolas");
+    if (!font) font = static_cast<HFONT>(GetStockObject(SYSTEM_FONT));
+    HDC dc = wglGetCurrentDC();
+    HGDIOBJ old = SelectObject(dc, font);
+    g_font_base = glGenLists(96);
+    wglUseFontBitmapsA(dc, 32, 96, g_font_base);
+    SelectObject(dc, old);
+    DeleteObject(font);
+}
+
+static void DrawText2D(float x, float y, const char* text) {
+    if (g_font_base == 0 || !text) return;
+    glRasterPos2f(x, y);
+    glPushAttrib(GL_LIST_BIT);
+    glListBase(g_font_base - 32);
+    glCallLists(static_cast<GLsizei>(strlen(text)), GL_UNSIGNED_BYTE, text);
+    glPopAttrib();
+}
+
+static void RenderHUD() {
+    if (!g_show_hud) return;
+
+    // Switch to 2D ortho space for HUD overlay
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, g_width, g_height, 0, -1, 1);   // top-left origin
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    char line[256];
+
+    // Top-left: stats
+    glColor3f(0.9f, 0.9f, 0.9f);
+    snprintf(line, sizeof(line), "Turn: %u  Entities: %zu (lhvm %u)",
+             g_game.game_turn, g_game.entities.size(), lhvm::RegisteredObjectCount());
+    DrawText2D(8, 18, line);
+
+    // Hand state
+    int hover = g_game.hand.hover_entity;
+    int held  = g_game.hand.held_entity;
+    snprintf(line, sizeof(line), "Hand: (%6.1f,%6.1f,%6.1f)  hover=%d held=%d",
+             g_game.hand.x, g_game.hand.y, g_game.hand.z, hover, held);
+    DrawText2D(8, 36, line);
+
+    // Dialogue state
+    auto dlg = lhvm::SnapshotDialogue();
+    if (dlg.current_text_id || dlg.pending_temp_id || dlg.draw_text_id) {
+        snprintf(line, sizeof(line), "Text: run=%d temp=%d draw=%d  music=%d %s",
+                 dlg.current_text_id, dlg.pending_temp_id, dlg.draw_text_id,
+                 dlg.current_music_id, dlg.music_playing ? "(on)" : "(off)");
+        glColor3f(1.0f, 0.95f, 0.6f);
+        DrawText2D(8, 54, line);
+    }
+    if (dlg.active) {
+        glColor3f(0.8f, 1.0f, 0.8f);
+        DrawText2D(8, 72, "[DIALOGUE ACTIVE]");
+    }
+    if (dlg.hand_demo_playing) {
+        glColor3f(0.8f, 0.8f, 1.0f);
+        DrawText2D(8, 90, "[HAND DEMO]");
+    }
+
+    // Bottom-right: keys hint
+    glColor3f(0.5f, 0.5f, 0.5f);
+    DrawText2D(8, static_cast<float>(g_height) - 8, "F1: toggle HUD   ESC: quit");
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+}
+
 static void Display() {
     if (!g_active_model && !g_terrain_mode) return;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -466,6 +565,8 @@ static void Display() {
         RenderModel(*g_active_model);
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+
+    if (g_game_mode) RenderHUD();
 }
 
 // ============================================================================
@@ -568,6 +669,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         switch (wp) {
         case VK_ESCAPE: PostQuitMessage(0); break;
         case VK_TAB:    g_wireframe = !g_wireframe; break;
+        case VK_F1:     g_show_hud = !g_show_hud; break;
         case 'R':       ResetCamera(); break;
         case 'W': case 'S': case 'A': case 'D': {
             // Camera-relative movement
@@ -713,6 +815,7 @@ int main(int argc, char* argv[]) {
 
     SetupGL();
     glViewport(0, 0, g_width, g_height);
+    InitTextOverlay();
 
     // Upload textures if we have a G3D archive loaded
     if (g_archive_mode || g_world_mode) {

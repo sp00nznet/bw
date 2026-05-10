@@ -3249,6 +3249,34 @@ static void N_SAVE_GAME_IN_SLOT(LHVM* vm) { g_save_slot = static_cast<uint32_t>(
 static void N_CAN_SKIP_TUTORIAL(LHVM* vm) { vm->PushBoolean(true); }
 
 // ============================================================================
+// Host introspection
+// ============================================================================
+
+DialogueSnapshot SnapshotDialogue() {
+    DialogueSnapshot s = {};
+    s.active             = g_dialogue.active;
+    s.ready              = g_dialogue.ready;
+    s.widescreen         = g_dialogue.widescreen;
+    s.current_text_id    = g_dialogue.current_text;
+    s.pending_temp_id    = g_dialogue.pending_temp;
+    s.draw_text_id       = g_dialogue.draw_text_value;
+    s.current_music_id   = g_audio.current_music;
+    s.music_playing      = g_audio.music_playing;
+    s.hand_demo_playing  = g_hand_demo_playing;
+    return s;
+}
+
+uint32_t RegisteredObjectCount() {
+    // slot 0 is the null sentinel; slots in g_free are inactive
+    return static_cast<uint32_t>(g_slots.size() - 1 - g_free.size());
+}
+
+const char* DataString(LHVM* vm, uint32_t offset) {
+    if (!vm) return "";
+    return vm->GetString(offset);
+}
+
+// ============================================================================
 // Registration
 // ============================================================================
 
