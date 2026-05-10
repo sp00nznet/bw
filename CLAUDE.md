@@ -25,16 +25,21 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit be7adc1)
-- **600 headers** in `src/include/black/`
-- **252 .cpp files** in `src/core/`
-- **44,200+ lines** of C++ total (core + viewer)
-- **210 commits**, all pushed to GitHub
+## Current Stats (as of commit 69c56d1)
+- **601 headers** in `src/include/black/` (+1: LHVMObjects.h)
+- **253 .cpp files** in `src/core/` (+1: LHVMObjects.cpp)
+- **48,000+ lines** of C++ total (core + viewer)
+- **220+ commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **Ghidra headless pipeline operational** — batch decompiles 73+ functions in seconds
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
+- **LHVM bindings: ~430 natives wired with real bodies** (LHVMObjects.cpp, 8 chunks)
+- **LHVM ↔ Object handle table** — script handles ↔ Object* with EntityFactory integration
+- **Hand/click input wired to LHVM** — GET_HAND_*, GAME_THING_CLICKED, POSITION_CLICKED real
+- **Spawn renderer bridge** — CHL CREATE/FLOCK_CREATE/etc. spawn entities visible in viewer
+- **Sim-rate throttling** — game ticks at BW's 10 Hz independent of render fps
 - **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
 - **Creature AI: IMPLEMENTED** — ProcessState + EntityFactory spawning
 - **Movement system: IMPLEMENTED** — MobileWallHug goal-seeking + arrival
@@ -201,6 +206,47 @@ Town: AddStructureToTown with CastAbode, full villager management
 MobileStatic/MobileObject: angles, physics types, creature predicates
 SpellSeed: GetWorshipSite from opaque field block
 
+### Batch 45: LHVM bindings — host-side natives + viewer integration (12 commits, ~3,400 lines)
+
+New module `src/core/LHVMObjects.cpp` + `src/include/black/LHVMObjects.h`:
+script handle ↔ Object* registry, host service hooks (hand/click/spawn),
+and 8 chunks of native bodies that override the LHVM.cpp stubs.
+
+**Chunks** (all in LHVMObjects.cpp, registered after LHVM.cpp's defaults):
+- Chunk 1 (50): GET/SET_POSITION, MOVE_GAME_THING, OBJECT_DELETE, THING_VALID,
+  IS_OF_TYPE, GET/SET_PROPERTY, hand/click queries, GET_LAND_HEIGHT, resource
+  ops, fire/poison/skeleton/active flags, mana, alignment, town queries
+- Chunk 2 (54): real CREATE → EntityFactory dispatch, FLOCK_CREATE/ATTACH/
+  DETACH/DISBAND/MEMBER, GET_FIRST/NEXT_IN_CONTAINER, ID_SIZE,
+  CREATE_REWARD, LOAD_CREATURE/MY_CREATURE, GET_TEMPLE_*, etc.
+- Chunk 3 (52): per-creature CreatureMind side-table — desires, agenda,
+  knowledge, action counts, leash, fight queue, name, home, dev stage
+- Chunk 4 (49): SPELL_AT_THING/POS/POINT, weather/climate, spirit advisor
+  state, BUILD_BUILDING, OBJECT_INFO_BITS, clipping
+- Chunk 5 (47): audio/dialogue/UI text/fade/widescreen/time/help, hand demo
+- Chunk 6 (49): camera follow + cinematic + dual-camera + computer-player
+  AI driver + ally relationships
+- Chunk 7 (60): real GET_INFLUENCE walking sources, timers, calendar,
+  POPULATE_CONTAINER → real EntityFactory spawns, walk paths, dance
+- Chunk 8 (65): mini-games (arena/football), immersion, fades, save slot,
+  per-object extras (confined/hurt/draw flags), CREATE_WITH_ANGLE_AND_SCALE
+
+**Viewer wiring**:
+- HandQueryCallback registered → GET_HAND_POSITION/STATE return real values
+- WM_LBUTTONDOWN → lhvm::NotifyObjectClicked + NotifyPositionClicked
+- EntitySpawnCallback registered → CHL CREATE/FLOCK_CREATE/etc. spawn into
+  GameState.entities + core_entities so they render through existing path
+- SCRIPT_OBJECT_TYPE → mesh-name lookup table for default rendering
+- main loop sim throttled to BW's 10 Hz (was running 6× too fast at 60fps)
+- delta_time bumped from 1/30 to 1/10 so physics matches turn rate
+- LHVM::InitNativeFunctions duplicate call removed
+
+**Bug fixes**:
+- GET/SET_PROPERTY indices corrected to match SCRIPT_OBJECT_PROPERTY_TYPE
+  enum (HEALTH=1, ANGLE=2, SCALE=8, XPOS=23, YPOS=24, ZPOS=25, etc.)
+- SCRIPT_OBJECT_TYPE → category mapping fixed (ROCK=33 not 47, BONFIRE
+  doesn't exist as top-level type)
+
 ### Batch 44: Ghidra pipeline + method translations from decompilation (8 commits)
 Ghidra headless batch decompilation toolchain:
 - GhidraBatchDecompile.java: decompile by address (73/83 methods in 4 seconds)
@@ -228,12 +274,21 @@ Also implemented:
 - Base::operator new/delete: defined (were declared but missing)
 
 ## What's Next (priority order)
-1. **Ghidra v1.0 address mapping** — build v1.41→v1.0 offset table, or get v1.41 binary
-2. **Translate remaining 12 name-matched decompilations** — Villager::ProcessState, MultiMapFixed methods
-3. **Save/Load system** — binary format from Ghidra (MultiMapFixed::Save decompiled)
-4. **LHVM object wiring** — connect object position/property natives to entity system
-5. **Physics system** — collision, impact, thrown objects (~20 stub methods ready)
-6. **Rendering pipeline** — Draw methods for all entity types (~15 stub methods ready)
+1. **Animation system** — ANM loader + bone matrix interpolation + GPU skinning so
+   villagers/creatures stop T-posing
+2. **Audio subsystem** — SAD bank loader + DirectSound (or modern equivalent) so
+   PLAY_SOUND_EFFECT, START_MUSIC, SPIRIT_SPEAKS produce actual sound
+3. **Physics system** — collision, impact, thrown-object arcs (~20 stub methods);
+   wires bw_core Pot/Ball/Arrow physics into the viewer's gravity loop
+4. **Spell rendering** — PSysManager wiring + spell hierarchy Draw bodies so
+   the chunk-4 SPELL_AT_THING records produce visible effects
+5. **Save/Load system** — binary format from Ghidra (MultiMapFixed::Save decompiled)
+6. **HandState transitions** — wire viewer mouse → bw_core HandState polymorphic
+   states (Invisible/Normal/Holding/etc.) for original-game-compat input
+7. **Dialogue text rendering** — chunk-5 dialogue state is tracked but not drawn;
+   need an OpenGL text renderer (bitmap font or Windows GDI overlay)
+8. **Ghidra v1.0 address mapping** — build v1.41→v1.0 offset table for the ~12
+   remaining name-matched decompilations
 
 ## Common Pitfalls (learned the hard way)
 - **Vendor addresses are v1.41, binary is v1.0** — use MSVC mangled name search in Ghidra, not raw addresses

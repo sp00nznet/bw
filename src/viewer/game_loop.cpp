@@ -193,7 +193,8 @@ bool GameState::Init(const std::string& script_path) {
             fclose(test);
             vm = static_cast<LHVM*>(calloc(1, sizeof(LHVM)));
             if (vm) {
-                vm->InitNativeFunctions();
+                // LoadBinary calls InitNativeFunctions internally after the
+                // CHL parses successfully — no need to pre-init here.
                 if (vm->LoadBinary(chl_path.c_str())) {
                     scripts_loaded = true;
                     printf("Game: Loaded CHL script: %s (%u instructions, %u scripts)\n",
