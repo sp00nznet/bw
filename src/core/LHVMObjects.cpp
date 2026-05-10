@@ -3252,6 +3252,9 @@ static void N_CAN_SKIP_TUTORIAL(LHVM* vm) { vm->PushBoolean(true); }
 // Host introspection
 // ============================================================================
 
+// Track the most recent LHVM instance so introspection can resolve strings.
+static LHVM* g_last_vm = nullptr;
+
 DialogueSnapshot SnapshotDialogue() {
     DialogueSnapshot s = {};
     s.active             = g_dialogue.active;
@@ -3264,6 +3267,13 @@ DialogueSnapshot SnapshotDialogue() {
     s.music_playing      = g_audio.music_playing;
     s.hand_demo_playing  = g_hand_demo_playing;
     return s;
+}
+
+const char* DialogueTextString() {
+    if (!g_last_vm) return "";
+    int32_t id = g_dialogue.current_text ? g_dialogue.current_text : g_dialogue.pending_temp;
+    if (id <= 0) return "";
+    return g_last_vm->GetString(static_cast<uint32_t>(id));
 }
 
 uint32_t RegisteredObjectCount() {
@@ -3319,6 +3329,8 @@ const char* DataString(LHVM* vm, uint32_t offset) {
     if (!vm) return "";
     return vm->GetString(offset);
 }
+
+void SetActiveLHVM(LHVM* vm) { g_last_vm = vm; }
 
 // ============================================================================
 // Registration

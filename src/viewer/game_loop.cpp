@@ -197,6 +197,7 @@ bool GameState::Init(const std::string& script_path) {
                 // CHL parses successfully — no need to pre-init here.
                 if (vm->LoadBinary(chl_path.c_str())) {
                     scripts_loaded = true;
+                    lhvm::SetActiveLHVM(vm);
                     printf("Game: Loaded CHL script: %s (%u instructions, %u scripts)\n",
                            chl_path.c_str(), vm->instruction_count, vm->script_count);
                     // Start auto-start scripts

@@ -145,6 +145,15 @@ uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max);
 // returns the data-section string at the given offset, or "" if out of range.
 const char* DataString(LHVM* vm, uint32_t offset);
 
+// Host registers the running VM so DialogueTextString can resolve text
+// ids against the data section automatically.
+void SetActiveLHVM(LHVM* vm);
+
+// Returns the data-section string for whichever text id is currently
+// being shown (current_text > pending_temp). Empty string if no text
+// active or no active LHVM registered.
+const char* DialogueTextString();
+
 // --- Native registration -------------------------------------------------
 
 // Override the stub registrations in LHVM with wired implementations.

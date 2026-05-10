@@ -613,6 +613,19 @@ static void RenderHUD() {
                  dlg.current_music_id, dlg.music_playing ? "(on)" : "(off)");
         glColor3f(1.0f, 0.95f, 0.6f);
         DrawText2D(8, 54, line);
+
+        // If the text id resolves to a printable data-section string,
+        // render it centred at the bottom of the screen like a subtitle.
+        const char* str = lhvm::DialogueTextString();
+        if (str && str[0]) {
+            glColor3f(1.0f, 1.0f, 0.85f);
+            // Rough centring — Consolas 16pt is ~9px wide, so estimate
+            // and offset. Good enough for a debug subtitle pass.
+            int len = static_cast<int>(strlen(str));
+            float tx = g_width * 0.5f - len * 4.5f;
+            if (tx < 8) tx = 8;
+            DrawText2D(tx, g_height - 56.0f, str);
+        }
     }
     if (dlg.active) {
         glColor3f(0.8f, 1.0f, 0.8f);
