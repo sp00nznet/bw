@@ -3271,6 +3271,35 @@ uint32_t RegisteredObjectCount() {
     return static_cast<uint32_t>(g_slots.size() - 1 - g_free.size());
 }
 
+ClickSnapshot SnapshotClick() {
+    ClickSnapshot s = {};
+    s.thing_clicked    = g_click_latch.thing_clicked;
+    s.clicked_object   = g_click_latch.clicked_object;
+    s.position_clicked = g_click_latch.position_clicked;
+    s.click_x = g_click_latch.click_x;
+    s.click_y = g_click_latch.click_y;
+    s.click_z = g_click_latch.click_z;
+    return s;
+}
+
+uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max) {
+    uint32_t n = 0;
+    for (const auto& kv : g_spirits) {
+        if (n >= out_max) break;
+        const auto& st = kv.second;
+        out[n].visible         = st.visible;
+        out[n].ejected         = st.ejected;
+        out[n].speaking        = st.speaking;
+        out[n].current_anim    = st.current_anim;
+        out[n].pointing_at_obj = st.pointing_at_obj;
+        out[n].point_x = st.point_x;
+        out[n].point_y = st.point_y;
+        out[n].point_z = st.point_z;
+        n++;
+    }
+    return n;
+}
+
 uint32_t SnapshotInfluences(InfluenceSourceView* out, uint32_t out_max) {
     uint32_t n = 0;
     for (const auto& s : g_influences) {

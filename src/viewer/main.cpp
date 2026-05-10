@@ -466,6 +466,75 @@ static void DrawText2D(float x, float y, const char* text) {
     glPopAttrib();
 }
 
+static void RenderClickMarker() {
+    auto c = lhvm::SnapshotClick();
+    if (!c.position_clicked) return;
+    float gy = g_game.GetTerrainHeight(c.click_x, c.click_z) + 0.5f;
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(1.0f, 1.0f, 0.2f, 0.9f);
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
+    const float r = 4.0f;
+    for (int i = 0; i < 24; i++) {
+        float a = (i / 24.0f) * 6.28318531f;
+        float rx = c.click_x + cosf(a) * r;
+        float rz = c.click_z + sinf(a) * r;
+        glVertex3f(rx, g_game.GetTerrainHeight(rx, rz) + 0.5f, rz);
+    }
+    glEnd();
+    // Vertical pole
+    glBegin(GL_LINES);
+    glVertex3f(c.click_x, gy,        c.click_z);
+    glVertex3f(c.click_x, gy + 12.0f, c.click_z);
+    glEnd();
+    glLineWidth(1.0f);
+    glEnable(GL_LIGHTING);
+}
+
+static void RenderSpiritPointers() {
+    lhvm::SpiritPointView spirits[8];
+    uint32_t n = lhvm::SnapshotSpirits(spirits, 8);
+    if (n == 0) return;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+
+    for (uint32_t i = 0; i < n; i++) {
+        const auto& s = spirits[i];
+        if (!s.visible) continue;
+
+        float tx = s.point_x, ty = s.point_y, tz = s.point_z;
+        // If pointing at an object, resolve its world position via the LHVM
+        // handle table — same coordinate convention the natives use.
+        // (Just show the script-supplied point for now; object resolution
+        // would need an Object* → world helper exposed from LHVMObjects.)
+
+        if (tx == 0 && tz == 0 && s.pointing_at_obj == 0) continue;
+
+        float gy = g_game.GetTerrainHeight(tx, tz);
+        glColor4f(0.4f, 0.8f, 1.0f, 0.9f);
+        glLineWidth(2.0f);
+        glBegin(GL_LINES);
+        // Beam from the sky to the target
+        glVertex3f(tx, gy + 60.0f, tz);
+        glVertex3f(tx, gy,         tz);
+        glEnd();
+        // Marker at base
+        glBegin(GL_LINE_LOOP);
+        for (int k = 0; k < 16; k++) {
+            float a = (k / 16.0f) * 6.28318531f;
+            float rr = 3.0f;
+            float rx = tx + cosf(a) * rr;
+            float rz = tz + sinf(a) * rr;
+            glVertex3f(rx, g_game.GetTerrainHeight(rx, rz) + 0.5f, rz);
+        }
+        glEnd();
+        glLineWidth(1.0f);
+    }
+    glEnable(GL_LIGHTING);
+}
+
 static void RenderInfluenceMap() {
     lhvm::InfluenceSourceView sources[64];
     uint32_t n = lhvm::SnapshotInfluences(sources, 64);
@@ -595,7 +664,11 @@ static void Display() {
         if (g_world_mode && !g_game_mode) RenderWorldEntities();
         if (g_game_mode) RenderGameEntities();
         if (g_wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        if (g_game_mode) RenderInfluenceMap();
+        if (g_game_mode) {
+            RenderInfluenceMap();
+            RenderSpiritPointers();
+            RenderClickMarker();
+        }
     } else if (g_active_model) {
         float extent = g_active_model->GetExtent();
         if (extent < 1.0f) extent = 1.0f;

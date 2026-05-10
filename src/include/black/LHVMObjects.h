@@ -121,6 +121,26 @@ struct InfluenceSourceView {
 };
 uint32_t SnapshotInfluences(InfluenceSourceView* out, uint32_t out_max);
 
+// Read the current click latch.
+struct ClickSnapshot {
+    bool     thing_clicked;
+    uint32_t clicked_object;
+    bool     position_clicked;
+    float    click_x, click_y, click_z;
+};
+ClickSnapshot SnapshotClick();
+
+// Read the current spirit-advisor pointing target.
+struct SpiritPointView {
+    bool     visible;
+    bool     ejected;
+    bool     speaking;
+    int32_t  current_anim;
+    uint32_t pointing_at_obj;     // 0 if pointing at a position
+    float    point_x, point_y, point_z;
+};
+uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max);
+
 // String-table accessor — calls through to the active LHVM instance and
 // returns the data-section string at the given offset, or "" if out of range.
 const char* DataString(LHVM* vm, uint32_t offset);
