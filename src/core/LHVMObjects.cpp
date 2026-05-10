@@ -211,19 +211,25 @@ static void N_MOVE_GAME_THING(LHVM* vm) {
 }
 
 // SCRIPT_OBJECT_TYPE → EntityCategory mapping (chlasm/ScriptEnums.h).
+// Numbers below match the enum order: NONE=0, MARKER=1, ABODE=2, FEATURE=3,
+// VILLAGER=4, VILLAGER_CHILD=5, ANIMAL=6, REWARD=7, MOBILE_STATIC=8,
+// TOWN=9, DANCE=10, FLOCK=11, CREATURE=12, DEAD_TREE=13,
+// INFLUENCE_RING=14, WEATHER_THING=15, STORE=16, TIMER=17, CITADEL=18,
+// WORSHIP_SITE=19, MOBILE_OBJECT=20, BIRD=21, TREE=22, ROCK=33, FIELD=35,
+// HIGHLIGHT=37, SCAFFOLD=39, TOTEM_STATUE=40, ANIMATED_STATIC=41.
 static EntityCategory CategoryForScriptType(int32_t script_type) {
     switch (script_type) {
-    case 2:  return ENTITY_CAT_ABODE;       // ABODE
-    case 4:                                  // VILLAGER
-    case 5:  return ENTITY_CAT_VILLAGER;    // VILLAGER_CHILD
-    case 6:                                  // ANIMAL
-    case 21: return ENTITY_CAT_ANIMAL;      // BIRD
-    case 8:  return ENTITY_CAT_MOBILE;      // MOBILE_STATIC
-    case 47: return ENTITY_CAT_ROCK;        // ROCK
-    case 12: return ENTITY_CAT_CREATURE;    // CREATURE
-    case 22: return ENTITY_CAT_TREE;        // TREE
-    case 49: return ENTITY_CAT_BONFIRE;     // BONFIRE (if defined)
-    default: return ENTITY_CAT_FEATURE;     // safe fallback
+    case 2:  return ENTITY_CAT_ABODE;        // ABODE
+    case 4: case 5:                          // VILLAGER, VILLAGER_CHILD
+             return ENTITY_CAT_VILLAGER;
+    case 6: case 21:                         // ANIMAL, BIRD
+             return ENTITY_CAT_ANIMAL;
+    case 8: case 20:                         // MOBILE_STATIC, MOBILE_OBJECT
+             return ENTITY_CAT_MOBILE;
+    case 33: return ENTITY_CAT_ROCK;         // ROCK
+    case 12: return ENTITY_CAT_CREATURE;     // CREATURE
+    case 22: return ENTITY_CAT_TREE;         // TREE
+    default: return ENTITY_CAT_FEATURE;      // safe fallback for everything else
     }
 }
 

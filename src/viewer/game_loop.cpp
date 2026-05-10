@@ -40,21 +40,26 @@ static int FindMeshIdByName(const char* name) {
 }
 
 static int DefaultMeshForScriptType(int script_type) {
+    // SCRIPT_OBJECT_TYPE indices from chlasm/ScriptEnums.h.
     switch (script_type) {
-    case 2:                      return FindMeshIdByName("B_NORS_VILLAGECENTRE"); // ABODE
-    case 3: /* FEATURE */        return FindMeshIdByName("B_CAMPFIRE");
-    case 4:                                                                       // VILLAGER
-    case 5:                      return FindMeshIdByName("B_AMCN_VILLAGECENTRE"); // VILLAGER_CHILD (no villager mesh — use centre as proxy)
-    case 6: /* ANIMAL */         return FindMeshIdByName("A_COW_1");
-    case 7: /* REWARD */         return FindMeshIdByName("REWARD_CHEST_EXPLODE");
-    case 8: /* MOBILE_STATIC */  return FindMeshIdByName("U_BUCKET");
-    case 11: /* FLOCK */         return FindMeshIdByName("A_DOVE_1");
-    case 12: /* CREATURE */      return FindMeshIdByName("A_LION_1");
-    case 13: /* DEAD_TREE */     return FindMeshIdByName("O_BURNT_TREE");
-    case 21: /* BIRD */          return FindMeshIdByName("A_DOVE_1");
-    case 22: /* TREE */          return FindMeshIdByName("T_PINE");
-    case 47: /* ROCK */          return FindMeshIdByName("U_BUCKET"); // no rock entry, fallback
-    default:                     return FindMeshIdByName("T_BUSH");
+    case  2: /* ABODE */          return FindMeshIdByName("B_NORS_VILLAGECENTRE");
+    case  3: /* FEATURE */        return FindMeshIdByName("B_CAMPFIRE");
+    case  4: /* VILLAGER */
+    case  5: /* VILLAGER_CHILD */ return FindMeshIdByName("B_AMCN_VILLAGECENTRE");
+    case  6: /* ANIMAL */         return FindMeshIdByName("A_COW_1");
+    case  7: /* REWARD */         return FindMeshIdByName("REWARD_CHEST_EXPLODE");
+    case  8: /* MOBILE_STATIC */  return FindMeshIdByName("U_BUCKET");
+    case 11: /* FLOCK */          return FindMeshIdByName("A_DOVE_1");
+    case 12: /* CREATURE */       return FindMeshIdByName("A_LION_1");
+    case 13: /* DEAD_TREE */      return FindMeshIdByName("O_BURNT_TREE");
+    case 20: /* MOBILE_OBJECT */  return FindMeshIdByName("U_CART");
+    case 21: /* BIRD */           return FindMeshIdByName("A_DOVE_1");
+    case 22: /* TREE */           return FindMeshIdByName("T_PINE");
+    case 33: /* ROCK */           return FindMeshIdByName("U_BUCKET");   // no rock mesh in table
+    case 35: /* FIELD */          return FindMeshIdByName("T_WHEAT");
+    case 37: /* HIGHLIGHT */      return FindMeshIdByName("I_TREES");
+    case 39: /* SCAFFOLD */       return FindMeshIdByName("B_SCAFFOLD_01");
+    default:                      return FindMeshIdByName("T_BUSH");
     }
 }
 
