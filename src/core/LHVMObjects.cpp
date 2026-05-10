@@ -276,22 +276,69 @@ static void N_IS_OF_TYPE(LHVM* vm) {
     vm->PushBoolean(match);
 }
 
+// Property indices from chlasm/ScriptEnums.h SCRIPT_OBJECT_PROPERTY_TYPE.
+// Only fields that have a direct Object* mapping are handled here; the rest
+// (FLYING, DROWNING, MOVING, IN_HAND, creature-specific, etc.) need
+// subsystem wiring and fall through to 0/no-op for now.
+enum ScriptProp {
+    SP_HEALTH          = 1,
+    SP_ANGLE           = 2,
+    SP_XANGLE          = 3,
+    SP_ZANGLE          = 4,
+    SP_FLYING          = 5,
+    SP_DROWNING        = 6,
+    SP_MOVING          = 7,
+    SP_SCALE           = 8,
+    SP_IN_HAND         = 9,
+    SP_IN_HAND_GRAB    = 10,
+    SP_SPEED           = 11,
+    SP_RUNNING_SPEED   = 12,
+    SP_DEFAULT_SPEED   = 13,
+    SP_DEATH           = 14,
+    SP_THING_TYPE      = 15,
+    SP_AGE             = 16,
+    SP_STRENGTH        = 17,
+    SP_ALIGNMENT       = 18,
+    SP_HEIGHT          = 19,
+    SP_MAX_HEIGHT      = 20,
+    SP_PLAYER          = 21,
+    SP_BUILT_PERCENT   = 22,
+    SP_XPOS            = 23,
+    SP_YPOS            = 24,
+    SP_ZPOS            = 25,
+};
+
 static void N_GET_PROPERTY(LHVM* vm) {
     int32_t  prop = vm->PopInt();
     uint32_t h    = vm->PopObject();
     Object* o = LookupObject(h);
     if (!o) { vm->PushFloat(0); return; }
 
-    // Property IDs come from SCRIPT_OBJECT_PROPERTY_TYPE in the original.
-    // Cover the most common ones used by Land1; rest fall through to 0.
     switch (prop) {
-    case 1:  vm->PushFloat(o->life);                             return; // HEALTH
-    case 2:  vm->PushFloat(o->scale);                            return; // SCALE
-    case 3:  vm->PushFloat(o->y_angle);                          return; // Y_ANGLE
-    case 4:  vm->PushFloat(WorldX(o));                           return; // X_POS
-    case 5:  vm->PushFloat(WorldY(o));                           return; // Y_POS
-    case 6:  vm->PushFloat(WorldZ(o));                           return; // Z_POS
-    default: vm->PushFloat(0);                                   return;
+    case SP_HEALTH:        vm->PushFloat(o->life);                                        return;
+    case SP_ANGLE:         vm->PushFloat(o->y_angle);                                     return;
+    case SP_XANGLE:
+    case SP_ZANGLE:        vm->PushFloat(0.0f);                                           return;
+    case SP_SCALE:         vm->PushFloat(o->scale);                                       return;
+    case SP_DEATH:         vm->PushFloat(o->life <= 0.0f ? 1.0f : 0.0f);                  return;
+    case SP_THING_TYPE:    vm->PushFloat(static_cast<float>(o->GetScriptObjectType()));   return;
+    case SP_BUILT_PERCENT:
+        // Abode::percent_built lives at offset 0x54 on the Object subclass.
+        vm->PushFloat(*reinterpret_cast<float*>(reinterpret_cast<char*>(o) + 0x54));
+        return;
+    case SP_XPOS:          vm->PushFloat(WorldX(o));                                      return;
+    case SP_YPOS:          vm->PushFloat(WorldY(o));                                      return;
+    case SP_ZPOS:          vm->PushFloat(WorldZ(o));                                      return;
+    case SP_HEIGHT:
+    case SP_MAX_HEIGHT:    vm->PushFloat(o->scale * 10.0f);                               return; // proxy
+    case SP_IN_HAND:
+    case SP_IN_HAND_GRAB: {
+        HandInfo info = CurrentHand();
+        uint32_t my_h = HandleFor(o);
+        vm->PushFloat(info.held_object == my_h ? 1.0f : 0.0f);
+        return;
+    }
+    default:               vm->PushFloat(0.0f);                                           return;
     }
 }
 
@@ -302,10 +349,29 @@ static void N_SET_PROPERTY(LHVM* vm) {
     Object* o = LookupObject(h);
     if (!o) return;
     switch (prop) {
-    case 1:  o->SetLife(val); break;
-    case 2:  o->scale  = val; break;
-    case 3:  o->y_angle = val; break;
-    default: break;
+    case SP_HEALTH:        o->SetLife(val); break;
+    case SP_ANGLE:         o->y_angle = val; break;
+    case SP_SCALE:         o->scale = val;   break;
+    case SP_BUILT_PERCENT:
+        if (val < 0) val = 0; if (val > 1) val = 1;
+        *reinterpret_cast<float*>(reinterpret_cast<char*>(o) + 0x54) = val;
+        break;
+    case SP_XPOS:          {
+        MapCoords c = o->obj_coords; c.x = static_cast<int32_t>(val * MAP_FIXED_SCALE);
+        o->SetPos(c); o->obj_coords = c;
+        break;
+    }
+    case SP_YPOS:          {
+        MapCoords c = o->obj_coords; c.altitude = val;
+        o->SetPos(c); o->obj_coords = c;
+        break;
+    }
+    case SP_ZPOS:          {
+        MapCoords c = o->obj_coords; c.z = static_cast<int32_t>(val * MAP_FIXED_SCALE);
+        o->SetPos(c); o->obj_coords = c;
+        break;
+    }
+    default:               break;
     }
 }
 
