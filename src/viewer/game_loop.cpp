@@ -371,24 +371,51 @@ void GameState::ProcessTurn() {
 
         // Ground collision
         float ground = GetTerrainHeight(e.x, e.z);
-        if (e.y <= ground) {
+        bool just_hit_ground = (e.y <= ground);
+        if (just_hit_ground) {
+            // Speed at impact — drives damage falloff so a slow bounce
+            // doesn't shred fragile targets like a hard-thrown rock would.
+            float impact_speed = sqrtf(e.vx*e.vx + e.vy*e.vy + e.vz*e.vz);
             e.y = ground;
             e.vx *= 0.5f;
             e.vy = 0;
             e.vz *= 0.5f;
+
+            // Fire bw_core impact on the thrown entity itself + any
+            // nearby entity in a small radius. The PhysicsObject* arg is
+            // unused by every existing ReactToPhysicsImpact body, so we
+            // pass null. The bool param toggles damage application.
+            size_t thrown_idx = &e - &entities[0];
+            if (use_bw_core && impact_speed > 5.0f) {
+                if (thrown_idx < core_entities.size() && core_entities[thrown_idx]) {
+                    core_entities[thrown_idx]->ReactToPhysicsImpact(nullptr, true);
+                }
+                // Splash damage to nearby objects (thrown rock breaks pots, etc.)
+                const float blast_r = 6.0f + impact_speed * 0.05f;
+                const float blast_r2 = blast_r * blast_r;
+                for (size_t j = 0; j < entities.size(); j++) {
+                    if (j == thrown_idx) continue;
+                    if (j >= core_entities.size() || !core_entities[j]) continue;
+                    const auto& other = entities[j];
+                    if (!other.alive) continue;
+                    float dx = other.x - e.x, dz = other.z - e.z;
+                    if (dx*dx + dz*dz <= blast_r2) {
+                        core_entities[j]->ReactToPhysicsImpact(nullptr, true);
+                    }
+                }
+            }
+
             if (fabsf(e.vx) + fabsf(e.vz) < 0.5f) {
                 e.physics_active = false;
                 e.vx = e.vy = e.vz = 0;
 
                 // Sync landing position back to bw_core
-                if (use_bw_core) {
-                    size_t idx = &e - &entities[0];
-                    if (idx < core_entities.size() && core_entities[idx]) {
-                        int32_t map_x = static_cast<int32_t>(e.x * 65536.0f);
-                        int32_t map_z = static_cast<int32_t>(e.z * 65536.0f);
-                        MapCoords pos(map_x, map_z, e.y);
-                        core_entities[idx]->SetPos(pos);
-                    }
+                if (use_bw_core && thrown_idx < core_entities.size() &&
+                    core_entities[thrown_idx]) {
+                    int32_t map_x = static_cast<int32_t>(e.x * 65536.0f);
+                    int32_t map_z = static_cast<int32_t>(e.z * 65536.0f);
+                    MapCoords pos(map_x, map_z, e.y);
+                    core_entities[thrown_idx]->SetPos(pos);
                 }
             }
         }
