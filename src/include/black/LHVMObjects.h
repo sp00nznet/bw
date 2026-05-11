@@ -73,6 +73,11 @@ extern SoundPlayFn  g_audio_play_sound_func;
 extern SoundStopFn  g_audio_stop_sound_func;
 extern MusicEventFn g_audio_music_func;
 
+// Fired by SAVE_GAME_IN_SLOT. Host should serialize whatever state it
+// tracks; nothing is auto-serialized by the bindings themselves.
+using SaveSlotFn = void (*)(int32_t slot);
+extern SaveSlotFn g_save_slot_func;
+
 // Hosts call this to clear the click latch after the script consumes it.
 void ClearClickedObject();
 void ClearClickedPosition();

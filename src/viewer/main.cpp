@@ -36,6 +36,7 @@
 
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
+#include "save_state.h"
 
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
@@ -796,6 +797,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case VK_ESCAPE: PostQuitMessage(0); break;
         case VK_TAB:    g_wireframe = !g_wireframe; break;
         case VK_F1:     g_show_hud = !g_show_hud; break;
+        case VK_F5:     if (g_game_mode) bw::savestate::Save(0, g_game); break;
+        case VK_F9:     if (g_game_mode) bw::savestate::Load(0, g_game); break;
         case 'R':       ResetCamera(); break;
         case 'W': case 'S': case 'A': case 'D': {
             // Camera-relative movement

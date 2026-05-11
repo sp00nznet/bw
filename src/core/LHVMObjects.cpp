@@ -116,6 +116,7 @@ EntitySpawnFn g_entity_spawn_func = nullptr;
 SoundPlayFn   g_audio_play_sound_func = nullptr;
 SoundStopFn   g_audio_stop_sound_func = nullptr;
 MusicEventFn  g_audio_music_func      = nullptr;
+SaveSlotFn    g_save_slot_func        = nullptr;
 
 static void NotifySpawn(uint32_t handle, Object* obj,
                         int32_t script_type, int32_t script_subtype,
@@ -3252,7 +3253,11 @@ static void N_SET_FIXED_CAM_ROTATION(LHVM* vm) {
 
 // --- Save / tutorial ----------------------------------------------
 
-static void N_SAVE_GAME_IN_SLOT(LHVM* vm) { g_save_slot = static_cast<uint32_t>(vm->PopInt()); }
+static void N_SAVE_GAME_IN_SLOT(LHVM* vm) {
+    int32_t slot = vm->PopInt();
+    g_save_slot = static_cast<uint32_t>(slot);
+    if (g_save_slot_func) g_save_slot_func(slot);
+}
 static void N_CAN_SKIP_TUTORIAL(LHVM* vm) { vm->PushBoolean(true); }
 
 // ============================================================================

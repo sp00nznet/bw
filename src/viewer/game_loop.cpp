@@ -5,6 +5,7 @@
 #include "game_loop.h"
 #include "mesh_names.h"
 #include "audio.h"
+#include "save_state.h"
 
 #include <algorithm>
 #include <cmath>
@@ -161,7 +162,8 @@ bool GameState::Init(const std::string& script_path) {
     lhvm::g_entity_spawn_func = EntitySpawnCallback;
     bw::audio::Init(dir);
     bw::audio::RegisterLHVMHooks();
-    printf("Game: Terrain + LHVM host services + audio registered for bw_core\n"); fflush(stdout);
+    bw::savestate::RegisterLHVMHook(this);
+    printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
     // Load meshes
     printf("Game: Loading meshes...\n"); fflush(stdout);

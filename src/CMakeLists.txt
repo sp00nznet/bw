@@ -321,6 +321,7 @@ add_executable(bw_viewer
     viewer/script_parser.cpp
     viewer/game_loop.cpp
     viewer/audio.cpp
+    viewer/save_state.cpp
 )
 target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES
