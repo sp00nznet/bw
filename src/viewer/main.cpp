@@ -345,6 +345,46 @@ static void RenderWorldEntities() {
     }
 }
 
+// Procedural idle animation. Until the L3D loader is refactored to keep
+// the bind pose separate from baked-bone vertices, we cannot do real
+// skeletal animation — so the renderer applies a per-entity bob/sway
+// offset at draw time. This keeps Living/animal entities visibly alive
+// (slight vertical bob + gentle rotation drift) instead of T-posing
+// statically. Buildings and static features do not animate.
+struct IdleAnim {
+    float bob_y;     // additive Y offset
+    float sway_deg;  // additive Y-rotation in degrees
+    float scale_k;   // multiplicative scale wobble (1.0 = no change)
+};
+
+static IdleAnim ComputeIdleAnim(const bw::GameEntity& ent, size_t idx) {
+    IdleAnim a = { 0.0f, 0.0f, 1.0f };
+
+    // Skip statics — buildings, trees, mobile-static rocks, etc.
+    if (ent.type != bw::ENTITY_VILLAGER &&
+        ent.type != bw::ENTITY_ANIMAL) {
+        return a;
+    }
+
+    // Per-entity phase seed so a row of villagers doesn't bob in lockstep.
+    float seed = static_cast<float>(idx) * 0.7193f;
+    float t = g_game.game_turn * 0.1f + seed;        // sim-time seconds
+
+    if (ent.type == bw::ENTITY_VILLAGER) {
+        // Subtle breathing — small Y bob + tiny sway.
+        a.bob_y    = sinf(t * 2.4f) * 0.25f;
+        a.sway_deg = sinf(t * 1.1f) * 1.5f;
+        a.scale_k  = 1.0f + sinf(t * 4.8f) * 0.005f;
+    } else if (ent.type == bw::ENTITY_ANIMAL) {
+        // Slightly more pronounced for animals — and faster for the
+        // grazing-quickly feel. Birds get a stronger vertical bob.
+        bool flying = (ent.mesh_id >= 0 && idx % 17 == 0);  // crude proxy
+        a.bob_y    = sinf(t * 3.0f + seed * 2.1f) * (flying ? 1.5f : 0.4f);
+        a.sway_deg = sinf(t * 1.7f + seed)         * 2.5f;
+    }
+    return a;
+}
+
 static void RenderGameEntities() {
     for (size_t i = 0; i < g_game.entities.size(); ++i) {
         const auto& ent = g_game.entities[i];
@@ -354,10 +394,14 @@ static void RenderGameEntities() {
         const auto& model = g_game.meshes.meshes[ent.mesh_id];
         if (model.submeshes.empty()) continue;
 
+        IdleAnim anim = ComputeIdleAnim(ent, i);
+
         glPushMatrix();
-        glTranslatef(ent.x, ent.y, ent.z);
-        if (ent.angle != 0) glRotatef(ent.angle * 180.0f / 3.14159265f, 0, 1, 0);
-        if (ent.scale != 1.0f && ent.scale > 0) glScalef(ent.scale, ent.scale, ent.scale);
+        glTranslatef(ent.x, ent.y + anim.bob_y, ent.z);
+        float angle_deg = ent.angle * 180.0f / 3.14159265f + anim.sway_deg;
+        if (angle_deg != 0) glRotatef(angle_deg, 0, 1, 0);
+        float s = (ent.scale > 0 ? ent.scale : 1.0f) * anim.scale_k;
+        if (s != 1.0f) glScalef(s, s, s);
 
         // Highlight selected/hovered entities
         if (ent.selected) {
