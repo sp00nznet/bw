@@ -536,6 +536,63 @@ static void RenderSpiritPointers() {
     glEnable(GL_LIGHTING);
 }
 
+static void RenderSpells() {
+    lhvm::SpellSnap spells[64];
+    uint32_t n = lhvm::SnapshotSpells(spells, 64);
+    if (n == 0) return;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    for (uint32_t i = 0; i < n; i++) {
+        const auto& s = spells[i];
+        float life_frac = s.duration > 0 ? s.age / s.duration : 0;
+        if (life_frac > 1.0f) life_frac = 1.0f;
+        float fade = 1.0f - life_frac;
+
+        // Colour by spell-id family (heal=green, fire=red, water=blue, ...)
+        float cr, cg, cb;
+        switch (s.spell_id % 6) {
+        case 0: cr=1.0f; cg=0.6f; cb=0.2f; break;  // fire
+        case 1: cr=0.4f; cg=1.0f; cb=0.4f; break;  // heal
+        case 2: cr=0.4f; cg=0.6f; cb=1.0f; break;  // water
+        case 3: cr=1.0f; cg=1.0f; cb=0.4f; break;  // lightning
+        case 4: cr=0.7f; cg=0.4f; cb=1.0f; break;  // shield
+        default:cr=1.0f; cg=0.4f; cb=0.8f; break;
+        }
+        glColor4f(cr, cg, cb, 0.65f * fade);
+
+        float cy = g_game.GetTerrainHeight(s.x, s.z) + 1.0f + life_frac * 8.0f;
+
+        // Expanding ring driven by life_frac
+        float r = s.radius * (0.4f + 0.6f * life_frac);
+        glLineWidth(3.0f);
+        glBegin(GL_LINE_LOOP);
+        const int segments = 28;
+        for (int k = 0; k < segments; k++) {
+            float a = (k / static_cast<float>(segments)) * 6.28318531f;
+            float rx = s.x + cosf(a) * r;
+            float rz = s.z + sinf(a) * r;
+            float ry = g_game.GetTerrainHeight(rx, rz) + 1.0f + life_frac * 8.0f;
+            glVertex3f(rx, ry, rz);
+        }
+        glEnd();
+        // Cross marker at centre for visibility
+        glLineWidth(2.0f);
+        glBegin(GL_LINES);
+        glVertex3f(s.x - 2, cy, s.z); glVertex3f(s.x + 2, cy, s.z);
+        glVertex3f(s.x, cy - 2, s.z); glVertex3f(s.x, cy + 2, s.z);
+        glVertex3f(s.x, cy, s.z - 2); glVertex3f(s.x, cy, s.z + 2);
+        glEnd();
+    }
+    glLineWidth(1.0f);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+}
+
 static void RenderInfluenceMap() {
     lhvm::InfluenceSourceView sources[64];
     uint32_t n = lhvm::SnapshotInfluences(sources, 64);
@@ -682,6 +739,7 @@ static void Display() {
             RenderInfluenceMap();
             RenderSpiritPointers();
             RenderClickMarker();
+            RenderSpells();
         }
     } else if (g_active_model) {
         float extent = g_active_model->GetExtent();

@@ -172,6 +172,24 @@ struct CameraFollowSnapshot {
 };
 CameraFollowSnapshot SnapshotCameraFollow();
 
+// Active spell view — produced by SPELL_AT_THING / SPELL_AT_POS /
+// SPELL_AT_POINT. Spells expire after their duration so the host
+// renders only currently-active casts.
+struct SpellSnap {
+    int32_t  spell_id;
+    uint32_t target_object;
+    float    x, y, z;
+    float    radius;
+    float    age;        // game seconds since cast
+    float    duration;   // total lifetime
+};
+uint32_t SnapshotSpells(SpellSnap* out, uint32_t out_max);
+
+// Drop spell records whose age exceeds duration. Hosts should call this
+// once per game tick (after the LHVM ProcessTick) to keep the active set
+// bounded.
+void TickSpells();
+
 // String-table accessor — calls through to the active LHVM instance and
 // returns the data-section string at the given offset, or "" if out of range.
 const char* DataString(LHVM* vm, uint32_t offset);

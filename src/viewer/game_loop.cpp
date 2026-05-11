@@ -330,6 +330,7 @@ void GameState::ProcessTurn() {
     // === Phase 0: Tick LHVM scripts ===
     if (scripts_loaded && vm) {
         vm->ProcessTick();
+        lhvm::TickSpells();
     }
 
     // === Phase 1: Run bw_core game logic ===

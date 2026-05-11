@@ -12,6 +12,7 @@
 #include <black/Flock.h>
 #include <black/types.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -1540,7 +1541,8 @@ struct SpellRecord {
     uint32_t target_object;
     float    x, y, z;
     float    radius;
-    float    cast_time;     // game seconds when last cast
+    float    cast_time;       // game seconds when cast
+    float    duration;         // total lifetime in seconds (0 = no decay)
 };
 
 std::unordered_map<uint32_t, std::vector<SpellRecord>> g_player_last_spell;  // per-player log
@@ -1558,15 +1560,25 @@ float g_weather_a = 0, g_weather_b = 0, g_weather_c = 0;
 float g_cloud_a = 0,   g_cloud_b = 0,   g_cloud_c = 0;
 float g_land_balance = 0.5f;
 
+// Local game-time read (chunk-7's CurrentGameTime lives in a different
+// anonymous namespace so we can't forward-decl it across translation
+// units within this file — duplicate the trivial body here).
+float SpellNowSeconds() {
+    if (!g_game) return 0;
+    uint32_t turn = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + 0x205A40);
+    return static_cast<float>(turn) / 10.0f;
+}
+
 void RecordSpell(uint32_t player, int32_t spell, uint32_t target_obj,
-                 float x, float y, float z, float radius) {
+                 float x, float y, float z, float radius, float duration) {
     SpellRecord r;
     r.spell_id     = spell;
     r.target_player= 0;
     r.target_object= target_obj;
     r.x = x; r.y = y; r.z = z;
-    r.radius      = radius;
-    r.cast_time   = 0;
+    r.radius       = radius;
+    r.cast_time    = SpellNowSeconds();
+    r.duration     = duration > 0 ? duration : 5.0f;
     g_player_last_spell[player].push_back(r);
     if (target_obj) g_object_spell_active[target_obj][spell] = true;
 }
@@ -1582,9 +1594,8 @@ static void N_SPELL_AT_THING(LHVM* vm) {
     uint32_t target   = vm->PopObject();
     int32_t  spell    = vm->PopInt();
     uint32_t player   = vm->PopObject();
-    (void)duration;
-    RecordSpell(player, spell, target, x, y, z, radius);
-    vm->PushObject(0);  // returns the new spell instance — none allocated yet
+    RecordSpell(player, spell, target, x, y, z, radius, duration);
+    vm->PushObject(0);
 }
 
 static void N_SPELL_AT_POS(LHVM* vm) {
@@ -1593,8 +1604,7 @@ static void N_SPELL_AT_POS(LHVM* vm) {
     float    z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
     int32_t  spell    = vm->PopInt();
     uint32_t player   = vm->PopObject();
-    (void)duration;
-    RecordSpell(player, spell, 0, x, y, z, radius);
+    RecordSpell(player, spell, 0, x, y, z, radius, duration);
     vm->PushObject(0);
 }
 
@@ -1603,7 +1613,7 @@ static void N_SPELL_AT_POINT(LHVM* vm) {
     float    z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
     int32_t  spell  = vm->PopInt();
     uint32_t player = vm->PopObject();
-    RecordSpell(player, spell, 0, x, y, z, radius);
+    RecordSpell(player, spell, 0, x, y, z, radius, 5.0f);
     vm->PushObject(0);
 }
 
@@ -3302,6 +3312,44 @@ ClickSnapshot SnapshotClick() {
     s.click_y = g_click_latch.click_y;
     s.click_z = g_click_latch.click_z;
     return s;
+}
+
+uint32_t SnapshotSpells(SpellSnap* out, uint32_t out_max) {
+    if (!g_game) return 0;
+    uint32_t turn = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + 0x205A40);
+    float now = static_cast<float>(turn) / 10.0f;
+
+    uint32_t n = 0;
+    for (const auto& kv : g_player_last_spell) {
+        for (const auto& r : kv.second) {
+            if (n >= out_max) return n;
+            float age = now - r.cast_time;
+            if (age > r.duration) continue;
+            out[n].spell_id      = r.spell_id;
+            out[n].target_object = r.target_object;
+            out[n].x = r.x; out[n].y = r.y; out[n].z = r.z;
+            out[n].radius        = r.radius;
+            out[n].age           = age;
+            out[n].duration      = r.duration;
+            n++;
+        }
+    }
+    return n;
+}
+
+void TickSpells() {
+    if (!g_game) return;
+    uint32_t turn = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(g_game) + 0x205A40);
+    float now = static_cast<float>(turn) / 10.0f;
+
+    for (auto& kv : g_player_last_spell) {
+        auto& v = kv.second;
+        v.erase(std::remove_if(v.begin(), v.end(),
+                               [now](const SpellRecord& r) {
+                                   return (now - r.cast_time) > r.duration;
+                               }),
+                v.end());
+    }
 }
 
 CameraFollowSnapshot SnapshotCameraFollow() {
