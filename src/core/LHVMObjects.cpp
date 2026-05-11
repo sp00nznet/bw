@@ -113,6 +113,9 @@ static Slot* SlotOf(uint32_t handle) {
 HandQueryFn   g_hand_query_func   = nullptr;
 ClickQueryFn  g_click_query_func  = nullptr;
 EntitySpawnFn g_entity_spawn_func = nullptr;
+SoundPlayFn   g_audio_play_sound_func = nullptr;
+SoundStopFn   g_audio_stop_sound_func = nullptr;
+MusicEventFn  g_audio_music_func      = nullptr;
 
 static void NotifySpawn(uint32_t handle, Object* obj,
                         int32_t script_type, int32_t script_subtype,
@@ -1986,15 +1989,17 @@ void SetSoundPlaying(int32_t id, bool on) { g_audio.sound_playing[id] = on; }
 
 static void N_PLAY_SOUND_EFFECT(LHVM* vm) {
     vm->PopFloat();   // volume / random offset (varies)
-    vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); // x, y, z
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
     int32_t id = vm->PopInt();
     SetSoundPlaying(id, true);
+    if (g_audio_play_sound_func) g_audio_play_sound_func(id, x, y, z);
 }
 
 static void N_STOP_SOUND_EFFECT(LHVM* vm) {
     vm->PopInt();   // bank id
     int32_t id = vm->PopInt();
     SetSoundPlaying(id, false);
+    if (g_audio_stop_sound_func) g_audio_stop_sound_func(id);
 }
 
 static void N_SOUND_EXISTS(LHVM* vm) {
@@ -2037,9 +2042,11 @@ static void N_GAME_SET_MANA(LHVM* vm) {
 static void N_START_MUSIC(LHVM* vm) {
     g_audio.current_music = vm->PopInt();
     g_audio.music_playing = true;
+    if (g_audio_music_func) g_audio_music_func(g_audio.current_music, true);
 }
 
 static void N_STOP_MUSIC(LHVM* /*vm*/) {
+    if (g_audio_music_func) g_audio_music_func(g_audio.current_music, false);
     g_audio.music_playing = false;
     g_audio.music_attached_to = 0;
 }

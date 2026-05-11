@@ -58,6 +58,21 @@ using ClickQueryFn = void (*)(ClickInfo* out);
 extern HandQueryFn  g_hand_query_func;
 extern ClickQueryFn g_click_query_func;
 
+// --- Audio output hooks ---------------------------------------------------
+//
+// Fired when scripts ask the audio subsystem to do something. The host
+// registers a handler that translates the script-level event into actual
+// playback (PlaySound, DirectSound, miniaudio, etc.). All hooks may be
+// null; bindings tolerate it.
+
+using SoundPlayFn  = void (*)(int32_t sound_id, float x, float y, float z);
+using SoundStopFn  = void (*)(int32_t sound_id);
+using MusicEventFn = void (*)(int32_t music_id, bool start);
+
+extern SoundPlayFn  g_audio_play_sound_func;
+extern SoundStopFn  g_audio_stop_sound_func;
+extern MusicEventFn g_audio_music_func;
+
 // Hosts call this to clear the click latch after the script consumes it.
 void ClearClickedObject();
 void ClearClickedPosition();
