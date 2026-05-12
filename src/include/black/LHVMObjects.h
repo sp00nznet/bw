@@ -150,6 +150,24 @@ struct ClickSnapshot {
 };
 ClickSnapshot SnapshotClick();
 
+// Per-entity script-driven active animation. Set by PLAY_GESTURE and
+// OVERRIDE_STATE_ANIMATION; cleared after `duration_sec` elapses or
+// when CLEAR_ACTOR_MIND fires. Hosts query this each frame to pick a
+// pose source.
+struct ActiveAnimView {
+    uint32_t handle;
+    int32_t  anim_type;       // SCRIPT_HELP_TEXT-style enum the script passed
+    int32_t  anim_subtype;
+    int32_t  string_id;       // ANIM_TYPE may carry a string-table key
+    float    started_at_sec;  // CurrentGameTime() at PLAY_GESTURE call
+    float    duration_sec;    // 0 = play until cleared
+};
+uint32_t SnapshotActiveAnims(ActiveAnimView* out, uint32_t out_max);
+
+// Look up the active animation for a single handle. Returns true with
+// `*out` populated if one is currently in flight; false otherwise.
+bool ActiveAnimFor(uint32_t handle, ActiveAnimView* out);
+
 // Read the current spirit-advisor pointing target.
 struct SpiritPointView {
     bool     visible;

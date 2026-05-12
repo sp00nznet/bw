@@ -1171,6 +1171,31 @@ std::unordered_map<uint32_t, CreatureMind> g_minds;
 
 CreatureMind& MindFor(uint32_t handle) { return g_minds[handle]; }
 
+// Forward decl — defined later (in chunk 4's section) but needed here.
+float SpellNowSeconds();
+
+// Script-driven active animation per handle (PLAY_GESTURE etc.).
+struct ActiveAnim {
+    int32_t  anim_type;
+    int32_t  anim_subtype;
+    int32_t  string_id;
+    float    started_at_sec;
+    float    duration_sec;
+};
+std::unordered_map<uint32_t, ActiveAnim> g_active_anims;
+
+void RecordActiveAnim(uint32_t handle, int32_t type, int32_t sub,
+                      int32_t str, float duration) {
+    if (handle == 0) return;
+    ActiveAnim a;
+    a.anim_type      = type;
+    a.anim_subtype   = sub;
+    a.string_id      = str;
+    a.started_at_sec = SpellNowSeconds();
+    a.duration_sec   = duration;
+    g_active_anims[handle] = a;
+}
+
 inline int64_t ActionKey(int32_t type, int32_t subtype) {
     return (static_cast<int64_t>(type) << 32) | static_cast<uint32_t>(subtype);
 }
@@ -1509,6 +1534,7 @@ static void N_SET_TOWN_DESIRE_BOOST(LHVM* vm) {
 static void N_CLEAR_ACTOR_MIND(LHVM* vm) {
     uint32_t h = vm->PopObject();
     g_minds.erase(h);
+    g_active_anims.erase(h);
 }
 
 // --- Profile/training queries -------------------------------------------
@@ -2673,8 +2699,9 @@ static void N_SPECIAL_EFFECT_OBJECT(LHVM* vm) {
 }
 
 static void N_OVERRIDE_STATE_ANIMATION(LHVM* vm) {
-    vm->PopInt();    // state
-    vm->PopObject();
+    int32_t  state = vm->PopInt();
+    uint32_t obj   = vm->PopObject();
+    RecordActiveAnim(obj, state, 0, 0, /*duration*/ 0.0f);
 }
 
 static void N_PLAYED(LHVM* vm) {
@@ -2810,7 +2837,12 @@ static void N_SET_AVI_SEQUENCE(LHVM* vm) {
     vm->PopBoolean(); vm->PopInt();
 }
 static void N_PLAY_GESTURE(LHVM* vm) {
-    vm->PopFloat(); vm->PopInt(); vm->PopInt(); vm->PopInt(); vm->PopObject();
+    float    duration = vm->PopFloat();
+    int32_t  string_id = vm->PopInt();
+    int32_t  subtype   = vm->PopInt();
+    int32_t  type      = vm->PopInt();
+    uint32_t target    = vm->PopObject();
+    RecordActiveAnim(target, type, subtype, string_id, duration);
 }
 
 // --- Input / dev ---------------------------------------------------
@@ -3361,6 +3393,51 @@ CameraFollowSnapshot SnapshotCameraFollow() {
     s.lens_value      = g_cam_follow.lens_value;
     s.shake_amount    = g_cam_follow.shake_amount;
     return s;
+}
+
+uint32_t SnapshotActiveAnims(ActiveAnimView* out, uint32_t out_max) {
+    float now = SpellNowSeconds();
+    uint32_t n = 0;
+    for (auto it = g_active_anims.begin(); it != g_active_anims.end(); ) {
+        const auto& a = it->second;
+        bool expired = a.duration_sec > 0.0f &&
+                       (now - a.started_at_sec) > a.duration_sec;
+        if (expired) {
+            it = g_active_anims.erase(it);
+            continue;
+        }
+        if (n < out_max) {
+            out[n].handle         = it->first;
+            out[n].anim_type      = a.anim_type;
+            out[n].anim_subtype   = a.anim_subtype;
+            out[n].string_id      = a.string_id;
+            out[n].started_at_sec = a.started_at_sec;
+            out[n].duration_sec   = a.duration_sec;
+            n++;
+        }
+        ++it;
+    }
+    return n;
+}
+
+bool ActiveAnimFor(uint32_t handle, ActiveAnimView* out) {
+    auto it = g_active_anims.find(handle);
+    if (it == g_active_anims.end()) return false;
+    const auto& a = it->second;
+    float now = SpellNowSeconds();
+    if (a.duration_sec > 0.0f && (now - a.started_at_sec) > a.duration_sec) {
+        g_active_anims.erase(it);
+        return false;
+    }
+    if (out) {
+        out->handle         = handle;
+        out->anim_type      = a.anim_type;
+        out->anim_subtype   = a.anim_subtype;
+        out->string_id      = a.string_id;
+        out->started_at_sec = a.started_at_sec;
+        out->duration_sec   = a.duration_sec;
+    }
+    return true;
 }
 
 uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max) {

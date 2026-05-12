@@ -35,6 +35,69 @@ const T* At(const std::vector<uint8_t>& buf, size_t off) {
 }
 } // namespace
 
+// ---------------------------------------------------------------------------
+// LionHead Pack archive parser
+// ---------------------------------------------------------------------------
+//
+// AllAnims.anm is a Pack file. Layout:
+//   +0x00  "LiOnHeAd" (8 bytes file magic)
+//   blocks, each:
+//     +0x00  32-byte block name (null-padded)
+//     +0x20  uint32 block size
+//     +0x24  block body (size bytes)
+//
+// Animation archives have a "Body" block plus one "Julien<i>" block per
+// animation. The Body block's payload is:
+//   "MKJC" (4 bytes)
+//   uint32 totalAnimations
+//   BodyBlockLookup[totalAnimations]  (uint32 offset + uint32 unknown)
+// where each `offset` points into the Body block, and there we find the
+// 0x54 ANMHeader bytes for that animation. The remainder of the ANM file
+// (frame offset table + bone data) lives in the corresponding "Julien<i>"
+// block — concatenating header + julien yields a normal .anm file body.
+
+namespace {
+
+struct PackBlock {
+    std::string            name;
+    std::vector<uint8_t>   data;
+};
+
+bool ParsePackBlocks(const std::vector<uint8_t>& buf,
+                     std::vector<PackBlock>& out) {
+    static constexpr char kFileMagic[8] = { 'L','i','O','n','H','e','A','d' };
+    if (buf.size() < 8 || memcmp(buf.data(), kFileMagic, 8) != 0) return false;
+
+    size_t pos = 8;
+    while (pos + 0x24 <= buf.size()) {
+        // Read 32-byte name + 4-byte size.
+        char name[33] = {};
+        memcpy(name, buf.data() + pos, 32);
+        uint32_t size = *reinterpret_cast<const uint32_t*>(buf.data() + pos + 32);
+        size_t body_start = pos + 0x24;
+        if (body_start + size > buf.size()) {
+            // Truncated — accept what we have so far.
+            break;
+        }
+        PackBlock blk;
+        blk.name = name;
+        blk.data.assign(buf.data() + body_start, buf.data() + body_start + size);
+        out.push_back(std::move(blk));
+        pos = body_start + size;
+    }
+    return !out.empty();
+}
+
+const PackBlock* FindBlock(const std::vector<PackBlock>& blocks,
+                           const std::string& name) {
+    for (const auto& b : blocks) {
+        if (b.name == name) return &b;
+    }
+    return nullptr;
+}
+
+} // namespace
+
 bool LoadANM(const std::string& path, ANMArchive& out) {
     out = {};
     out.filename = path;
@@ -45,63 +108,84 @@ bool LoadANM(const std::string& path, ANMArchive& out) {
         return false;
     }
 
-    // Magic check
-    if (memcmp(buf.data(), kMagic, 16) != 0) {
-        fprintf(stderr, "ANM: bad magic in %s\n", path.c_str());
+    std::vector<PackBlock> blocks;
+    if (!ParsePackBlocks(buf, blocks)) {
+        fprintf(stderr, "ANM: bad LiOnHeAd magic in %s\n", path.c_str());
         return false;
     }
 
-    out.header_field_0x28 = *At<uint32_t>(buf, 0x28);
+    const PackBlock* body = FindBlock(blocks, "Body");
+    if (!body) {
+        fprintf(stderr, "ANM: no Body block in %s\n", path.c_str());
+        return false;
+    }
+    if (body->data.size() < 8 || memcmp(body->data.data(), "MKJC", 4) != 0) {
+        fprintf(stderr, "ANM: Body block missing MKJC magic in %s\n", path.c_str());
+        return false;
+    }
 
-    // Walk the offset table starting at 0x2C. Each cell is a 4-byte file
-    // offset to an entry. The table ends when a value stops looking like
-    // a forward-growing offset (the entries are roughly contiguous, so a
-    // value that goes backwards or jumps wildly signals end-of-table).
-    uint32_t prev_offset = 0;
-    constexpr size_t TABLE_START = 0x2C;
-    for (size_t cell = TABLE_START; cell + 4 <= buf.size(); cell += 4) {
-        uint32_t v = *At<uint32_t>(buf, cell);
-        // Heuristic: real entry offsets are > 0xC0 (after header) and
-        // monotonically increase by a few hundred bytes at a time. Stop
-        // once we see something that breaks the pattern.
-        if (v < 0xC0) break;
-        if (v >= buf.size()) break;
-        if (prev_offset != 0 && (v < prev_offset || v - prev_offset > 0x4000)) break;
+    uint32_t total = *reinterpret_cast<const uint32_t*>(body->data.data() + 4);
+    constexpr uint32_t ANM_HEADER_SIZE = 0x54;
+    constexpr uint32_t LOOKUP_STRIDE   = 8;  // offset(4) + unknown(4)
+
+    if (8 + total * LOOKUP_STRIDE > body->data.size()) {
+        fprintf(stderr, "ANM: Body block lookup table truncated (%u entries)\n", total);
+        return false;
+    }
+
+    out.packed_animations.reserve(total);
+    out.entries.reserve(total);
+    for (uint32_t i = 0; i < total; ++i) {
+        uint32_t lookup_off = 8 + i * LOOKUP_STRIDE;
+        uint32_t hdr_off = *reinterpret_cast<const uint32_t*>(body->data.data() + lookup_off);
+        if (hdr_off + ANM_HEADER_SIZE > body->data.size()) {
+            fprintf(stderr, "ANM: animation %u header offset 0x%X out of range\n", i, hdr_off);
+            continue;
+        }
+
+        char julien_name[40];
+        snprintf(julien_name, sizeof(julien_name), "Julien%u", i);
+        const PackBlock* julien = FindBlock(blocks, julien_name);
+        if (!julien) {
+            fprintf(stderr, "ANM: missing %s block\n", julien_name);
+            continue;
+        }
+
+        // Reconstruct the full .anm bytes: header from Body + payload
+        // from Julien<i>.
+        std::vector<uint8_t> anm_bytes;
+        anm_bytes.reserve(ANM_HEADER_SIZE + julien->data.size());
+        anm_bytes.insert(anm_bytes.end(),
+                         body->data.begin() + hdr_off,
+                         body->data.begin() + hdr_off + ANM_HEADER_SIZE);
+        anm_bytes.insert(anm_bytes.end(), julien->data.begin(), julien->data.end());
 
         ANMEntry e;
-        e.file_offset = v;
-        e.header_value = *At<uint32_t>(buf, v);
+        e.file_offset = hdr_off;
+        e.header_value = total;
         out.entries.push_back(e);
-        prev_offset = v;
+        out.packed_animations.push_back(std::move(anm_bytes));
     }
 
-    printf("ANM: %s — magic OK, field@0x28=%u (0x%X), %zu entries\n",
-           path.c_str(), out.header_field_0x28, out.header_field_0x28,
-           out.entries.size());
-    if (!out.entries.empty()) {
-        printf("ANM:   first entry @ 0x%X (header_value=%u), "
-               "last entry @ 0x%X\n",
-               out.entries.front().file_offset,
-               out.entries.front().header_value,
-               out.entries.back().file_offset);
-    }
+    out.header_field_0x28 = total;
+    out.loaded = !out.packed_animations.empty();
+
+    printf("ANM(archive): %s — %zu blocks, %u animations extracted\n",
+           path.c_str(), blocks.size(), total);
     fflush(stdout);
 
-    out.loaded = true;
-    return true;
+    return out.loaded;
 }
 
 // ===========================================================================
 // Single-animation parser
 // ===========================================================================
 
-bool LoadANMSingle(const std::string& path, ANMSingle& out) {
-    out = {};
-    out.filename = path;
-
-    auto buf = Slurp(path);
+static bool ParseSingleAnm(const std::vector<uint8_t>& buf,
+                           const std::string& debug_name,
+                           ANMSingle& out) {
     if (buf.size() < 0x100) {
-        fprintf(stderr, "ANM(single): file too small: %s\n", path.c_str());
+        fprintf(stderr, "ANM(single): buffer too small: %s\n", debug_name.c_str());
         return false;
     }
 
@@ -113,13 +197,11 @@ bool LoadANMSingle(const std::string& path, ANMSingle& out) {
     out.frame_time_sec = *fp;
 
     uint32_t frame_count   = *At<uint32_t>(buf, 0x38);
-    uint32_t file_size     = *At<uint32_t>(buf, 0x40);
     uint32_t frame_table_0 = *At<uint32_t>(buf, 0x4C);
 
-    if (file_size != buf.size()) {
-        fprintf(stderr, "ANM(single): size mismatch (header says %u, file is %zu)\n",
-                file_size, buf.size());
-    }
+    // Header at 0x40 carries the animation_duration field (per openblack)
+    // rather than file size; for animations extracted from the archive
+    // the buffer is the header-prefixed body, not the raw on-disk file.
 
     out.frame_count = frame_count;
     out.frames.reserve(frame_count);
@@ -156,7 +238,7 @@ bool LoadANMSingle(const std::string& path, ANMSingle& out) {
     }
 
     printf("ANM(single): %s — \"%s\", %u frames @ %.4fs each, %zu decoded, %u bones/frame\n",
-           path.c_str(), out.source_name.c_str(),
+           debug_name.c_str(), out.source_name.c_str(),
            frame_count, out.frame_time_sec,
            out.frames.size(),
            out.frames.empty() ? 0 : out.frames[0].bone_count);
@@ -166,9 +248,53 @@ bool LoadANMSingle(const std::string& path, ANMSingle& out) {
     return out.loaded;
 }
 
+bool LoadANMSingle(const std::string& path, ANMSingle& out) {
+    out = {};
+    out.filename = path;
+    auto buf = Slurp(path);
+    if (buf.empty()) {
+        fprintf(stderr, "ANM(single): cannot open %s\n", path.c_str());
+        return false;
+    }
+    return ParseSingleAnm(buf, path, out);
+}
+
+bool LoadANMSingleBytes(const std::vector<uint8_t>& bytes,
+                        const std::string& debug_name,
+                        ANMSingle& out) {
+    out = {};
+    out.filename = debug_name;
+    return ParseSingleAnm(bytes, debug_name, out);
+}
+
 // ---------------------------------------------------------------------------
 // Frame → pose application
 // ---------------------------------------------------------------------------
+
+namespace {
+// Build the LOCAL 4x4 (column-major) for bone `b` from its 12-float record.
+inline void BoneLocalFromANM(const float* f, BoneMatrix& out) {
+    out.m[ 0] = f[0]; out.m[ 1] = f[1]; out.m[ 2] = f[2]; out.m[ 3] = 0;
+    out.m[ 4] = f[3]; out.m[ 5] = f[4]; out.m[ 6] = f[5]; out.m[ 7] = 0;
+    out.m[ 8] = f[6]; out.m[ 9] = f[7]; out.m[10] = f[8]; out.m[11] = 0;
+    out.m[12] = f[9]; out.m[13] = f[10]; out.m[14] = f[11]; out.m[15] = 1;
+}
+
+// world[b] = world[parent] * local[b], 4x4 column-major.
+inline void Compose(const BoneMatrix& parent, const BoneMatrix& local, BoneMatrix& out) {
+    const float* P = parent.m;
+    const float* L = local.m;
+    float* R = out.m;
+    for (int c = 0; c < 4; ++c) {
+        for (int r = 0; r < 4; ++r) {
+            R[c*4 + r] = P[0*4 + r]*L[c*4 + 0]
+                       + P[1*4 + r]*L[c*4 + 1]
+                       + P[2*4 + r]*L[c*4 + 2]
+                       + P[3*4 + r]*L[c*4 + 3];
+        }
+    }
+}
+} // namespace
 
 void ApplyANMFrame(const ANMSingle& anm,
                    uint32_t frame_index,
@@ -176,7 +302,7 @@ void ApplyANMFrame(const ANMSingle& anm,
                    std::vector<BoneMatrix>& out_world) {
     out_world.clear();
     if (!anm.loaded || anm.frames.empty()) return;
-    if (frame_index >= anm.frames.size()) frame_index = anm.frames.size() - 1;
+    if (frame_index >= anm.frames.size()) frame_index = static_cast<uint32_t>(anm.frames.size() - 1);
     const ANMFrame& frame = anm.frames[frame_index];
 
     const uint32_t bone_count = std::min<uint32_t>(
@@ -184,32 +310,55 @@ void ApplyANMFrame(const ANMSingle& anm,
         static_cast<uint32_t>(parent_indices.size()));
 
     out_world.resize(bone_count);
-
-    // For each bone: build the 4x4 LOCAL matrix from its 12-float record,
-    // then compose with the parent's world to produce the world matrix.
     for (uint32_t b = 0; b < bone_count; ++b) {
-        const float* f = &frame.bone_data[b * 12];
         BoneMatrix local;
-        // Column-major 4x4 with X axis / Y axis / Z axis / translation.
-        local.m[ 0] = f[0]; local.m[ 1] = f[1]; local.m[ 2] = f[2]; local.m[ 3] = 0;
-        local.m[ 4] = f[3]; local.m[ 5] = f[4]; local.m[ 6] = f[5]; local.m[ 7] = 0;
-        local.m[ 8] = f[6]; local.m[ 9] = f[7]; local.m[10] = f[8]; local.m[11] = 0;
-        local.m[12] = f[9]; local.m[13] = f[10]; local.m[14] = f[11]; local.m[15] = 1;
+        BoneLocalFromANM(&frame.bone_data[b * 12], local);
 
         uint32_t parent = parent_indices[b];
         if (parent != 0xFFFFFFFFu && parent < b) {
-            // world[b] = world[parent] * local[b]   (column-major mult).
-            const float* P = out_world[parent].m;
-            const float* L = local.m;
-            float* R = out_world[b].m;
-            for (int c = 0; c < 4; ++c) {
-                for (int r = 0; r < 4; ++r) {
-                    R[c*4 + r] = P[0*4 + r]*L[c*4 + 0]
-                               + P[1*4 + r]*L[c*4 + 1]
-                               + P[2*4 + r]*L[c*4 + 2]
-                               + P[3*4 + r]*L[c*4 + 3];
-                }
-            }
+            Compose(out_world[parent], local, out_world[b]);
+        } else {
+            out_world[b] = local;
+        }
+    }
+}
+
+void ApplyANMFrameLerp(const ANMSingle& anm,
+                       uint32_t frame_a, uint32_t frame_b, float t,
+                       const std::vector<uint32_t>& parent_indices,
+                       std::vector<BoneMatrix>& out_world) {
+    out_world.clear();
+    if (!anm.loaded || anm.frames.empty()) return;
+
+    const uint32_t n = static_cast<uint32_t>(anm.frames.size());
+    if (frame_a >= n) frame_a = n - 1;
+    if (frame_b >= n) frame_b = n - 1;
+    if (t < 0.0f) t = 0.0f; else if (t > 1.0f) t = 1.0f;
+
+    const ANMFrame& fa = anm.frames[frame_a];
+    const ANMFrame& fb = anm.frames[frame_b];
+
+    // Pick the smaller bone count so both frames' float arrays are valid.
+    uint32_t bone_count = std::min<uint32_t>(fa.bone_count, fb.bone_count);
+    bone_count = std::min<uint32_t>(bone_count,
+                                    static_cast<uint32_t>(parent_indices.size()));
+
+    out_world.resize(bone_count);
+    const float u = 1.0f - t;
+
+    for (uint32_t b = 0; b < bone_count; ++b) {
+        // Lerp the 12 floats column-by-column then build the local matrix.
+        float lerped[12];
+        const float* a = &fa.bone_data[b * 12];
+        const float* d = &fb.bone_data[b * 12];
+        for (int i = 0; i < 12; ++i) lerped[i] = a[i] * u + d[i] * t;
+
+        BoneMatrix local;
+        BoneLocalFromANM(lerped, local);
+
+        uint32_t parent = parent_indices[b];
+        if (parent != 0xFFFFFFFFu && parent < b) {
+            Compose(out_world[parent], local, out_world[b]);
         } else {
             out_world[b] = local;
         }

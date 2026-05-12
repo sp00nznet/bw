@@ -8,6 +8,8 @@
 #include "save_state.h"
 #include "anm_loader.h"
 
+#include <unordered_map>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -22,6 +24,14 @@
 #include <black/types.h>
 
 namespace bw {
+
+// Library of every animation extracted from AllAnims.anm + Anims/*.anm,
+// indexed by source-name (e.g. "M_P_Conduct_Meeting") and by integer id.
+struct ANMLibrary {
+    std::vector<ANMSingle>                       animations;
+    std::unordered_map<std::string, uint32_t>    by_name;       // exact "M_..." key
+    std::unordered_map<std::string, uint32_t>    by_base_name;  // without ".max"
+};
 
 static const float GRAVITY = -9.8f * 2.0f;  // Scaled gravity
 static const float HAND_HOVER_HEIGHT = 30.0f;
@@ -166,14 +176,38 @@ bool GameState::Init(const std::string& script_path) {
     bw::savestate::RegisterLHVMHook(this);
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
-    // Inspect AllAnims.anm and load one single-animation .anm for playback
-    // on villagers. The single-anim file's bone count needs to match the
-    // villager mesh skeleton for sensible motion — for non-matching
-    // skeletons the renderer falls back to the procedural pose.
+    // Load animations: the full AllAnims.anm pack archive into a library
+    // indexed by source-name, plus the standalone Anims/anim.anm as a
+    // sanity-check test animation that ships with the viewer.
     {
+        auto* lib = new bw::ANMLibrary();
+        anim_library = lib;
+
         bw::ANMArchive archive;
         std::string anm_path = dir + "AllAnims.anm";
-        if (!bw::LoadANM(anm_path, archive)) {
+        if (bw::LoadANM(anm_path, archive)) {
+            lib->animations.reserve(archive.packed_animations.size());
+            for (size_t i = 0; i < archive.packed_animations.size(); ++i) {
+                bw::ANMSingle one;
+                char dbg[64];
+                snprintf(dbg, sizeof(dbg), "AllAnims[%zu]", i);
+                if (!bw::LoadANMSingleBytes(archive.packed_animations[i],
+                                            dbg, one)) {
+                    continue;
+                }
+                uint32_t id = static_cast<uint32_t>(lib->animations.size());
+                // Normalize: strip trailing ".max" to make script-driven
+                // lookups easier.
+                std::string base = one.source_name;
+                auto dot = base.find_last_of('.');
+                if (dot != std::string::npos) base.resize(dot);
+                lib->by_name[one.source_name] = id;
+                lib->by_base_name[base] = id;
+                lib->animations.push_back(std::move(one));
+            }
+            printf("Game: ANM library loaded — %zu animations available\n",
+                   lib->animations.size());
+        } else {
             printf("Game: AllAnims.anm not present or unreadable at %s\n",
                    anm_path.c_str());
         }
@@ -266,6 +300,32 @@ bool GameState::Init(const std::string& script_path) {
     fflush(stdout);
 
     return true;
+}
+
+ANMSingle* GameState::LibraryAnimByName(const char* name) const {
+    if (!anim_library || !name) return nullptr;
+    auto* lib = static_cast<ANMLibrary*>(anim_library);
+    auto exact = lib->by_name.find(name);
+    if (exact != lib->by_name.end()) {
+        return &lib->animations[exact->second];
+    }
+    auto base = lib->by_base_name.find(name);
+    if (base != lib->by_base_name.end()) {
+        return &lib->animations[base->second];
+    }
+    return nullptr;
+}
+
+ANMSingle* GameState::LibraryAnimByIndex(uint32_t idx) const {
+    if (!anim_library) return nullptr;
+    auto* lib = static_cast<ANMLibrary*>(anim_library);
+    if (idx >= lib->animations.size()) return nullptr;
+    return &lib->animations[idx];
+}
+
+uint32_t GameState::LibraryAnimCount() const {
+    if (!anim_library) return 0;
+    return static_cast<uint32_t>(static_cast<ANMLibrary*>(anim_library)->animations.size());
 }
 
 void GameState::SpawnEntitiesFromScript() {

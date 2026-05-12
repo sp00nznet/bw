@@ -92,6 +92,16 @@ struct GameState {
     // Heap-allocated to keep ANMSingle's vector members out of this header.
     ANMSingle*             test_anim = nullptr;
 
+    // Library of every animation extracted from AllAnims.anm — heap-
+    // owned (vector of pointers) to keep the implementation detail in
+    // game_loop.cpp. Indexed by source name (e.g. "M_P_Conduct_Meeting").
+    void*                  anim_library = nullptr;   // ANMLibrary*
+
+    // Lookup helpers (avoid exposing ANMLibrary publicly).
+    ANMSingle* LibraryAnimByName(const char* name) const;
+    ANMSingle* LibraryAnimByIndex(uint32_t idx)    const;
+    uint32_t   LibraryAnimCount() const;
+
     // Player hand
     HandState              hand;
     int                    hand_mesh_id;    // Mesh for rendering the hand

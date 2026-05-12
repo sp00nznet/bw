@@ -459,34 +459,59 @@ static void RenderGameEntities() {
         bw::AnimMode mode = AnimModeForEntity(ent);
         std::vector<bw::BoneMatrix> pose;
 
-        // For villagers, try real ANM playback if the loaded animation
-        // has the same bone count as the mesh. The mesh's bone count
-        // comes from submesh[0] (BW typically shares the skeleton across
-        // submeshes).
+        // For villagers, try real ANM playback. Source selection:
+        //   1. If the script set an active animation via PLAY_GESTURE or
+        //      OVERRIDE_STATE_ANIMATION, use it. The script's anim_type
+        //      indexes into the library round-robin so cycling through
+        //      types pulls different anims.
+        //   2. Otherwise fall back to the test_anim from Anims/anim.anm.
         const auto& sub0 = model.submeshes.empty() ? bw::ParsedSubmesh{}
                                                    : model.submeshes[0];
         bool used_anm = false;
-        if (ent.type == bw::ENTITY_VILLAGER &&
-            g_game.test_anim && g_game.test_anim->loaded &&
-            !sub0.bones.empty() &&
-            sub0.bones.size() == g_game.test_anim->frames[0].bone_count) {
 
-            // Pick frame from looping sim time; the file's frame_time_sec
-            // is typically 0.025s (40 fps).
-            float ft = g_game.test_anim->frame_time_sec;
-            if (ft <= 0.0f) ft = 0.025f;
-            float phase = static_cast<float>(i) * 0.17f;  // de-sync villagers
-            float t = sim_seconds + phase;
-            uint32_t n = static_cast<uint32_t>(g_game.test_anim->frames.size());
-            uint32_t frame_idx = static_cast<uint32_t>(t / ft) % n;
+        if (ent.type == bw::ENTITY_VILLAGER && !sub0.bones.empty()) {
+            bw::ANMSingle* anim = nullptr;
+            float script_start = 0.0f;
 
-            // Build the parent-index list once per draw (bones are cheap).
-            std::vector<uint32_t> parents(sub0.bones.size());
-            for (size_t b = 0; b < sub0.bones.size(); ++b) {
-                parents[b] = sub0.bones[b].parent;
+            // Look up the entity's own LHVM handle to query active anim.
+            size_t core_idx = i;
+            if (core_idx < g_game.core_entities.size() &&
+                g_game.core_entities[core_idx]) {
+                uint32_t handle = lhvm::HandleFor(g_game.core_entities[core_idx]);
+                lhvm::ActiveAnimView aav;
+                if (handle && lhvm::ActiveAnimFor(handle, &aav)) {
+                    uint32_t count = g_game.LibraryAnimCount();
+                    if (count > 0) {
+                        uint32_t pick = static_cast<uint32_t>(aav.anim_type) % count;
+                        anim = g_game.LibraryAnimByIndex(pick);
+                    }
+                    script_start = aav.started_at_sec;
+                }
             }
-            bw::ApplyANMFrame(*g_game.test_anim, frame_idx, parents, pose);
-            used_anm = !pose.empty();
+            if (!anim && g_game.test_anim && g_game.test_anim->loaded) {
+                anim = g_game.test_anim;
+            }
+
+            if (anim && anim->loaded && !anim->frames.empty() &&
+                sub0.bones.size() == anim->frames[0].bone_count) {
+
+                float ft = anim->frame_time_sec;
+                if (ft <= 0.0f) ft = 0.025f;
+                float phase = static_cast<float>(i) * 0.17f;
+                float t_total = (sim_seconds - script_start + phase) / ft;
+                if (t_total < 0.0f) t_total = 0.0f;
+                uint32_t n = static_cast<uint32_t>(anim->frames.size());
+                uint32_t fa = static_cast<uint32_t>(t_total) % n;
+                uint32_t fb = (fa + 1) % n;
+                float frac = t_total - floorf(t_total);
+
+                std::vector<uint32_t> parents(sub0.bones.size());
+                for (size_t b = 0; b < sub0.bones.size(); ++b) {
+                    parents[b] = sub0.bones[b].parent;
+                }
+                bw::ApplyANMFrameLerp(*anim, fa, fb, frac, parents, pose);
+                used_anm = !pose.empty();
+            }
         }
 
         if (ent.type == bw::ENTITY_VILLAGER) g_villager_count++;
@@ -799,8 +824,12 @@ static void RenderHUD() {
     DrawText2D(8, 36, line);
 
     // Animation system stats
-    snprintf(line, sizeof(line), "Anim: %d villagers, %d ANM-playing, %d procedural",
-             g_villager_count, g_anm_playing, g_proc_playing);
+    lhvm::ActiveAnimView active[32];
+    uint32_t active_count = lhvm::SnapshotActiveAnims(active, 32);
+    snprintf(line, sizeof(line),
+             "Anim: %d villagers, %d ANM-playing, %d procedural  (lib=%u, active=%u)",
+             g_villager_count, g_anm_playing, g_proc_playing,
+             g_game.LibraryAnimCount(), active_count);
     DrawText2D(8, 108, line);
 
     // Dialogue state

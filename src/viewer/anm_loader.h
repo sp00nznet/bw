@@ -23,11 +23,13 @@ struct ANMEntry {
 
 struct ANMArchive {
     std::string  filename;
-    uint32_t     header_field_0x28 = 0;  // archive-only; appears to be the
-                                          //  total frame count across all
-                                          //  embedded animations (≈ 11748
-                                          //  for AllAnims.anm)
-    std::vector<ANMEntry> entries;        // archive-only: one per anim
+    uint32_t     header_field_0x28 = 0;
+    std::vector<ANMEntry> entries;
+    // Animations extracted from a LionHead "Pack" archive. Each entry's
+    // bytes are a self-contained .anm file body that LoadANMSingleBytes
+    // can parse directly. Populated only when the file is a Pack
+    // (typical for AllAnims.anm).
+    std::vector<std::vector<uint8_t>> packed_animations;
     bool         loaded = false;
 };
 
@@ -94,6 +96,12 @@ bool LoadANM(const std::string& path, ANMArchive& out);
 // Load a single animation file — used for Anims/*.anm.
 bool LoadANMSingle(const std::string& path, ANMSingle& out);
 
+// Parse an in-memory .anm buffer (no I/O). Used to load animations
+// extracted from a Pack archive.
+bool LoadANMSingleBytes(const std::vector<uint8_t>& bytes,
+                        const std::string& debug_name,
+                        ANMSingle& out);
+
 // Build a per-bone world-space pose at the given frame index. Each LOCAL
 // matrix from the keyframe is combined with its parent's world matrix
 // using `parent_indices[i] == 0xFFFFFFFF` to mark the root. Bone count
@@ -104,5 +112,14 @@ void ApplyANMFrame(const ANMSingle& anm,
                    uint32_t frame_index,
                    const std::vector<uint32_t>& parent_indices,
                    std::vector<BoneMatrix>& out_world);
+
+// Same as ApplyANMFrame but interpolates between two adjacent keyframes.
+// `frame_a` and `frame_b` should be consecutive frame indices; `t` in
+// [0,1] is the blend factor. Linear-blends the bone's LOCAL matrices
+// column-by-column before composing the hierarchy.
+void ApplyANMFrameLerp(const ANMSingle& anm,
+                       uint32_t frame_a, uint32_t frame_b, float t,
+                       const std::vector<uint32_t>& parent_indices,
+                       std::vector<BoneMatrix>& out_world);
 
 } // namespace bw
