@@ -51,18 +51,26 @@ struct ANMArchive {
 //   0x54+       uint32 frame_offset[]  — one entry per frame, terminated
 //                                        by 0xFFFFFFFF at offset 0x48
 //
-// Each frame is 0x400 = 1024 bytes laid out as:
-//   +0x00  uint32  pointer-to-self + 4    (sub-section A)
-//   +0x04  uint32  pointer-to-self + 8    (sub-section B)
-//   +0x08  uint32  bone count             (21 in observed villager anim)
-//   +0x0C  uint32  pointer-to-self + 16   (start of bone array)
-//   +0x10  bone[bone_count]               48 bytes each = 12 floats
+// Each frame uses a 3-level offset indirection chain (cross-checked
+// against openblack's reference reader for the same format):
 //
-// The 12 floats per bone represent a per-frame transformation; positions
-// 9 and 11 are stable across frames, suggesting they encode bone-length
-// or fixed axis terms. The exact decomposition (rotation/translation/
-// scale layout) is still under investigation — see DecodeFrame() below
-// for the current best-guess interpretation.
+//   framesBase[i]       — read uint32 to get  A (keyframe pointer cell)
+//   *A                  — read uint32 to get  B (bone offset cell)
+//   *B                  — read uint32 to get  C (bone block start)
+//   *(C + 0)            — bone count for this frame
+//   *(C + 4)            — frame time (often equals C + 8 — overloaded)
+//   C + 8 ..            — bone_count × 48 bytes = 12 floats per bone
+//
+// In practice for anim.anm the data is densely packed so the bone block
+// starts at framesBase[i] + 8 and the chain is effectively linear, but
+// the indirection is real and must be honored.
+//
+// The 12 floats per bone describe a 4x3 affine in column-major layout:
+//   floats[0..2]   X-axis basis vector  (column 0 of 4x4)
+//   floats[3..5]   Y-axis basis vector  (column 1 of 4x4)
+//   floats[6..8]   Z-axis basis vector  (column 2 of 4x4)
+//   floats[9..11]  Translation          (column 3 of 4x4)
+// The matrix is the bone's LOCAL transform relative to its parent.
 
 struct ANMFrame {
     uint32_t                   bone_count;
@@ -85,5 +93,16 @@ bool LoadANM(const std::string& path, ANMArchive& out);
 
 // Load a single animation file — used for Anims/*.anm.
 bool LoadANMSingle(const std::string& path, ANMSingle& out);
+
+// Build a per-bone world-space pose at the given frame index. Each LOCAL
+// matrix from the keyframe is combined with its parent's world matrix
+// using `parent_indices[i] == 0xFFFFFFFF` to mark the root. Bone count
+// must match between the animation and the receiving skeleton; mismatched
+// indices fall through to the bind pose (identity).
+struct BoneMatrix;  // forward — defined in l3d_loader.h
+void ApplyANMFrame(const ANMSingle& anm,
+                   uint32_t frame_index,
+                   const std::vector<uint32_t>& parent_indices,
+                   std::vector<BoneMatrix>& out_world);
 
 } // namespace bw

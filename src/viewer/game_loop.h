@@ -26,6 +26,9 @@ struct LHVM;
 
 namespace bw {
 
+struct ANMSingle;
+
+
 // Game entity instance — a placed object in the world
 struct GameEntity {
     float    x, y, z;          // World position
@@ -84,6 +87,10 @@ struct GameState {
     // LHVM scripting engine — executes CHL bytecode
     LHVM*                  vm;
     bool                   scripts_loaded;
+
+    // Sample animation loaded from Anims/anim.anm for villager playback.
+    // Heap-allocated to keep ANMSingle's vector members out of this header.
+    ANMSingle*             test_anim = nullptr;
 
     // Player hand
     HandState              hand;

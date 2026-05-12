@@ -1,7 +1,9 @@
 // anm_loader — see anm_loader.h.
 
 #include "anm_loader.h"
+#include "l3d_loader.h"   // for BoneMatrix
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -103,65 +105,54 @@ bool LoadANMSingle(const std::string& path, ANMSingle& out) {
         return false;
     }
 
-    // Source filename is the first 32 bytes, null-padded.
     char name[33] = {};
     memcpy(name, buf.data(), 32);
     out.source_name = name;
 
-    // Header fields per the doc in anm_loader.h.
     const float* fp = reinterpret_cast<const float*>(buf.data() + 0x28);
     out.frame_time_sec = *fp;
 
     uint32_t frame_count   = *At<uint32_t>(buf, 0x38);
     uint32_t file_size     = *At<uint32_t>(buf, 0x40);
     uint32_t frame_table_0 = *At<uint32_t>(buf, 0x4C);
-    uint32_t frame_table_end = *At<uint32_t>(buf, 0x48);
 
     if (file_size != buf.size()) {
         fprintf(stderr, "ANM(single): size mismatch (header says %u, file is %zu)\n",
                 file_size, buf.size());
     }
-    if (frame_table_0 != 0x54) {
-        fprintf(stderr, "ANM(single): unexpected frame table start 0x%X (expected 0x54)\n",
-                frame_table_0);
-    }
 
-    // Walk the frame offset table.
     out.frame_count = frame_count;
     out.frames.reserve(frame_count);
-    constexpr uint32_t FRAME_STRIDE = 0x400;
 
+    // For each frame: follow the 3-level offset indirection then read the
+    // bone block at the deepest pointer (boneCount, time, bones[]).
     for (uint32_t i = 0; i < frame_count; ++i) {
         uint32_t cell = frame_table_0 + i * 4;
         if (cell + 4 > buf.size()) break;
-        uint32_t fofs = *At<uint32_t>(buf, cell);
-        if (fofs == 0xFFFFFFFFu) break;
-        if (fofs + FRAME_STRIDE > buf.size()) break;
+
+        uint32_t a = *At<uint32_t>(buf, cell);
+        if (a == 0xFFFFFFFFu || a + 4 > buf.size()) break;
+        uint32_t b = *At<uint32_t>(buf, a);
+        if (b == 0 || b + 4 > buf.size()) break;
+        uint32_t c = *At<uint32_t>(buf, b);
+        if (c == 0 || c + 8 > buf.size()) break;
 
         ANMFrame frame;
-        // Frame header occupies the first 16 bytes; bone count is at +8.
-        frame.bone_count = *At<uint32_t>(buf, fofs + 8);
+        frame.bone_count = *At<uint32_t>(buf, c);
         if (frame.bone_count == 0 || frame.bone_count > 256) {
             fprintf(stderr, "ANM(single): suspicious bone count %u at frame %u\n",
                     frame.bone_count, i);
             break;
         }
+        // c+4 is the keyframe time/timestamp slot — read but currently
+        // unused; per-frame timing is reconstructed from frame_time_sec.
 
-        // Bone data follows the 16-byte header. 12 floats per bone.
         const size_t needed = frame.bone_count * 12 * sizeof(float);
-        if (fofs + 16 + needed > buf.size()) break;
+        if (c + 8 + needed > buf.size()) break;
 
         frame.bone_data.resize(frame.bone_count * 12);
-        memcpy(frame.bone_data.data(), buf.data() + fofs + 16, needed);
+        memcpy(frame.bone_data.data(), buf.data() + c + 8, needed);
         out.frames.push_back(std::move(frame));
-    }
-
-    if (frame_table_end != 0 && frame_table_end < buf.size()) {
-        uint32_t sentinel = *At<uint32_t>(buf, frame_table_end);
-        if (sentinel != 0xFFFFFFFFu) {
-            fprintf(stderr, "ANM(single): missing 0xFFFFFFFF sentinel at 0x%X (got 0x%X)\n",
-                    frame_table_end, sentinel);
-        }
     }
 
     printf("ANM(single): %s — \"%s\", %u frames @ %.4fs each, %zu decoded, %u bones/frame\n",
@@ -173,6 +164,56 @@ bool LoadANMSingle(const std::string& path, ANMSingle& out) {
 
     out.loaded = !out.frames.empty();
     return out.loaded;
+}
+
+// ---------------------------------------------------------------------------
+// Frame → pose application
+// ---------------------------------------------------------------------------
+
+void ApplyANMFrame(const ANMSingle& anm,
+                   uint32_t frame_index,
+                   const std::vector<uint32_t>& parent_indices,
+                   std::vector<BoneMatrix>& out_world) {
+    out_world.clear();
+    if (!anm.loaded || anm.frames.empty()) return;
+    if (frame_index >= anm.frames.size()) frame_index = anm.frames.size() - 1;
+    const ANMFrame& frame = anm.frames[frame_index];
+
+    const uint32_t bone_count = std::min<uint32_t>(
+        frame.bone_count,
+        static_cast<uint32_t>(parent_indices.size()));
+
+    out_world.resize(bone_count);
+
+    // For each bone: build the 4x4 LOCAL matrix from its 12-float record,
+    // then compose with the parent's world to produce the world matrix.
+    for (uint32_t b = 0; b < bone_count; ++b) {
+        const float* f = &frame.bone_data[b * 12];
+        BoneMatrix local;
+        // Column-major 4x4 with X axis / Y axis / Z axis / translation.
+        local.m[ 0] = f[0]; local.m[ 1] = f[1]; local.m[ 2] = f[2]; local.m[ 3] = 0;
+        local.m[ 4] = f[3]; local.m[ 5] = f[4]; local.m[ 6] = f[5]; local.m[ 7] = 0;
+        local.m[ 8] = f[6]; local.m[ 9] = f[7]; local.m[10] = f[8]; local.m[11] = 0;
+        local.m[12] = f[9]; local.m[13] = f[10]; local.m[14] = f[11]; local.m[15] = 1;
+
+        uint32_t parent = parent_indices[b];
+        if (parent != 0xFFFFFFFFu && parent < b) {
+            // world[b] = world[parent] * local[b]   (column-major mult).
+            const float* P = out_world[parent].m;
+            const float* L = local.m;
+            float* R = out_world[b].m;
+            for (int c = 0; c < 4; ++c) {
+                for (int r = 0; r < 4; ++r) {
+                    R[c*4 + r] = P[0*4 + r]*L[c*4 + 0]
+                               + P[1*4 + r]*L[c*4 + 1]
+                               + P[2*4 + r]*L[c*4 + 2]
+                               + P[3*4 + r]*L[c*4 + 3];
+                }
+            }
+        } else {
+            out_world[b] = local;
+        }
+    }
 }
 
 } // namespace bw

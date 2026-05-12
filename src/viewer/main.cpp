@@ -34,6 +34,7 @@
 #include "game_loop.h"
 #include "mesh_names.h"
 #include "animator.h"
+#include "anm_loader.h"
 
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
@@ -448,14 +449,45 @@ static void RenderGameEntities() {
 
         // Build a posed skeleton for the first submesh (most BW meshes use
         // one skeleton across all submeshes) and feed it to RenderModel via
-        // the pose-override pointer. Static modes leave the override null
-        // so the bind pose is used — no skinning cost.
+        // the pose-override pointer.
         bw::AnimMode mode = AnimModeForEntity(ent);
         std::vector<bw::BoneMatrix> pose;
-        if (mode != bw::AnimMode::Static && !model.submeshes.empty()) {
+
+        // For villagers, try real ANM playback if the loaded animation
+        // has the same bone count as the mesh. The mesh's bone count
+        // comes from submesh[0] (BW typically shares the skeleton across
+        // submeshes).
+        const auto& sub0 = model.submeshes.empty() ? bw::ParsedSubmesh{}
+                                                   : model.submeshes[0];
+        bool used_anm = false;
+        if (ent.type == bw::ENTITY_VILLAGER &&
+            g_game.test_anim && g_game.test_anim->loaded &&
+            !sub0.bones.empty() &&
+            sub0.bones.size() == g_game.test_anim->frames[0].bone_count) {
+
+            // Pick frame from looping sim time; the file's frame_time_sec
+            // is typically 0.025s (40 fps).
+            float ft = g_game.test_anim->frame_time_sec;
+            if (ft <= 0.0f) ft = 0.025f;
+            float phase = static_cast<float>(i) * 0.17f;  // de-sync villagers
+            float t = sim_seconds + phase;
+            uint32_t n = static_cast<uint32_t>(g_game.test_anim->frames.size());
+            uint32_t frame_idx = static_cast<uint32_t>(t / ft) % n;
+
+            // Build the parent-index list once per draw (bones are cheap).
+            std::vector<uint32_t> parents(sub0.bones.size());
+            for (size_t b = 0; b < sub0.bones.size(); ++b) {
+                parents[b] = sub0.bones[b].parent;
+            }
+            bw::ApplyANMFrame(*g_game.test_anim, frame_idx, parents, pose);
+            used_anm = !pose.empty();
+        }
+
+        if (!used_anm && mode != bw::AnimMode::Static && !model.submeshes.empty()) {
             float phase = static_cast<float>(i) * 0.7193f;
             pose = bw::PoseSubmesh(model.submeshes[0], mode, sim_seconds, phase);
         }
+
         g_pose_override = pose.empty() ? nullptr : &pose;
         RenderModel(model);
         g_pose_override = nullptr;

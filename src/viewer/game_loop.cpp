@@ -166,11 +166,10 @@ bool GameState::Init(const std::string& script_path) {
     bw::savestate::RegisterLHVMHook(this);
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
-    // Inspect AllAnims.anm and one single-animation .anm so we have a
-    // sanity-check structural read of both formats. Frame data is decoded
-    // for the single-anim case (12 floats per bone × 21 bones × N frames)
-    // but the per-bone interpretation isn't locked down yet, so the
-    // animator still runs on the procedural pose.
+    // Inspect AllAnims.anm and load one single-animation .anm for playback
+    // on villagers. The single-anim file's bone count needs to match the
+    // villager mesh skeleton for sensible motion — for non-matching
+    // skeletons the renderer falls back to the procedural pose.
     {
         bw::ANMArchive archive;
         std::string anm_path = dir + "AllAnims.anm";
@@ -178,11 +177,15 @@ bool GameState::Init(const std::string& script_path) {
             printf("Game: AllAnims.anm not present or unreadable at %s\n",
                    anm_path.c_str());
         }
-        bw::ANMSingle one;
+
+        // Persist test animation for runtime playback.
+        if (!test_anim) test_anim = new bw::ANMSingle();
         std::string anim_path = dir + "Anims/anim.anm";
-        if (!bw::LoadANMSingle(anim_path, one)) {
+        if (!bw::LoadANMSingle(anim_path, *test_anim)) {
             printf("Game: Anims/anim.anm not present or unreadable at %s\n",
                    anim_path.c_str());
+            delete test_anim;
+            test_anim = nullptr;
         }
         fflush(stdout);
     }
