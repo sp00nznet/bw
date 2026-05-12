@@ -33,6 +33,7 @@
 #include "script_parser.h"
 #include "game_loop.h"
 #include "mesh_names.h"
+#include "animator.h"
 
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
@@ -404,7 +405,23 @@ static IdleAnim ComputeIdleAnim(const bw::GameEntity& ent, size_t idx) {
     return a;
 }
 
+static bw::AnimMode AnimModeForEntity(const bw::GameEntity& ent) {
+    switch (ent.type) {
+    case bw::ENTITY_VILLAGER: return bw::AnimMode::Idle;
+    case bw::ENTITY_ANIMAL: {
+        // Crude bird detection — A_*_1/2 mesh ids cluster at the very start
+        // of the mesh table.
+        return (ent.mesh_id >= 1 && ent.mesh_id <= 16)
+                   ? bw::AnimMode::BirdFlap
+                   : bw::AnimMode::AnimalIdle;
+    }
+    default: return bw::AnimMode::Static;
+    }
+}
+
 static void RenderGameEntities() {
+    float sim_seconds = g_game.game_turn * 0.1f;   // sim ticks at 10 Hz
+
     for (size_t i = 0; i < g_game.entities.size(); ++i) {
         const auto& ent = g_game.entities[i];
         if (!ent.alive) continue;
@@ -424,12 +441,25 @@ static void RenderGameEntities() {
 
         // Highlight selected/hovered entities
         if (ent.selected) {
-            glColor3f(1.0f, 1.0f, 0.5f); // Yellow tint for held
+            glColor3f(1.0f, 1.0f, 0.5f);
         } else if (static_cast<int>(i) == g_game.hand.hover_entity) {
-            glColor3f(0.8f, 1.0f, 0.8f); // Green tint for hover
+            glColor3f(0.8f, 1.0f, 0.8f);
         }
 
+        // Build a posed skeleton for the first submesh (most BW meshes use
+        // one skeleton across all submeshes) and feed it to RenderModel via
+        // the pose-override pointer. Static modes leave the override null
+        // so the bind pose is used — no skinning cost.
+        bw::AnimMode mode = AnimModeForEntity(ent);
+        std::vector<bw::BoneMatrix> pose;
+        if (mode != bw::AnimMode::Static && !model.submeshes.empty()) {
+            float phase = static_cast<float>(i) * 0.7193f;
+            pose = bw::PoseSubmesh(model.submeshes[0], mode, sim_seconds, phase);
+        }
+        g_pose_override = pose.empty() ? nullptr : &pose;
         RenderModel(model);
+        g_pose_override = nullptr;
+
         glPopMatrix();
     }
 
