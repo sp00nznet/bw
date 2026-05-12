@@ -245,6 +245,11 @@ static void SetupGL() {
 // override) or a single posed-array shared across the whole frame.
 static const std::vector<bw::BoneMatrix>* g_pose_override = nullptr;
 
+// Per-frame counters for the HUD — reset at top of RenderGameEntities.
+static int g_anm_playing = 0;
+static int g_proc_playing = 0;
+static int g_villager_count = 0;
+
 static void RenderModel(const bw::L3DModel& model) {
     static const float colors[][3] = {
         {0.8f, 0.6f, 0.4f}, {0.4f, 0.7f, 0.8f}, {0.7f, 0.8f, 0.4f},
@@ -422,6 +427,7 @@ static bw::AnimMode AnimModeForEntity(const bw::GameEntity& ent) {
 
 static void RenderGameEntities() {
     float sim_seconds = g_game.game_turn * 0.1f;   // sim ticks at 10 Hz
+    g_anm_playing = g_proc_playing = g_villager_count = 0;
 
     for (size_t i = 0; i < g_game.entities.size(); ++i) {
         const auto& ent = g_game.entities[i];
@@ -483,9 +489,13 @@ static void RenderGameEntities() {
             used_anm = !pose.empty();
         }
 
+        if (ent.type == bw::ENTITY_VILLAGER) g_villager_count++;
+        if (used_anm) g_anm_playing++;
+
         if (!used_anm && mode != bw::AnimMode::Static && !model.submeshes.empty()) {
             float phase = static_cast<float>(i) * 0.7193f;
             pose = bw::PoseSubmesh(model.submeshes[0], mode, sim_seconds, phase);
+            if (!pose.empty()) g_proc_playing++;
         }
 
         g_pose_override = pose.empty() ? nullptr : &pose;
@@ -787,6 +797,11 @@ static void RenderHUD() {
     snprintf(line, sizeof(line), "Hand: (%6.1f,%6.1f,%6.1f)  hover=%d held=%d",
              g_game.hand.x, g_game.hand.y, g_game.hand.z, hover, held);
     DrawText2D(8, 36, line);
+
+    // Animation system stats
+    snprintf(line, sizeof(line), "Anim: %d villagers, %d ANM-playing, %d procedural",
+             g_villager_count, g_anm_playing, g_proc_playing);
+    DrawText2D(8, 108, line);
 
     // Dialogue state
     auto dlg = lhvm::SnapshotDialogue();
