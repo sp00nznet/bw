@@ -112,9 +112,21 @@ static_assert(sizeof(L3DVertexGroup) == 4, "L3DVertexGroup size mismatch");
 
 // Parsed mesh data ready for rendering
 
+// 4x4 column-major bone matrix (model space).
+struct BoneMatrix {
+    float m[16];
+};
+
 struct PrimitiveGroup {
+    // Bone-local vertices, as stored on disk. Bind pose / animated pose
+    // is produced at render time by multiplying each vertex by the matrix
+    // of its assigned bone.
     std::vector<L3DVertex>   vertices;
     std::vector<L3DTriangle> triangles;
+    // Parallel to `vertices` — bone index for each vertex (UINT16_MAX
+    // if this primitive is unskinned and vertices should pass through
+    // unchanged).
+    std::vector<uint16_t>    bone_per_vertex;
     uint32_t                 skin_id;
     uint32_t                 material_type;
     uint32_t                 color;  // BGRA8
@@ -123,6 +135,10 @@ struct PrimitiveGroup {
 struct ParsedSubmesh {
     std::vector<PrimitiveGroup> primitives;
     uint32_t                    flags;
+    // Skeleton — kept for runtime skinning. Empty if the submesh is
+    // un-skinned (most static props).
+    std::vector<L3DBone>        bones;
+    std::vector<BoneMatrix>     bind_world;  // bind-pose world matrix per bone
 };
 
 struct L3DModel {
@@ -142,5 +158,14 @@ struct L3DModel {
 
 // Load an L3D file from disk. Returns true on success.
 bool LoadL3D(const std::string& path, L3DModel& out);
+
+// CPU skinning helper. For each vertex in `prim`, applies `pose[bone]` to
+// `prim.vertices[i].px/py/pz` and writes the result into `out_pos`. If
+// `pose` is empty or the primitive is unskinned the vertex is copied
+// through unchanged. `out_pos` is sized to prim.vertices.size() × 3.
+void SkinPrimitive(const PrimitiveGroup& prim,
+                   const std::vector<BoneMatrix>& pose,
+                   std::vector<float>& out_pos,
+                   std::vector<float>& out_normal);
 
 } // namespace bw

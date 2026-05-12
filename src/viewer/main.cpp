@@ -238,6 +238,11 @@ static void SetupGL() {
         wglGetProcAddress("glCompressedTexImage2D");
 }
 
+// Per-submesh pose override (nullptr falls back to bind_world). Kept as a
+// raw const-pointer because callers either want the static bind pose (no
+// override) or a single posed-array shared across the whole frame.
+static const std::vector<bw::BoneMatrix>* g_pose_override = nullptr;
+
 static void RenderModel(const bw::L3DModel& model) {
     static const float colors[][3] = {
         {0.8f, 0.6f, 0.4f}, {0.4f, 0.7f, 0.8f}, {0.7f, 0.8f, 0.4f},
@@ -245,11 +250,22 @@ static void RenderModel(const bw::L3DModel& model) {
     };
     int color_idx = 0;
 
+    // Scratch buffers reused across primitives so we don't alloc per draw.
+    static thread_local std::vector<float> s_pos;
+    static thread_local std::vector<float> s_nrm;
+
     for (const auto& sub : model.submeshes) {
+        // Pick the pose: caller-supplied override if present and sized
+        // correctly, else the bind pose. An empty pose means "passthrough"
+        // — used for unskinned static props.
+        const std::vector<bw::BoneMatrix>* pose = &sub.bind_world;
+        if (g_pose_override && g_pose_override->size() == sub.bind_world.size()) {
+            pose = g_pose_override;
+        }
+
         for (const auto& prim : sub.primitives) {
-            // Try to bind texture
             bool textured = false;
-            if (prim.material_type >= 2) { // textured material types
+            if (prim.material_type >= 2) {
                 auto it = g_gl_textures.find(prim.skin_id);
                 if (it != g_gl_textures.end()) {
                     glEnable(GL_TEXTURE_2D);
@@ -258,7 +274,6 @@ static void RenderModel(const bw::L3DModel& model) {
                     textured = true;
                 }
             }
-
             if (!textured) {
                 glDisable(GL_TEXTURE_2D);
                 glBindTexture(GL_TEXTURE_2D, 0);
@@ -274,6 +289,10 @@ static void RenderModel(const bw::L3DModel& model) {
             }
             color_idx++;
 
+            // CPU-skin the primitive's bone-local vertices into the
+            // scratch buffer using the chosen pose.
+            bw::SkinPrimitive(prim, *pose, s_pos, s_nrm);
+
             glBegin(GL_TRIANGLES);
             for (const auto& tri : prim.triangles) {
                 for (int k = 0; k < 3; ++k) {
@@ -281,8 +300,8 @@ static void RenderModel(const bw::L3DModel& model) {
                     if (idx >= prim.vertices.size()) continue;
                     const auto& v = prim.vertices[idx];
                     glTexCoord2f(v.u, v.v);
-                    glNormal3f(v.nx, v.ny, v.nz);
-                    glVertex3f(v.px, v.py, v.pz);
+                    glNormal3f(s_nrm[idx*3+0], s_nrm[idx*3+1], s_nrm[idx*3+2]);
+                    glVertex3f(s_pos[idx*3+0], s_pos[idx*3+1], s_pos[idx*3+2]);
                 }
             }
             glEnd();
