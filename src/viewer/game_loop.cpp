@@ -166,17 +166,25 @@ bool GameState::Init(const std::string& script_path) {
     bw::savestate::RegisterLHVMHook(this);
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
-    // Inspect AllAnims.anm so we have a sanity-check entry table even before
-    // playback is wired. The decoded entries are not yet plugged into the
-    // animator — the procedural pose is still used for runtime motion.
+    // Inspect AllAnims.anm and one single-animation .anm so we have a
+    // sanity-check structural read of both formats. Frame data is decoded
+    // for the single-anim case (12 floats per bone × 21 bones × N frames)
+    // but the per-bone interpretation isn't locked down yet, so the
+    // animator still runs on the procedural pose.
     {
         bw::ANMArchive archive;
         std::string anm_path = dir + "AllAnims.anm";
         if (!bw::LoadANM(anm_path, archive)) {
             printf("Game: AllAnims.anm not present or unreadable at %s\n",
                    anm_path.c_str());
-            fflush(stdout);
         }
+        bw::ANMSingle one;
+        std::string anim_path = dir + "Anims/anim.anm";
+        if (!bw::LoadANMSingle(anim_path, one)) {
+            printf("Game: Anims/anim.anm not present or unreadable at %s\n",
+                   anim_path.c_str());
+        }
+        fflush(stdout);
     }
 
     // Load meshes
