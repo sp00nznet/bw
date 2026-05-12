@@ -6,6 +6,7 @@
 #include "mesh_names.h"
 #include "audio.h"
 #include "save_state.h"
+#include "anm_loader.h"
 
 #include <algorithm>
 #include <cmath>
@@ -164,6 +165,19 @@ bool GameState::Init(const std::string& script_path) {
     bw::audio::RegisterLHVMHooks();
     bw::savestate::RegisterLHVMHook(this);
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
+
+    // Inspect AllAnims.anm so we have a sanity-check entry table even before
+    // playback is wired. The decoded entries are not yet plugged into the
+    // animator — the procedural pose is still used for runtime motion.
+    {
+        bw::ANMArchive archive;
+        std::string anm_path = dir + "AllAnims.anm";
+        if (!bw::LoadANM(anm_path, archive)) {
+            printf("Game: AllAnims.anm not present or unreadable at %s\n",
+                   anm_path.c_str());
+            fflush(stdout);
+        }
+    }
 
     // Load meshes
     printf("Game: Loading meshes...\n"); fflush(stdout);
