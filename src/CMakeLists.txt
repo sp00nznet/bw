@@ -324,6 +324,7 @@ add_executable(bw_viewer
     viewer/save_state.cpp
     viewer/animator.cpp
     viewer/anm_loader.cpp
+    viewer/helptext.cpp
 )
 target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES

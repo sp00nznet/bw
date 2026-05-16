@@ -35,6 +35,7 @@
 #include "mesh_names.h"
 #include "animator.h"
 #include "anm_loader.h"
+#include "helptext.h"
 
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
@@ -832,6 +833,11 @@ static void RenderHUD() {
              g_game.LibraryAnimCount(), active_count);
     DrawText2D(8, 108, line);
 
+    // HelpText pool size
+    snprintf(line, sizeof(line), "HelpText: %zu strings loaded",
+             bw::helptext::Count());
+    DrawText2D(8, 126, line);
+
     // Dialogue state
     auto dlg = lhvm::SnapshotDialogue();
     if (dlg.current_text_id || dlg.pending_temp_id || dlg.draw_text_id) {
@@ -841,13 +847,17 @@ static void RenderHUD() {
         glColor3f(1.0f, 0.95f, 0.6f);
         DrawText2D(8, 54, line);
 
-        // If the text id resolves to a printable data-section string,
-        // render it centred at the bottom of the screen like a subtitle.
-        const char* str = lhvm::DialogueTextString();
+        // Resolve subtitle text. Prefer HelpText DLL lookup since most
+        // CHL ids are external string-table keys; fall back to raw data-
+        // section content if the script passed a literal.
+        int32_t active_id = dlg.current_text_id ? dlg.current_text_id
+                                                : dlg.pending_temp_id;
+        const char* str = bw::helptext::Lookup(active_id);
+        if (!str || !str[0]) {
+            str = lhvm::DialogueTextString();
+        }
         if (str && str[0]) {
             glColor3f(1.0f, 1.0f, 0.85f);
-            // Rough centring — Consolas 16pt is ~9px wide, so estimate
-            // and offset. Good enough for a debug subtitle pass.
             int len = static_cast<int>(strlen(str));
             float tx = g_width * 0.5f - len * 4.5f;
             if (tx < 8) tx = 8;

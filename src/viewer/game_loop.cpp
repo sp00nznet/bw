@@ -7,6 +7,7 @@
 #include "audio.h"
 #include "save_state.h"
 #include "anm_loader.h"
+#include "helptext.h"
 
 #include <unordered_map>
 
@@ -174,6 +175,13 @@ bool GameState::Init(const std::string& script_path) {
     bw::audio::Init(dir);
     bw::audio::RegisterLHVMHooks();
     bw::savestate::RegisterLHVMHook(this);
+
+    // HelpText: load both English DLLs so dialogue subtitles can show
+    // real localized text instead of raw string ids. LanguageR holds
+    // resource-class strings (short labels); LanguageD holds the longer
+    // dialogue/description strings — load both and merge.
+    bw::helptext::LoadFromDLL(dir + "LanguageR.dll");
+    bw::helptext::LoadFromDLL(dir + "LanguageD.dll");
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
     // Load animations: the full AllAnims.anm pack archive into a library
