@@ -8,7 +8,9 @@
 #include "save_state.h"
 #include "anm_loader.h"
 #include "helptext.h"
+#include "sad_loader.h"
 
+#include <cctype>
 #include <unordered_map>
 
 #include <algorithm>
@@ -176,12 +178,31 @@ bool GameState::Init(const std::string& script_path) {
     bw::audio::RegisterLHVMHooks();
     bw::savestate::RegisterLHVMHook(this);
 
-    // HelpText: load both English DLLs so dialogue subtitles can show
-    // real localized text instead of raw string ids. LanguageR holds
-    // resource-class strings (short labels); LanguageD holds the longer
-    // dialogue/description strings — load both and merge.
+    // HelpText: load both English DLLs (low-yield right now) and then
+    // walk the SAD audio banks. The SADs are the actual source of real
+    // BW dialogue/voice content: each sample carries a HELP_TEXT_<KEY>
+    // name plus the audio bytes. We feed humanized subtitle strings
+    // into helptext keyed by sample id so the HUD subtitle shows real
+    // names ("Death in village") instead of numeric ids.
     bw::helptext::LoadFromDLL(dir + "LanguageR.dll");
     bw::helptext::LoadFromDLL(dir + "LanguageD.dll");
+
+    bw::sad::LoadAllUnder(dir);
+    // Mirror sample ids → friendly subtitle strings derived from the
+    // sample's HELP_TEXT key (e.g. DEATH_IN_VILLAGE → "Death in village").
+    for (size_t i = 0; i < bw::sad::Count(); ++i) {
+        const bw::sad::SADSample* s = bw::sad::SampleByIndex(static_cast<uint32_t>(i));
+        if (!s || s->help_key.empty()) continue;
+        std::string pretty = s->help_key;
+        for (auto& c : pretty) {
+            if (c == '_') c = ' ';
+            else c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        }
+        if (!pretty.empty()) {
+            pretty[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(pretty[0])));
+        }
+        bw::helptext::Add(s->id, pretty);
+    }
     printf("Game: Terrain + LHVM host services + audio + save registered for bw_core\n"); fflush(stdout);
 
     // Load animations: the full AllAnims.anm pack archive into a library

@@ -7,6 +7,7 @@
 #pragma comment(lib, "winmm.lib")
 
 #include "audio.h"
+#include "sad_loader.h"
 
 #include <black/LHVMObjects.h>
 
@@ -26,15 +27,16 @@ bool        g_music_on   = false;
 DWORD       g_last_sfx_ms = 0;
 
 void OnPlaySound(int32_t sound_id, float /*x*/, float /*y*/, float /*z*/) {
-    // PlaySound is synchronous-ish but we use SND_ASYNC. Rate-limit so a
-    // script spamming sounds doesn't stall the audio thread or beep wildly.
+    // Rate-limit so a spammy script doesn't queue endless PlaySound calls.
     DWORD now = GetTickCount();
     if (now - g_last_sfx_ms < 30) return;
     g_last_sfx_ms = now;
 
-    // Map sound id to a system MessageBeep tone for variety. The original
-    // LH_SAMPLE table is hundreds of entries; this is purely a placeholder
-    // until the SAD parser lands.
+    // Try the SAD bank first — real BW PCM samples when available.
+    if (bw::sad::Play(sound_id)) return;
+
+    // Fall back to a MessageBeep variant for ids we couldn't resolve
+    // (most likely MPEG-encoded samples which PlaySound can't decode).
     UINT tone;
     switch (sound_id % 5) {
     case 0: tone = MB_OK; break;

@@ -22,5 +22,9 @@ const char* Lookup(int32_t id);
 // Total entries currently in the map.
 size_t Count();
 
+// Direct insert (used by sources other than DLLs, e.g. SAD audio bank
+// names). First-write-wins so DLL-derived strings stay authoritative.
+void Add(int32_t id, const std::string& text);
+
 } // namespace helptext
 } // namespace bw

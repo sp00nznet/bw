@@ -36,6 +36,7 @@
 #include "animator.h"
 #include "anm_loader.h"
 #include "helptext.h"
+#include "sad_loader.h"
 
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
@@ -833,9 +834,9 @@ static void RenderHUD() {
              g_game.LibraryAnimCount(), active_count);
     DrawText2D(8, 108, line);
 
-    // HelpText pool size
-    snprintf(line, sizeof(line), "HelpText: %zu strings loaded",
-             bw::helptext::Count());
+    // HelpText pool + SAD audio bank size
+    snprintf(line, sizeof(line), "HelpText: %zu strings  |  SAD: %zu samples",
+             bw::helptext::Count(), bw::sad::Count());
     DrawText2D(8, 126, line);
 
     // Dialogue state

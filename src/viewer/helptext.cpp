@@ -152,5 +152,10 @@ const char* Lookup(int32_t id) {
 
 size_t Count() { return g_strings.size(); }
 
+void Add(int32_t id, const std::string& text) {
+    if (text.empty()) return;
+    if (g_strings.find(id) == g_strings.end()) g_strings[id] = text;
+}
+
 } // namespace helptext
 } // namespace bw
