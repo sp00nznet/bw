@@ -25,21 +25,31 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit 69c56d1)
-- **601 headers** in `src/include/black/` (+1: LHVMObjects.h)
-- **253 .cpp files** in `src/core/` (+1: LHVMObjects.cpp)
-- **48,000+ lines** of C++ total (core + viewer)
-- **220+ commits**, all pushed to GitHub
+## Current Stats (as of commit cd6556f)
+- **601 headers** in `src/include/black/`
+- **253 .cpp files** in `src/core/`
+- **14 viewer modules** (loaders, audio, animation, save, helptext, sad)
+- **~49,800 lines** of C++ total (core + viewer)
+- **244 commits**, all pushed to GitHub
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
-- **Ghidra headless pipeline operational** — batch decompiles 73+ functions in seconds
+- **Ghidra headless pipeline operational**
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
-- **LHVM bindings: ~430 natives wired with real bodies** (LHVMObjects.cpp, 8 chunks)
+- **LHVM bindings: ~430 natives wired with real bodies** (LHVMObjects.cpp, 8 chunks, ~3,900 lines)
 - **LHVM ↔ Object handle table** — script handles ↔ Object* with EntityFactory integration
 - **Hand/click input wired to LHVM** — GET_HAND_*, GAME_THING_CLICKED, POSITION_CLICKED real
 - **Spawn renderer bridge** — CHL CREATE/FLOCK_CREATE/etc. spawn entities visible in viewer
 - **Sim-rate throttling** — game ticks at BW's 10 Hz independent of render fps
+- **HUD overlay** — Consolas bitmap font, turn/entity/dialogue/library counters, F1 toggle
+- **Animation pipeline operational** — L3D bind-pose refactor + full openblack-compatible
+  ANM decoder (single + Pack archive) + procedural fallback + keyframe lerp + PLAY_GESTURE wiring
+- **SAD audio bank decoder** — LionHead Pack format, samples extracted with HELP_TEXT keys,
+  PCM playback via PlaySoundA(SND_MEMORY), MPEG fallback to MessageBeep
+- **HelpText subtitle pipeline** — humanized HELP_TEXT_* keys keyed by sample id
+- **Slot-based save/load** — BWSV format, F5/F9 hotkeys, SAVE_GAME_IN_SLOT wired
+- **Camera follow** — viewer camera tracks LHVM FOCUS_FOLLOW / POSITION_FOLLOW with shake
+- **Physics impact** — thrown objects fire Object::ReactToPhysicsImpact on neighbours
 - **Villager state machine: IMPLEMENTED** — ProcessState with 30+ states + movement
 - **Creature AI: IMPLEMENTED** — ProcessState + EntityFactory spawning
 - **Movement system: IMPLEMENTED** — MobileWallHug goal-seeking + arrival
@@ -274,21 +284,24 @@ Also implemented:
 - Base::operator new/delete: defined (were declared but missing)
 
 ## What's Next (priority order)
-1. **Animation system** — ANM loader + bone matrix interpolation + GPU skinning so
-   villagers/creatures stop T-posing
-2. **Audio subsystem** — SAD bank loader + DirectSound (or modern equivalent) so
-   PLAY_SOUND_EFFECT, START_MUSIC, SPIRIT_SPEAKS produce actual sound
-3. **Physics system** — collision, impact, thrown-object arcs (~20 stub methods);
-   wires bw_core Pot/Ball/Arrow physics into the viewer's gravity loop
-4. **Spell rendering** — PSysManager wiring + spell hierarchy Draw bodies so
-   the chunk-4 SPELL_AT_THING records produce visible effects
-5. **Save/Load system** — binary format from Ghidra (MultiMapFixed::Save decompiled)
-6. **HandState transitions** — wire viewer mouse → bw_core HandState polymorphic
-   states (Invisible/Normal/Holding/etc.) for original-game-compat input
-7. **Dialogue text rendering** — chunk-5 dialogue state is tracked but not drawn;
-   need an OpenGL text renderer (bitmap font or Windows GDI overlay)
-8. **Ghidra v1.0 address mapping** — build v1.41→v1.0 offset table for the ~12
-   remaining name-matched decompilations
+1. **MP2 audio decoder** — most BW voice samples are MPEG-2 layer audio inside
+   RIFF containers. Drop in a minimp3-style decoder and play through DirectSound
+   so voice clips actually play (PCM samples already work via PlaySoundA).
+2. **Bone-name ANM-to-mesh remapping** — animation playback currently requires
+   matching bone counts positionally. Map by name so any creature mesh can play
+   any animation.
+3. **Real PSysManager** — spell effects are placeholder rings. Wire emitters
+   through the existing PSys hierarchy → billboard sprites for fire/water/heal.
+4. **HandState polymorphic dispatch** — viewer mouse currently sets held_entity
+   directly. Route through HandStateInvisible/Normal/Holding etc. for full
+   original-game-compat input.
+5. **Native BW save/load via GameOSFile** — current save is host-only. Implementing
+   GameOSFile lets us load original game saves.
+6. **LHVM physics natives → bw_core forces** — FORCE_AT_POS, APPLY_IMPULSE etc.
+   are logical. Wire to real impulses on the target Object.
+7. **Script anim-type ↔ source-name table** — round-robin index isn't semantic.
+   The SCRIPT_HELP_TEXT enum maps gestures to anim names.
+8. **Multiplayer stack** — BWGameSpy/BWLan/LayerCommunication are stubs.
 
 ## Common Pitfalls (learned the hard way)
 - **Vendor addresses are v1.41, binary is v1.0** — use MSVC mangled name search in Ghidra, not raw addresses
