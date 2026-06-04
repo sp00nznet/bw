@@ -7,6 +7,7 @@
 #include <black/LHVMObjects.h>
 #include <black/LHVM.h>
 #include <black/Object.h>
+#include <black/Living.h>
 #include <black/Terrain.h>
 #include <black/EntityFactory.h>
 #include <black/Flock.h>
@@ -425,20 +426,50 @@ static void N_SET_TARGET(LHVM* vm) {
     vm->PopObject();
 }
 
+// Return o as a Living* (Villager/Animal/Creature — all MobileWallHug-derived)
+// when its GetScriptObjectType identifies one of those, else nullptr. SAFE
+// downcast gate: only the three living script-type ids pass, so a non-Living
+// object can never be miscast — which would corrupt memory via SetGoalPos
+// writing at MobileWallHug offset 0x80. (GetScriptObjectType is a separate,
+// collision-prone enum from CategoryForScriptType's, so we match its actual
+// returned ids: Villager=1, Animal=6, Creature=0xc. Exotic species that
+// override it with other ids are conservatively skipped.)
+static Living* AsLivingMover(Object* o) {
+    if (!o) return nullptr;
+    switch (o->GetScriptObjectType()) {
+    case 1:     // Villager
+    case 6:     // Animal
+    case 0xc:   // Creature
+        return static_cast<Living*>(o);
+    default:
+        return nullptr;
+    }
+}
+
 static void N_SET_HEADING_AND_SPEED(LHVM* vm) {
     float speed = vm->PopFloat();
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
     uint32_t h = vm->PopObject();
     Object* o = LookupObject(h);
     if (!o) return;
-    // Compute heading angle and rotate towards target. Speed is stored on
-    // the object's MobileWallHug if present; for now just face the target.
+
+    // Face the target regardless of type.
     float dx = x - WorldX(o);
     float dz = z - WorldZ(o);
     if (dx != 0.0f || dz != 0.0f) {
         o->y_angle = atan2f(dx, dz);
     }
-    (void)speed; (void)y;  // y/speed wired in chunk 3 with movement system
+
+    // For living movers, actually start walking: set the destination + speed
+    // and enter MOVE_TO_POS so the per-tick Process() drives
+    // MobileWallHug::MoveToGoal toward it (final state = idle on arrival).
+    if (Living* mover = AsLivingMover(o)) {
+        MapCoords goal = MakeCoords(x, y, z);
+        mover->SetGoalPos(goal);
+        if (speed > 0.0f) mover->SetSpeed(static_cast<int>(speed));
+        mover->SetState(LIVING_ACTION_INDEX_FINAL, VILLAGER_STATE_INVALID_STATE);
+        mover->SetTopState(VILLAGER_STATE_MOVE_TO_POS);
+    }
 }
 
 static void N_GET_OBJECT_DESTINATION(LHVM* vm) {
