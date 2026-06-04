@@ -32,11 +32,12 @@ void OnPlaySound(int32_t sound_id, float /*x*/, float /*y*/, float /*z*/) {
     if (now - g_last_sfx_ms < 30) return;
     g_last_sfx_ms = now;
 
-    // Try the SAD bank first — real BW PCM samples when available.
+    // Try the SAD bank first — real BW samples (PCM played directly, MPEG
+    // Layer II decoded to PCM via kjmp2) when available.
     if (bw::sad::Play(sound_id)) return;
 
-    // Fall back to a MessageBeep variant for ids we couldn't resolve
-    // (most likely MPEG-encoded samples which PlaySound can't decode).
+    // Fall back to a MessageBeep variant only for ids we couldn't resolve
+    // to a bank sample at all (unknown id, or a sample that failed to decode).
     UINT tone;
     switch (sound_id % 5) {
     case 0: tone = MB_OK; break;

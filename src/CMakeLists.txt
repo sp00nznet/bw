@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(BlackAndWhite VERSION 1.0.0 LANGUAGES CXX)
+project(BlackAndWhite VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -326,6 +326,7 @@ add_executable(bw_viewer
     viewer/anm_loader.cpp
     viewer/helptext.cpp
     viewer/sad_loader.cpp
+    viewer/third_party/kjmp2.c
 )
 target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
 set_target_properties(bw_viewer PROPERTIES
@@ -348,6 +349,15 @@ add_executable(test_g3d
     viewer/l3d_loader.cpp
 )
 set_target_properties(test_g3d PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# MP2 (MPEG Layer II) decoder test — decodes a raw SAD voice payload to PCM
+add_executable(test_mp2
+    viewer/test_mp2.c
+    viewer/third_party/kjmp2.c
+)
+set_target_properties(test_mp2 PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
