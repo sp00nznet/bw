@@ -19,6 +19,7 @@ include_directories(
 add_library(bw_core STATIC
     # Base hierarchy (root → positioned → 3D → mobile → alive)
     core/Base.cpp
+    core/GameOSFile.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -359,6 +360,15 @@ add_executable(test_mp2
     viewer/third_party/kjmp2.c
 )
 set_target_properties(test_mp2 PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# GameOSFile serialization test (Phase 7 keystone)
+add_executable(test_save
+    viewer/test_save.cpp
+)
+target_link_libraries(test_save PRIVATE bw_core)
+set_target_properties(test_save PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

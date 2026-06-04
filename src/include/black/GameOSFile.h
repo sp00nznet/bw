@@ -31,7 +31,7 @@ struct LHLinkedList_GameThing_File {
 static_assert(sizeof(LHLinkedList_GameThing_File) == 0x8, "LHLinkedList_GameThing_File size mismatch");
 
 struct GameOSFile {
-    LHReleasedOSFile          super;               // 0x00
+    LHReleasedOSFile          super;               // 0x00 — OS handle (we stash FILE* here)
     uint8_t                   field_0x8[0x40];     // 0x08
     uint8_t                   field_0x48[0xC4];    // 0x48
     uint32_t                  field_0x10c;         // 0x10C
@@ -42,5 +42,20 @@ struct GameOSFile {
     uint32_t                  field_0x21c;         // 0x21C
     LHLinkedList_GSaveLoadPtr save_load_ptr_list;  // 0x220
     LHLinkedList_GameThing_File game_thing_list;   // 0x228
+
+    // --- Serialization primitives (translated from the v1.0 binary) ---------
+    // The byte-level format is what matters for save compatibility, so we
+    // reproduce that with plain C I/O rather than the original's opaque OS
+    // layer (off_7EB2E8 et al). Per write/read the running checksum at 0x214
+    // accumulates (firstByteOfBuffer + byteCount), exactly as GameThing::Save
+    // / SaveExtraData do in the binary (sub_53E8E0 / sub_53EA90).
+    bool     Open(const char* path, bool writing);   // false on failure
+    void     Close();
+    bool     IsOpen() const;
+    // Write/Read `size` bytes; return true on success (3-on-error in the
+    // binary maps to false here). Both fold the buffer into `checksum`.
+    bool     Write(const void* buf, uint32_t size);
+    bool     Read(void* buf, uint32_t size);
+    uint32_t GetChecksum() const { return checksum; }
 };
 static_assert(sizeof(GameOSFile) == 0x230, "GameOSFile size mismatch");

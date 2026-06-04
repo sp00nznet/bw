@@ -6,6 +6,7 @@
 // values here and are overridden by derived classes (Object, Creature, Town, etc.)
 
 #include <black/GameThing.h>
+#include <black/GameOSFile.h>
 
 // ============================================================================
 // Virtual method implementations (from vtable at 0x0083dda4 in v1.0)
@@ -228,20 +229,43 @@ uint32_t GameThing::GetShowNeedsPos(uint32_t /*param1*/, MapCoords* /*param2*/) 
     return 0;
 }
 
-uint32_t GameThing::Load(GameOSFile* /*file*/) {
-    return 0;
+// Save/Load translated from the v1.0 binary (tools/decomp): GameThing::Save =
+// sub_53E8E0, Load = sub_53E9F0, SaveExtraData = sub_53EA90. The dispatcher
+// writes/reads each object's GetSaveType id to pick the class; Save then emits
+// SaveExtraData + GameThing's own two fields (at raw offsets 0x4 and 0xA),
+// Load reads them back. We write by raw object offset so the on-disk byte
+// layout matches the original regardless of our field naming; GameOSFile folds
+// each buffer into the running checksum exactly as the binary does.
+uint32_t GameThing::Load(GameOSFile* file) {
+    if (!file) return 0;
+    uint8_t* base = reinterpret_cast<uint8_t*>(this);
+    file->Read(base + 0x4, 4);   // field_0x4 (4 bytes)
+    file->Read(base + 0xA, 1);   // field_0xa availability flag (1 byte)
+    return 1;
 }
 
-uint32_t GameThing::Save(GameOSFile* /*file*/) {
-    return 0;
+uint32_t GameThing::Save(GameOSFile* file) {
+    if (!file) return 0;
+    uint32_t type = GetSaveType();
+    file->Write(&type, 4);       // 4-byte save-type id
+    SaveExtraData(file);
+    if (type == 0) return 0;     // base GameThing is not directly savable
+    const uint8_t* base = reinterpret_cast<const uint8_t*>(this);
+    file->Write(base + 0x4, 4);  // field_0x4 (4 bytes)
+    file->Write(base + 0xA, 1);  // field_0xa availability flag (1 byte)
+    return 1;
 }
 
 uint32_t GameThing::GetSaveType() {
+    // sub_404E60: base returns 0 — leaf savable types override with their id.
     return 0;
 }
 
-void GameThing::SaveExtraData(GameOSFile* /*file*/) {
-    // Default: no-op
+void GameThing::SaveExtraData(GameOSFile* file) {
+    // sub_53EA90: base writes a 4-byte zero placeholder (leaf types override).
+    if (!file) return;
+    uint32_t extra = 0;
+    file->Write(&extra, 4);
 }
 
 void GameThing::ResolveLoad() {
