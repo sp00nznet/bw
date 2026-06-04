@@ -101,6 +101,9 @@ struct GameState {
     ANMSingle* LibraryAnimByName(const char* name) const;
     ANMSingle* LibraryAnimByIndex(uint32_t idx)    const;
     uint32_t   LibraryAnimCount() const;
+    // Resolve a villager gesture `type` (PLAY_GESTURE) to a person-only clip,
+    // never an animal animation. See kVillagerGestureOrder in game_loop.cpp.
+    ANMSingle* LibraryPersonAnimByType(int32_t type) const;
 
     // Player hand
     HandState              hand;

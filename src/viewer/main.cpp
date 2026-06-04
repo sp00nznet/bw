@@ -483,11 +483,10 @@ static void RenderGameEntities() {
                 uint32_t handle = lhvm::HandleFor(g_game.core_entities[core_idx]);
                 lhvm::ActiveAnimView aav;
                 if (handle && lhvm::ActiveAnimFor(handle, &aav)) {
-                    uint32_t count = g_game.LibraryAnimCount();
-                    if (count > 0) {
-                        uint32_t pick = static_cast<uint32_t>(aav.anim_type) % count;
-                        anim = g_game.LibraryAnimByIndex(pick);
-                    }
+                    // Resolve the script gesture type to a person-only clip so
+                    // a villager never plays an animal animation (6B). Falls
+                    // back to the whole library only if no M_P_ clips exist.
+                    anim = g_game.LibraryPersonAnimByType(aav.anim_type);
                     script_start = aav.started_at_sec;
                 }
             }
@@ -495,8 +494,21 @@ static void RenderGameEntities() {
                 anim = g_game.test_anim;
             }
 
-            if (anim && anim->loaded && !anim->frames.empty() &&
-                sub0.bones.size() == anim->frames[0].bone_count) {
+            // Tolerant skeleton-overlap remap. BW's L3D/ANM formats carry NO
+            // bone names — bones correspond by index — so an animation drives
+            // the overlapping leading bones and any extra mesh bones stay at
+            // bind pose. This is valid here because ANM playback is villager-
+            // only and AllAnims is authored against the shared humanoid
+            // skeleton; it lifts the old exact-bone-count gate so meshes with
+            // a few extra bones still animate. Require the animation to cover
+            // at least half the skeleton, else fall through to procedural so
+            // we don't freeze into a near-static pose.
+            const size_t mesh_bones = sub0.bones.size();
+            const uint32_t anm_bones = (anim && !anim->frames.empty())
+                                       ? anim->frames[0].bone_count : 0;
+            if (anim && anim->loaded && anm_bones > 0 &&
+                sub0.bind_world.size() == mesh_bones &&
+                static_cast<size_t>(anm_bones) * 2 >= mesh_bones) {
 
                 float ft = anim->frame_time_sec;
                 if (ft <= 0.0f) ft = 0.025f;
@@ -508,12 +520,20 @@ static void RenderGameEntities() {
                 uint32_t fb = (fa + 1) % n;
                 float frac = t_total - floorf(t_total);
 
-                std::vector<uint32_t> parents(sub0.bones.size());
-                for (size_t b = 0; b < sub0.bones.size(); ++b) {
+                std::vector<uint32_t> parents(mesh_bones);
+                for (size_t b = 0; b < mesh_bones; ++b) {
                     parents[b] = sub0.bones[b].parent;
                 }
-                bw::ApplyANMFrameLerp(*anim, fa, fb, frac, parents, pose);
-                used_anm = !pose.empty();
+                std::vector<bw::BoneMatrix> anm_pose;
+                bw::ApplyANMFrameLerp(*anim, fa, fb, frac, parents, anm_pose);
+                if (!anm_pose.empty()) {
+                    // Full-length pose: animated bones over a bind-pose base
+                    // so vertices bound to non-animated bones stay correct.
+                    pose = sub0.bind_world;
+                    for (size_t b = 0; b < anm_pose.size() && b < pose.size(); ++b)
+                        pose[b] = anm_pose[b];
+                    used_anm = true;
+                }
             }
         }
 

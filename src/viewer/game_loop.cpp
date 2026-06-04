@@ -12,6 +12,7 @@
 
 #include <cctype>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,25 @@ struct ANMLibrary {
     std::vector<ANMSingle>                       animations;
     std::unordered_map<std::string, uint32_t>    by_name;       // exact "M_..." key
     std::unordered_map<std::string, uint32_t>    by_base_name;  // without ".max"
+    // Person ("M_P_") animation ids only, so villager gestures never resolve
+    // to an animal clip. Ordered so the script gesture `type` indexes the most
+    // natural villager actions first (see kVillagerGestureOrder).
+    std::vector<uint32_t>                        person_ids;
+};
+
+// Preferred ordering for villager gesture selection. PLAY_GESTURE's `type` is
+// BW's ANIM_LIST enum, whose exact integer values aren't recoverable here, so
+// we index this curated list of common person clips by `type` instead of
+// modulo-ing over the whole (animal-polluted) library. Names are AllAnims
+// base names (M_P_* present in game_data/AllAnims.anm). Any M_P_ clip not
+// listed is appended after these, so every person animation stays reachable.
+static const char* const kVillagerGestureOrder[] = {
+    "M_P_Ambient1", "M_P_Ambient2", "M_P_Conduct_Meeting",
+    "M_P_Clap_1", "M_P_Clap_2", "M_P_Crowd_Impressed_1", "M_P_Crowd_Won",
+    "M_P_Into_Pray", "M_P_Mourning", "M_P_Eat", "M_P_Dance_Stand",
+    "M_P_Gossip_Man", "M_P_Gossip_Woman_1", "M_P_Beckon",
+    "M_P_Attract_Your_Attention", "M_P_Blow_Raspberry", "M_P_Hug",
+    "M_P_Looking_for_something", "M_P_Inspect_Object_1", "M_P_Loving_Touch",
 };
 
 static const float GRAVITY = -9.8f * 2.0f;  // Scaled gravity
@@ -234,8 +254,27 @@ bool GameState::Init(const std::string& script_path) {
                 lib->by_base_name[base] = id;
                 lib->animations.push_back(std::move(one));
             }
-            printf("Game: ANM library loaded — %zu animations available\n",
-                   lib->animations.size());
+            // Build the person-only gesture list: curated order first, then
+            // any remaining M_P_ clips, so villager gestures never select an
+            // animal animation.
+            {
+                std::unordered_set<uint32_t> taken;
+                for (const char* nm : kVillagerGestureOrder) {
+                    auto it = lib->by_base_name.find(nm);
+                    if (it != lib->by_base_name.end() && !taken.count(it->second)) {
+                        lib->person_ids.push_back(it->second);
+                        taken.insert(it->second);
+                    }
+                }
+                for (uint32_t id = 0; id < lib->animations.size(); ++id) {
+                    if (taken.count(id)) continue;
+                    if (lib->animations[id].source_name.compare(0, 4, "M_P_") == 0)
+                        lib->person_ids.push_back(id);
+                }
+            }
+            printf("Game: ANM library loaded — %zu animations available "
+                   "(%zu villager/person clips)\n",
+                   lib->animations.size(), lib->person_ids.size());
         } else {
             printf("Game: AllAnims.anm not present or unreadable at %s\n",
                    anm_path.c_str());
@@ -355,6 +394,23 @@ ANMSingle* GameState::LibraryAnimByIndex(uint32_t idx) const {
 uint32_t GameState::LibraryAnimCount() const {
     if (!anim_library) return 0;
     return static_cast<uint32_t>(static_cast<ANMLibrary*>(anim_library)->animations.size());
+}
+
+ANMSingle* GameState::LibraryPersonAnimByType(int32_t type) const {
+    if (!anim_library) return nullptr;
+    auto* lib = static_cast<ANMLibrary*>(anim_library);
+    if (lib->person_ids.empty()) {
+        // No person clips isolated (e.g. AllAnims missing) — fall back to the
+        // whole library so something still plays.
+        if (lib->animations.empty()) return nullptr;
+        uint32_t idx = static_cast<uint32_t>((type % static_cast<int32_t>(
+                            lib->animations.size()) + lib->animations.size()))
+                       % static_cast<uint32_t>(lib->animations.size());
+        return &lib->animations[idx];
+    }
+    uint32_t n = static_cast<uint32_t>(lib->person_ids.size());
+    uint32_t sel = static_cast<uint32_t>(((type % static_cast<int32_t>(n)) + n)) % n;
+    return &lib->animations[lib->person_ids[sel]];
 }
 
 void GameState::SpawnEntitiesFromScript() {
