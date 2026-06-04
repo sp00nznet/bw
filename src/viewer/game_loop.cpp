@@ -136,9 +136,7 @@ static void HandQueryCallback(lhvm::HandInfo* out) {
     out->x = h.x;
     out->y = h.y;
     out->z = h.z;
-    out->state = h.held_entity >= 0 ? 5  // HOLDING
-               : h.hover_entity >= 0 ? 1  // NORMAL over thing
-               : 1;
+    out->state = h.phase;  // HandPhase, kept in sync with HAND_STATES codes
     auto handle_for_index = [](int idx) -> uint32_t {
         if (idx < 0 || !s_current_game_state) return 0;
         if (idx >= static_cast<int>(s_current_game_state->core_entities.size())) return 0;
@@ -353,6 +351,7 @@ bool GameState::Init(const std::string& script_path) {
     hand = {};
     hand.held_entity = -1;
     hand.hover_entity = -1;
+    hand.phase = HAND_PHASE_NORMAL;
     hand_mesh_id = 250; // MSH_B_SPELLHAND
 
     // Init camera at script's camera position
@@ -730,6 +729,14 @@ void GameState::UpdateHand(int mouse_x, int mouse_y, int screen_w, int screen_h)
 
     // Update hover entity
     hand.hover_entity = FindEntityAt(hand.x, hand.z, PICK_RADIUS);
+
+    // Drive the hand interaction phase (6C). A small state machine over the
+    // phases the viewer can resolve today: off-land hides the hand, a held
+    // object is the HOLDING state, otherwise NORMAL. TUG/CAMERA/etc. are left
+    // for the faithful polymorphic HandState path.
+    hand.phase = !hand.is_over_land ? HAND_PHASE_INVISIBLE
+               : hand.held_entity >= 0 ? HAND_PHASE_HOLDING
+               : HAND_PHASE_NORMAL;
 }
 
 } // namespace bw

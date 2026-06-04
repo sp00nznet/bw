@@ -56,6 +56,18 @@ enum EntityType : uint32_t {
     ENTITY_HAND       = 6,
 };
 
+// Hand interaction phase — mirrors bw_core HAND_STATES (black/HandState.h) so
+// GET_HAND_STATE reports the value scripts expect. Only the phases the viewer
+// can currently distinguish are produced; the rest stay reserved for when the
+// real polymorphic HandState subclasses are driven (6C-faithful).
+enum HandPhase : int {
+    HAND_PHASE_INVISIBLE = 0,
+    HAND_PHASE_NORMAL    = 1,
+    HAND_PHASE_CAMERA    = 2,
+    HAND_PHASE_TUG       = 3,
+    HAND_PHASE_HOLDING   = 4,
+};
+
 // The hand — player's cursor and primary interaction tool
 struct HandState {
     float    x, y, z;          // World position (projected from mouse)
@@ -66,6 +78,7 @@ struct HandState {
     int      held_entity;      // Index of held entity (-1 = none)
     bool     is_over_land;     // Mouse is over terrain (not sky)
     int      hover_entity;     // Entity under cursor (-1 = none)
+    int      phase;            // HandPhase — current interaction state
 };
 
 // Game state — minimal game loop manager
