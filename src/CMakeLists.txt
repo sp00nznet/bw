@@ -326,6 +326,7 @@ add_executable(bw_viewer
     viewer/anm_loader.cpp
     viewer/helptext.cpp
     viewer/sad_loader.cpp
+    viewer/psys_fx.cpp
     viewer/third_party/kjmp2.c
 )
 target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
