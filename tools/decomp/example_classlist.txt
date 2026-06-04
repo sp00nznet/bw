@@ -1,0 +1,16 @@
+PSysManager
+PSysBase
+PSysInterface
+PSysSound
+PSysHandFX
+GJPSysInterface
+AtomCore
+AtomCollection
+AtomCollectionModifier
+AtomCreateRule
+EmitterRule
+EmitterRuleSimple
+EmitterRuleConical
+AppearanceUpdateRule
+AppearanceRuleFadeOut
+AppearanceRuleTumble
