@@ -22,9 +22,11 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**601 headers | 253 implementations | 14 viewer modules | ~49,800 lines of C++ | 244 commits**
+**601 headers | 254 implementations | 17 viewer modules | ~50,500 lines of C++ | 252 commits**
 
-The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts drive entity spawning, the LHVM dispatches ~430 wired native functions, villagers play real ANM skeletal animations from `AllAnims.anm`, sound effects fire from extracted SAD audio banks, and the camera follows whatever the script tells it to.
+The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts drive entity spawning, the LHVM dispatches ~430 wired native functions, villagers play real ANM skeletal animations from `AllAnims.anm`, real MP2 voice/dialogue decodes and plays, spell casts throw camera-facing particle FX, and the camera follows whatever the script tells it to.
+
+A second decompiler toolchain (`tools/decomp/`) now drives faithful translation: it recovers original method pseudocode from the v1.0 binary via RTTI vftable walking (IDA idalib primary), which is how the native save serializer below was rebuilt.
 
 ### What works right now
 
@@ -35,7 +37,8 @@ The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts d
 - Per-entity OpenGL render with hover/selected tinting
 - HUD overlay (Consolas bitmap font) showing turn, entity counts, hand state, dialogue ids, library counts
 - Subtitle text at the bottom of the screen
-- Click marker / spirit pointer beam / coloured influence rings / expanding spell rings — all driven by LHVM state
+- Click marker / spirit pointer beam / coloured influence rings — all driven by LHVM state
+- Spell visuals: camera-facing additive billboard particles (`psys_fx`) with per-family behaviours (fire fountain, heal chakra helix, water droplets, lightning column, shield sphere) — replaces the old placeholder rings
 
 **Animation**
 - L3D refactored to keep bind-pose vertices + bones separately for runtime skinning
@@ -43,7 +46,8 @@ The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts d
 - Full ANM file decoder for both individual `Anims/*.anm` files and the `AllAnims.anm` Pack archive
 - Per-bone 4×3 affine matrices decoded into `BoneMatrix` and applied via CPU skinning
 - Adjacent-keyframe linear interpolation for smooth playback
-- Script-driven animation selection via `PLAY_GESTURE` / `OVERRIDE_STATE_ANIMATION` natives
+- Tolerant skeleton-overlap remap: an animation drives the overlapping leading bones over a bind-pose base (BW's L3D/ANM have no bone names — correspondence is by index), so meshes with extra bones still animate
+- Script-driven animation selection via `PLAY_GESTURE` resolves to **person-only** (`M_P_*`) clips, so a villager never plays an animal animation
 - Library indexed by source-name (e.g. `M_P_Conduct_Meeting`) and integer id
 
 **LHVM scripting**
@@ -66,12 +70,14 @@ The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts d
 - Script-spawned entities (CREATE, FLOCK_CREATE, LOAD_CREATURE, etc.) appear in the viewer's render list with sensible default meshes from `SCRIPT_OBJECT_TYPE`
 - Camera follows LHVM `FOCUS_FOLLOW` / `POSITION_FOLLOW` targets with lerp + shake
 - Thrown objects fire `Object::ReactToPhysicsImpact` on neighbours within a speed-scaled blast radius
+- `SET_HEADING_AND_SPEED` imparts real movement on living units (villager/animal/creature) — sets the MobileWallHug goal + speed and enters `MOVE_TO_POS` so `MoveToGoal` walks them there (safe `Living` downcast gated on `GetScriptObjectType`)
+- Hand interaction phase state machine reports the correct `HAND_STATES` code (Invisible/Normal/Holding) to `GET_HAND_STATE`
 
 **Audio**
 - Full SAD audio bank decoder — LionHead Pack format with `LHFileSegmentBankInfo` / `LHAudioWaveData` / `LHAudioBankSampleTable` blocks
 - 227 samples extracted from `Guidance.sad` plus everything under `SFX/` and `Audio/`
 - PCM samples play through `PlaySoundA(SND_MEMORY)`
-- MPEG-2 voice samples fall back to MessageBeep tones (real MP2 decoder pending)
+- **MP2 voice/dialogue now decodes for real** — BW stores voice as `WAVE_FORMAT_MPEG` (tag 0x0050 = MPEG Layer II, *not* MP3); decoded to PCM via vendored kjmp2 and cached per sample (verified on `villagers.sad`: 22050 Hz, real signal)
 - Music: `START_MUSIC` plays `intro.wav` looped via `PlaySoundA`
 
 **Subtitle text**
@@ -82,6 +88,7 @@ The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts d
 - Slot-based binary snapshot (`BWSV` magic, v1) with section tags `GTRN`/`ENTS`/`HAND`/`LGLB`/`LINF`
 - F5 saves slot 0, F9 loads it
 - `SAVE_GAME_IN_SLOT` script native fires real serialization via `g_save_slot_func`
+- **Native save format foundation** (toward loading retail `.sav`): `GameOSFile` serializer translated from the binary — `Open/Close/Write/Read` reproducing the on-disk byte format + the running checksum rule (`buf[0] + size` per op, folded at field 0x214), with `GameThing::Save/Load/GetSaveType/SaveExtraData`. Verified by `test_save` (write→read roundtrip + checksum consistency). Per-leaf-class fan-out + top-level driver still to come.
 
 ### Phase 0: Reconnaissance — COMPLETE
 - [x] Acquire original game files
@@ -115,14 +122,17 @@ The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts d
 - [x] HelpText subtitle pipeline (humanized SAD keys)
 
 ### Phase 4: Polish & Full Game — IN PROGRESS
-- [ ] MP2 decoder so BW voice samples actually play
-- [ ] Native BW save format via `GameOSFile` (currently host-snapshot only)
-- [ ] PSysManager + real spell particle visuals (currently placeholder rings)
-- [ ] Bone-name remap so any ANM plays on any mesh (currently positional)
-- [ ] Multiplayer / network stack (stubbed)
-- [ ] LHVM physics natives → bw_core forces (currently logical)
+- [x] MP2 decoder so BW voice samples actually play (kjmp2; Layer II, tag 0x0050)
+- [x] Spell particle visuals — billboard FX (`psys_fx`) replace placeholder rings *(scope-B; faithful 128-class Atom/Rule engine port is a later exactness pass)*
+- [x] Animation remap so meshes with differing bone counts still play *(index-overlap; BW format has no bone names)*
+- [x] Person-only villager gesture selection (no more animal clips on villagers)
+- [x] `SET_HEADING_AND_SPEED` → real bw_core movement on living units
+- [x] Hand interaction phase state machine → correct `GET_HAND_STATE`
+- [x] Decompiler pipeline (`tools/decomp/`) — RTTI-vftable class extractor (IDA primary, Ghidra cross-check)
+- [~] Native BW save format via `GameOSFile` — **foundation done + verified**; per-leaf-class Save/Load fan-out + top-level driver remain
+- [ ] Full polymorphic `HandState` dispatch (decompiler-driven; opaque-blob subclasses)
+- [ ] Multiplayer / network stack — LAN-only, planned for a separate private repo + server emulator
 - [ ] Computer player AI behaviour
-- [ ] Localized text source — currently humanized SAD keys; real strings need MP2-side-channel or community translation
 
 ## How to Build & Run
 
@@ -175,12 +185,13 @@ bw/
 │   ├── include/black/         ← 601 C++ headers (entity classes, vtable layout)
 │   │   ├── LHVMObjects.h      ← Script ↔ Object bridge declarations
 │   │   └── ...                ← All 569 vendor entity types
-│   ├── core/                  ← 253 implementation files
+│   ├── core/                  ← 254 implementation files
 │   │   ├── LHVMObjects.cpp    ← ~430 wired LHVM native bodies (3,900 lines)
 │   │   ├── EntityFactory.cpp  ← Creates real entities from level data
 │   │   ├── Terrain.cpp        ← Terrain height service
 │   │   ├── LHVM.cpp           ← 2700-line VM with 31-opcode dispatch
 │   │   ├── Game.cpp           ← GGame::ProcessTurn game loop
+│   │   ├── GameOSFile.cpp     ← Native save serializer (byte format + checksum)
 │   │   └── ...                ← All 569 entity type implementations
 │   └── viewer/                ← OpenGL viewer/game application
 │       ├── main.cpp           ← Win32+OpenGL window, render, input, HUD
@@ -192,10 +203,19 @@ bw/
 │       ├── animator.*         ← Procedural skeletal animation
 │       ├── anm_loader.*       ← ANM file parser (single + Pack archive) + CPU skinning
 │       ├── audio.*            ← Audio dispatch (SAD playback + fallback beeps)
-│       ├── sad_loader.*       ← LionHead SAD audio bank decoder
+│       ├── sad_loader.*       ← LionHead SAD audio bank decoder (+ kjmp2 MP2)
+│       ├── psys_fx.*          ← Billboard particle FX for spell visuals
 │       ├── helptext.*         ← Subtitle string pool
-│       ├── save_state.*       ← Slot-based binary save/load
+│       ├── save_state.*       ← Slot-based binary save/load (host snapshot)
+│       ├── third_party/kjmp2.* ← Vendored MPEG-1/2 Layer II decoder (zlib licence)
+│       ├── test_save.cpp      ← GameOSFile roundtrip + checksum test
 │       └── mesh_names.h       ← 626 mesh name lookup
+├── tools/
+│   └── decomp/                ← RTTI-vftable decompiler pipeline (IDA + Ghidra)
+│       ├── bw_decomp.py       ← IDA idalib class→pseudocode extractor (primary)
+│       ├── bw_probe.py        ← IDA naming/RTTI sanity probe
+│       ├── GhidraDumpClass.java ← Ghidra cross-check (same vftable walk)
+│       └── README.md          ← Pipeline docs + the no-symbol-table constraint
 ├── vendor/
 │   └── bw1-decomp/            ← 569 decompiled struct headers (reference)
 └── game_data/                 ← Your own game data (not included)

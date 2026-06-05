@@ -25,12 +25,31 @@ cmake --build build --config Release
 - Static library target: `bw_core`
 - Must build clean with zero errors before committing
 
-## Current Stats (as of commit cd6556f)
+## Current Stats (as of commit 7abd58b, 2026-06-05)
 - **601 headers** in `src/include/black/`
-- **253 .cpp files** in `src/core/`
-- **14 viewer modules** (loaders, audio, animation, save, helptext, sad)
-- **~49,800 lines** of C++ total (core + viewer)
-- **244 commits**, all pushed to GitHub
+- **254 .cpp files** in `src/core/`
+- **17 viewer modules** (loaders, audio, animation, save, helptext, sad, psys_fx, kjmp2, tests)
+- **~50,500 lines** of C++ total (core + viewer)
+- **252 commits**, all pushed to GitHub
+
+### Session 2026-06-04/05 (Phases 5–8 + decompiler pipeline)
+- **MP2 voice decoder** (5A) — BW voice is WAVE_FORMAT_MPEG tag 0x0050 = Layer II
+  (NOT MP3); vendored kjmp2, decode-and-cache in sad_loader. `test_mp2` proves it.
+- **Billboard particle FX** (5B scope-B) — `psys_fx` replaces placeholder spell
+  rings; per-family emitters. (Faithful 128-class Atom/Rule port = scope-A later.)
+- **Tolerant bone remap** (6A) — BW L3D/ANM have NO bone names; index-overlap
+  remap over a bind-pose base, requires ≥half-skeleton coverage.
+- **Person-only gestures** (6B) — villager PLAY_GESTURE restricted to M_P_* clips.
+- **Hand phase state machine** (6C-pragmatic) — fixed GET_HAND_STATE (was 5, HOLDING=4).
+- **SET_HEADING_AND_SPEED** (Phase 8) — real movement on living units via
+  MobileWallHug goal+speed+MOVE_TO_POS; safe AsLivingMover() downcast gate.
+- **Decompiler pipeline** (`tools/decomp/`) — binary has RTTI but NO symbol table
+  (17,627 funcs, 5 named) → class methods only reachable via RTTI vftable walk,
+  not by name. IDA idalib `bw_decomp.py` validated (primary); Ghidra script ready
+  but project needs RTTI analyzer re-run. See [[decompiler-tool-locations]].
+- **Phase 7 foundation** — GameOSFile serializer + GameThing Save/Load translated
+  from decomp, verified by `test_save`. Save/Load/GetSaveType = vtable slots
+  58/59/60 in GameThing AND all descendants. Per-leaf fan-out + driver remain.
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **Ghidra headless pipeline operational**
@@ -284,24 +303,27 @@ Also implemented:
 - Base::operator new/delete: defined (were declared but missing)
 
 ## What's Next (priority order)
-1. **MP2 audio decoder** — most BW voice samples are MPEG-2 layer audio inside
-   RIFF containers. Drop in a minimp3-style decoder and play through DirectSound
-   so voice clips actually play (PCM samples already work via PlaySoundA).
-2. **Bone-name ANM-to-mesh remapping** — animation playback currently requires
-   matching bone counts positionally. Map by name so any creature mesh can play
-   any animation.
-3. **Real PSysManager** — spell effects are placeholder rings. Wire emitters
-   through the existing PSys hierarchy → billboard sprites for fire/water/heal.
-4. **HandState polymorphic dispatch** — viewer mouse currently sets held_entity
-   directly. Route through HandStateInvisible/Normal/Holding etc. for full
-   original-game-compat input.
-5. **Native BW save/load via GameOSFile** — current save is host-only. Implementing
-   GameOSFile lets us load original game saves.
-6. **LHVM physics natives → bw_core forces** — FORCE_AT_POS, APPLY_IMPULSE etc.
-   are logical. Wire to real impulses on the target Object.
-7. **Script anim-type ↔ source-name table** — round-robin index isn't semantic.
-   The SCRIPT_HELP_TEXT enum maps gestures to anim names.
-8. **Multiplayer stack** — BWGameSpy/BWLan/LayerCommunication are stubs.
+DONE this session: MP2 decoder, billboard spell FX, tolerant bone remap,
+person-only gestures, hand-phase state, SET_HEADING_AND_SPEED movement,
+decompiler pipeline, GameOSFile + GameThing save/load foundation.
+
+Remaining (mostly decompiler-driven — use `tools/decomp/bw_decomp.py`):
+1. **Phase 7 leaf fan-out** — extract vtable slots 58/59/60 (Load/Save/GetSaveType)
+   for every savable leaf, translate against the GameThing pattern, add the
+   top-level save/load driver → load retail `.sav`. Per-class fan-out =
+   multi-agent workflow. (Foundation + pattern already in place.)
+2. **PSys scope-A** — faithful port of the ~128-class Atom/Rule particle engine
+   (AtomCollection/AtomCore, EmitterRule*, UR_*/AR_*, EC_*) for byte-exact spell
+   visuals. Decompilation already extracted to `work/decomp/psys_atoms.txt`.
+3. **HandState 6C-faithful** — drive the real polymorphic HandState subclasses
+   (opaque-blob fields → needs per-method decompilation).
+4. **Computer player AI** behaviour.
+5. **Multiplayer** — LAN-only, planned for a SEPARATE PRIVATE repo + server
+   emulator (BWGameSpy online backend is dead; descoped). Design TBD.
+
+Ghidra cross-check is not yet live: `work/ghidra_project` has 0 vftable labels
+(RTTI analyzer never run on import) — re-analyse with RTTI on to enable it.
+IDA idalib is the sole working extractor and is sufficient.
 
 ## Common Pitfalls (learned the hard way)
 - **Vendor addresses are v1.41, binary is v1.0** — use MSVC mangled name search in Ghidra, not raw addresses
