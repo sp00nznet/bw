@@ -228,15 +228,37 @@ bw/
     └── *.L3D                  ← Individual creature meshes
 ```
 
+## Licence
+
+The code written for this project — `src/` (excluding `src/viewer/third_party/`),
+`tools/`, `work/` — is **MIT**. See [LICENSE](LICENSE).
+
+The tree also carries third-party code that MIT does not and cannot cover:
+
+| Component | Terms | Built? |
+|---|---|---|
+| `vendor/bw1-decomp` — 569 struct headers | CC0-1.0 (public domain) | reference only |
+| `src/viewer/third_party/kjmp2` — Layer II decoder | zlib | **yes** |
+| `vendor/SafeDiscLoader2` | GPL-3.0 | no |
+| `vendor/SafeDiscLoader` | no licence stated | no |
+
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) has the detail, including
+which parts of `src/` were written from openblack's format documentation.
+
 ## Legal
 
 This project contains **no copyrighted game assets**. You need your own copy of Black & White to use this. We're reimplementing the engine, not distributing the game.
+
+Black & White is © Lionhead Studios / Electronic Arts. The translated method
+bodies in `src/core/` derive from the behaviour of the original executable; the
+MIT grant covers the expression of that translation as written here, not the
+original game.
 
 ## Acknowledgments
 
 - **Lionhead Studios** — for making something truly special
 - **openblack** — for file format documentation (L3D, G3D, LND, CHL, ANM, Pack/SAD)
-- **bw1-decomp** — for 569 decompiled struct headers + chlasm enum tables
+- **bw1-decomp** — for 569 decompiled struct headers + chlasm enum tables, released CC0
 - The Black & White community — still keeping the faith after 25 years
 
 ---
