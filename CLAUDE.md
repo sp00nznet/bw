@@ -372,13 +372,24 @@ Remaining:
   The **version-17 files are a different format** — behaviour profiles, not
   saved creatures; refused rather than misread.
 
+- **Desire dynamics landed** (`CreatureDesire.cpp`, from sub_4BEB30). Per-tick
+  decay, per-source-type decay into its own bounds, bias held within 0.2 of the
+  species target, and the **40x40 dependency matrix** that couples every desire
+  to every other. `InitFromMind` feeds it from a parsed CreatureMind.
+  Confirmed three more table layouts (InitialDesireInfo 448 B/desire,
+  DesireDependency 176 B, SourceBoundsInfo 28 B/type) — all were 0x10 in our
+  headers *and* the vendor's.
+
 Remaining:
-0. **Creature AI: wire the mind into the creature** — desires now have real
-   weights and sources. Next is `CreatureDesires` computation (turning sources
-   into a per-desire value), picking the dominant desire, then
-   `CreatureAgenda`/`CreaturePlan` to turn that into an action, and finally
-   `Creature::ProcessState`. The learning tree (`CreatureLearner.cpp`) plugs in
-   at the point where a desire needs an opinion about a candidate object.
+0. **Creature AI: agenda and actions** — the desire layer is done bar its
+   tuning values. Next is `CreatureAgenda`/`CreaturePlan`: turning the dominant
+   desire into a `CREATURE_ACTION` (328 of them, `CreatureActionInfo` is
+   268 B/record), then `Creature::ProcessState`. The learning tree
+   (`CreatureLearner.cpp`) plugs in where a desire needs an opinion about a
+   candidate object.
+1. **The info-file loader** — every creature tuning table is `.bss`, filled at
+   load from data we do not yet read. Without it the desire dynamics run on
+   host-supplied numbers rather than the game's.
 1. **The rest of the mind file** — the reader stops after the desire block; the
    remainder (learning episodes, beliefs, attitude) is the bulk of the bytes.
    Same method: walk the nested deserializers with `work/parse_mindreader.py`.
