@@ -8,6 +8,7 @@
 // parser knows nothing about either enum, so that alignment cannot come from a
 // wrong offset.
 
+#include <black/CreatureActionNames.h>
 #include <black/CreatureDesire.h>
 #include <black/CreatureMindFile.h>
 
@@ -303,6 +304,38 @@ int main() {
         ps.Init();
         CHECK(ps.current_desire == kNumCreatureDesires && ps.For(24)->action == 0,
               "re-init clears the current plan and the slots");
+    }
+
+    // --- action names --------------------------------------------------------
+    {
+        CHECK(CountNamedCreatureActions() == 95,
+              "95 of the 328 action slots carry a name in this build");
+        CHECK(GetCreatureActionName(236) && !std::strcmp(GetCreatureActionName(236), "Kick"),
+              "action 236 is Kick");
+        CHECK(GetCreatureActionName(327) && !std::strcmp(GetCreatureActionName(327), "WaterTree"),
+              "action 327 is WaterTree");
+        CHECK(GetCreatureActionName(100) == nullptr,
+              "an unnamed slot reports nothing rather than a stale neighbour");
+        CHECK(GetCreatureActionName(kNumCreatureActions) == nullptr,
+              "and so does one past the end");
+
+        // Every named action should sit in the contiguous 233..327 run the
+        // initialiser writes; anything outside it means the decode drifted.
+        bool in_run = true;
+        int named = 0;
+        for (uint32_t a = 0; a < kNumCreatureActions; ++a) {
+            if (!GetCreatureActionName(a)) continue;
+            ++named;
+            if (a < 233) in_run = false;
+        }
+        CHECK(in_run && named == 95, "and they all fall in the range the initialiser writes");
+
+        // A plan's action can be named, which is what makes agenda output readable.
+        ActionPlan p;
+        p.desire = CREATURE_DESIRE_HUNGER;
+        p.action = 236;
+        CHECK(GetCreatureActionName(p.action) != nullptr,
+              "a plan's action resolves to a name");
     }
 
     if (!found) {
