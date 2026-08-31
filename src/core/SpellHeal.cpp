@@ -11,7 +11,7 @@ char* SpellHeal::GetDebugText() {
 
 uint32_t SpellHeal::GetSaveType() {
     // Original at 0x0055d190
-    return 0;
+    return 18;
 }
 
 int SpellHeal::InitWithPos(GameThing* /*caster*/, const MapCoords& /*pos*/, SpellCastData* /*data*/, const PSysProcessInfo& /*psys*/) {

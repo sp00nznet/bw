@@ -7,7 +7,7 @@ GPlayer* GInterface::GetPlayer() { return nullptr; }
 char* GInterface::GetDebugText() { return nullptr; }
 uint32_t GInterface::Load(GameOSFile* file) { return 0; }
 uint32_t GInterface::Save(GameOSFile* file) { return 0; }
-uint32_t GInterface::GetSaveType() { return 0; }
+uint32_t GInterface::GetSaveType() { return 100; }
 void GInterface::SaveExtraData(GameOSFile* file) {}
 void GInterface::ResolveLoad() {}
 bool32_t GInterface::IsActive() const { return 0; }

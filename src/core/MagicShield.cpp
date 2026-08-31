@@ -3,7 +3,7 @@
 char*    MagicShield::GetDebugText() { return "MagicShield"; }
 uint32_t MagicShield::Load(GameOSFile* file) { return 0; }
 uint32_t MagicShield::Save(GameOSFile* file) { return 0; }
-uint32_t MagicShield::GetSaveType() { return 0; }
+uint32_t MagicShield::GetSaveType() { return 24; }
 void     MagicShield::Draw() {}
 void     MagicShield::CallVirtualFunctionsForCreation(const MapCoords& coords) {}
 LH3DObject_ObjectType MagicShield::Get3DType() { return (LH3DObject_ObjectType)0; }

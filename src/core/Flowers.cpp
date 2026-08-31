@@ -13,7 +13,7 @@ char* Flowers::GetDebugText() {
 
 uint32_t Flowers::GetSaveType() {
     // Original at 0x00527990
-    return 0;
+    return 266;
 }
 
 void Flowers::CallVirtualFunctionsForCreation(const MapCoords& coords) {

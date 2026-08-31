@@ -19,7 +19,7 @@ struct TownArtifact : public GameThing {
     virtual float    GetVillagerActivityDesire(Villager*) override { return 0.0f; }
     virtual uint32_t SetVillagerActivity(Villager*) override { return 0; }
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 259; }
     virtual uint32_t Load(void* file) override { return 0; }
     virtual uint32_t Save(void* file) override { return 0; }
     virtual void     ToBeDeleted(int) override {}

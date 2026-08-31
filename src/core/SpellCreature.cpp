@@ -21,7 +21,7 @@ uint32_t SpellCreature::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellCreature::GetSaveType() {
     // Original at 0x00722220
-    return 0;
+    return 19;
 }
 
 void SpellCreature::ProcessSpellSeed() {

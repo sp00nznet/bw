@@ -15,7 +15,7 @@ struct Dove : public Animal {
 
     // === Virtual overrides ===
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 142; }
     virtual uint32_t Load(void* file) override { return 0; }
     virtual uint32_t Save(void* file) override { return 0; }
     virtual bool32_t CanBePickedUpByCreature(Creature*) override { return 0; }
@@ -34,7 +34,7 @@ struct SpellDove : public Dove {
 
     // === Virtual overrides ===
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 144; }
     virtual uint32_t Load(void* file) override { return 0; }
     virtual uint32_t Save(void* file) override { return 0; }
     virtual bool     SetDying() override { return false; }

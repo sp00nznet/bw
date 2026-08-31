@@ -36,7 +36,7 @@ uint32_t SpellShield::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellShield::GetSaveType() {
     // Original at 0x0072b460
-    return 0;
+    return 17;
 }
 
 float SpellShield::GetImpressiveValue(Living* /*param1*/, Reaction* /*param2*/) {

@@ -14,7 +14,7 @@ struct Lion : public Animal {
 
     // === Virtual overrides ===
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 137; }
     virtual bool32_t CanBeFrighteningToCreature(Creature*) override { return 1; }
     virtual uint32_t StandAnimation() override { return 0; }
 };

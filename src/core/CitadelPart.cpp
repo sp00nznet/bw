@@ -31,7 +31,7 @@ uint32_t CitadelPart::Save(GameOSFile* /*file*/) {
 
 uint32_t CitadelPart::GetSaveType() {
     // Original at 0x004694d0
-    return 0;
+    return 54;
 }
 
 uint32_t CitadelPart::GetCreatureBeliefType() {

@@ -53,7 +53,7 @@ uint32_t MobileStatic::Save(GameOSFile* /*file*/) {
 
 uint32_t MobileStatic::GetSaveType() {
     // Original at 0x0055d740
-    return 0x51;
+    return 84;
 }
 
 // ============================================================================

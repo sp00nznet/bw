@@ -14,7 +14,7 @@ struct Cow : public Animal {
 
     // === Virtual overrides ===
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 130; }
     virtual bool32_t IsCow(Creature*) override { return 1; }
     virtual bool     DecideWhatToDo() override { return false; }
 };

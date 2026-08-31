@@ -11,7 +11,7 @@ char* Horse::GetDebugText() {
 
 uint32_t Horse::GetSaveType() {
     // Original at 0x00418ed0
-    return 0x85;
+    return 155;
 }
 
 uint32_t Horse::StandAnimation() {

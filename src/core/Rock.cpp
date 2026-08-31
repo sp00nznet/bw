@@ -67,7 +67,7 @@ uint32_t Rock::Save(GameOSFile* /*file*/) {
 
 uint32_t Rock::GetSaveType() {
     // Original at 0x00561380
-    return 0x52;
+    return 111;
 }
 
 // ============================================================================

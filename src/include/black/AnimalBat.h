@@ -9,7 +9,7 @@ struct Creature;
 
 struct Bat : public Dove {
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 148; }
     virtual bool32_t CanBeFrighteningToCreature(Creature*) override { return 1; }
     virtual uint32_t StandAnimation() override { return 0; }
 };
@@ -17,7 +17,7 @@ static_assert(sizeof(Bat) == 0x148, "Bat size mismatch");
 
 struct SpellBat : public SpellDove {
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 149; }
     virtual bool32_t CanBeFrighteningToCreature(Creature*) override { return 1; }
     virtual uint32_t StandAnimation() override { return 0; }
 };

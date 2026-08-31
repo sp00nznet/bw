@@ -48,7 +48,7 @@ uint32_t DeadTree::Save(GameOSFile* /*file*/) {
 
 uint32_t DeadTree::GetSaveType() {
     // Original at 0x005109e0
-    return 0;
+    return 112;
 }
 
 // ============================================================================

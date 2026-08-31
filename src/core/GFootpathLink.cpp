@@ -36,5 +36,5 @@ uint32_t GFootpathLink::Save(GameOSFile* /*file*/) {
 
 uint32_t GFootpathLink::GetSaveType() {
     // Original at 0x0050cad0
-    return 0;
+    return 2;
 }

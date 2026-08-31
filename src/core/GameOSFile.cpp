@@ -31,6 +31,7 @@ bool GameOSFile::Open(const char* path, bool writing) {
     HandleOf(this) = fp;
     if (!fp) return false;
     checksum = 0;
+    ResetSaveState();
     std::memset(filename, 0, sizeof(filename));
     if (path) {
         std::strncpy(filename, path, sizeof(filename) - 1);
@@ -41,6 +42,7 @@ bool GameOSFile::Open(const char* path, bool writing) {
 void GameOSFile::Close() {
     FILE*& fp = HandleOf(this);
     if (fp) { std::fclose(fp); fp = nullptr; }
+    ResetSaveState();
 }
 
 bool GameOSFile::IsOpen() const { return HandleOf(this) != nullptr; }

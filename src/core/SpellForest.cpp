@@ -26,7 +26,7 @@ uint32_t SpellForest::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellForest::GetSaveType() {
     // Original at 0x0055d200
-    return 0;
+    return 15;
 }
 
 void SpellForest::HasEnoughChantsAndLifeForRecast() {

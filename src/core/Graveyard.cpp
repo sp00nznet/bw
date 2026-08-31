@@ -25,7 +25,7 @@ uint32_t Graveyard::Save(GameOSFile* /*file*/) {
 
 uint32_t Graveyard::GetSaveType() {
     // Original at 0x0055dff0
-    return 0;
+    return 81;
 }
 
 MapCoords* Graveyard::GetArrivePos(MapCoords* out) {

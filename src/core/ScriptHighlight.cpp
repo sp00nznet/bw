@@ -4,7 +4,7 @@
 char*    ScriptHighlight::GetDebugText() { return "ScriptHighlight"; }
 uint32_t ScriptHighlight::Load(GameOSFile* file) { return 0; }
 uint32_t ScriptHighlight::Save(GameOSFile* file) { return 0; }
-uint32_t ScriptHighlight::GetSaveType() { return 0; }
+uint32_t ScriptHighlight::GetSaveType() { return 63; }
 
 // GameThingWithPos overrides
 bool32_t ScriptHighlight::IsScriptHighlight() { return 1; }

@@ -20,7 +20,7 @@ uint32_t WorshipSpellIcon::Load(GameOSFile* /*file*/) { return 0; }
 // 0x0077ff80
 uint32_t WorshipSpellIcon::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0077f0f0
-uint32_t WorshipSpellIcon::GetSaveType() { return 0; }
+uint32_t WorshipSpellIcon::GetSaveType() { return 120; }
 
 // === Overrides of GameThingWithPos virtuals ===
 

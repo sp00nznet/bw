@@ -79,3 +79,30 @@ IDA run over 16 core particle classes → `work/decomp/psys_atoms.txt`, 580 slot
 `++this[6]`/`--this[6]` Enter/Exit ref-counting, and a slot passing `"Vanishage"`
 + float `100.0` — directly translatable. This is the input for the Phase 7
 (Save/Load) and 5B-scope-A (Atom engine) / 6C-faithful translation workflows.
+
+## Slot-filtered extraction
+
+`classes` takes an optional list of slot indices, so a single concern can be
+pulled across every class without decompiling whole vtables:
+
+```powershell
+# Load/Save/GetSaveType/SaveExtraData for all 200 savable classes (~2 min)
+py -3.11 bw_decomp.py E:\ida\work\bw.exe.i64 classes save_classes_all.txt save_slots.txt 58 59 60 61
+```
+
+## Phase 7: save format pipeline
+
+The save/load bodies are all the same shape (delegate to the parent, then run a
+list of field writes), so they are extracted as *data* rather than translated
+one by one:
+
+```bash
+py -3.11 bw_decomp.py <i64> classes work/decomp/save_classes_all.txt work/decomp/save_slots.txt 58 59 60 61
+py -3.11 bw_decomp.py <i64> addr <ancestor addrs...>  > work/decomp/save_parents.txt
+python work/parse_saveslots.py     # -> work/decomp/save_table.json  (+ coverage report)
+python work/gen_saveload.py        # -> src/core/SaveLoadTable.gen.cpp, work/decomp/save_ids.txt
+python work/apply_save_ids.py      # stamps GetSaveType() ids across src/
+```
+
+`parse_saveslots.py` prints which class rows it could not model exactly; those
+are marked in the table and the runtime refuses them (see SaveLoadTable.h).

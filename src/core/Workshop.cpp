@@ -17,7 +17,7 @@ char* Workshop::GetDebugText() { static char t[] = "Workshop"; return t; } // 0x
 uint32_t Workshop::GetShowNeedsPos(uint32_t, MapCoords*) { return 0; } // 0x0077a630
 uint32_t Workshop::Load(GameOSFile*) { return 0; } // 0x0077a130
 uint32_t Workshop::Save(GameOSFile*) { return 0; } // 0x00779f40
-uint32_t Workshop::GetSaveType() { return 0; } // 0x00779300
+uint32_t Workshop::GetSaveType() { return 82; } // 0x00779300
 void Workshop::ResolveLoad() { /* 0x0077a330 */ }
 
 bool32_t Workshop::CanActAsAContainer(Creature*) { return 0; } // 0x007792e0

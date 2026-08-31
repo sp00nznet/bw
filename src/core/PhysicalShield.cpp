@@ -4,7 +4,7 @@ void     PhysicalShield::ToBeDeleted(int param) {}
 char*    PhysicalShield::GetDebugText() { return "PhysicalShield"; }
 uint32_t PhysicalShield::Load(GameOSFile* file) { return 0; }
 uint32_t PhysicalShield::Save(GameOSFile* file) { return 0; }
-uint32_t PhysicalShield::GetSaveType() { return 0; }
+uint32_t PhysicalShield::GetSaveType() { return 23; }
 float    PhysicalShield::GetImpressiveValue(Living* living, Reaction* reaction) { return 0.0f; }
 void     PhysicalShield::ApplyEffect(EffectValues* effect, int param2) {}
 uint32_t PhysicalShield::DestroyedByEffect(GPlayer* player, float param2) { return 0; }

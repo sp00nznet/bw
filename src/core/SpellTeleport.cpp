@@ -11,7 +11,7 @@ char* SpellTeleport::GetDebugText() {
 
 uint32_t SpellTeleport::GetSaveType() {
     // Original at 0x0055d850
-    return 0;
+    return 21;
 }
 
 int SpellTeleport::InitWithPos(GameThing* /*caster*/, const MapCoords& /*pos*/, SpellCastData* /*data*/, const PSysProcessInfo& /*psys*/) {

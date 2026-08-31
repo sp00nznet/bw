@@ -27,7 +27,7 @@ Particle3DPnt::~Particle3DPnt() {}
 char* Particle3DPnt::GetDebugText() { return nullptr; }
 uint32_t Particle3DPnt::Load(GameOSFile* file) { return 0; }
 uint32_t Particle3DPnt::Save(GameOSFile* file) { return 0; }
-uint32_t Particle3DPnt::GetSaveType() { return 0; }
+uint32_t Particle3DPnt::GetSaveType() { return 168; }
 
 // Particle3DSprite
 Particle3DSprite::~Particle3DSprite() {}
@@ -39,7 +39,7 @@ ParticleChainJoint::~ParticleChainJoint() {}
 char* ParticleChainJoint::GetDebugText() { return nullptr; }
 uint32_t ParticleChainJoint::Load(GameOSFile* file) { return 0; }
 uint32_t ParticleChainJoint::Save(GameOSFile* file) { return 0; }
-uint32_t ParticleChainJoint::GetSaveType() { return 0; }
+uint32_t ParticleChainJoint::GetSaveType() { return 179; }
 
 // ParticleLightMap
 ParticleLightMap::~ParticleLightMap() {}

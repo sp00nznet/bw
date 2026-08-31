@@ -12,7 +12,7 @@ struct SpellWolf : public Lion {
     virtual char*    GetDebugText() override { return nullptr; }
     virtual GPlayer* GetPlayer() override { return nullptr; }
     virtual void     SetPlayer(GPlayer*) override {}
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 141; }
     virtual uint32_t Load(GameOSFile* file) override { return 0; }
     virtual uint32_t Save(GameOSFile* file) override { return 0; }
     virtual void     Draw() override {}
@@ -26,7 +26,7 @@ static_assert(sizeof(SpellWolf) == 0x148, "SpellWolf size mismatch");
 
 struct Wolf : public Lion {
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 140; }
     virtual uint32_t StandAnimation() override { return 0; }
 };
 static_assert(sizeof(Wolf) == 0x148, "Wolf size mismatch");

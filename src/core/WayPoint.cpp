@@ -16,7 +16,7 @@ char* WayPoint::GetDebugText() {
 
 uint32_t WayPoint::GetSaveType() {
     // Original at 0x00770b20
-    return 0;
+    return 161;
 }
 
 const char* WayPoint::GetText() {

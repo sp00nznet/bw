@@ -20,6 +20,8 @@ add_library(bw_core STATIC
     # Base hierarchy (root → positioned → 3D → mobile → alive)
     core/Base.cpp
     core/GameOSFile.cpp
+    core/SaveLoad.cpp
+    core/SaveLoadTable.gen.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -369,6 +371,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Object save format: chain walker + pointer graph (Phase 7)
+add_executable(test_saveload
+    viewer/test_saveload.cpp
+)
+target_link_libraries(test_saveload PRIVATE bw_core)
+set_target_properties(test_saveload PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

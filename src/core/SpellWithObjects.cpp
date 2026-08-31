@@ -26,7 +26,7 @@ uint32_t SpellWithObjects::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellWithObjects::GetSaveType() {
     // Original at 0x0055cf60
-    return 0;
+    return 20;
 }
 
 void SpellWithObjects::ProcessSpellSeed() {

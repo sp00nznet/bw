@@ -5,7 +5,7 @@ float         PileFood::Get2DRadius() { return 0.0f; }
 char*         PileFood::GetDebugText() { return "PileFood"; }
 uint32_t      PileFood::Load(GameOSFile* file) { return 0; }
 uint32_t      PileFood::Save(GameOSFile* file) { return 0; }
-uint32_t      PileFood::GetSaveType() { return 0; }
+uint32_t      PileFood::GetSaveType() { return 89; }
 bool32_t      PileFood::IsPileFood() { return 1; }
 HELP_TEXT     PileFood::GetQueryFirstEnumText() { return (HELP_TEXT)0; }
 HELP_TEXT     PileFood::GetQueryLastEnumText() { return (HELP_TEXT)0; }

@@ -12,7 +12,7 @@ struct GWaterfall : public Object {
 
     // === Virtual overrides ===
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 64; }
     virtual uint32_t Load(void* file) override { return 0; }
     virtual uint32_t Save(void* file) override { return 0; }
     virtual void     ToBeDeleted(int) override {}

@@ -29,7 +29,7 @@ uint32_t Bonfire::Save(GameOSFile* /*file*/) {
 
 uint32_t Bonfire::GetSaveType() {
     // Original at 0x004397e0
-    return 0;
+    return 114;
 }
 
 // ============================================================================

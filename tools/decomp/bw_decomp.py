@@ -7,7 +7,7 @@ symbols ARE derived from the class name (e.g. ??_7PSysManager@@6B@). We walk a
 class's vftable, pair each slot with the vendor header's virtual-method order,
 and decompile every slot via Hex-Rays.
 
-    py -3.11 bw_decomp.py <exe-or-i64> classes <classlist.txt> <out.txt>
+    py -3.11 bw_decomp.py <exe-or-i64> classes <classlist.txt> <out.txt> [slot ...]
     py -3.11 bw_decomp.py <exe-or-i64> vtable  <ClassName>
     py -3.11 bw_decomp.py <exe-or-i64> addr    <0xADDR> [more 0xADDR ...]
 
@@ -67,7 +67,8 @@ def decompile(ea):
         return "// (decompile failed: %s)" % e
 
 
-def emit_class(cls, out):
+def emit_class(cls, out, want=None):
+    """want: set of slot indices to emit (None = every slot)."""
     vt = find_vftable(cls)
     if vt == idc.BADADDR:
         out.write("// ===== CLASS %s : no vftable symbol found =====\n\n" % cls)
@@ -76,11 +77,15 @@ def emit_class(cls, out):
     out.write("// ============================================================\n")
     out.write("// CLASS %s  vftable @ %s  (%d virtual slots)\n" % (cls, hex(vt), len(slots)))
     out.write("// ============================================================\n\n")
+    n = 0
     for i, ea in enumerate(slots):
+        if want is not None and i not in want:
+            continue
         out.write("// ---- %s::vslot[%d]  @ %s ----\n" % (cls, i, hex(ea)))
         out.write(decompile(ea))
         out.write("\n\n")
-    return len(slots)
+        n += 1
+    return n
 
 
 def main():
@@ -101,13 +106,14 @@ def main():
     save = True
     if cmd == "classes":
         listfile, outfile = sys.argv[3], sys.argv[4]
+        want = set(int(x) for x in sys.argv[5:]) or None
         classes = [l.strip() for l in open(listfile, encoding="utf-8")
                    if l.strip() and not l.startswith(("#", "//"))]
         total = found = 0
         with open(outfile, "w", encoding="utf-8") as out:
             out.write("// BW class-method dump (IDA Hex-Rays)\n\n")
             for c in classes:
-                n = emit_class(c, out)
+                n = emit_class(c, out, want)
                 total += n
                 found += 1 if n else 0
                 print("  %-32s %d" % (c, n))

@@ -7,7 +7,7 @@ void GInterfaceStatus::UpdateSpellInfo(Spell* spell, PSysProcessInfo* info) {}
 char* GInterfaceStatus::GetDebugText() { return nullptr; }
 uint32_t GInterfaceStatus::Load(GameOSFile* file) { return 0; }
 uint32_t GInterfaceStatus::Save(GameOSFile* file) { return 0; }
-uint32_t GInterfaceStatus::GetSaveType() { return 0; }
+uint32_t GInterfaceStatus::GetSaveType() { return 101; }
 void GInterfaceStatus::SaveExtraData(GameOSFile* file) {}
 void GInterfaceStatus::ResolveLoad() {}
 const char* GInterfaceStatus::GetText() { return nullptr; }

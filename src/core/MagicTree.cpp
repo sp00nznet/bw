@@ -42,7 +42,7 @@ uint32_t MagicTree::Save(GameOSFile* /*file*/) {
 
 uint32_t MagicTree::GetSaveType() {
     // Original at 0x005fcf10
-    return 0;
+    return 29;
 }
 
 // ============================================================================

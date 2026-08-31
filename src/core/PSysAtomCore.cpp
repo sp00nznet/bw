@@ -5,7 +5,7 @@ AtomCore::~AtomCore() {}
 char* AtomCore::GetDebugText() { return nullptr; }
 uint32_t AtomCore::Load(GameOSFile* file) { return 0; }
 uint32_t AtomCore::Save(GameOSFile* file) { return 0; }
-uint32_t AtomCore::GetSaveType() { return 0; }
+uint32_t AtomCore::GetSaveType() { return 162; }
 
 // UR_GesturingRecognised_AtomData
 UR_GesturingRecognised_AtomData::~UR_GesturingRecognised_AtomData() {}

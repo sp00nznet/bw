@@ -31,7 +31,7 @@ uint32_t PlannedAbode::Save(GameOSFile* /*file*/) {
 
 uint32_t PlannedAbode::GetSaveType() {
     // Original at 0x004050f0
-    return 0;
+    return 97;
 }
 
 bool32_t PlannedAbode::IsWonder() {

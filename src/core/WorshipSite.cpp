@@ -29,7 +29,7 @@ uint32_t WorshipSite::Load(GameOSFile* /*file*/) { return 0; }
 // 0x0077d2f0
 uint32_t WorshipSite::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0055dcd0
-uint32_t WorshipSite::GetSaveType() { return 0; }
+uint32_t WorshipSite::GetSaveType() { return 60; }
 // 0x0077daf0
 void WorshipSite::ResolveLoad() {}
 

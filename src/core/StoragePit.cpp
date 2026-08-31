@@ -20,7 +20,7 @@ uint32_t StoragePit::RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterf
 char* StoragePit::GetDebugText() { static char t[] = "StoragePit"; return t; } // 0x0055cd40
 uint32_t StoragePit::Load(GameOSFile*) { return 0; } // 0x00733920
 uint32_t StoragePit::Save(GameOSFile*) { return 0; } // 0x007338d0
-uint32_t StoragePit::GetSaveType() { return 0; } // 0x0055cd30
+uint32_t StoragePit::GetSaveType() { return 8; } // 0x0055cd30
 
 MapCoords* StoragePit::GetArrivePos(MapCoords* out) { return GetDoorPos(out); } // 0x0055ccb0
 bool32_t StoragePit::IsCastShadowAtNight() { return 1; } // 0x0055ccf0

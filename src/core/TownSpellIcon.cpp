@@ -20,7 +20,7 @@ uint32_t TownSpellIcon::Load(GameOSFile* /*file*/) { return 0; }
 // 0x00748f70
 uint32_t TownSpellIcon::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0055e050
-uint32_t TownSpellIcon::GetSaveType() { return 0; }
+uint32_t TownSpellIcon::GetSaveType() { return 85; }
 
 // === Overrides of GameThingWithPos virtuals ===
 

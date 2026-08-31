@@ -35,7 +35,7 @@ uint32_t SpellSeedGraphic::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellSeedGraphic::GetSaveType() {
     // Original at 0x00726e30
-    return 0;
+    return 35;
 }
 
 void SpellSeedGraphic::ResolveLoad() {

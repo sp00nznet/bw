@@ -7,7 +7,7 @@ void TownCentre::ToBeDeleted(int param) { Abode::ToBeDeleted(param); } // 0x0074
 char* TownCentre::GetDebugText() { static char t[] = "TownCentre"; return t; } // 0x0055dba0
 uint32_t TownCentre::Load(GameOSFile*) { return 0; } // 0x00744880
 uint32_t TownCentre::Save(GameOSFile*) { return 0; } // 0x00744830
-uint32_t TownCentre::GetSaveType() { return 0; } // 0x0055db90
+uint32_t TownCentre::GetSaveType() { return 96; } // 0x0055db90
 void TownCentre::ResolveLoad() { /* 0x007448c0 */ }
 
 MapCoords* TownCentre::GetArrivePos(MapCoords* out) { return GetDoorPos(out); } // 0x007449e0

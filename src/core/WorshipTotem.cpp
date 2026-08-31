@@ -16,7 +16,7 @@ uint32_t WorshipTotem::Load(GameOSFile* /*file*/) { return 0; }
 // 0x00780f90
 uint32_t WorshipTotem::Save(GameOSFile* /*file*/) { return 0; }
 // 0x007807f0
-uint32_t WorshipTotem::GetSaveType() { return 0; }
+uint32_t WorshipTotem::GetSaveType() { return 152; }
 // 0x00780f00
 void WorshipTotem::ResolveLoad() {}
 

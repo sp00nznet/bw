@@ -44,6 +44,13 @@ struct GameOSFile {
     LHLinkedList_GameThing_File game_thing_list;   // 0x228
 
     // --- Serialization primitives (translated from the v1.0 binary) ---------
+    //
+    // The original tracks "has the stream gone bad" in two globals (one per
+    // direction) and every primitive is a no-op once they are clear, so a
+    // failed write does not cascade into garbage. `failed` is that flag, and
+    // `ptr_table` is the ordinal table SavePtr/LoadPtr assign from -- both
+    // live in the original's unused field_0x8 block so the struct keeps its
+    // 0x230 layout.
     // The byte-level format is what matters for save compatibility, so we
     // reproduce that with plain C I/O rather than the original's opaque OS
     // layer (off_7EB2E8 et al). Per write/read the running checksum at 0x214
@@ -57,5 +64,27 @@ struct GameOSFile {
     bool     Write(const void* buf, uint32_t size);
     bool     Read(void* buf, uint32_t size);
     uint32_t GetChecksum() const { return checksum; }
+
+    // Sticky "the stream went bad" flag; every primitive below is a no-op once
+    // it is set, matching the original's dword_B19AC8 / dword_B19ACC.
+    bool     Failed() const;
+    void     Fail();
+
+    // The running checksum, written into the stream as a marker and folded
+    // back in (sub_533C50 / sub_533C90). GameThing emits one per object.
+    void     WriteChecksumMarker();
+    void     ReadChecksumMarker();
+
+    // GameThing* <-> stream ordinal, with the pointee serialized inline the
+    // first time it is seen. See SaveLoad.h.
+    void     SavePtr(GameThing* obj);
+    void     LoadPtr(GameThing** out);
+
+    // GBaseInfo* <-> info-table index, via the host mapping in SaveLoad.h.
+    void     SaveInfoPtr(const void* info);
+    void     LoadInfoPtr(void** out);
+
+    // Reset the per-file serialization state (ordinal table + failed flag).
+    void     ResetSaveState();
 };
 static_assert(sizeof(GameOSFile) == 0x230, "GameOSFile size mismatch");

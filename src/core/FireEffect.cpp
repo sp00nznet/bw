@@ -36,7 +36,7 @@ uint32_t FireEffect::Save(GameOSFile* /*file*/) {
 
 uint32_t FireEffect::GetSaveType() {
     // Original at 0x0072eac0
-    return 0;
+    return 41;
 }
 
 void FireEffect::ResolveLoad() {

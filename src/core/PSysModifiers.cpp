@@ -26,14 +26,14 @@ DrawOffsetDecay::~DrawOffsetDecay() {}
 char* DrawOffsetDecay::GetDebugText() { return nullptr; }
 uint32_t DrawOffsetDecay::Load(GameOSFile* file) { return 0; }
 uint32_t DrawOffsetDecay::Save(GameOSFile* file) { return 0; }
-uint32_t DrawOffsetDecay::GetSaveType() { return 0; }
+uint32_t DrawOffsetDecay::GetSaveType() { return 167; }
 
 // DrawOffsetLT
 DrawOffsetLT::~DrawOffsetLT() {}
 char* DrawOffsetLT::GetDebugText() { return nullptr; }
 uint32_t DrawOffsetLT::Load(GameOSFile* file) { return 0; }
 uint32_t DrawOffsetLT::Save(GameOSFile* file) { return 0; }
-uint32_t DrawOffsetLT::GetSaveType() { return 0; }
+uint32_t DrawOffsetLT::GetSaveType() { return 166; }
 
 // GJAnimVolFX
 GJAnimVolFX::~GJAnimVolFX() {}

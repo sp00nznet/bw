@@ -26,7 +26,7 @@ uint32_t Wonder::Save(GameOSFile* /*file*/) {
 
 uint32_t Wonder::GetSaveType() {
     // Original at 0x00561200
-    return 0x54;
+    return 128;
 }
 
 MapCoords* Wonder::GetArrivePos(MapCoords* out) {

@@ -13,7 +13,7 @@ struct GStreetLight : public GameThingWithPos {
     // === Virtual overrides ===
     virtual GPlayer* GetPlayer() override { return nullptr; }
     virtual char*    GetDebugText() override { return nullptr; }
-    virtual uint32_t GetSaveType() override { return 0; }
+    virtual uint32_t GetSaveType() override { return 255; }
     virtual uint32_t Load(void* file) override { return 0; }
     virtual uint32_t Save(void* file) override { return 0; }
     virtual void     ToBeDeleted(int) override {}

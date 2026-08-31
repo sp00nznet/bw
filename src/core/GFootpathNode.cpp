@@ -26,7 +26,7 @@ uint32_t GFootpathNode::Save(GameOSFile* /*file*/) {
 
 uint32_t GFootpathNode::GetSaveType() {
     // Original at 0x00534d50
-    return 0;
+    return 3;
 }
 
 void GFootpathNode::ResolveLoad() {

@@ -7,6 +7,7 @@
 
 #include <black/GameThing.h>
 #include <black/GameOSFile.h>
+#include <black/SaveLoad.h>
 
 // ============================================================================
 // Virtual method implementations (from vtable at 0x0083dda4 in v1.0)
@@ -230,30 +231,28 @@ uint32_t GameThing::GetShowNeedsPos(uint32_t /*param1*/, MapCoords* /*param2*/) 
 }
 
 // Save/Load translated from the v1.0 binary (tools/decomp): GameThing::Save =
-// sub_53E8E0, Load = sub_53E9F0, SaveExtraData = sub_53EA90. The dispatcher
-// writes/reads each object's GetSaveType id to pick the class; Save then emits
-// SaveExtraData + GameThing's own two fields (at raw offsets 0x4 and 0xA),
-// Load reads them back. We write by raw object offset so the on-disk byte
-// layout matches the original regardless of our field naming; GameOSFile folds
-// each buffer into the running checksum exactly as the binary does.
+// sub_53E8E0, Load = sub_53E9F0, SaveExtraData = sub_53EA90.
+//
+// Save writes the object's save-type id, then SaveExtraData, then hands off to
+// the chain walker, which replays every level's field list from the root down
+// -- exactly what the original's parent-then-self delegation does, only driven
+// by tables extracted from the binary instead of 200 copies of the same code.
+// See SaveLoadTable.h.
+//
+// Load does not read the type: whoever dispatched to us already consumed it to
+// decide which class to build, matching the original.
 uint32_t GameThing::Load(GameOSFile* file) {
     if (!file) return 0;
-    uint8_t* base = reinterpret_cast<uint8_t*>(this);
-    file->Read(base + 0x4, 4);   // field_0x4 (4 bytes)
-    file->Read(base + 0xA, 1);   // field_0xa availability flag (1 byte)
-    return 1;
+    return saveload::LoadFields(*file, this, GetSaveType()) ? 1 : 0;
 }
 
 uint32_t GameThing::Save(GameOSFile* file) {
     if (!file) return 0;
     uint32_t type = GetSaveType();
-    file->Write(&type, 4);       // 4-byte save-type id
+    if (!file->Write(&type, 4)) { file->Fail(); return 0; }
     SaveExtraData(file);
     if (type == 0) return 0;     // base GameThing is not directly savable
-    const uint8_t* base = reinterpret_cast<const uint8_t*>(this);
-    file->Write(base + 0x4, 4);  // field_0x4 (4 bytes)
-    file->Write(base + 0xA, 1);  // field_0xa availability flag (1 byte)
-    return 1;
+    return saveload::SaveFields(*file, this, type) ? 1 : 0;
 }
 
 uint32_t GameThing::GetSaveType() {

@@ -40,7 +40,7 @@ uint32_t SpellIcon::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellIcon::GetSaveType() {
     // Original at 0x0055d460
-    return 0;
+    return 129;
 }
 
 uint32_t SpellIcon::GetCreatureBeliefType() {

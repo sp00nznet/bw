@@ -25,7 +25,7 @@ uint32_t SpellDispenser::Save(GameOSFile* /*file*/) {
 
 uint32_t SpellDispenser::GetSaveType() {
     // Original at 0x007226f0
-    return 0;
+    return 267;
 }
 
 bool32_t SpellDispenser::IsSpellDispenser() {

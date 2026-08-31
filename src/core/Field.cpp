@@ -53,7 +53,7 @@ uint32_t Field::Save(GameOSFile* /*file*/) {
 
 uint32_t Field::GetSaveType() {
     // Original at 0x00528070 — correct save type constant needs verification from assembly
-    return 0;
+    return 50;
 }
 
 // ============================================================================

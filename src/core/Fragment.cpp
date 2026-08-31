@@ -37,7 +37,7 @@ uint32_t Fragment::Save(GameOSFile* /*file*/) {
 
 uint32_t Fragment::GetSaveType() {
     // Original at 0x0076e980
-    return 0;
+    return 247;
 }
 
 void Fragment::ResolveLoad() {

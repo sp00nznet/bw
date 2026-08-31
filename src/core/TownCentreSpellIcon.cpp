@@ -16,7 +16,7 @@ uint32_t TownCentreSpellIcon::Load(GameOSFile* /*file*/) { return 0; }
 // 0x00748ff0
 uint32_t TownCentreSpellIcon::Save(GameOSFile* /*file*/) { return 0; }
 // 0x0055e0a0
-uint32_t TownCentreSpellIcon::GetSaveType() { return 0; }
+uint32_t TownCentreSpellIcon::GetSaveType() { return 86; }
 
 // === Overrides of Object virtuals ===
 

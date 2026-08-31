@@ -1,0 +1,14 @@
+HandState
+HandStateInvisible
+HandStateNormal
+HandStateCamera
+HandStateTug
+HandStateHolding
+HandStateTotem
+HandStateMultiPickUp
+HandStateCreature
+HandStateGrain
+HandStatePlayAnim
+HandStateCitadel
+CHand
+GMagicHand
