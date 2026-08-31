@@ -387,9 +387,15 @@ Remaining:
    268 B/record), then `Creature::ProcessState`. The learning tree
    (`CreatureLearner.cpp`) plugs in where a desire needs an opinion about a
    candidate object.
-1. **The info-file loader** — every creature tuning table is `.bss`, filled at
-   load from data we do not yet read. Without it the desire dynamics run on
-   host-supplied numbers rather than the game's.
+1. **An info.dat reader** — the tuning ships in `game_data/info.dat` (580 KB,
+   `LiOnHeAdInfo`, Mar 2001), loaded by `sub_425250` which registers 65 named
+   tables (`work/decomp/info_layout.txt`). Blocker: those 65 sum to 270 KB of
+   580 KB, and 103 call sites mention a `DETAIL_` name against 65 matching the
+   4-arg shape — ~38 registrations use another signature. Find those, and the
+   flat-dump layout is provable by the sizes summing to the file.
+   **`GBaseInfo` is a 16-byte header with the payload after** — this is why
+   every info struct sat at 0x10 in our headers *and* the vendor's; twelve are
+   now corrected to their real sizes with an opaque payload.
 1. **The rest of the mind file** — the reader stops after the desire block; the
    remainder (learning episodes, beliefs, attitude) is the bulk of the bytes.
    Same method: walk the nested deserializers with `work/parse_mindreader.py`.
