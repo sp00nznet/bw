@@ -401,6 +401,11 @@ and has been sufficient throughout.
   whatever pointer type it picked (`this + 32` on an `int*` is byte 128). Any
   extractor that reads offsets out of pseudocode has to normalise for that first
   — see `normalize()` in `work/parse_saveslots.py`
+- **Check before writing a new header**: `black/CHand.h` and
+  `black/CreatureLearning.h` are vendor structs with real recovered layouts
+  (0x49C4 and 0x16168). A host-side type that wants the same name must take a
+  different one — `HandMachine`, `CreatureLearner`. One of these was overwritten
+  and pushed before it was caught.
 - **The build dir is path-pinned**: a `build/` configured under `D:/` will not
   work from `G:/`. Delete and re-run cmake if the drive letter changed
 - BuildingSite inherits GameThing (NOT Object), so its `Init()`/`Process()` are NEW vtable entries, not overrides
