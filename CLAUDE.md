@@ -354,13 +354,21 @@ All three landed via the decompiler pipeline; see the commits for detail.
   tested (`CreatureOpinion.cpp`): 11 levels −1..+1, overlapping ±0.25 bands that
   bias every opinion one step down, and **level 10 is unreachable**.
 
+- **Creature AI: induction loop implemented** (`CreatureLearner.cpp`). Impurity,
+  gain ratio, the 0.01 stop, leaf values, induction, classification — all the
+  binary's arithmetic, confirmed by disassembly where pseudocode lied
+  (`sub_4B9BB0` is log2; impurity is `(2·sign + level)/3`). `test_learning`
+  shows a creature discovering OnFire unaided from contradictory evidence.
+  The 148-byte node's layout is still unrecovered, so the node representation
+  is ours — arithmetic exact, storage shape a choice.
+
 Remaining:
-0. **Creature AI: implement the induction loop** — the algorithm is recovered
-   and documented; what is missing before it can be written faithfully is
-   `sub_4B9BB0` (the split-info term, where Hex-Rays dropped what is almost
-   certainly a log — needs disassembly, not pseudocode), `sub_4B99E0` (subset
-   impurity), and `sub_4B7E00`/`sub_4B7D80` (node expansion, which would give
-   the 148-byte node struct's remaining fields).
+0. **Creature AI: desires and the agenda** — the tree layer is done. Next up is
+   `CreatureDesires` (40 desires, the arrays at 0x28 stride) and
+   `CreatureAgenda`/`CreaturePlan`, which turn the winning desire plus a tree's
+   opinion into an actual action. Then wire `Creature::ProcessState` to it.
+   `sub_4B7E00`/`sub_4B7D80` would still be worth having for the real node
+   layout, and `sub_4BA8F0`'s return-2 case is unmodelled.
 1. **Phase 7 completion** — the 87 partial save types. Each needs its container
    walk translated by hand; the table + walker are in place and the parser
    reports exactly which chain row blocks each type.
