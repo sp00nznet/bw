@@ -53,7 +53,7 @@ cmake --build build --config Release
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **Ghidra headless pipeline operational**
-- **Save/load: 91 of 178 save types exact** — table-driven, generated from the binary
+- **Save/load: 122 of 178 save types exact** — table-driven, generated from the binary
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **LHVM bindings: ~430 natives wired with real bodies** (LHVMObjects.cpp, 8 chunks, ~3,900 lines)
@@ -315,10 +315,12 @@ All three landed via the decompiler pipeline; see the commits for detail.
   ops, 178 save-type ids) and one chain walker in `SaveLoad.cpp` replays them in
   both directions. Pointers are an object graph: an object is written inline the
   first time it is referenced, by ordinal after that.
-  **91 of 178 save types have a fully exact chain**; `SaveFields`/`LoadFields`
-  refuse the other 87 rather than write a stream that disagrees with the
-  original. Those need per-class work (Town, Citadel, Creature, the animal
-  state-dispatch at 0x417e40, the Spell family's container walks).
+  **122 of 178 save types have a fully exact chain**; `SaveFields`/`LoadFields`
+  refuse the other 56 rather than write a stream that disagrees with the
+  original. The animal family (31 types) was unblocked by `mkfunc`: its
+  per-state dispatch table has Save and Load assigned 0 for all 53 rows, so
+  those calls move no bytes. What remains are the real container walks (Town,
+  Citadel, the Spell family, the footpath graph).
   Fixed seven wrong save-type ids inherited from vendor v1.41 — Rock was
   carrying Workshop's (82; the real one is 111).
 - **6C-faithful hand** — real polymorphic `HandState` objects owned by `CHand`,
