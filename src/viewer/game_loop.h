@@ -57,9 +57,10 @@ enum EntityType : uint32_t {
 };
 
 // Hand interaction phase — mirrors bw_core HAND_STATES (black/HandState.h) so
-// GET_HAND_STATE reports the value scripts expect. Only the phases the viewer
-// can currently distinguish are produced; the rest stay reserved for when the
-// real polymorphic HandState subclasses are driven (6C-faithful).
+// GET_HAND_STATE reports the value scripts expect. Since 6C-faithful this is
+// read straight off the live CHand state machine rather than derived here, so
+// any of the eleven states can appear; the viewer only produces inputs for the
+// ones it can resolve.
 enum HandPhase : int {
     HAND_PHASE_INVISIBLE = 0,
     HAND_PHASE_NORMAL    = 1,

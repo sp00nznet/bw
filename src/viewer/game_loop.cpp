@@ -25,6 +25,7 @@
 #include <black/Object.h>
 #include <black/LHVM.h>
 #include <black/LHVMObjects.h>
+#include <black/CHand.h>
 #include <black/types.h>
 
 namespace bw {
@@ -353,6 +354,11 @@ bool GameState::Init(const std::string& script_path) {
     hand.hover_entity = -1;
     hand.phase = HAND_PHASE_NORMAL;
     hand_mesh_id = 250; // MSH_B_SPELLHAND
+
+    // The real polymorphic hand (bw_core). The viewer keeps its own HandState
+    // struct for rendering data; g_hand owns the interaction state machine, so
+    // GET_HAND_STATE reports whichever of the eleven states is actually live.
+    g_hand.Init();
 
     // Init camera at script's camera position
     cam_x = script.camera_x;
@@ -730,13 +736,21 @@ void GameState::UpdateHand(int mouse_x, int mouse_y, int screen_w, int screen_h)
     // Update hover entity
     hand.hover_entity = FindEntityAt(hand.x, hand.z, PICK_RADIUS);
 
-    // Drive the hand interaction phase (6C). A small state machine over the
-    // phases the viewer can resolve today: off-land hides the hand, a held
-    // object is the HOLDING state, otherwise NORMAL. TUG/CAMERA/etc. are left
-    // for the faithful polymorphic HandState path.
-    hand.phase = !hand.is_over_land ? HAND_PHASE_INVISIBLE
-               : hand.held_entity >= 0 ? HAND_PHASE_HOLDING
-               : HAND_PHASE_NORMAL;
+    // Drive the real HandState machine (6C-faithful). The inputs the viewer
+    // can resolve today decide the state; g_hand does the Exit/Enter and runs
+    // that state's Update, so each state keeps its own data across frames.
+    HandInput in;
+    in.over_land     = hand.is_over_land;
+    in.holding       = hand.held_entity >= 0;
+    in.scripted_anim = g_hand.playing_anim;
+    g_hand.pos[0] = hand.x;
+    g_hand.pos[1] = hand.y;
+    g_hand.pos[2] = hand.z;
+    g_hand.target_screen[0] = hand.screen_x;
+    g_hand.target_screen[1] = hand.screen_y;
+    g_hand.SetState(CHand::ChooseState(in));
+    g_hand.Update(delta_time, nullptr);
+    hand.phase = static_cast<int>(g_hand.GetState());
 }
 
 } // namespace bw

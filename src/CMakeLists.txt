@@ -220,6 +220,7 @@ add_library(bw_core STATIC
     core/SubArgument.cpp
     # Hand state system
     core/HandState.cpp
+    core/CHand.cpp
     # Dance/GroupBehaviour subsystem
     core/PlayerMessage.cpp
     core/GroupBehaviour.cpp
@@ -371,6 +372,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Hand interaction state machine (Phase 6C-faithful)
+add_executable(test_hand
+    viewer/test_hand.cpp
+)
+target_link_libraries(test_hand PRIVATE bw_core)
+set_target_properties(test_hand PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
