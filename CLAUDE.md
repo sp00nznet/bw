@@ -363,12 +363,21 @@ All three landed via the decompiler pipeline; see the commits for detail.
   is ours — arithmetic exact, storage shape a choice.
 
 Remaining:
-0. **Creature AI: desires and the agenda** — the tree layer is done. Next up is
-   `CreatureDesires` (40 desires, the arrays at 0x28 stride) and
-   `CreatureAgenda`/`CreaturePlan`, which turn the winning desire plus a tree's
-   opinion into an actual action. Then wire `Creature::ProcessState` to it.
-   `sub_4B7E00`/`sub_4B7D80` would still be worth having for the real node
-   layout, and `sub_4BA8F0`'s return-2 case is unmodelled.
+0. **Creature AI: the CreatureMind file format** — the blocker for desires, and
+   the most valuable single thing left. `game_data/CreatureMind/` ships eight
+   pre-trained minds; `sub_4C7CF0` loads them through the same GameOSFile
+   primitives as Phase 7. The format is **versioned (17 / 25 / 30) with
+   different layouts** — version 25 is legible by inspection, the others are
+   not, so the loader has to be decompiled properly rather than pattern-matched.
+   See `work/decomp/creature_data.md`.
+   Note the fifteen creature tuning tables are `.bss`, filled from this data —
+   there is nothing to read out of the exe, and our headers *and* the vendor's
+   have all fifteen wrong at 0x10 (RTTI wrapper only, payload 56..916 bytes).
+1. **Creature AI: agenda and actions** — once desires have real weights,
+   `CreatureAgenda`/`CreaturePlan` turn the winning desire plus a tree opinion
+   into an action; then wire `Creature::ProcessState`.
+   `sub_4B7E00`/`sub_4B7D80` would still give the real induction node layout,
+   and `sub_4BA8F0`'s return-2 case is unmodelled.
 1. **Phase 7 completion** — the 87 partial save types. Each needs its container
    walk translated by hand; the table + walker are in place and the parser
    reports exactly which chain row blocks each type.
