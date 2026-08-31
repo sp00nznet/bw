@@ -1,5 +1,5 @@
 #pragma once
-// CreatureActionNames — the creature actions that carry a name in the binary.
+// CreatureActionNames â€” the creature actions that carry a name in the binary.
 //
 // A creature's plan names a CREATURE_ACTION, of which there are 328
 // (NUM_CREATURE_ACTIONS). Each has an 80-byte record in a runtime dispatch
@@ -26,5 +26,10 @@ const char* GetCreatureActionName(uint32_t action);
 
 // How many of the 328 carry a name.
 uint32_t CountNamedCreatureActions();
+
+// Address of the function implementing this action in the v1.0 binary, or 0.
+// Not callable -- recorded so a later pass can go straight to the code for an
+// action rather than hunting for it. 52 of the 95 named actions have one.
+uint32_t GetCreatureActionHandlerAddress(uint32_t action);
 
 }  // namespace creature

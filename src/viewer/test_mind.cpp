@@ -330,6 +330,23 @@ int main() {
         }
         CHECK(in_run && named == 95, "and they all fall in the range the initialiser writes");
 
+        // 52 of the named actions also carry the address of the function that
+        // implements them, which is the entry point for the next pass.
+        int with_handler = 0;
+        bool plausible = true;
+        for (uint32_t a = 0; a < kNumCreatureActions; ++a) {
+            const uint32_t h = GetCreatureActionHandlerAddress(a);
+            if (!h) continue;
+            ++with_handler;
+            if (h < 0x400000 || h > 0x800000) plausible = false;
+        }
+        CHECK(with_handler == 52, "52 named actions carry a handler address");
+        CHECK(plausible, "and every one lands inside the binary's code range");
+        CHECK(GetCreatureActionHandlerAddress(236) == 0x4ab4f0,
+              "Kick is implemented at 0x4AB4F0");
+        CHECK(GetCreatureActionHandlerAddress(100) == 0,
+              "an unnamed action has no handler");
+
         // A plan's action can be named, which is what makes agenda output readable.
         ActionPlan p;
         p.desire = CREATURE_DESIRE_HUNGER;

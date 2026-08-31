@@ -1,0 +1,35 @@
+// ---- 0x4D08E0 ----
+int __thiscall sub_4D08E0(_DWORD *this, int a2)
+{
+  int v3; // ebx
+  int v4; // eax
+  int v5; // eax
+  _DWORD *i; // eax
+
+  v3 = *(_DWORD *)(this[89] + 3736);
+  sub_45FA70(aOverridingActi, 1, 1);
+  if ( sub_4D13B0(a2) )
+  {
+    if ( *(_DWORD *)(a2 + 8) == 1 )
+    {
+      v4 = *(_DWORD *)(a2 + 12);
+      if ( v4 )
+      {
+        v5 = *(_DWORD *)(v4 + 48);
+        if ( v5 )
+        {
+          if ( (*(int (__thiscall **)(int))(*(_DWORD *)v5 + 440))(v5) )
+            *(_DWORD *)(this[89] + 8636) = *(_DWORD *)(dword_C22CA4 + 2104060);
+        }
+      }
+    }
+    *(_DWORD *)(this[89] + 3736) = v3;
+    sub_4D15B0(this, 0);
+    for ( i = *(_DWORD **)(this[89] + 8 * *(_DWORD *)(a2 + 8) + 816); i; i = (_DWORD *)*i )
+      *(_DWORD *)(i[1] + 8) = 0;
+  }
+  return sub_4D14B0(this[89]);
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

@@ -1,0 +1,10 @@
+// ---- 0x4D14B0 ----
+int __thiscall sub_4D14B0(_DWORD *this, int a2)
+{
+  this[480] = 40;
+  this[481] = 40;
+  return sub_4D1550(*(_DWORD *)(a2 + 134424));
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
