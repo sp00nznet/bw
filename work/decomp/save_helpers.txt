@@ -1,0 +1,1384 @@
+// ---- 0x66EE00 ----
+int __thiscall sub_66EE00(_DWORD *this, unsigned __int8 *a2)
+{
+  int result; // eax
+
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)a2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = *a2 + 4;
+    this[133] += result;
+  }
+  return result;
+}
+
+// ---- 0x589540 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_589540@<eax>(int a1@<ecx>, int a2@<ebx>, _DWORD *a3@<ebp>, int a4@<edi>, double a5@<st0>, int a6)
+{
+  int result; // eax
+  unsigned __int8 *v8; // edi
+  int v9; // eax
+  int v11; // [esp-5D11h] [ebp-5D15h]
+  int v12; // [esp-5D0Dh] [ebp-5D11h]
+  unsigned __int8 *v13; // [esp-5D09h] [ebp-5D0Dh]
+  int v14; // [esp-5D05h] [ebp-5D09h]
+  int v15; // [esp-5D01h] [ebp-5D05h]
+  int v16; // [esp-5CFDh] [ebp-5D01h]
+  int v17; // [esp-5CF9h] [ebp-5CFDh]
+  int v18; // [esp-5CF5h] [ebp-5CF9h]
+  int v19; // [esp-5CF1h] [ebp-5CF5h]
+  int v20; // [esp-5CEDh] [ebp-5CF1h]
+  int v21; // [esp-5CE9h] [ebp-5CEDh]
+  int v22; // [esp-5CE5h] [ebp-5CE9h]
+  int v23; // [esp-5CE1h] [ebp-5CE5h]
+  int v24; // [esp-5CDDh] [ebp-5CE1h]
+  int v25; // [esp-5CD9h] [ebp-5CDDh]
+  int v26; // [esp-5CD5h] [ebp-5CD9h]
+  int v27; // [esp-5CD1h] [ebp-5CD5h]
+  int v28; // [esp-5CCDh] [ebp-5CD1h]
+  int v29; // [esp-5CC9h] [ebp-5CCDh]
+  int v30; // [esp-5CC5h] [ebp-5CC9h]
+  int v31; // [esp-5CC1h] [ebp-5CC5h]
+  int v32; // [esp-5CBDh] [ebp-5CC1h]
+  int v33; // [esp-5CB9h] [ebp-5CBDh]
+  int v34; // [esp-5CB5h] [ebp-5CB9h]
+  int v35; // [esp-5CB1h] [ebp-5CB5h]
+  int v36; // [esp-5CADh] [ebp-5CB1h]
+  int v37; // [esp-5CA9h] [ebp-5CADh]
+  int v38; // [esp-5CA5h] [ebp-5CA9h]
+  int v39; // [esp-5CA1h] [ebp-5CA5h]
+  int v40; // [esp-5C9Dh] [ebp-5CA1h]
+  int v41; // [esp-5C99h] [ebp-5C9Dh]
+  int v42; // [esp-5C95h] [ebp-5C99h]
+  int v43; // [esp-5C91h] [ebp-5C95h]
+  int v44; // [esp-5C8Dh] [ebp-5C91h]
+  int v45; // [esp-5C89h] [ebp-5C8Dh]
+  int v46; // [esp-5C85h] [ebp-5C89h]
+  int v47; // [esp-5C81h] [ebp-5C85h]
+  int v48; // [esp-5C7Dh] [ebp-5C81h]
+  int v49; // [esp-5C79h] [ebp-5C7Dh]
+  int v50; // [esp-5C75h] [ebp-5C79h]
+  int v51; // [esp-5C71h] [ebp-5C75h]
+  int v52; // [esp-5C6Dh] [ebp-5C71h]
+  int v53; // [esp-5C69h] [ebp-5C6Dh]
+  int v54; // [esp-5C65h] [ebp-5C69h]
+  int v55; // [esp-5C61h] [ebp-5C65h]
+  int v56; // [esp-5C5Dh] [ebp-5C61h]
+  int v57; // [esp-5C59h] [ebp-5C5Dh]
+  int v58; // [esp-5C55h] [ebp-5C59h]
+  int v59; // [esp-5C51h] [ebp-5C55h]
+  int v60; // [esp-5C4Dh] [ebp-5C51h]
+  int v61; // [esp-5C49h] [ebp-5C4Dh]
+  int v62; // [esp-5C45h] [ebp-5C49h]
+
+  result = dword_B19ACC;
+  if ( dword_B19ACC )
+  {
+    v8 = v13;
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a2,
+      a3,
+      v13,
+      (_BYTE *)a1,
+      a5,
+      (int)v13,
+      4,
+      0,
+      a4,
+      v11,
+      v12,
+      (int)v13,
+      v14,
+      v15,
+      v16,
+      v17,
+      v18,
+      v19,
+      v20,
+      v21,
+      v22,
+      v23,
+      v24,
+      v25,
+      v26,
+      v27,
+      v28,
+      v29,
+      v30,
+      v31,
+      v32,
+      v33,
+      v34,
+      v35,
+      v36,
+      v37,
+      v38,
+      v39,
+      v40,
+      v41,
+      v42,
+      v43,
+      v44,
+      v45,
+      v46,
+      v47,
+      v48,
+      v49,
+      v50,
+      v51,
+      v52,
+      v53,
+      v54,
+      v55,
+      v56,
+      v57,
+      v58,
+      v59,
+      v60,
+      v61,
+      v62);
+    if ( v9 == 3 )
+      dword_B19ACC = 0;
+    result = *v8 + 4;
+    *(_DWORD *)(a1 + 532) += result;
+  }
+  return result;
+}
+
+// ---- 0x533110 ----
+int __thiscall sub_533110(void *this, int a2)
+{
+  return sub_531F30(this, a2);
+}
+
+// ---- 0x533120 ----
+int __stdcall sub_533120(_DWORD *a1)
+{
+  return sub_531BC0(*a1);
+}
+
+// ---- 0x4EBF70 ----
+int __thiscall sub_4EBF70(_DWORD *this, unsigned __int8 *a2)
+{
+  int result; // eax
+
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)a2, 12, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = *a2 + 12;
+    this[133] += result;
+  }
+  return result;
+}
+
+// ---- 0x4EC100 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_4EC100@<eax>(int a1@<ecx>, int a2@<ebx>, _DWORD *a3@<ebp>, int a4@<edi>, double a5@<st0>, int a6)
+{
+  int result; // eax
+  unsigned __int8 *v8; // edi
+  int v9; // eax
+  int v11; // [esp-5D11h] [ebp-5D15h]
+  int v12; // [esp-5D0Dh] [ebp-5D11h]
+  unsigned __int8 *v13; // [esp-5D09h] [ebp-5D0Dh]
+  int v14; // [esp-5D05h] [ebp-5D09h]
+  int v15; // [esp-5D01h] [ebp-5D05h]
+  int v16; // [esp-5CFDh] [ebp-5D01h]
+  int v17; // [esp-5CF9h] [ebp-5CFDh]
+  int v18; // [esp-5CF5h] [ebp-5CF9h]
+  int v19; // [esp-5CF1h] [ebp-5CF5h]
+  int v20; // [esp-5CEDh] [ebp-5CF1h]
+  int v21; // [esp-5CE9h] [ebp-5CEDh]
+  int v22; // [esp-5CE5h] [ebp-5CE9h]
+  int v23; // [esp-5CE1h] [ebp-5CE5h]
+  int v24; // [esp-5CDDh] [ebp-5CE1h]
+  int v25; // [esp-5CD9h] [ebp-5CDDh]
+  int v26; // [esp-5CD5h] [ebp-5CD9h]
+  int v27; // [esp-5CD1h] [ebp-5CD5h]
+  int v28; // [esp-5CCDh] [ebp-5CD1h]
+  int v29; // [esp-5CC9h] [ebp-5CCDh]
+  int v30; // [esp-5CC5h] [ebp-5CC9h]
+  int v31; // [esp-5CC1h] [ebp-5CC5h]
+  int v32; // [esp-5CBDh] [ebp-5CC1h]
+  int v33; // [esp-5CB9h] [ebp-5CBDh]
+  int v34; // [esp-5CB5h] [ebp-5CB9h]
+  int v35; // [esp-5CB1h] [ebp-5CB5h]
+  int v36; // [esp-5CADh] [ebp-5CB1h]
+  int v37; // [esp-5CA9h] [ebp-5CADh]
+  int v38; // [esp-5CA5h] [ebp-5CA9h]
+  int v39; // [esp-5CA1h] [ebp-5CA5h]
+  int v40; // [esp-5C9Dh] [ebp-5CA1h]
+  int v41; // [esp-5C99h] [ebp-5C9Dh]
+  int v42; // [esp-5C95h] [ebp-5C99h]
+  int v43; // [esp-5C91h] [ebp-5C95h]
+  int v44; // [esp-5C8Dh] [ebp-5C91h]
+  int v45; // [esp-5C89h] [ebp-5C8Dh]
+  int v46; // [esp-5C85h] [ebp-5C89h]
+  int v47; // [esp-5C81h] [ebp-5C85h]
+  int v48; // [esp-5C7Dh] [ebp-5C81h]
+  int v49; // [esp-5C79h] [ebp-5C7Dh]
+  int v50; // [esp-5C75h] [ebp-5C79h]
+  int v51; // [esp-5C71h] [ebp-5C75h]
+  int v52; // [esp-5C6Dh] [ebp-5C71h]
+  int v53; // [esp-5C69h] [ebp-5C6Dh]
+  int v54; // [esp-5C65h] [ebp-5C69h]
+  int v55; // [esp-5C61h] [ebp-5C65h]
+  int v56; // [esp-5C5Dh] [ebp-5C61h]
+  int v57; // [esp-5C59h] [ebp-5C5Dh]
+  int v58; // [esp-5C55h] [ebp-5C59h]
+  int v59; // [esp-5C51h] [ebp-5C55h]
+  int v60; // [esp-5C4Dh] [ebp-5C51h]
+  int v61; // [esp-5C49h] [ebp-5C4Dh]
+  int v62; // [esp-5C45h] [ebp-5C49h]
+
+  result = dword_B19ACC;
+  if ( dword_B19ACC )
+  {
+    v8 = v13;
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a2,
+      a3,
+      v13,
+      (_BYTE *)a1,
+      a5,
+      (int)v13,
+      12,
+      0,
+      a4,
+      v11,
+      v12,
+      (int)v13,
+      v14,
+      v15,
+      v16,
+      v17,
+      v18,
+      v19,
+      v20,
+      v21,
+      v22,
+      v23,
+      v24,
+      v25,
+      v26,
+      v27,
+      v28,
+      v29,
+      v30,
+      v31,
+      v32,
+      v33,
+      v34,
+      v35,
+      v36,
+      v37,
+      v38,
+      v39,
+      v40,
+      v41,
+      v42,
+      v43,
+      v44,
+      v45,
+      v46,
+      v47,
+      v48,
+      v49,
+      v50,
+      v51,
+      v52,
+      v53,
+      v54,
+      v55,
+      v56,
+      v57,
+      v58,
+      v59,
+      v60,
+      v61,
+      v62);
+    if ( v9 == 3 )
+      dword_B19ACC = 0;
+    result = *v8 + 12;
+    *(_DWORD *)(a1 + 532) += result;
+  }
+  return result;
+}
+
+// ---- 0x531FF0 ----
+int __thiscall sub_531FF0(_DWORD *this, _DWORD *a2, unsigned int a3)
+{
+  int result; // eax
+  unsigned int v4; // edi
+  bool v6; // zf
+
+  result = dword_B19AC8;
+  v4 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)&a3, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = a3;
+    v6 = a3 == 0;
+    this[133] += (unsigned __int8)a3 + 4;
+    if ( !v6 )
+    {
+      do
+      {
+        sub_531BC0(*a2);
+        result = a3;
+        ++v4;
+        ++a2;
+      }
+      while ( v4 < a3 );
+    }
+  }
+  return result;
+}
+
+// ---- 0x532060 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_532060@<eax>(int a1@<ecx>, _DWORD *a2@<ebp>, _BYTE *a3@<edi>, double a4@<st0>, int a5)
+{
+  int result; // eax
+  unsigned int v6; // esi
+  int v8; // eax
+  int v10; // [esp-5D11h] [ebp-5D1Dh]
+  int v11; // [esp-5D0Dh] [ebp-5D19h]
+  int v12[5956]; // [esp-5D09h] [ebp-5D15h] BYREF
+  unsigned int v13; // [esp+8h] [ebp-4h]
+
+  result = dword_B19ACC;
+  v6 = 0;
+  if ( dword_B19ACC )
+  {
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a1,
+      a2,
+      a3,
+      0,
+      a4,
+      (int)v12,
+      4,
+      0,
+      v10,
+      v11,
+      v12[0],
+      v12[1],
+      v12[2],
+      v12[3],
+      v12[4],
+      v12[5],
+      v12[6],
+      v12[7],
+      v12[8],
+      v12[9],
+      v12[10],
+      v12[11],
+      v12[12],
+      v12[13],
+      v12[14],
+      v12[15],
+      v12[16],
+      v12[17],
+      v12[18],
+      v12[19],
+      v12[20],
+      v12[21],
+      v12[22],
+      v12[23],
+      v12[24],
+      v12[25],
+      v12[26],
+      v12[27],
+      v12[28],
+      v12[29],
+      v12[30],
+      v12[31],
+      v12[32],
+      v12[33],
+      v12[34],
+      v12[35],
+      v12[36],
+      v12[37],
+      v12[38],
+      v12[39],
+      v12[40],
+      v12[41],
+      v12[42],
+      v12[43],
+      v12[44],
+      v12[45],
+      v12[46],
+      v12[47],
+      v12[48],
+      v12[49],
+      v12[50]);
+    if ( v8 == 3 )
+      dword_B19ACC = 0;
+    result = (unsigned __int8)v13 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  if ( v13 )
+  {
+    *(int *)((char *)&v12[5953] + 1) = (int)a3;
+    do
+    {
+      sub_531F30(a1, a5);
+      result = v13;
+      ++v6;
+      a5 += 4;
+    }
+    while ( v6 < v13 );
+  }
+  return result;
+}
+
+// ---- 0x604120 ----
+int __thiscall sub_604120(_DWORD *this, unsigned __int8 *a2)
+{
+  int result; // eax
+
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)a2, 1, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = *a2 + 1;
+    this[133] += result;
+  }
+  return result;
+}
+
+// ---- 0x604170 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_604170@<eax>(int a1@<ecx>, int a2@<ebx>, _DWORD *a3@<ebp>, int a4@<edi>, double a5@<st0>, int a6)
+{
+  int result; // eax
+  unsigned __int8 *v8; // edi
+  int v9; // eax
+  int v11; // [esp-5D11h] [ebp-5D15h]
+  int v12; // [esp-5D0Dh] [ebp-5D11h]
+  unsigned __int8 *v13; // [esp-5D09h] [ebp-5D0Dh]
+  int v14; // [esp-5D05h] [ebp-5D09h]
+  int v15; // [esp-5D01h] [ebp-5D05h]
+  int v16; // [esp-5CFDh] [ebp-5D01h]
+  int v17; // [esp-5CF9h] [ebp-5CFDh]
+  int v18; // [esp-5CF5h] [ebp-5CF9h]
+  int v19; // [esp-5CF1h] [ebp-5CF5h]
+  int v20; // [esp-5CEDh] [ebp-5CF1h]
+  int v21; // [esp-5CE9h] [ebp-5CEDh]
+  int v22; // [esp-5CE5h] [ebp-5CE9h]
+  int v23; // [esp-5CE1h] [ebp-5CE5h]
+  int v24; // [esp-5CDDh] [ebp-5CE1h]
+  int v25; // [esp-5CD9h] [ebp-5CDDh]
+  int v26; // [esp-5CD5h] [ebp-5CD9h]
+  int v27; // [esp-5CD1h] [ebp-5CD5h]
+  int v28; // [esp-5CCDh] [ebp-5CD1h]
+  int v29; // [esp-5CC9h] [ebp-5CCDh]
+  int v30; // [esp-5CC5h] [ebp-5CC9h]
+  int v31; // [esp-5CC1h] [ebp-5CC5h]
+  int v32; // [esp-5CBDh] [ebp-5CC1h]
+  int v33; // [esp-5CB9h] [ebp-5CBDh]
+  int v34; // [esp-5CB5h] [ebp-5CB9h]
+  int v35; // [esp-5CB1h] [ebp-5CB5h]
+  int v36; // [esp-5CADh] [ebp-5CB1h]
+  int v37; // [esp-5CA9h] [ebp-5CADh]
+  int v38; // [esp-5CA5h] [ebp-5CA9h]
+  int v39; // [esp-5CA1h] [ebp-5CA5h]
+  int v40; // [esp-5C9Dh] [ebp-5CA1h]
+  int v41; // [esp-5C99h] [ebp-5C9Dh]
+  int v42; // [esp-5C95h] [ebp-5C99h]
+  int v43; // [esp-5C91h] [ebp-5C95h]
+  int v44; // [esp-5C8Dh] [ebp-5C91h]
+  int v45; // [esp-5C89h] [ebp-5C8Dh]
+  int v46; // [esp-5C85h] [ebp-5C89h]
+  int v47; // [esp-5C81h] [ebp-5C85h]
+  int v48; // [esp-5C7Dh] [ebp-5C81h]
+  int v49; // [esp-5C79h] [ebp-5C7Dh]
+  int v50; // [esp-5C75h] [ebp-5C79h]
+  int v51; // [esp-5C71h] [ebp-5C75h]
+  int v52; // [esp-5C6Dh] [ebp-5C71h]
+  int v53; // [esp-5C69h] [ebp-5C6Dh]
+  int v54; // [esp-5C65h] [ebp-5C69h]
+  int v55; // [esp-5C61h] [ebp-5C65h]
+  int v56; // [esp-5C5Dh] [ebp-5C61h]
+  int v57; // [esp-5C59h] [ebp-5C5Dh]
+  int v58; // [esp-5C55h] [ebp-5C59h]
+  int v59; // [esp-5C51h] [ebp-5C55h]
+  int v60; // [esp-5C4Dh] [ebp-5C51h]
+  int v61; // [esp-5C49h] [ebp-5C4Dh]
+  int v62; // [esp-5C45h] [ebp-5C49h]
+
+  result = dword_B19ACC;
+  if ( dword_B19ACC )
+  {
+    v8 = v13;
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a2,
+      a3,
+      v13,
+      (_BYTE *)a1,
+      a5,
+      (int)v13,
+      1,
+      0,
+      a4,
+      v11,
+      v12,
+      (int)v13,
+      v14,
+      v15,
+      v16,
+      v17,
+      v18,
+      v19,
+      v20,
+      v21,
+      v22,
+      v23,
+      v24,
+      v25,
+      v26,
+      v27,
+      v28,
+      v29,
+      v30,
+      v31,
+      v32,
+      v33,
+      v34,
+      v35,
+      v36,
+      v37,
+      v38,
+      v39,
+      v40,
+      v41,
+      v42,
+      v43,
+      v44,
+      v45,
+      v46,
+      v47,
+      v48,
+      v49,
+      v50,
+      v51,
+      v52,
+      v53,
+      v54,
+      v55,
+      v56,
+      v57,
+      v58,
+      v59,
+      v60,
+      v61,
+      v62);
+    if ( v9 == 3 )
+      dword_B19ACC = 0;
+    result = *v8 + 1;
+    *(_DWORD *)(a1 + 532) += result;
+  }
+  return result;
+}
+
+// ---- 0x6D5810 ----
+int __thiscall sub_6D5810(_DWORD *this, int a2)
+{
+  _DWORD *v3; // eax
+  _DWORD *v4; // ecx
+  _DWORD *v5; // edx
+
+  if ( !a2 )
+    return 0;
+  v3 = (_DWORD *)sub_73445E(8);
+  if ( !v3 )
+    return 0;
+  v3[1] = a2;
+  *v3 = 0;
+  v4 = (_DWORD *)*this;
+  if ( !*this )
+    goto LABEL_7;
+  do
+  {
+    v5 = v4;
+    v4 = (_DWORD *)*v4;
+  }
+  while ( v4 );
+  if ( v5 )
+  {
+    *v5 = v3;
+    ++this[1];
+    return 1;
+  }
+  else
+  {
+LABEL_7:
+    *this = v3;
+    ++this[1];
+    return 1;
+  }
+}
+
+// ---- 0x746D70 ----
+int __cdecl sub_746D70(int a1)
+{
+  return sub_736F0C(a1, 1);
+}
+
+// ---- 0x5341D0 ----
+int __thiscall sub_5341D0(_DWORD *this, unsigned __int8 *a2, unsigned int a3)
+{
+  int result; // eax
+  unsigned int v5; // ebx
+  bool v6; // zf
+
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)&a3, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = a3;
+    v5 = 0;
+    v6 = a3 == 0;
+    this[133] += (unsigned __int8)a3 + 4;
+    if ( !v6 )
+    {
+      result = dword_B19AC8;
+      do
+      {
+        if ( !result )
+          break;
+        if ( sub_72BE90(this, (int)a2, 4, 0) == 3 )
+          dword_B19AC8 = 0;
+        this[133] += *a2 + 4;
+        result = dword_B19AC8;
+        if ( !dword_B19AC8 )
+          break;
+        ++v5;
+        a2 += 4;
+      }
+      while ( v5 < a3 );
+    }
+  }
+  return result;
+}
+
+// ---- 0x531BC0 ----
+void __thiscall sub_531BC0(_DWORD *this, int a2)
+{
+  int v2; // edi
+  int **v4; // eax
+  _DWORD *v5; // eax
+  int v6; // ecx
+  int v7; // [esp+10h] [ebp-4h] BYREF
+
+  v2 = 0;
+  v7 = 0;
+  if ( !dword_B19AC8 )
+    return;
+  if ( !a2 )
+    goto LABEL_28;
+  if ( a2 == -1 )
+  {
+    nullsub_5();
+  }
+  else if ( !sub_7344DA(a2, 0, &GameThing `RTTI Type Descriptor', &GameThing `RTTI Type Descriptor', 0) )
+  {
+    nullsub_5();
+    dword_B19AC8 = 0;
+    return;
+  }
+  if ( !(*(int (__thiscall **)(int))(*(_DWORD *)a2 + 240))(a2) )
+  {
+    switch ( (*(int (__thiscall **)(int))(*(_DWORD *)a2 + 240))(a2) )
+    {
+      case 11:
+      case 33:
+      case 34:
+      case 87:
+      case 129:
+      case 160:
+      case 256:
+      case 260:
+        nullsub_5();
+        break;
+      default:
+        break;
+    }
+    nullsub_5();
+LABEL_28:
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this, (int)&v7, 4, 0) == 3 )
+        dword_B19AC8 = 0;
+      this[133] += (unsigned __int8)v7 + 4;
+    }
+    return;
+  }
+  v4 = (int **)this[136];
+  v7 = this[137];
+  if ( v4 )
+  {
+    while ( *v4[1] != a2 )
+    {
+      v4 = (int **)*v4;
+      --v7;
+      if ( !v4 )
+        goto LABEL_11;
+    }
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this, (int)&v7, 4, 0) == 3 )
+        dword_B19AC8 = 0;
+      this[133] += (unsigned __int8)v7 + 4;
+    }
+  }
+  else
+  {
+LABEL_11:
+    if ( sub_746D70(4) )
+      v2 = sub_5320D0(a2);
+    if ( v2 )
+    {
+      v5 = (_DWORD *)sub_73445E(8);
+      if ( v5 )
+      {
+        v6 = this[136];
+        v5[1] = v2;
+        *v5 = v6;
+        this[136] = v5;
+        ++this[137];
+      }
+    }
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this, (int)(this + 137), 4, 0) == 3 )
+        dword_B19AC8 = 0;
+      this[133] += *((unsigned __int8 *)this + 548) + 4;
+    }
+    (*(void (__thiscall **)(int, _DWORD *))(*(_DWORD *)a2 + 236))(a2, this);
+  }
+}
+
+// ---- 0x531F30 ----
+// positive sp value has been detected, the output may be wrong!
+void __userpurge sub_531F30(int a1@<ecx>, int a2@<ebx>, _DWORD *a3@<ebp>, _BYTE *a4@<edi>, double a5@<st0>, _DWORD *a6)
+{
+  int v7; // eax
+  unsigned int v8; // ecx
+  bool v9; // zf
+  unsigned int v10; // eax
+  unsigned int v11; // eax
+  int **i; // esi
+  int v13; // [esp-5D09h] [ebp-5D19h]
+  int v14[5956]; // [esp-5D05h] [ebp-5D15h] BYREF
+  unsigned int v15; // [esp+Ch] [ebp-4h]
+
+  v14[0] = 0;
+  if ( !dword_B19ACC )
+    goto LABEL_12;
+  sub_72BE50(
+    dword_B19ACC < 0,
+    a1,
+    a2,
+    a3,
+    a4,
+    (_BYTE *)a1,
+    a5,
+    (int)v14,
+    4,
+    0,
+    v13,
+    v14[0],
+    v14[1],
+    v14[2],
+    v14[3],
+    v14[4],
+    v14[5],
+    v14[6],
+    v14[7],
+    v14[8],
+    v14[9],
+    v14[10],
+    v14[11],
+    v14[12],
+    v14[13],
+    v14[14],
+    v14[15],
+    v14[16],
+    v14[17],
+    v14[18],
+    v14[19],
+    v14[20],
+    v14[21],
+    v14[22],
+    v14[23],
+    v14[24],
+    v14[25],
+    v14[26],
+    v14[27],
+    v14[28],
+    v14[29],
+    v14[30],
+    v14[31],
+    v14[32],
+    v14[33],
+    v14[34],
+    v14[35],
+    v14[36],
+    v14[37],
+    v14[38],
+    v14[39],
+    v14[40],
+    v14[41],
+    v14[42],
+    v14[43],
+    v14[44],
+    v14[45],
+    v14[46],
+    v14[47],
+    v14[48],
+    v14[49],
+    v14[50],
+    v14[51]);
+  if ( v7 == 3 )
+    dword_B19ACC = 0;
+  v8 = v15;
+  v9 = v15 == 0;
+  *(_DWORD *)(a1 + 532) += (unsigned __int8)v15 + 4;
+  if ( v9 )
+  {
+LABEL_12:
+    *a6 = 0;
+  }
+  else
+  {
+    v10 = *(_DWORD *)(a1 + 548);
+    if ( v8 <= v10 )
+    {
+      v11 = v10 - v8;
+      for ( i = *(int ***)(a1 + 544); v11; i = (int **)*i )
+        --v11;
+      *a6 = *i[1];
+    }
+    else if ( v8 == v10 + 1 )
+    {
+      ((void (__thiscall *)(int, _DWORD *))sub_52A5A0)(a1, a6);
+    }
+    else
+    {
+      *(int *)((char *)&v14[5954] + 1) = (int)aJeremyNonSeque;
+      nullsub_5();
+    }
+  }
+}
+
+// ---- 0x533B90 ----
+int __thiscall sub_533B90(_DWORD *this, int a2)
+{
+  int result; // eax
+
+  a2 = sub_4304D0(a2);
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this, (int)&a2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)a2 + 4 + this[133];
+    this[133] = result;
+  }
+  return result;
+}
+
+// ---- 0x533BF0 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_533BF0@<eax>(
+        int a1@<ecx>,
+        int a2@<ebx>,
+        _DWORD *a3@<ebp>,
+        _BYTE *a4@<edi>,
+        double a5@<st0>,
+        _DWORD *a6)
+{
+  int v7; // eax
+  int result; // eax
+  int v9; // [esp-5D11h] [ebp-5D19h]
+  int v10[5956]; // [esp-5D0Dh] [ebp-5D15h] BYREF
+  int v11; // [esp+4h] [ebp-4h]
+
+  if ( dword_B19ACC )
+  {
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a2,
+      a3,
+      a4,
+      (_BYTE *)a1,
+      a5,
+      (int)v10,
+      4,
+      0,
+      v9,
+      v10[0],
+      v10[1],
+      v10[2],
+      v10[3],
+      v10[4],
+      v10[5],
+      v10[6],
+      v10[7],
+      v10[8],
+      v10[9],
+      v10[10],
+      v10[11],
+      v10[12],
+      v10[13],
+      v10[14],
+      v10[15],
+      v10[16],
+      v10[17],
+      v10[18],
+      v10[19],
+      v10[20],
+      v10[21],
+      v10[22],
+      v10[23],
+      v10[24],
+      v10[25],
+      v10[26],
+      v10[27],
+      v10[28],
+      v10[29],
+      v10[30],
+      v10[31],
+      v10[32],
+      v10[33],
+      v10[34],
+      v10[35],
+      v10[36],
+      v10[37],
+      v10[38],
+      v10[39],
+      v10[40],
+      v10[41],
+      v10[42],
+      v10[43],
+      v10[44],
+      v10[45],
+      v10[46],
+      v10[47],
+      v10[48],
+      v10[49],
+      v10[50],
+      v10[51]);
+    if ( v7 == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(a1 + 532) += (unsigned __int8)v11 + 4;
+  }
+  result = sub_430500(v11);
+  *a6 = result;
+  return result;
+}
+
+// ---- 0x72BE90 ----
+int __thiscall sub_72BE90(_DWORD *this, int a2, int a3, _DWORD *a4)
+{
+  if ( !off_7EB2E8(this[1], a2, a3, &a3, 0) )
+    return 3;
+  if ( a4 )
+    *a4 = a3;
+  return 0;
+}
+
+// ---- 0x72BE50 ----
+void __userpurge sub_72BE50(
+        char a1@<sf>,
+        int a2@<ecx>,
+        int a3@<ebx>,
+        _DWORD *a4@<ebp>,
+        _BYTE *a5@<edi>,
+        _BYTE *_ESI@<esi>,
+        double a7@<st0>,
+        int a8,
+        int a9,
+        int a10,
+        int a11,
+        int a12,
+        int a13,
+        int a14,
+        int a15,
+        int a16,
+        int a17,
+        int a18,
+        int a19,
+        int a20,
+        int a21,
+        int a22,
+        int a23,
+        int a24,
+        int a25,
+        int a26,
+        int a27,
+        int a28,
+        int a29,
+        int a30,
+        int a31,
+        int a32,
+        int a33,
+        int a34,
+        int a35,
+        int a36,
+        int a37,
+        int a38,
+        int a39,
+        int a40,
+        int a41,
+        int a42,
+        int a43,
+        int a44,
+        int a45,
+        int a46,
+        int a47,
+        int a48,
+        int a49,
+        int a50,
+        int a51,
+        int a52,
+        int a53,
+        int a54,
+        int a55,
+        int a56,
+        int a57,
+        int a58,
+        int a59,
+        int a60,
+        int a61,
+        int a62,
+        int a63)
+{
+  int v65; // ecx
+  int v66; // eax
+  bool v67; // pf
+  float *v68; // esi
+  bool v70; // zf
+  bool v71; // sf
+  bool v72; // cc
+  int v73; // [esp-3Ch] [ebp-3Ch] BYREF
+  int v74; // [esp-38h] [ebp-38h]
+  int v75; // [esp-34h] [ebp-34h]
+  int v76; // [esp-30h] [ebp-30h]
+  int v77; // [esp-2Ch] [ebp-2Ch]
+  int v78; // [esp-28h] [ebp-28h]
+  _DWORD *v79; // [esp-24h] [ebp-24h]
+  _BYTE *v80; // [esp-20h] [ebp-20h]
+  _BYTE *v81; // [esp-1Ch] [ebp-1Ch]
+  _BYTE *v82; // [esp-18h] [ebp-18h]
+  _DWORD v83[5]; // [esp-14h] [ebp-14h] BYREF
+
+  _EDX = a9;
+  v65 = *(_DWORD *)(a2 + 4);
+  v83[4] = 0;
+  v83[3] = &a9;
+  v66 = a8;
+  v83[2] = a9;
+  v83[1] = a8;
+  v83[0] = v65;
+  if ( !a1 )
+    goto LABEL_8;
+  a5[91] = 0;
+  a7 = *(double *)(_ESI - 38) - a7;
+  while ( 1 )
+  {
+    LOBYTE(v66) = v66 ^ 0xE0;
+    *(_DWORD *)(v66 - 55) |= (unsigned int)v83;
+    v82 = _ESI;
+    v81 = a5;
+    v80 = a4;
+    v79 = v83;
+    v78 = a3;
+    v77 = v65;
+    v76 = _EDX;
+    v75 = v66;
+    v67 = __SETP__(*_ESI, *a5);
+    v68 = (float *)(_ESI + 1);
+    if ( !v67 )
+      JUMPOUT(0xEE519E);
+    a7 = v68[307577994] / a7;
+    LOBYTE(v66) = v66 - *(_BYTE *)(v65 + 8 * v66 + 760161568);
+    v74 = a3;
+    __asm { insd }
+    --*(_BYTE *)(v66 + 23);
+    v73 = (unsigned __int16)__SS__;
+    *(_BYTE *)((unsigned __int16)__SS__ + 0x1839E613) -= BYTE1(v66);
+LABEL_8:
+    v73 = v66;
+    v70 = ((unsigned int)&v73 & *(_DWORD *)(a3 - 72)) == 0;
+    v71 = ((unsigned int)&v73 & *(_DWORD *)(a3 - 72) & 0x80000000) != 0;
+    v72 = (int)((unsigned int)&v73 & *(_DWORD *)(a3 - 72)) <= 0;
+    v66 = v74;
+    _EDX = v75;
+    v65 = v76;
+    a3 = v77;
+    a4 = v79;
+    a5 = v80;
+    _ESI = v81;
+    if ( !v70 )
+    {
+      __asm { outsd }
+      JUMPOUT(0xEE510A);
+    }
+    if ( v71 )
+      JUMPOUT(0xEE5144);
+    if ( !v72 )
+      JUMPOUT(0xEE5164);
+  }
+}
+
+// ---- 0x533C50 ----
+int __thiscall sub_533C50(_DWORD *this, int a2)
+{
+  int result; // eax
+  _DWORD *v3; // esi
+
+  result = dword_B19AC8;
+  if ( dword_B19AC8 )
+  {
+    v3 = this + 133;
+    if ( sub_72BE90(this, (int)(this + 133), 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = *(unsigned __int8 *)v3 + 4;
+    *v3 += result;
+  }
+  return result;
+}
+
+// ---- 0x533C90 ----
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_533C90@<eax>(
+        int a1@<ecx>,
+        int a2@<ebx>,
+        _DWORD *a3@<ebp>,
+        _BYTE *a4@<edi>,
+        double a5@<st0>,
+        int a6)
+{
+  int result; // eax
+  int v8; // eax
+  int v9; // [esp-5D11h] [ebp-5D19h]
+  int v10[5956]; // [esp-5D0Dh] [ebp-5D15h] BYREF
+  unsigned __int8 v11; // [esp+4h] [ebp-4h]
+
+  result = dword_B19ACC;
+  if ( dword_B19ACC )
+  {
+    sub_72BE50(
+      dword_B19ACC < 0,
+      a1,
+      a2,
+      a3,
+      a4,
+      (_BYTE *)a1,
+      a5,
+      (int)v10,
+      4,
+      0,
+      v9,
+      v10[0],
+      v10[1],
+      v10[2],
+      v10[3],
+      v10[4],
+      v10[5],
+      v10[6],
+      v10[7],
+      v10[8],
+      v10[9],
+      v10[10],
+      v10[11],
+      v10[12],
+      v10[13],
+      v10[14],
+      v10[15],
+      v10[16],
+      v10[17],
+      v10[18],
+      v10[19],
+      v10[20],
+      v10[21],
+      v10[22],
+      v10[23],
+      v10[24],
+      v10[25],
+      v10[26],
+      v10[27],
+      v10[28],
+      v10[29],
+      v10[30],
+      v10[31],
+      v10[32],
+      v10[33],
+      v10[34],
+      v10[35],
+      v10[36],
+      v10[37],
+      v10[38],
+      v10[39],
+      v10[40],
+      v10[41],
+      v10[42],
+      v10[43],
+      v10[44],
+      v10[45],
+      v10[46],
+      v10[47],
+      v10[48],
+      v10[49],
+      v10[50],
+      v10[51]);
+    if ( v8 == 3 )
+      dword_B19ACC = 0;
+    result = v11 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+// ---- 0x5B3190 ----
+char __cdecl sub_5B3190(char a1)
+{
+  int v1; // ecx
+  DWORD Time; // eax
+  int v3; // ecx
+  int v4; // ecx
+  int v5; // eax
+  int v6; // esi
+  int v7; // eax
+  int v8; // edi
+  int v9; // ebp
+  int v10; // eax
+  int v11; // ebx
+  int v12; // eax
+  int v13; // esi
+  int v14; // eax
+  int v15; // eax
+  float v17; // [esp+0h] [ebp-10h]
+  int v18; // [esp+Ch] [ebp-4h] BYREF
+
+  v18 = v1;
+  LOBYTE(Time) = dword_C22CC0;
+  if ( dword_C22CC0 )
+  {
+    LOBYTE(Time) = byte_C529E8;
+    if ( byte_C529E8 )
+    {
+      LOBYTE(Time) = byte_B20830;
+      if ( byte_B20830 )
+      {
+        Time = timeGetTime();
+        if ( dword_C529D8 )
+        {
+          v3 = dword_C529F0;
+        }
+        else
+        {
+          v3 = Time;
+          dword_C529F0 = Time;
+          dword_C529D8 = 1;
+        }
+        if ( Time - v3 >= 0x96 )
+        {
+          if ( dword_C22CC0 == 1 && Time - v3 > 0x15E )
+            v4 = dword_C529D8 + 350;
+          else
+            v4 = Time - v3 + dword_C529D8;
+          dword_C529D8 = v4;
+          dword_C529F0 = Time;
+          if ( !sub_749B10(&unk_D5C100) )
+          {
+            if ( dword_C22CC0 == 1 )
+            {
+              v17 = (double)dword_C529D8 / (double)dword_B2082C;
+              sub_5B22A0(1065353216, v17);
+            }
+            else if ( dword_C529D8 > dword_B20834 )
+            {
+              sub_7881A0();
+              v5 = (dword_C529D8 - dword_B20834) / 2;
+              if ( v5 <= 0 )
+              {
+                dword_8F7780 = 0;
+              }
+              else if ( v5 >= 255 )
+              {
+                dword_8F7780 = 255;
+              }
+              else
+              {
+                dword_8F7780 = (dword_C529D8 - dword_B20834) / 2;
+              }
+              v6 = (unsigned __int16)dword_D5C108;
+              v7 = HIWORD(dword_D5C108) >> 1;
+              v8 = v7 - 30;
+              v9 = v7 + 30;
+              sub_733E6C((double)(unsigned __int16)dword_D5C108 * 0.40000001);
+              v11 = v10;
+              sub_411240(-1, v8, v6, v8 - 15, -1627389952, -1627389952, 0, 0, 0, 0);
+              sub_411240(-1, v9, v6, v9 + 15, -1627389952, -1627389952, 0, 0, 0, 0);
+              sub_411240(-1, v8, v11, v9, -14671840, -12566464, -12566464, -14671840, 0, 0);
+              v18 = v6 - v11;
+              sub_411240(v11, v8, v6 - v11, v9, -12566464, -12566464, -12566464, -12566464, 0, 0);
+              sub_411240(v6 - v11, v8, v6, v9, -12566464, -14671840, -14671840, -12566464, 0, 0);
+              sub_410520(-1, v8, v6, v8, -252645136, 0, 0.0, 100.0);
+              sub_410520(-1, v9, v6, v9, -252645136, 0, 0.0, 100.0);
+              if ( (unsigned int)dword_C38DBC > 0x1A77 )
+                v12 = dword_C38DB8 + 81300;
+              else
+                v12 = dword_C38DB8;
+              v13 = *(_DWORD *)(v12 + 8);
+              v18 = -16777216;
+              v14 = sub_405EF0();
+              sub_40F770(101, 201, 701, 401, 401, 1, v13, v14, (int)&v18, COERCE_FLOAT(1), 0);
+              v18 = -1;
+              v15 = sub_405EF0();
+              sub_40F770(100, 200, 700, 400, 400, 1, v13, v15, (int)&v18, COERCE_FLOAT(1), 0);
+              sub_788520();
+            }
+          }
+          if ( a1 )
+            sub_7491D0(1);
+          (*(void (__stdcall **)(int, _DWORD, _DWORD, int, _DWORD, int, _DWORD))(*(_DWORD *)dword_DE9494 + 40))(
+            dword_DE9494,
+            0,
+            0,
+            3,
+            0,
+            1065353216,
+            0);
+          dword_B5A7A4 = 0;
+          LOBYTE(Time) = sub_749B70();
+        }
+      }
+    }
+  }
+  return Time;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

@@ -60,3 +60,11 @@ work/creature_isle/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Scratch: session screenshots and test console captures
+/*.png
+/test_*.txt
+__pycache__/
+work/sample.mp2
+work/sample_decoded.wav
+work/test_decompile_output.txt

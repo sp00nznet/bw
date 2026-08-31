@@ -1,0 +1,36 @@
+// BW class-method dump (Ghidra, RTTI vftable walk)
+// Binary: runblack_decrypted.exe  Date: Thu Jun 04 15:06:42 PDT 2026
+
+// ===== CLASS PSysManager : no vftable =====
+
+// ===== CLASS PSysBase : no vftable =====
+
+// ===== CLASS PSysInterface : no vftable =====
+
+// ===== CLASS PSysSound : no vftable =====
+
+// ===== CLASS PSysHandFX : no vftable =====
+
+// ===== CLASS GJPSysInterface : no vftable =====
+
+// ===== CLASS AtomCore : no vftable =====
+
+// ===== CLASS AtomCollection : no vftable =====
+
+// ===== CLASS AtomCollectionModifier : no vftable =====
+
+// ===== CLASS AtomCreateRule : no vftable =====
+
+// ===== CLASS EmitterRule : no vftable =====
+
+// ===== CLASS EmitterRuleSimple : no vftable =====
+
+// ===== CLASS EmitterRuleConical : no vftable =====
+
+// ===== CLASS AppearanceUpdateRule : no vftable =====
+
+// ===== CLASS AppearanceRuleFadeOut : no vftable =====
+
+// ===== CLASS AppearanceRuleTumble : no vftable =====
+
+// Summary: 0 slots across 0/16 classes

@@ -1,0 +1,5772 @@
+// BW class-method dump (IDA Hex-Rays)
+
+// ============================================================
+// CLASS PSysManager  vftable @ 0x8701ec  (63 virtual slots)
+// ============================================================
+
+// ---- PSysManager::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[1]  @ 0x61c330 ----
+void *__thiscall sub_61C330(void *this, char a2)
+{
+  sub_61C3E0();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 228);
+  return this;
+}
+
+
+// ---- PSysManager::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- PSysManager::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- PSysManager::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[7]  @ 0x7b2fc0 ----
+int __thiscall sub_7B2FC0(_DWORD *this)
+{
+  return this[6];
+}
+
+
+// ---- PSysManager::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- PSysManager::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- PSysManager::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysManager::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- PSysManager::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- PSysManager::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- PSysManager::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysManager::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysManager::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- PSysManager::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- PSysManager::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- PSysManager::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysManager::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysManager::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- PSysManager::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- PSysManager::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- PSysManager::vslot[58]  @ 0x63c3b0 ----
+// bad sp value at call has been detected, the output may be wrong!
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_63C3B0@<eax>(unsigned __int8 *a1@<ecx>, int a2@<ebx>, int a3@<ebp>, int a4)
+{
+  int v4; // esi
+  int i; // ebx
+  int v9; // [esp-34591h] [ebp-3459Dh] BYREF
+  int v10; // [esp-34589h] [ebp-34595h] BYREF
+
+  v4 = v10;
+  if ( !sub_63C360(v10) )
+    return 0;
+  sub_589540(a1 + 20);
+  sub_533110(a1 + 24);
+  if ( dword_B19ACC )
+  {
+    sub_589540(&v10);
+    for ( i = 0; i < v10; ++i )
+    {
+      sub_533110(&v9);
+      sub_534010(v9);
+    }
+  }
+  sub_533070(a1 + 36);
+  sub_4EC100(a1 + 96);
+  sub_604170(a1 + 108);
+  sub_589540(a1 + 112);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD, int, int))sub_72BE50)(v4, a1 + 116, 4, 0, a3, a2) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[116] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 120, 12, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[120] + 12;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 132, 12, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[132] + 12;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 144, 12, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[144] + 12;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 156, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[156] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 160, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[160] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 164, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[164] + 4;
+  }
+  sub_533110(a1 + 168);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 172, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[172] + 1;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 173, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[173] + 1;
+  }
+  ((void (__thiscall *)(int, unsigned __int8 *))sub_532C00)(v4, a1 + 180);
+  ((void (__thiscall *)(int, unsigned __int8 *))sub_532290)(v4, a1 + 184);
+  return 1;
+}
+
+
+// ---- PSysManager::vslot[59]  @ 0x66a5b0 ----
+int __thiscall sub_66A5B0(int this, int a2)
+{
+  _DWORD *i; // ebx
+
+  if ( !sub_66A560(a2) )
+    return 0;
+  sub_66EE00(this + 20);
+  sub_533120(this + 24);
+  if ( dword_B19AC8 )
+  {
+    sub_66EE00(this + 32);
+    for ( i = *(_DWORD **)(this + 28); i; i = (_DWORD *)*i )
+    {
+      sub_533120(i + 1);
+      if ( !dword_B19AC8 )
+        break;
+    }
+  }
+  sub_532E40(this + 36);
+  sub_4EBF70(this + 96);
+  sub_604120(this + 108);
+  sub_66EE00(this + 112);
+  sub_66EE00(this + 116);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 120, 12, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 120) + 12;
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this + 132, 12, 0) == 3 )
+        dword_B19AC8 = 0;
+      *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 132) + 12;
+      if ( dword_B19AC8 )
+      {
+        if ( sub_72BE90(this + 144, 12, 0) == 3 )
+          dword_B19AC8 = 0;
+        *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 144) + 12;
+        if ( dword_B19AC8 )
+        {
+          if ( sub_72BE90(this + 156, 4, 0) == 3 )
+            dword_B19AC8 = 0;
+          *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 156) + 4;
+          if ( dword_B19AC8 )
+          {
+            if ( sub_72BE90(this + 160, 4, 0) == 3 )
+              dword_B19AC8 = 0;
+            *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 160) + 4;
+            if ( dword_B19AC8 )
+            {
+              if ( sub_72BE90(this + 164, 4, 0) == 3 )
+                dword_B19AC8 = 0;
+              *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 164) + 4;
+            }
+          }
+        }
+      }
+    }
+  }
+  sub_533120(this + 168);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 172, 1, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 172) + 1;
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this + 173, 1, 0) == 3 )
+        dword_B19AC8 = 0;
+      *(_DWORD *)(a2 + 532) += *(unsigned __int8 *)(this + 173) + 1;
+    }
+  }
+  sub_532B40(this + 180);
+  sub_5320E0(this + 184);
+  return 1;
+}
+
+
+// ---- PSysManager::vslot[60]  @ 0x61c320 ----
+int sub_61C320()
+{
+  return 164;
+}
+
+
+// ---- PSysManager::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- PSysManager::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS PSysBase  vftable @ 0x808b04  (63 virtual slots)
+// ============================================================
+
+// ---- PSysBase::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[1]  @ 0x451830 ----
+void *__thiscall sub_451830(void *this, char a2)
+{
+  sub_61EC30();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 20);
+  return this;
+}
+
+
+// ---- PSysBase::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- PSysBase::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- PSysBase::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- PSysBase::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- PSysBase::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- PSysBase::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysBase::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- PSysBase::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- PSysBase::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- PSysBase::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysBase::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysBase::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- PSysBase::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- PSysBase::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- PSysBase::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysBase::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysBase::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- PSysBase::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- PSysBase::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[58]  @ 0x63c360 ----
+BOOL __stdcall sub_63C360(int a1)
+{
+  return sub_53E9F0(a1) != 0;
+}
+
+
+// ---- PSysBase::vslot[59]  @ 0x66a560 ----
+BOOL __stdcall sub_66A560(int a1)
+{
+  return sub_53E8E0(a1) != 0;
+}
+
+
+// ---- PSysBase::vslot[60]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysBase::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- PSysBase::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS PSysInterface  vftable @ 0x838830  (77 virtual slots)
+// ============================================================
+
+// ---- PSysInterface::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[1]  @ 0x52fce0 ----
+_DWORD *__thiscall sub_52FCE0(_DWORD *this, char a2)
+{
+  *this = &PSysInterface::`vftable';
+  sub_61EC30();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 20);
+  return this;
+}
+
+
+// ---- PSysInterface::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- PSysInterface::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- PSysInterface::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- PSysInterface::vslot[8]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- PSysInterface::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- PSysInterface::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysInterface::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- PSysInterface::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- PSysInterface::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- PSysInterface::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysInterface::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysInterface::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- PSysInterface::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- PSysInterface::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- PSysInterface::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysInterface::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- PSysInterface::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- PSysInterface::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[58]  @ 0x63c360 ----
+BOOL __stdcall sub_63C360(int a1)
+{
+  return sub_53E9F0(a1) != 0;
+}
+
+
+// ---- PSysInterface::vslot[59]  @ 0x66a560 ----
+BOOL __stdcall sub_66A560(int a1)
+{
+  return sub_53E8E0(a1) != 0;
+}
+
+
+// ---- PSysInterface::vslot[60]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysInterface::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- PSysInterface::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysInterface::vslot[63]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[64]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[65]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[66]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[67]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[68]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[69]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[70]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[71]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[72]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[73]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[74]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[75]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ---- PSysInterface::vslot[76]  @ 0x73404f ----
+int sub_73404F()
+{
+  return sub_737C96(25);
+}
+
+
+// ============================================================
+// CLASS PSysSound  vftable @ 0x875198  (63 virtual slots)
+// ============================================================
+
+// ---- PSysSound::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[1]  @ 0x66f580 ----
+void *__thiscall sub_66F580(void *this, char a2)
+{
+  sub_66F5F0();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 64);
+  return this;
+}
+
+
+// ---- PSysSound::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- PSysSound::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- PSysSound::vslot[4]  @ 0x66f630 ----
+int __thiscall sub_66F630(int this, int a2)
+{
+  int v2; // eax
+  double v3; // st7
+  int v4; // eax
+  int v5; // eax
+  _DWORD v7[3]; // [esp+4h] [ebp-Ch] BYREF
+
+  v2 = *(_DWORD *)(this + 56);
+  if ( !v2 )
+    return 1;
+  *(_DWORD *)a2 = *(_DWORD *)(v2 + 244);
+  *(_DWORD *)(a2 + 4) = *(_DWORD *)(v2 + 248);
+  v3 = *(float *)(v2 + 252);
+  *(float *)(a2 + 8) = *(float *)(v2 + 252);
+  if ( (*(_BYTE *)(this + 48) & 0x20) == 0 )
+    return 1;
+  sub_733E6C(v3);
+  v7[0] = v4;
+  sub_733E6C(v3 * 65536.0 * 0.1);
+  v7[1] = v5;
+  v7[2] = 0;
+  *(float *)(a2 + 4) = sub_760FD0(v7);
+  return 1;
+}
+
+
+// ---- PSysSound::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- PSysSound::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- PSysSound::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- PSysSound::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysSound::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- PSysSound::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- PSysSound::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- PSysSound::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysSound::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysSound::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- PSysSound::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- PSysSound::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- PSysSound::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- PSysSound::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- PSysSound::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- PSysSound::vslot[54]  @ 0x66f570 ----
+char *sub_66F570()
+{
+  return aSpellsound;
+}
+
+
+// ---- PSysSound::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- PSysSound::vslot[58]  @ 0x66f9b0 ----
+// bad sp value at call has been detected, the output may be wrong!
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_66F9B0@<eax>(int a1@<ecx>, int a2@<ebx>, int a3)
+{
+  unsigned __int8 *v4; // edi
+  int v6; // [esp-11727h] [ebp-1172Fh]
+
+  if ( !sub_53E9F0(v6) )
+    return 0;
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, int *, int, _DWORD))sub_72BE50)(v6, &dword_C6FC20, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v6 + 532) += (unsigned __int8)dword_C6FC20 + 4;
+  }
+  sub_532EE0(a1 + 28);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, int, int, _DWORD, int))sub_72BE50)(v6, a1 + 52, 4, 0, a2) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v6 + 532) += *(unsigned __int8 *)(a1 + 52) + 4;
+  }
+  sub_533110(a1 + 56);
+  v4 = (unsigned __int8 *)(a1 + 60);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v6, v4, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v6 + 532) += *v4 + 1;
+  }
+  return 1;
+}
+
+
+// ---- PSysSound::vslot[59]  @ 0x66fab0 ----
+int __thiscall sub_66FAB0(unsigned __int8 *this, int a2)
+{
+  unsigned __int8 *v3; // edi
+
+  if ( !sub_53E8E0(a2) )
+    return 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&dword_C6FC20, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += (unsigned __int8)dword_C6FC20 + 4;
+  }
+  sub_532CB0(this + 28);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 52, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += this[52] + 4;
+  }
+  sub_533120(this + 56);
+  if ( dword_B19AC8 )
+  {
+    v3 = this + 60;
+    if ( sub_72BE90(v3, 1, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += *v3 + 1;
+  }
+  return 1;
+}
+
+
+// ---- PSysSound::vslot[60]  @ 0x66f560 ----
+int sub_66F560()
+{
+  return 22;
+}
+
+
+// ---- PSysSound::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- PSysSound::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ===== CLASS PSysHandFX : no vftable symbol found =====
+
+// ============================================================
+// CLASS GJPSysInterface  vftable @ 0x8386f8  (77 virtual slots)
+// ============================================================
+
+// ---- GJPSysInterface::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[1]  @ 0x52fc90 ----
+_DWORD *__thiscall sub_52FC90(_DWORD *this, char a2)
+{
+  int v3; // ecx
+
+  v3 = this[5];
+  *this = &GJPSysInterface::`vftable';
+  if ( v3 )
+    (*(void (__thiscall **)(int, int))(*(_DWORD *)v3 + 4))(v3, 1);
+  this[5] = 0;
+  *this = &PSysInterface::`vftable';
+  sub_61EC30(this);
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 24);
+  return this;
+}
+
+
+// ---- GJPSysInterface::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- GJPSysInterface::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- GJPSysInterface::vslot[8]  @ 0x52fbd0 ----
+int __thiscall sub_52FBD0(_DWORD *this, int a2)
+{
+  int result; // eax
+
+  result = this[5];
+  *(_DWORD *)(result + 24) = a2;
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- GJPSysInterface::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- GJPSysInterface::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- GJPSysInterface::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- GJPSysInterface::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- GJPSysInterface::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- GJPSysInterface::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- GJPSysInterface::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- GJPSysInterface::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- GJPSysInterface::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- GJPSysInterface::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- GJPSysInterface::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- GJPSysInterface::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- GJPSysInterface::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- GJPSysInterface::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- GJPSysInterface::vslot[58]  @ 0x63c380 ----
+int __thiscall sub_63C380(char *this, int a2)
+{
+  if ( !sub_63C360(a2) )
+    return 0;
+  sub_533110(this + 20);
+  return 1;
+}
+
+
+// ---- GJPSysInterface::vslot[59]  @ 0x66a580 ----
+int __thiscall sub_66A580(char *this, int a2)
+{
+  if ( !sub_66A560(a2) )
+    return 0;
+  sub_533120(this + 20);
+  return 1;
+}
+
+
+// ---- GJPSysInterface::vslot[60]  @ 0x52fb70 ----
+int sub_52FB70()
+{
+  return 165;
+}
+
+
+// ---- GJPSysInterface::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- GJPSysInterface::vslot[63]  @ 0x61cc50 ----
+int __thiscall sub_61CC50(_DWORD *this, int a2, int a3)
+{
+  int v5; // [esp+4h] [ebp-4h] BYREF
+
+  v5 = 1;
+  if ( (unsigned __int8)sub_61C670(&v5) && *(_BYTE *)(*(_DWORD *)(this[5] + 180) + 28) )
+    return 5;
+  else
+    return sub_61C8F0(a2, a3);
+}
+
+
+// ---- GJPSysInterface::vslot[64]  @ 0x61cc30 ----
+int __thiscall sub_61CC30(void *this, int a2)
+{
+  return (*(int (__thiscall **)(void *, int, int))(*(_DWORD *)this + 252))(this, a2, dword_C22D78);
+}
+
+
+// ---- GJPSysInterface::vslot[65]  @ 0x52fc50 ----
+int __stdcall sub_52FC50(int a1, char a2)
+{
+  return sub_622830(a1, a2);
+}
+
+
+// ---- GJPSysInterface::vslot[66]  @ 0x61cca0 ----
+int __thiscall sub_61CCA0(void *this, int a2)
+{
+  return (*(int (__thiscall **)(void *, _DWORD, int))(*(_DWORD *)this + 260))(
+           this,
+           *(_DWORD *)(dword_C22CA4 + 2104864),
+           a2);
+}
+
+
+// ---- GJPSysInterface::vslot[67]  @ 0x52fc70 ----
+int __stdcall sub_52FC70(int a1, int a2)
+{
+  return sub_6227C0(a1, a2);
+}
+
+
+// ---- GJPSysInterface::vslot[68]  @ 0x52fc30 ----
+int __stdcall sub_52FC30(int a1)
+{
+  return sub_61A4C0(a1);
+}
+
+
+// ---- GJPSysInterface::vslot[69]  @ 0x52fc10 ----
+int __stdcall sub_52FC10(int a1)
+{
+  return sub_61A400(a1);
+}
+
+
+// ---- GJPSysInterface::vslot[70]  @ 0x52fb80 ----
+int sub_52FB80()
+{
+  int v1; // [esp+0h] [ebp-4h] BYREF
+
+  v1 = 1;
+  return sub_61C610(&v1);
+}
+
+
+// ---- GJPSysInterface::vslot[71]  @ 0x52fbe0 ----
+int __thiscall sub_52FBE0(_DWORD *this, int a2)
+{
+  int result; // eax
+
+  result = this[5];
+  *(_DWORD *)(result + 160) = a2;
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[72]  @ 0x52fbf0 ----
+int __thiscall sub_52FBF0(_DWORD *this, int a2)
+{
+  int result; // eax
+
+  result = this[5];
+  *(_DWORD *)(result + 112) = a2;
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[73]  @ 0x52fba0 ----
+int __stdcall sub_52FBA0(int a1)
+{
+  return sub_61C490(a1);
+}
+
+
+// ---- GJPSysInterface::vslot[74]  @ 0x52fbb0 ----
+int __stdcall sub_52FBB0(int a1)
+{
+  return sub_61C4B0(a1);
+}
+
+
+// ---- GJPSysInterface::vslot[75]  @ 0x52fc00 ----
+int __thiscall sub_52FC00(_DWORD *this, char a2)
+{
+  int result; // eax
+
+  result = this[5];
+  *(_BYTE *)(result + 108) = a2;
+  return result;
+}
+
+
+// ---- GJPSysInterface::vslot[76]  @ 0x52fbc0 ----
+int __thiscall sub_52FBC0(_DWORD *this)
+{
+  return sub_61C480(this[5]);
+}
+
+
+// ============================================================
+// CLASS AtomCore  vftable @ 0x8702f8  (63 virtual slots)
+// ============================================================
+
+// ---- AtomCore::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[1]  @ 0x61cf40 ----
+void *__thiscall sub_61CF40(void *this, char a2)
+{
+  sub_61CF70();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 304);
+  return this;
+}
+
+
+// ---- AtomCore::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- AtomCore::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- AtomCore::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- AtomCore::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- AtomCore::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- AtomCore::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCore::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- AtomCore::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- AtomCore::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- AtomCore::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[24]  @ 0x61d1c0 ----
+double __thiscall sub_61D1C0(int this)
+{
+  int v2; // ecx
+  double result; // st7
+  float v4; // [esp+0h] [ebp-4h]
+
+  v2 = *(_DWORD *)(this + 296);
+  if ( !v2 )
+    return 1.0;
+  result = *(float *)(this + 120) * *(float *)(this + 116);
+  v4 = result;
+  (*(void (__stdcall **)(_DWORD))(*(_DWORD *)v2 + 280))(LODWORD(v4));
+  return result;
+}
+
+
+// ---- AtomCore::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCore::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- AtomCore::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- AtomCore::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- AtomCore::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCore::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCore::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- AtomCore::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- AtomCore::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- AtomCore::vslot[58]  @ 0x63c6c0 ----
+// bad sp value at call has been detected, the output may be wrong!
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_63C6C0@<eax>(unsigned __int8 *a1@<ecx>, int a2@<ebx>, int a3@<ebp>, int a4)
+{
+  int v4; // esi
+  int i; // ebx
+  int j; // ebx
+  int k; // ebx
+  unsigned __int8 *v9; // edi
+  _DWORD v12[2]; // [esp-1D14Dh] [ebp-1D159h] BYREF
+  int v13[29779]; // [esp-1D145h] [ebp-1D151h] BYREF
+
+  v4 = v13[0];
+  if ( !sub_63C360(v13[0]) )
+    return 0;
+  if ( dword_B19ACC )
+  {
+    sub_589540(v12);
+    for ( i = 0; i < v12[0]; ++i )
+    {
+      v13[0] = 0;
+      sub_533110(v13);
+      if ( v13[0] )
+        sub_620500(v13[0]);
+    }
+    if ( dword_B19ACC )
+    {
+      sub_589540(v12);
+      for ( j = 0; j < v12[0]; ++j )
+      {
+        v13[0] = 0;
+        sub_533110(v13);
+        if ( v13[0] )
+          sub_620500(v13[0]);
+      }
+      if ( dword_B19ACC )
+      {
+        sub_589540(v12);
+        for ( k = 0; k < v12[0]; ++k )
+        {
+          v13[0] = 0;
+          sub_533110(v13);
+          if ( v13[0] )
+            sub_620500(v13[0]);
+        }
+      }
+    }
+  }
+  sub_4EC100(a1 + 52);
+  sub_589540(a1 + 64);
+  sub_640DF0(a1 + 68);
+  sub_589540(a1 + 116);
+  sub_589540(a1 + 120);
+  sub_589540(a1 + 124);
+  sub_4EC100(a1 + 128);
+  sub_589540(a1 + 140);
+  sub_589540(a1 + 144);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD, int, int))sub_72BE50)(v4, a1 + 148, 2, 0, a3, a2) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[148] + 2;
+  }
+  sub_533020(a1 + 152);
+  sub_533020(a1 + 208);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 264, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[264] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 268, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[268] + 4;
+  }
+  sub_5330C0(a1 + 272);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 284, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[284] + 4;
+  }
+  sub_533110(a1 + 288);
+  sub_533110(a1 + 292);
+  sub_533110(a1 + 296);
+  v9 = a1 + 300;
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, v9, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += *v9 + 1;
+  }
+  return 1;
+}
+
+
+// ---- AtomCore::vslot[59]  @ 0x66a890 ----
+int __thiscall sub_66A890(int this, int a2)
+{
+  int v2; // esi
+  unsigned __int8 *v4; // edi
+  int v6; // [esp+8h] [ebp-8h] BYREF
+  _BYTE v7[4]; // [esp+Ch] [ebp-4h] BYREF
+
+  v2 = a2;
+  if ( !sub_66A560(a2) )
+    return 0;
+  if ( dword_B19AC8 )
+  {
+    v6 = *(_DWORD *)(this + 32);
+    sub_66EE00(&v6);
+    a2 = *(_DWORD *)(this + 28);
+    if ( a2 )
+    {
+      while ( 1 )
+      {
+        sub_533120(&a2);
+        if ( !dword_B19AC8 )
+          break;
+        sub_66EE50(v7, 0);
+        if ( !a2 )
+          goto LABEL_6;
+      }
+    }
+    else
+    {
+LABEL_6:
+      if ( dword_B19AC8 )
+      {
+        v6 = *(_DWORD *)(this + 40);
+        sub_66EE00(&v6);
+        a2 = *(_DWORD *)(this + 36);
+        if ( a2 )
+        {
+          while ( 1 )
+          {
+            sub_533120(&a2);
+            if ( !dword_B19AC8 )
+              break;
+            sub_66EE50(v7, 0);
+            if ( !a2 )
+              goto LABEL_10;
+          }
+        }
+        else
+        {
+LABEL_10:
+          if ( dword_B19AC8 )
+          {
+            v6 = *(_DWORD *)(this + 48);
+            sub_66EE00(&v6);
+            a2 = *(_DWORD *)(this + 44);
+            while ( a2 )
+            {
+              sub_533120(&a2);
+              if ( !dword_B19AC8 )
+                break;
+              sub_66EE50(v7, 0);
+            }
+          }
+        }
+      }
+    }
+  }
+  sub_4EBF70(this + 52);
+  sub_66EE00(this + 64);
+  sub_66EDB0(this + 68);
+  sub_66EE00(this + 116);
+  sub_66EE00(this + 120);
+  sub_66EE00(this + 124);
+  sub_4EBF70(this + 128);
+  sub_66EE00(this + 140);
+  sub_66EE00(this + 144);
+  sub_5893F0(this + 148);
+  sub_532DF0(this + 152);
+  sub_532DF0(this + 208);
+  sub_66EE00(this + 264);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 268, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += *(unsigned __int8 *)(this + 268) + 4;
+  }
+  sub_532E90(this + 272);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 284, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += *(unsigned __int8 *)(this + 284) + 4;
+  }
+  sub_533120(this + 288);
+  sub_533120(this + 292);
+  sub_533120(this + 296);
+  if ( dword_B19AC8 )
+  {
+    v4 = (unsigned __int8 *)(this + 300);
+    if ( sub_72BE90(v4, 1, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += *v4 + 1;
+  }
+  return 1;
+}
+
+
+// ---- AtomCore::vslot[60]  @ 0x61cf30 ----
+int sub_61CF30()
+{
+  return 162;
+}
+
+
+// ---- AtomCore::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- AtomCore::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS AtomCollection  vftable @ 0x8703f8  (63 virtual slots)
+// ============================================================
+
+// ---- AtomCollection::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[1]  @ 0x61dd80 ----
+void *__thiscall sub_61DD80(void *this, char a2)
+{
+  sub_61DE90();
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 84);
+  return this;
+}
+
+
+// ---- AtomCollection::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- AtomCollection::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- AtomCollection::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- AtomCollection::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- AtomCollection::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- AtomCollection::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCollection::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- AtomCollection::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- AtomCollection::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- AtomCollection::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCollection::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCollection::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- AtomCollection::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- AtomCollection::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- AtomCollection::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- AtomCollection::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- AtomCollection::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- AtomCollection::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- AtomCollection::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- AtomCollection::vslot[58]  @ 0x63c9b0 ----
+// bad sp value at call has been detected, the output may be wrong!
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_63C9B0@<eax>(unsigned __int8 *a1@<ecx>, int a2@<ebp>, int a3@<edi>, int a4)
+{
+  int v4; // esi
+  int v6; // edi
+  bool v7; // cc
+  int i; // edi
+  int v9; // edi
+  int v11; // [esp-22E56h] [ebp-22E62h] BYREF
+  _DWORD v12[2]; // [esp-1D14Dh] [ebp-1D159h] BYREF
+  int v13; // [esp-1D145h] [ebp-1D151h] BYREF
+  _BYTE v14[3]; // [esp-1172Bh] [ebp-11737h] BYREF
+  int v15; // [esp-BA1Ah] [ebp-BA26h]
+  int v16; // [esp-BA12h] [ebp-BA1Eh] BYREF
+
+  v4 = v11;
+  if ( !sub_63C360(v11) )
+    return 0;
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, int *, int, _DWORD, int, int))sub_72BE50)(v11, &v11, 4, 0, a3, a2) == 3 )
+      dword_B19ACC = 0;
+    v6 = 0;
+    v7 = v13 <= 0;
+    *(_DWORD *)(v4 + 532) += (unsigned __int8)v13 + 4;
+    if ( !v7 )
+    {
+      do
+      {
+        ((void (__thiscall *)(int, _DWORD *))sub_532C00)(v4, v12);
+        sub_534010(v12[0]);
+        ++v6;
+      }
+      while ( v6 < v13 );
+    }
+    if ( dword_B19ACC )
+    {
+      sub_589540(v12);
+      for ( i = 0; i < v12[0]; ++i )
+      {
+        v13 = 0;
+        sub_533110(&v13);
+        if ( v13 )
+          sub_620500(v13);
+      }
+    }
+  }
+  sub_589540(a1 + 44);
+  sub_533110(a1 + 48);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 52, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[52] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 56, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[56] + 1;
+  }
+  sub_533110(a1 + 60);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, _BYTE *, int, _DWORD))sub_72BE50)(v4, v14, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    v9 = 0;
+    v7 = v15 <= 0;
+    *(_DWORD *)(v4 + 532) += (unsigned __int8)v15 + 4;
+    if ( !v7 )
+    {
+      do
+      {
+        v16 = 0;
+        sub_533110(&v16);
+        if ( v16 )
+          sub_620500(v16);
+        ++v9;
+      }
+      while ( v9 < v15 );
+    }
+  }
+  sub_533110(a1 + 72);
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 76, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[76] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v4, a1 + 80, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v4 + 532) += a1[80] + 1;
+  }
+  return 1;
+}
+
+
+// ---- AtomCollection::vslot[59]  @ 0x66ab70 ----
+int __thiscall sub_66AB70(int this, int i)
+{
+  int v2; // esi
+  _DWORD *v4; // ebx
+  unsigned __int8 *v5; // edi
+  int v7; // [esp+8h] [ebp-8h] BYREF
+  _BYTE v8[4]; // [esp+Ch] [ebp-4h] BYREF
+
+  v2 = i;
+  if ( !sub_66A560(i) )
+    return 0;
+  if ( dword_B19AC8 )
+  {
+    sub_66EE00(this + 32);
+    v4 = *(_DWORD **)(this + 28);
+    if ( v4 )
+    {
+      while ( 1 )
+      {
+        sub_532B40(v4 + 1);
+        if ( !dword_B19AC8 )
+          break;
+        v4 = (_DWORD *)*v4;
+        if ( !v4 )
+          goto LABEL_6;
+      }
+    }
+    else
+    {
+LABEL_6:
+      if ( dword_B19AC8 )
+      {
+        v7 = *(_DWORD *)(this + 40);
+        sub_66EE00(&v7);
+        for ( i = *(_DWORD *)(this + 36); i; i = *(_DWORD *)(i + 24) )
+        {
+          sub_533120(&i);
+          if ( !dword_B19AC8 )
+            break;
+        }
+      }
+    }
+  }
+  sub_66EE00(this + 44);
+  sub_533120(this + 48);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 52, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += *(unsigned __int8 *)(this + 52) + 4;
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this + 56, 1, 0) == 3 )
+        dword_B19AC8 = 0;
+      *(_DWORD *)(v2 + 532) += *(unsigned __int8 *)(this + 56) + 1;
+    }
+  }
+  sub_533120(this + 60);
+  if ( dword_B19AC8 )
+  {
+    v7 = *(_DWORD *)(this + 68);
+    if ( sub_72BE90(&v7, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += (unsigned __int8)v7 + 4;
+    i = *(_DWORD *)(this + 64);
+    while ( i )
+    {
+      sub_533120(&i);
+      if ( !dword_B19AC8 )
+        break;
+      sub_66EE50(v8, 0);
+    }
+  }
+  sub_533120(this + 72);
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 76, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(v2 + 532) += *(unsigned __int8 *)(this + 76) + 4;
+    if ( dword_B19AC8 )
+    {
+      v5 = (unsigned __int8 *)(this + 80);
+      if ( sub_72BE90(v5, 1, 0) == 3 )
+        dword_B19AC8 = 0;
+      *(_DWORD *)(v2 + 532) += *v5 + 1;
+    }
+  }
+  return 1;
+}
+
+
+// ---- AtomCollection::vslot[60]  @ 0x61dd70 ----
+int sub_61DD70()
+{
+  return 163;
+}
+
+
+// ---- AtomCollection::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- AtomCollection::vslot[62]  @ 0x640d30 ----
+int __thiscall sub_640D30(_DWORD *this)
+{
+  int **i; // esi
+  int result; // eax
+
+  for ( i = (int **)this[7]; i; i = (int **)*i )
+    result = (*(int (__thiscall **)(int *, _DWORD *))(*i[1] + 16))(i[1], this);
+  return result;
+}
+
+
+// ===== CLASS AtomCollectionModifier : no vftable symbol found =====
+
+// ============================================================
+// CLASS AtomCreateRule  vftable @ 0x8705a4  (8 virtual slots)
+// ============================================================
+
+// ---- AtomCreateRule::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCreateRule::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AtomCreateRule::vslot[2]  @ 0x661020 ----
+_DWORD *__thiscall sub_661020(_DWORD *this, char a2)
+{
+  sub_7290DE(this[8]);
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- AtomCreateRule::vslot[3]  @ 0x655430 ----
+int __thiscall sub_655430(char *this, int a2)
+{
+  char *v2; // esi
+  _DWORD *v3; // eax
+  _DWORD *v4; // ebx
+  unsigned int v5; // ebp
+  int v6; // edi
+  _DWORD *v7; // eax
+  _DWORD *v8; // ebx
+  unsigned int v9; // ebp
+  int v10; // eax
+  int v11; // esi
+  _DWORD v13[2]; // [esp+10h] [ebp-40h] BYREF
+  char v14[4]; // [esp+18h] [ebp-38h] BYREF
+  char *v15; // [esp+1Ch] [ebp-34h]
+  char v16[4]; // [esp+28h] [ebp-28h] BYREF
+  char *v17; // [esp+2Ch] [ebp-24h]
+  int v18; // [esp+38h] [ebp-18h]
+
+  v2 = this;
+  v13[0] = this;
+  sub_651450(a2);
+  v3 = (_DWORD *)sub_746D70(16);
+  if ( v3 )
+  {
+    *v3 = &PointerProperty<ParticleCreator>::`vftable';
+    v3[2] = aPersisPntr;
+    v4 = v3;
+  }
+  else
+  {
+    v4 = 0;
+  }
+  v4[3] = v2 + 40;
+  v4[1] = aPcreator;
+  v14[0] = a2;
+  sub_548EE0(0);
+  v5 = strlen(aPcreator);
+  if ( (unsigned __int8)sub_549090(v5, 1) )
+  {
+    qmemcpy(v15, aPcreator, v5);
+    sub_549070(v5);
+    v2 = (char *)v13[0];
+  }
+  sub_548BC0(v14);
+  v18 = 0;
+  v6 = *(_DWORD *)sub_666B00(v13, v16);
+  sub_548EE0(1);
+  *(_DWORD *)(v6 + 28) = v4;
+  sub_548EE0(1);
+  v7 = (_DWORD *)sub_746D70(40);
+  if ( v7 )
+  {
+    *v7 = &TemplateIntegerArrayProperty<AtomCreateRule>::`vftable';
+    v7[2] = aArray;
+    v8 = v7;
+  }
+  else
+  {
+    v8 = 0;
+  }
+  v8[5] = v2;
+  v16[0] = a2;
+  v8[1] = aNextgroups;
+  v8[6] = sub_644AF0;
+  v8[7] = sub_644B00;
+  v8[8] = sub_645B60;
+  v8[9] = sub_645B70;
+  v8[3] = -1;
+  v8[4] = 24;
+  sub_548EE0(0);
+  v9 = strlen(aNextgroups);
+  if ( (unsigned __int8)sub_549090(v9, 1) )
+  {
+    qmemcpy(v17, aNextgroups, v9);
+    sub_549070(v9);
+  }
+  v13[0] = 0;
+  v10 = sub_666C00(v16, v13);
+  v11 = *(_DWORD *)sub_666B00(v14, v10);
+  sub_548EE0(1);
+  *(_DWORD *)(v11 + 28) = v8;
+  return sub_548EE0(1);
+}
+
+
+// ---- AtomCreateRule::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- AtomCreateRule::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- AtomCreateRule::vslot[6]  @ 0x61ed40 ----
+char __thiscall sub_61ED40(_DWORD *this, int a2)
+{
+  int v3; // ecx
+  int v4; // edi
+  int v5; // ebx
+  int v7; // eax
+  int v8; // edi
+
+  v3 = this[7];
+  if ( !v3 || (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 20))(v3) )
+  {
+    v7 = *(_DWORD *)(a2 + 64);
+    if ( v7 )
+    {
+      do
+      {
+        v8 = *(_DWORD *)(v7 + 24);
+        (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v7);
+        v7 = v8;
+      }
+      while ( v8 );
+    }
+    return 1;
+  }
+  v4 = *(_DWORD *)(a2 + 64);
+  if ( !v4 )
+    return 1;
+  do
+  {
+    v5 = *(_DWORD *)(v4 + 24);
+    if ( (*(unsigned __int8 (__thiscall **)(_DWORD, int))(*(_DWORD *)this[7] + 28))(this[7], v4) != *(_BYTE *)(this[7] + 12) )
+      (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v4);
+    v4 = v5;
+  }
+  while ( v5 );
+  return 1;
+}
+
+
+// ---- AtomCreateRule::vslot[7]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS EmitterRule  vftable @ 0x83a844  (63 virtual slots)
+// ============================================================
+
+// ---- EmitterRule::vslot[0]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[1]  @ 0x530740 ----
+_DWORD *__thiscall sub_530740(_DWORD *this, char a2)
+{
+  *this = &BaseCollectionModifierData::`vftable';
+  sub_61EC30(this);
+  if ( (a2 & 1) != 0 )
+    sub_61EBB0(this, 44);
+  return this;
+}
+
+
+// ---- EmitterRule::vslot[2]  @ 0x4010e0 ----
+int __thiscall sub_4010E0(void *this)
+{
+  int result; // eax
+
+  if ( this )
+    return (*(int (__thiscall **)(void *, int))(*(_DWORD *)this + 4))(this, 1);
+  return result;
+}
+
+
+// ---- EmitterRule::vslot[3]  @ 0x53e870 ----
+char __thiscall sub_53E870(_BYTE *this, int a2)
+{
+  int v2; // eax
+  char v3; // al
+  _DWORD *v4; // edx
+
+  LOBYTE(v2) = this[10];
+  if ( (v2 & 1) == 0 )
+  {
+    v3 = v2 | 1;
+    this[10] = v3;
+    if ( a2 )
+    {
+      LOBYTE(v2) = (*(int (__thiscall **)(_BYTE *))(*(_DWORD *)this + 8))(this);
+    }
+    else
+    {
+      this[10] = v3 & 0xFD;
+      *((_DWORD *)this + 4) = 0;
+      v2 = *(_DWORD *)(dword_C22CA4 + 2104792);
+      v4 = (_DWORD *)(dword_C22CA4 + 2104792);
+      if ( v2 )
+      {
+        while ( (_BYTE *)v2 != this )
+        {
+          v2 = *(_DWORD *)(v2 + 16);
+          if ( !v2 )
+          {
+            *((_DWORD *)this + 4) = *v4;
+            v2 = v4[1] + 1;
+            *v4 = this;
+            v4[1] = v2;
+            return v2;
+          }
+        }
+      }
+      else
+      {
+        *((_DWORD *)this + 4) = *v4;
+        v2 = v4[1] + 1;
+        *v4 = this;
+        v4[1] = v2;
+      }
+    }
+  }
+  return v2;
+}
+
+
+// ---- EmitterRule::vslot[4]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[5]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[6]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[7]  @ 0x4fe200 ----
+int sub_4FE200()
+{
+  return dword_C22CA4 + 632 * *(unsigned __int8 *)(dword_C22CA4 + 2104087) + 24;
+}
+
+
+// ---- EmitterRule::vslot[8]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[9]  @ 0x401490 ----
+double __stdcall sub_401490(int a1)
+{
+  return 1.0;
+}
+
+
+// ---- EmitterRule::vslot[10]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[11]  @ 0x4014a0 ----
+BOOL __thiscall sub_4014A0(_BYTE *this)
+{
+  return (this[10] & 1) == 0;
+}
+
+
+// ---- EmitterRule::vslot[12]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[13]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[14]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[15]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- EmitterRule::vslot[16]  @ 0x4014b0 ----
+double sub_4014B0()
+{
+  return 0.000027777778;
+}
+
+
+// ---- EmitterRule::vslot[17]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[18]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[19]  @ 0x531860 ----
+double __stdcall sub_531860(int a1)
+{
+  return 0.0;
+}
+
+
+// ---- EmitterRule::vslot[20]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[21]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[22]  @ 0x53eb70 ----
+double __stdcall sub_53EB70(int a1, float a2)
+{
+  return a2;
+}
+
+
+// ---- EmitterRule::vslot[23]  @ 0x407650 ----
+void __stdcall nullsub_4(int a1, int a2)
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[24]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- EmitterRule::vslot[25]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- EmitterRule::vslot[26]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[27]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[28]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[29]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[30]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[31]  @ 0x403c10 ----
+int __stdcall sub_403C10(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[32]  @ 0x53ecd0 ----
+int __stdcall sub_53ECD0(int a1, int a2, int a3)
+{
+  return sub_5B0E40(a2, a3);
+}
+
+
+// ---- EmitterRule::vslot[33]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[34]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[35]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[36]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[37]  @ 0x53ef30 ----
+int __stdcall sub_53EF30(int a1, int a2, int a3)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[38]  @ 0x403c20 ----
+int __stdcall sub_403C20(int a1)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[39]  @ 0x403c30 ----
+int __stdcall sub_403C30(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[40]  @ 0x403c40 ----
+int __stdcall sub_403C40(int a1, int a2, int a3, int a4)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[41]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[42]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[43]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[44]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[45]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[46]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[47]  @ 0x4017d0 ----
+int sub_4017D0()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[48]  @ 0x401810 ----
+int sub_401810()
+{
+  return 1;
+}
+
+
+// ---- EmitterRule::vslot[49]  @ 0x403c50 ----
+__int16 sub_403C50()
+{
+  return 1;
+}
+
+
+// ---- EmitterRule::vslot[50]  @ 0x7075e0 ----
+double sub_7075E0()
+{
+  return 0.0;
+}
+
+
+// ---- EmitterRule::vslot[51]  @ 0x403c60 ----
+char sub_403C60()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[52]  @ 0x4017c0 ----
+void __stdcall nullsub_1(int a1)
+{
+  ;
+}
+
+
+// ---- EmitterRule::vslot[53]  @ 0x403c70 ----
+int __thiscall sub_403C70(void *this)
+{
+  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 44))(this);
+}
+
+
+// ---- EmitterRule::vslot[54]  @ 0x531150 ----
+char *sub_531150()
+{
+  return aAClass;
+}
+
+
+// ---- EmitterRule::vslot[55]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[56]  @ 0x404e60 ----
+int sub_404E60()
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[57]  @ 0x401840 ----
+int __stdcall sub_401840(int a1, int a2)
+{
+  return 0;
+}
+
+
+// ---- EmitterRule::vslot[58]  @ 0x640720 ----
+// bad sp value at call has been detected, the output may be wrong!
+// positive sp value has been detected, the output may be wrong!
+int __userpurge sub_640720@<eax>(unsigned __int8 *a1@<ecx>, int a2@<edi>, int a3)
+{
+  int v5; // [esp-11727h] [ebp-1172Fh]
+
+  if ( !sub_63C690(v5) )
+    return 0;
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD, int))sub_72BE50)(v5, a1 + 32, 4, 0, a2) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v5 + 532) += a1[32] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v5, a1 + 36, 4, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v5 + 532) += a1[36] + 4;
+  }
+  if ( dword_B19ACC )
+  {
+    if ( ((int (__thiscall *)(int, unsigned __int8 *, int, _DWORD))sub_72BE50)(v5, a1 + 40, 1, 0) == 3 )
+      dword_B19ACC = 0;
+    *(_DWORD *)(v5 + 532) += a1[40] + 1;
+  }
+  return 1;
+}
+
+
+// ---- EmitterRule::vslot[59]  @ 0x66e870 ----
+int __thiscall sub_66E870(unsigned __int8 *this, int a2)
+{
+  unsigned __int8 *v3; // edi
+
+  if ( !sub_66A860(a2) )
+    return 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(this + 32, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    *(_DWORD *)(a2 + 532) += this[32] + 4;
+    if ( dword_B19AC8 )
+    {
+      if ( sub_72BE90(this + 36, 4, 0) == 3 )
+        dword_B19AC8 = 0;
+      *(_DWORD *)(a2 + 532) += this[36] + 4;
+      if ( dword_B19AC8 )
+      {
+        v3 = this + 40;
+        if ( sub_72BE90(v3, 1, 0) == 3 )
+          dword_B19AC8 = 0;
+        *(_DWORD *)(a2 + 532) += *v3 + 1;
+      }
+    }
+  }
+  return 1;
+}
+
+
+// ---- EmitterRule::vslot[60]  @ 0x530730 ----
+int sub_530730()
+{
+  return 237;
+}
+
+
+// ---- EmitterRule::vslot[61]  @ 0x53ea90 ----
+int __stdcall sub_53EA90(int a1)
+{
+  int result; // eax
+  int v2; // [esp+0h] [ebp-4h] BYREF
+
+  result = dword_B19AC8;
+  v2 = 0;
+  if ( dword_B19AC8 )
+  {
+    if ( sub_72BE90(&v2, 4, 0) == 3 )
+      dword_B19AC8 = 0;
+    result = (unsigned __int8)v2 + 4 + *(_DWORD *)(a1 + 532);
+    *(_DWORD *)(a1 + 532) = result;
+  }
+  return result;
+}
+
+
+// ---- EmitterRule::vslot[62]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS EmitterRuleSimple  vftable @ 0x873684  (8 virtual slots)
+// ============================================================
+
+// ---- EmitterRuleSimple::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRuleSimple::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRuleSimple::vslot[2]  @ 0x661020 ----
+_DWORD *__thiscall sub_661020(_DWORD *this, char a2)
+{
+  sub_7290DE(this[8]);
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- EmitterRuleSimple::vslot[3]  @ 0x6556c0 ----
+int __thiscall sub_6556C0(char *this, int a2)
+{
+  sub_655620(a2);
+  sub_54E800(aSpeed, this + 84, 0, 1092616192);
+  return sub_54ECB0(aOrientwithpare, this + 88);
+}
+
+
+// ---- EmitterRuleSimple::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- EmitterRuleSimple::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- EmitterRuleSimple::vslot[6]  @ 0x64cc20 ----
+char __thiscall sub_64CC20(int this, int a2)
+{
+  int v4; // esi
+  double v5; // st7
+  long double v6; // st6
+  long double v7; // st5
+  double v8; // st6
+  double v9; // st6
+  int v10; // eax
+  float v11; // [esp+4h] [ebp-Ch] BYREF
+  float v12; // [esp+8h] [ebp-8h]
+  float v13; // [esp+Ch] [ebp-4h]
+
+  if ( !*(_DWORD *)(this + 40) )
+    return 0;
+  if ( (unsigned __int8)sub_64C8C0(a2) )
+  {
+    v4 = sub_61CD50();
+    *(_DWORD *)(v4 + 296) = (*(int (__thiscall **)(_DWORD, int))(**(_DWORD **)(this + 40) + 16))(
+                              *(_DWORD *)(this + 40),
+                              v4);
+    sub_61E290(v4, this + 32);
+    if ( *(float *)(this + 84) != 0.0 )
+    {
+      sub_61C090(&v11);
+      v5 = sub_61C050(*(_DWORD *)(this + 84));
+      v6 = v11;
+      if ( v11 != 0.0 || v12 != 0.0 || v13 != 0.0 )
+      {
+        v7 = 1.0 / sqrt(v13 * v13 + v12 * v12 + v6 * v6);
+        v6 = v6 * v7;
+        v12 = v12 * v7;
+        v13 = v13 * v7;
+      }
+      v11 = v6 * v5;
+      v8 = v12;
+      *(float *)(v4 + 52) = v11;
+      v12 = v8 * v5;
+      v9 = v13;
+      *(float *)(v4 + 56) = v12;
+      v13 = v9 * v5;
+      *(float *)(v4 + 60) = v13;
+    }
+    if ( *(_BYTE *)(this + 88) )
+    {
+      v10 = *(_DWORD *)(a2 + 60);
+      if ( v10 )
+        sub_61D650(v10 + 68);
+    }
+    *(_BYTE *)(v4 + 148) = *(_BYTE *)(v4 + 148) & 0xEF | (16 * (*(_BYTE *)(this + 56) & 1));
+  }
+  return 1;
+}
+
+
+// ---- EmitterRuleSimple::vslot[7]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS EmitterRuleConical  vftable @ 0x873714  (8 virtual slots)
+// ============================================================
+
+// ---- EmitterRuleConical::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRuleConical::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- EmitterRuleConical::vslot[2]  @ 0x661020 ----
+_DWORD *__thiscall sub_661020(_DWORD *this, char a2)
+{
+  sub_7290DE(this[8]);
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- EmitterRuleConical::vslot[3]  @ 0x655860 ----
+int __thiscall sub_655860(char *this, int a2)
+{
+  sub_655620(a2);
+  sub_54E800(aSpeed, this + 84, 0, 1092616192);
+  sub_54E800(aSpread, this + 88, 0, 1070141403);
+  return sub_54E800(aRadius, this + 92, 0, 1101004800);
+}
+
+
+// ---- EmitterRuleConical::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- EmitterRuleConical::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- EmitterRuleConical::vslot[6]  @ 0x64cf80 ----
+char __thiscall sub_64CF80(int this, int a2)
+{
+  char v5; // bl
+  int v6; // edi
+  double v7; // st7
+  long double v8; // st7
+  double v9; // st7
+  double v10; // st7
+  float v11; // [esp+4h] [ebp-4Ch]
+  float v12; // [esp+18h] [ebp-38h]
+  float v13; // [esp+1Ch] [ebp-34h]
+  float v14; // [esp+20h] [ebp-30h]
+  float v15; // [esp+24h] [ebp-2Ch]
+  float v16; // [esp+28h] [ebp-28h]
+  float v17; // [esp+2Ch] [ebp-24h]
+  float v18; // [esp+30h] [ebp-20h]
+  float v19; // [esp+34h] [ebp-1Ch]
+  float v20; // [esp+38h] [ebp-18h]
+  float v21; // [esp+40h] [ebp-10h]
+  float v22; // [esp+44h] [ebp-Ch]
+  float v23; // [esp+54h] [ebp+4h]
+
+  if ( !*(_DWORD *)(this + 40) )
+    return 0;
+  v5 = 1;
+  while ( (unsigned __int8)sub_64C8C0(a2) )
+  {
+    if ( !v5 )
+      break;
+    v5 = *(_BYTE *)(this + 58);
+    v6 = sub_61CD50();
+    sub_61E290(v6, this + 32);
+    *(_DWORD *)(v6 + 296) = (*(int (__thiscall **)(_DWORD, int))(**(_DWORD **)(this + 40) + 16))(
+                              *(_DWORD *)(this + 40),
+                              v6);
+    v23 = sub_61C050(*(_DWORD *)(this + 88));
+    v12 = sub_61C050(1086918619);
+    v11 = *(float *)(this + 84) * 0.33000001;
+    v7 = sub_61C050(LODWORD(v11)) + *(float *)(this + 84) * 0.66000003;
+    v13 = sin(v23) * v7;
+    v17 = cos(v12) * v13;
+    v18 = cos(v23) * v7;
+    v19 = sin(v12) * v13;
+    if ( *(float *)(this + 92) != 0.0 )
+    {
+      v8 = sub_61C050(1086918619);
+      v20 = cos(v8);
+      v21 = sin(v8);
+      v9 = sub_61C050(*(_DWORD *)(this + 92));
+      v22 = v20 * v9;
+      v14 = v22 + *(float *)(v6 + 128);
+      v15 = *(float *)(v6 + 132) + 0.0;
+      v10 = v9 * v21 + *(float *)(v6 + 136);
+      *(float *)(v6 + 128) = v14;
+      *(float *)(v6 + 132) = v15;
+      v16 = v10;
+      *(float *)(v6 + 136) = v16;
+    }
+    *(float *)(v6 + 52) = v17;
+    *(float *)(v6 + 56) = v18;
+    *(float *)(v6 + 60) = v19;
+    *(_BYTE *)(v6 + 148) = *(_BYTE *)(v6 + 148) & 0xEF | (16 * (*(_BYTE *)(this + 56) & 1));
+    sub_61DAE0(this + 60);
+  }
+  return 1;
+}
+
+
+// ---- EmitterRuleConical::vslot[7]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS AppearanceUpdateRule  vftable @ 0x87312c  (8 virtual slots)
+// ============================================================
+
+// ---- AppearanceUpdateRule::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceUpdateRule::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceUpdateRule::vslot[2]  @ 0x647ca0 ----
+_DWORD *__thiscall sub_647CA0(_DWORD *this, char a2)
+{
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- AppearanceUpdateRule::vslot[3]  @ 0x6515b0 ----
+int __stdcall sub_6515B0(int a1)
+{
+  return sub_651450(a1);
+}
+
+
+// ---- AppearanceUpdateRule::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- AppearanceUpdateRule::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- AppearanceUpdateRule::vslot[6]  @ 0x61ed40 ----
+char __thiscall sub_61ED40(_DWORD *this, int a2)
+{
+  int v3; // ecx
+  int v4; // edi
+  int v5; // ebx
+  int v7; // eax
+  int v8; // edi
+
+  v3 = this[7];
+  if ( !v3 || (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 20))(v3) )
+  {
+    v7 = *(_DWORD *)(a2 + 64);
+    if ( v7 )
+    {
+      do
+      {
+        v8 = *(_DWORD *)(v7 + 24);
+        (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v7);
+        v7 = v8;
+      }
+      while ( v8 );
+    }
+    return 1;
+  }
+  v4 = *(_DWORD *)(a2 + 64);
+  if ( !v4 )
+    return 1;
+  do
+  {
+    v5 = *(_DWORD *)(v4 + 24);
+    if ( (*(unsigned __int8 (__thiscall **)(_DWORD, int))(*(_DWORD *)this[7] + 28))(this[7], v4) != *(_BYTE *)(this[7] + 12) )
+      (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v4);
+    v4 = v5;
+  }
+  while ( v5 );
+  return 1;
+}
+
+
+// ---- AppearanceUpdateRule::vslot[7]  @ 0x4033c0 ----
+void __stdcall nullsub_3(int a1)
+{
+  ;
+}
+
+
+// ============================================================
+// CLASS AppearanceRuleFadeOut  vftable @ 0x8730e4  (8 virtual slots)
+// ============================================================
+
+// ---- AppearanceRuleFadeOut::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[2]  @ 0x647ca0 ----
+_DWORD *__thiscall sub_647CA0(_DWORD *this, char a2)
+{
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[3]  @ 0x6518c0 ----
+int __thiscall sub_6518C0(char *this, int a2)
+{
+  sub_6515B0(a2);
+  return sub_54E800(aVanishage, this + 32, 0, 1120403456);
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[6]  @ 0x61ed40 ----
+char __thiscall sub_61ED40(_DWORD *this, int a2)
+{
+  int v3; // ecx
+  int v4; // edi
+  int v5; // ebx
+  int v7; // eax
+  int v8; // edi
+
+  v3 = this[7];
+  if ( !v3 || (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 20))(v3) )
+  {
+    v7 = *(_DWORD *)(a2 + 64);
+    if ( v7 )
+    {
+      do
+      {
+        v8 = *(_DWORD *)(v7 + 24);
+        (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v7);
+        v7 = v8;
+      }
+      while ( v8 );
+    }
+    return 1;
+  }
+  v4 = *(_DWORD *)(a2 + 64);
+  if ( !v4 )
+    return 1;
+  do
+  {
+    v5 = *(_DWORD *)(v4 + 24);
+    if ( (*(unsigned __int8 (__thiscall **)(_DWORD, int))(*(_DWORD *)this[7] + 28))(this[7], v4) != *(_BYTE *)(this[7] + 12) )
+      (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v4);
+    v4 = v5;
+  }
+  while ( v5 );
+  return 1;
+}
+
+
+// ---- AppearanceRuleFadeOut::vslot[7]  @ 0x64b1a0 ----
+int __thiscall sub_64B1A0(float *this, int a2)
+{
+  double v3; // st7
+  double v4; // st7
+  unsigned __int8 v5; // al
+  int result; // eax
+
+  v3 = 1.0 - sub_61D210(a2) * 0.5 / this[8];
+  if ( v3 <= 0.0 )
+  {
+    v3 = 0.0;
+  }
+  else if ( v3 >= 1.0 )
+  {
+    v3 = 1.0;
+  }
+  *(float *)(a2 + 120) = v3;
+  v4 = 1.0 - sub_61D210(a2) / this[8];
+  if ( v4 <= 0.0 )
+  {
+    v4 = 0.0;
+  }
+  else if ( v4 >= 1.0 )
+  {
+    v4 = 1.0;
+  }
+  sub_733E6C(v4 * 255.0);
+  result = *(_DWORD *)(a2 + 140) & 0xFFFFFF | (v5 << 24);
+  *(_DWORD *)(a2 + 140) = result;
+  return result;
+}
+
+
+// ============================================================
+// CLASS AppearanceRuleTumble  vftable @ 0x873270  (8 virtual slots)
+// ============================================================
+
+// ---- AppearanceRuleTumble::vslot[0]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceRuleTumble::vslot[1]  @ 0x4017f0 ----
+void nullsub_2()
+{
+  ;
+}
+
+
+// ---- AppearanceRuleTumble::vslot[2]  @ 0x647ca0 ----
+_DWORD *__thiscall sub_647CA0(_DWORD *this, char a2)
+{
+  *this = off_8704FC;
+  sub_54B100(this);
+  if ( (a2 & 1) != 0 )
+    sub_7290DE(this);
+  return this;
+}
+
+
+// ---- AppearanceRuleTumble::vslot[3]  @ 0x651bc0 ----
+int __thiscall sub_651BC0(char *this, int a2)
+{
+  sub_6515B0(a2);
+  sub_54E800(aTumblespeed, this + 36, 0, 1092616192);
+  sub_54E800(aMaxtumblespeed, this + 40, 0, 1120403456);
+  return sub_54ECB0(aRestrictmaxrot, this + 32);
+}
+
+
+// ---- AppearanceRuleTumble::vslot[4]  @ 0x61ecf0 ----
+void __thiscall sub_61ECF0(_WORD *this, int a2)
+{
+  ++this[6];
+}
+
+
+// ---- AppearanceRuleTumble::vslot[5]  @ 0x662180 ----
+void __thiscall sub_662180(_WORD *this, int a2)
+{
+  --this[6];
+}
+
+
+// ---- AppearanceRuleTumble::vslot[6]  @ 0x61ed40 ----
+char __thiscall sub_61ED40(_DWORD *this, int a2)
+{
+  int v3; // ecx
+  int v4; // edi
+  int v5; // ebx
+  int v7; // eax
+  int v8; // edi
+
+  v3 = this[7];
+  if ( !v3 || (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 20))(v3) )
+  {
+    v7 = *(_DWORD *)(a2 + 64);
+    if ( v7 )
+    {
+      do
+      {
+        v8 = *(_DWORD *)(v7 + 24);
+        (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v7);
+        v7 = v8;
+      }
+      while ( v8 );
+    }
+    return 1;
+  }
+  v4 = *(_DWORD *)(a2 + 64);
+  if ( !v4 )
+    return 1;
+  do
+  {
+    v5 = *(_DWORD *)(v4 + 24);
+    if ( (*(unsigned __int8 (__thiscall **)(_DWORD, int))(*(_DWORD *)this[7] + 28))(this[7], v4) != *(_BYTE *)(this[7] + 12) )
+      (*(void (__thiscall **)(_DWORD *, int))(*this + 28))(this, v4);
+    v4 = v5;
+  }
+  while ( v5 );
+  return 1;
+}
+
+
+// ---- AppearanceRuleTumble::vslot[7]  @ 0x64c720 ----
+void __thiscall sub_64C720(int this, float *a2)
+{
+  long double v3; // st6
+  long double v4; // st7
+  long double v6; // st6
+  char v7; // c0
+  long double v8; // st5
+  long double v9; // st5
+  long double v10; // st5
+  long double v11; // st5
+  long double v12; // st5
+  long double v13; // st5
+  float v14; // [esp+14h] [ebp+4h]
+  float v15; // [esp+14h] [ebp+4h]
+  float v16; // [esp+14h] [ebp+4h]
+  float v17; // [esp+14h] [ebp+4h]
+
+  v3 = sqrt(a2[14] * a2[14] + a2[15] * a2[15] + a2[13] * a2[13]) * *(float *)(this + 36);
+  if ( *(_BYTE *)(this + 32) )
+  {
+    if ( v3 <= *(float *)(this + 40) )
+    {
+      v14 = -*(float *)(this + 40);
+      if ( v3 < v14 )
+        v3 = v14;
+    }
+    else
+    {
+      v3 = *(float *)(this + 40);
+    }
+  }
+  v15 = v3 * flt_C6EE8C;
+  v4 = cos(v15);
+  v6 = sin(v15);
+  if ( v7 )
+  {
+    v8 = v6 * a2[17];
+    a2[17] = v6 * a2[18] + v4 * a2[17];
+    a2[18] = v4 * a2[18] - v8;
+    v9 = v6 * a2[20];
+    a2[20] = v6 * a2[21] + v4 * a2[20];
+    a2[21] = v4 * a2[21] - v9;
+    v10 = v6 * a2[23];
+    a2[23] = v6 * a2[24] + v4 * a2[23];
+    a2[24] = v4 * a2[24] - v10;
+    v16 = v6 * a2[26];
+    a2[26] = v6 * a2[27] + v4 * a2[26];
+    a2[27] = v4 * a2[27] - v16;
+  }
+  else
+  {
+    v11 = v6 * a2[18];
+    a2[18] = v6 * a2[19] + v4 * a2[18];
+    a2[19] = v4 * a2[19] - v11;
+    v12 = v6 * a2[21];
+    a2[21] = v6 * a2[22] + v4 * a2[21];
+    a2[22] = v4 * a2[22] - v12;
+    v13 = v6 * a2[24];
+    a2[24] = v6 * a2[25] + v4 * a2[24];
+    a2[25] = v4 * a2[25] - v13;
+    v17 = v6 * a2[27];
+    a2[27] = v6 * a2[28] + v4 * a2[27];
+    a2[28] = v4 * a2[28] - v17;
+  }
+}
+
+
+// Summary: 580 slots across 14/16 classes

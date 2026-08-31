@@ -26,7 +26,9 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts drive entity spawning, the LHVM dispatches ~430 wired native functions, villagers play real ANM skeletal animations from `AllAnims.anm`, real MP2 voice/dialogue decodes and plays, spell casts throw camera-facing particle FX, and the camera follows whatever the script tells it to.
 
-A second decompiler toolchain (`tools/decomp/`) now drives faithful translation: it recovers original method pseudocode from the v1.0 binary via RTTI vftable walking (IDA idalib primary), which is how the native save serializer below was rebuilt.
+A second decompiler toolchain (`tools/decomp/`) now drives faithful translation: it recovers original method pseudocode from the v1.0 binary via RTTI vftable walking (IDA idalib primary), which is how the native save serializer and the creature AI below were rebuilt. The binary has RTTI but no symbol table (17,627 functions, 5 named), so classes are reachable only through their `??_7...@@6B@` vftable symbols.
+
+Two habits did most of the work. First, whole class families share a vtable shape and one slot tends to hold constant returns or self-describing editor registrations, so a schema falls out mechanically rather than one class at a time — that is where the particle engine's 210 named parameters and the full attribute schema came from. Second, IDA leaves large regions unanalysed, and `xrefs`/`callees` only see inside known functions, so a search can come back clean because the code was never parsed: forcing analysis over a range (`mkfunc`) turned a 1,914-line initialiser readable and settled 31 save types in one go.
 
 ### What works right now
 
@@ -144,10 +146,16 @@ A second decompiler toolchain (`tools/decomp/`) now drives faithful translation:
 - [x] `SET_HEADING_AND_SPEED` → real bw_core movement on living units
 - [x] Hand interaction phase state machine → correct `GET_HAND_STATE`
 - [x] Decompiler pipeline (`tools/decomp/`) — RTTI-vftable class extractor (IDA primary, Ghidra cross-check)
-- [~] Native BW save format via `GameOSFile` — **foundation done + verified**; per-leaf-class Save/Load fan-out + top-level driver remain
-- [ ] Full polymorphic `HandState` dispatch (decompiler-driven; opaque-blob subclasses)
+- [~] Native BW save format via `GameOSFile` — serializer, generated field table and chain walker all done and tested; **122 of 178 save types exact**, the remaining 56 are container walks (Town, Citadel, the Spell family, the footpath graph) needing per-class translation
+- [x] Full polymorphic `HandState` dispatch — real state objects under `HandMachine`, Exit-then-Enter transitions
+- [x] Particle engine scope-A — `Atom`/rule interface with 210 parameters under their real names *(rule **graphs** are code-built, not data, and remain untouched)*
+- [x] Creature AI — attributes, belief vectors, C4.5 learning, opinion scale, mind-file reader, desire dynamics, plans/actions
 - [ ] Multiplayer / network stack — LAN-only, planned for a separate private repo + server emulator
 - [ ] Computer player AI behaviour
+
+**Known blocked, with the reason recorded** (so the next pass does not re-run the same searches):
+- **The creature's plan chooser** — the join between a dominant desire and a `CREATURE_ACTION` plus belief target. Five distinct approaches (plan producers, the desire→action table, handler pointers, the tick side, whole-region analysis) each landed adjacent to it and none hit it. Everything found either forces a plan or installs one already chosen.
+- **`info.dat` reader** — the 65 recovered tables account for 276 KB of a 580,710-byte payload. Re-verified after forcing analysis of 482 previously-unanalysed functions that there is genuinely only one registrar, so the gap is not hidden code; the leading explanation is that the shipped `info.dat` (5 Mar 2001) belongs to a later build than the v1.0 exe.
 
 ## How to Build & Run
 
