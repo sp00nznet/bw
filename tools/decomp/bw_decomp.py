@@ -15,6 +15,7 @@ and decompile every slot via Hex-Rays.
     py -3.11 bw_decomp.py <exe-or-i64> floats  <0xADDR> <count>  read a data table
     py -3.11 bw_decomp.py <exe-or-i64> disasm  <0xADDR> [...]   raw instructions
     py -3.11 bw_decomp.py <exe-or-i64> doubles <0xADDR> <count>  read a double table
+    py -3.11 bw_decomp.py <exe-or-i64> table   <0xBASE> <recsz> <count> [rows]
 
 The first run on the .exe analyses + saves a .i64; pass that .i64 afterwards
 for fast reopen.
@@ -175,6 +176,38 @@ def main():
                 continue
             for item in idautils.FuncItems(f.start_ea):
                 print("%s  %s" % (hex(item), idc.GetDisasm(item)))
+    elif cmd == "table":
+        # Dump a static array of records, one row per field, showing each dword
+        # as int / float / string so the layout can be read off rather than
+        # guessed. The creature's tuning tables are shipped this way and neither
+        # our headers nor the vendor's map their payload.
+        #   table <0xBASE> <recsize> <count> [max_rows]
+        import struct as _struct
+        base = int(sys.argv[3], 16)
+        recsz = int(sys.argv[4])
+        count = int(sys.argv[5])
+        rows = int(sys.argv[6]) if len(sys.argv) > 6 else count
+        for r in range(min(rows, count)):
+            ra = base + r * recsz
+            print("// ---- record %d @ %s ----" % (r, hex(ra)))
+            for off in range(0, recsz, 4):
+                raw = ida_bytes.get_bytes(ra + off, 4)
+                if not raw:
+                    continue
+                u = _struct.unpack("<I", raw)[0]
+                f = _struct.unpack("<f", raw)[0]
+                note = ""
+                # A plausible pointer into the image: try it as a string.
+                if 0x400000 < u < 0xE00000:
+                    s = ida_bytes.get_strlit_contents(u, -1, 0)
+                    if s and 1 <= len(s) < 64 and all(32 <= c < 127 for c in s):
+                        note = '  "%s"' % s.decode("latin-1")
+                    else:
+                        nm = ida_name.get_name(u)
+                        if nm:
+                            note = "  %s" % nm
+                fs = ("%g" % f) if (abs(f) > 1e-6 and abs(f) < 1e9) else ""
+                print("  +%-4d %10d  0x%08x  %-12s%s" % (off, u, u, fs, note))
     elif cmd == "doubles":
         base = int(sys.argv[3], 16)
         count = int(sys.argv[4]) if len(sys.argv) > 4 else 1
