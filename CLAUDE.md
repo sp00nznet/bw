@@ -345,13 +345,22 @@ All three landed via the decompiler pipeline; see the commits for detail.
   the binary deletes with size 12 and writes a value field at offset 8 that the
   vendor header omits.
 
+- **Creature AI: perception + learning algorithm** — `xrefs`/`callees`/`floats`
+  added to bw_decomp.py cracked the non-virtual half. Recovered: the per-belief
+  attribute vectors (what the creature can notice about each kind of thing,
+  `CreatureBeliefAttributes.cpp`), and **the full learning algorithm — greedy
+  decision-tree induction with gain ratio, C4.5, per creature, live**. Written
+  up in `work/decomp/creature_learning.md`. The opinion scale is implemented and
+  tested (`CreatureOpinion.cpp`): 11 levels −1..+1, overlapping ±0.25 bands that
+  bias every opinion one step down, and **level 10 is unreachable**.
+
 Remaining:
-0. **Creature AI: the tree itself** — AttributeTest and DecisionTree are plain
-   data structs, so their methods are non-virtual and the RTTI vtable walk
-   cannot see them. Needs an xref-based extraction (find callers of the
-   Attribute vtable slots, or of CreatureMental's members) before the tree walk
-   and the learning-episode update can be translated rather than guessed.
-   Everything the tree *branches on* is now in place.
+0. **Creature AI: implement the induction loop** — the algorithm is recovered
+   and documented; what is missing before it can be written faithfully is
+   `sub_4B9BB0` (the split-info term, where Hex-Rays dropped what is almost
+   certainly a log — needs disassembly, not pseudocode), `sub_4B99E0` (subset
+   impurity), and `sub_4B7E00`/`sub_4B7D80` (node expansion, which would give
+   the 148-byte node struct's remaining fields).
 1. **Phase 7 completion** — the 87 partial save types. Each needs its container
    walk translated by hand; the table + walker are in place and the parser
    reports exactly which chain row blocks each type.
