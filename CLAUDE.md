@@ -387,14 +387,22 @@ Remaining:
   the current *action* and maps back: the current plan sits at mental+3912, so
   its action is at +3936, which is what the attribute reads.
 
+- **95 action names recovered** (`CreatureActionNames.h`) by decoding the
+  dispatch-table initialiser — an inlined `mov [table + 80*i], offset "..."` run
+  around 0x481000 that IDA never made a function, hence no xref. Only entries
+  233..327 are named; 1..232 are never written. Record layout: 80 bytes, name
+  at +0, handler at +32, second code pointer at +52 (`sub_4B6CA0` dispatches).
+- Confirmed from `sub_4C3030`'s feedback string that a learning episode is keyed
+  on **(action, desire, object)** — independent corroboration of the
+  `LearningEpisode` shape.
+
 Remaining:
-0. **Creature AI: the plan chooser** — what is still missing between a dominant
-   desire and a plan is the selection itself: which `CREATURE_ACTION` a desire
-   picks, and against which belief. `DETAIL_CREATURE_DESIRE_ACTION_TABLE`
-   (40 x 136) is the data for it and is `.bss`; the *code* that consumes it is
-   the target, reachable the same way sub_4BEB30 was. Then
-   `Creature::ProcessState`. The learning tree plugs in where a desire needs an
-   opinion about a candidate object.
+0. **Creature AI: the plan chooser** — still the missing join. A desire has to
+   pick an action and a belief to act on. `DETAIL_CREATURE_DESIRE_ACTION_TABLE`
+   (40 x 136) is its data and is `.bss`; the consuming code is the target. The
+   handler pointers at +32 in the action table are now a way in — each names a
+   real function, and whatever calls the chooser will reach them. Then
+   `Creature::ProcessState`.
 1. **An info.dat reader — blocked on a version mismatch, probably.** The loader
    is fully understood (`sub_425250`, 65 tables, fixed-size records, direction
    chosen by the read/write helper; `work/decomp/info_layout.txt`). But the
