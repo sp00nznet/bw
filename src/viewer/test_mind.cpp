@@ -280,6 +280,31 @@ int main() {
               "the bias cannot drift more than 0.2 above its species target");
     }
 
+    // --- plans ---------------------------------------------------------------
+    {
+        PlanState ps;
+        bool owned = true;
+        for (uint32_t i = 0; i < kNumCreatureDesires; ++i)
+            if (ps.plans[i].desire != i) owned = false;
+        CHECK(owned, "every plan slot is pre-assigned to its own desire at init");
+        CHECK(ps.current_desire == kNumCreatureDesires, "and nothing is current yet");
+
+        ActionPlan p;
+        p.desire = CREATURE_DESIRE_TO_OBEY_PLAYER;   // 24
+        p.action = 89;
+        p.target[0] = 0x1234;
+        ps.SetCurrent(p);
+        CHECK(ps.current_desire == 24 && ps.current_action == 89,
+              "installing a plan makes its desire and action current");
+        CHECK(ps.For(24) && ps.For(24)->target[0] == 0x1234,
+              "and the plan is stored in its own desire's slot");
+        CHECK(ps.For(kNumCreatureDesires) == nullptr, "an out-of-range desire has no slot");
+
+        ps.Init();
+        CHECK(ps.current_desire == kNumCreatureDesires && ps.For(24)->action == 0,
+              "re-init clears the current plan and the slots");
+    }
+
     if (!found) {
         printf("note: game_data/CreatureMind not reachable from here; the shipped-mind\n"
                "      checks were skipped. The synthetic ones above still ran.\n");

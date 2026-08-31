@@ -1,0 +1,205 @@
+// ---- 0x4b2720 ----
+int __thiscall sub_4B2720(_DWORD *this)
+{
+  int v2; // eax
+  int v3; // esi
+  __int64 v4; // rcx
+  float v6; // [esp+0h] [ebp-48h]
+  _DWORD v7[12]; // [esp+18h] [ebp-30h] BYREF
+
+  v2 = this[89];
+  v3 = *(_DWORD *)(v2 + 3920);
+  HIDWORD(v4) = 0;
+  if ( v3 < 40 && !*(_DWORD *)(v2 + 7188) )
+  {
+    ++*(_DWORD *)(v2 + 4 * v3 + 1632);
+    LODWORD(v4) = *(_DWORD *)(this[89] + 4 * v3 + 1632);
+    if ( (unsigned int)v4 > 1 )
+    {
+      v6 = (double)v4 * 30.0;
+      sub_4BE3E0(v3, v6);
+      *(_DWORD *)(this[89] + 4 * v3 + 1632) = 0;
+    }
+    sub_4B0770(40, 7, 0, 0, 0);
+  }
+  sub_45FA70(aPulledByLeashM, 0, 0);
+  v7[1] = 0;
+  v7[0] = &CreaturePlan::`vftable';
+  sub_4D1380(v7);
+  v7[2] = 24;
+  v7[3] = 0;
+  v7[6] = 89;
+  v7[4] = sub_4BA1B0(this);
+  v7[5] = 0;
+  v7[11] = 1008981770;
+  sub_4D15E0(v7, 1);
+  return sub_4D13A0(v7);
+}
+
+// ---- 0x4b3770 ----
+_DWORD *__thiscall sub_4B3770(_DWORD *this, _DWORD *a2)
+{
+  _DWORD *result; // eax
+  int v3; // edx
+
+  result = this;
+  v3 = a2[1];
+  *this = &Base::`vftable';
+  this[1] = v3;
+  this[2] = a2[2];
+  this[3] = a2[3];
+  this[4] = a2[4];
+  this[5] = a2[5];
+  this[6] = a2[6];
+  this[7] = a2[7];
+  this[8] = a2[8];
+  this[9] = a2[9];
+  this[10] = a2[10];
+  this[11] = a2[11];
+  *this = &CreaturePlan::`vftable';
+  return result;
+}
+
+// ---- 0x4aceb0 ----
+int __thiscall sub_4ACEB0(int this, float *a2)
+{
+  int v3; // eax
+  int v5; // eax
+  _DWORD *v6; // ecx
+  _DWORD *v7; // ebp
+  int v8; // ebp
+  int v9; // edi
+  int v10; // edi
+  int v11; // ebx
+  int v12; // eax
+  int v13; // edx
+  int v14; // eax
+  int v15; // eax
+  BOOL v16; // [esp+Ch] [ebp-1A8h]
+  _DWORD v17[3]; // [esp+10h] [ebp-1A4h] BYREF
+  _DWORD v18[12]; // [esp+1Ch] [ebp-198h] BYREF
+  _BYTE v19[4]; // [esp+4Ch] [ebp-168h] BYREF
+  int v20; // [esp+50h] [ebp-164h]
+  int v21; // [esp+54h] [ebp-160h]
+  int v22; // [esp+6Ch] [ebp-148h]
+  int v23; // [esp+70h] [ebp-144h]
+
+  v3 = *(_DWORD *)(this + 356);
+  if ( !*(_DWORD *)(v3 + 134372) )
+    return 1;
+  *(_DWORD *)(v3 + 7224) = 0;
+  if ( !sub_4B2A10(this)
+    || (*(_BYTE *)(this + 36) & 0x10) != 0
+    || *(_DWORD *)(this + 4268) && !sub_464DC0((_DWORD *)this) )
+  {
+    return 1;
+  }
+  if ( ((double (__thiscall *)(int))*(_DWORD *)(*(_DWORD *)this + 284))(this) <= 0.0
+    || *(float *)(*(_DWORD *)(this + 352) + 48) >= 1.0 )
+  {
+    return 1;
+  }
+  if ( sub_7344DA(a2, 0, &Object `RTTI Type Descriptor', &BigForest `RTTI Type Descriptor', 0) )
+    return sub_4AD400(a2 + 5);
+  if ( !sub_7344DA(a2, 0, &Object `RTTI Type Descriptor', &FishFarm `RTTI Type Descriptor', 0)
+    || !sub_4BEE70(4)
+    || !sub_4C3F50(0, 4)
+    || *(float *)(*(_DWORD *)(this + 352) + 28) >= 1.0 )
+  {
+    if ( (*(int (__thiscall **)(float *))(*(_DWORD *)a2 + 172))(a2) )
+    {
+      v7 = (_DWORD *)(*(_DWORD *)(this + 356) + 8656);
+      *v7 = sub_4E8C20;
+      v7[1] = 0;
+      v7[2] = 0;
+      v7[3] = 0;
+    }
+    v8 = *(_DWORD *)(*(_DWORD *)(this + 352) + 88);
+    v9 = sub_4B29D0(this);
+    if ( v9 == sub_527D60(dword_C22CA4) )
+    {
+      LH_SamplePlayOptions::LH_SamplePlayOptions(v19);
+      v20 = *(_DWORD *)(dword_BF4E68 + 940);
+      v23 = 1;
+      v22 = 0;
+      v21 = 0;
+      sub_423DB0(v19);
+      LH_SamplePlayOptions::~LH_SamplePlayOptions(v19);
+    }
+    sub_46BB20(55, 0, 0.0);
+    sub_46CBE0(200);
+    *(_DWORD *)(*(_DWORD *)(this + 356) + 101460) = 0;
+    v10 = sub_4BA200(*(float **)(this + 356), this, a2);
+    v11 = sub_4BB170(v10);
+    v18[1] = 0;
+    v18[0] = &CreaturePlan::`vftable';
+    sub_4D1380(v18);
+    v12 = *(_DWORD *)(this + 356);
+    v16 = *(_DWORD *)(v12 + 7188) != 0;
+    sub_4B6D60(v12 + 1808);
+    sub_45FA70(0, 0, 1);
+    sub_4778C0(v8);
+    v13 = *(_DWORD *)(this + 352);
+    if ( *(_DWORD *)(v13 + 40) )
+    {
+      v14 = sub_4BA1B0(*(_DWORD *)(v13 + 40));
+      if ( sub_4AC5F0(v11, v10, v14, v18) || sub_4AC530(v11, v10, v18) )
+      {
+LABEL_23:
+        sub_4D15E0(v18, 1);
+LABEL_29:
+        if ( v16 )
+          sub_4683D0(*(float *)(*(_DWORD *)(this + 40) + 600));
+        if ( sub_4D13B0(*(_DWORD *)(this + 356) + 3912) )
+        {
+          sub_4B0770(
+            41,
+            *(_DWORD *)(*(_DWORD *)(this + 356) + 3920),
+            *(_DWORD *)(*(_DWORD *)(*(_DWORD *)(this + 356) + 3928) + 48),
+            *(_DWORD *)(this + 356) + 7288,
+            0);
+          *(_DWORD *)(*(_DWORD *)(this + 356) + 7188) = 1;
+          sub_4D4520(a2);
+          sub_4C27E0(a2);
+        }
+        sub_4D13A0(v18);
+        return 1;
+      }
+    }
+    else
+    {
+      v15 = sub_7344DA(
+              *(_DWORD *)(v10 + 48),
+              0,
+              &GameThingWithPos `RTTI Type Descriptor',
+              &Object `RTTI Type Descriptor',
+              0);
+      if ( !(*(int (__thiscall **)(int, int))(*(_DWORD *)v15 + 600))(v15, this) && sub_4AC530(v11, v10, v18) )
+        goto LABEL_23;
+    }
+    sub_4AE300(v10);
+    goto LABEL_29;
+  }
+  sub_5C0400(v17);
+  *(_DWORD *)(this + 448) = 1;
+  v5 = sub_4BA1B0(this);
+  sub_4AB9B0(4, 0, 155, v5, 0, 1, 1);
+  v6 = (_DWORD *)(*(_DWORD *)(this + 356) + 4068);
+  *v6 = v17[0];
+  v6[1] = v17[1];
+  v6[2] = v17[2];
+  *(_DWORD *)(*(_DWORD *)(this + 356) + 7188) = 1;
+  if ( sub_4D13B0(*(_DWORD *)(this + 356) + 3912) )
+    sub_4B0770(
+      41,
+      *(_DWORD *)(*(_DWORD *)(this + 356) + 3920),
+      *(_DWORD *)(*(_DWORD *)(*(_DWORD *)(this + 356) + 3928) + 48),
+      *(_DWORD *)(this + 356) + 7288,
+      0);
+  sub_4D4520(a2);
+  *(_DWORD *)(this + 4536) = 1;
+  return 1;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

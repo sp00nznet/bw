@@ -102,4 +102,34 @@ uint32_t DesireModel::DominantDesire() const {
     return best;
 }
 
+// ---------------------------------------------------------------------------
+// Plans
+// ---------------------------------------------------------------------------
+
+// sub_4D1450
+void PlanState::Init() {
+    for (uint32_t i = 0; i < kNumCreatureDesires; ++i) {
+        plans[i] = ActionPlan();
+        plans[i].desire = i;   // each slot owns its desire from the start
+    }
+    current_desire = kNumCreatureDesires;
+    current_action = 0;
+}
+
+// sub_4D15E0: the plan is copied wholesale into the current-plan slot, and the
+// desire and action fall out of it at their own offsets.
+void PlanState::SetCurrent(const ActionPlan& plan) {
+    current_desire = plan.desire;
+    current_action = plan.action;
+    if (plan.desire < kNumCreatureDesires) plans[plan.desire] = plan;
+}
+
+ActionPlan* PlanState::For(uint32_t desire) {
+    return desire < kNumCreatureDesires ? &plans[desire] : nullptr;
+}
+
+const ActionPlan* PlanState::For(uint32_t desire) const {
+    return desire < kNumCreatureDesires ? &plans[desire] : nullptr;
+}
+
 }  // namespace creature
