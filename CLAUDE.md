@@ -363,15 +363,26 @@ All three landed via the decompiler pipeline; see the commits for detail.
   is ours — arithmetic exact, storage shape a choice.
 
 Remaining:
-0. **Creature AI: a validated CreatureMind reader** — the grammar is recovered
-   (`work/parse_mindreader.py` → `work/decomp/mind_format.txt`): flat
-   little-endian stream, 1/2/4-byte reads, version-gated on `dword_BCC4D4`.
-   77 reads extracted so far across the top-level and five nested
-   deserializers. What remains is to walk the remaining nested loaders and then
-   **validate by parsing all eight shipped minds to exactly their own length** —
-   that check is what makes a reader safe to ship, since the failure mode is
-   silent (plausible floats in the wrong fields). See
-   `work/decomp/creature_data.md`.
+- **CreatureMind reader landed** (`CreatureMindFile.cpp`). All four shipped
+  saved minds parse — Khazar/Lethys/Nemesis (v25, "Matey") and
+  ComputerControlledCreature (v30, "Richard") — giving 40 desires with active
+  flags, tuning floats and 58 sources. Validated by enum alignment: desire 0's
+  sources come out as the IMPRESS_*, desire 1's the COMPASSION_*, etc., matching
+  two separate CC0 enums the parser knows nothing about.
+  The **version-17 files are a different format** — behaviour profiles, not
+  saved creatures; refused rather than misread.
+
+Remaining:
+0. **Creature AI: wire the mind into the creature** — desires now have real
+   weights and sources. Next is `CreatureDesires` computation (turning sources
+   into a per-desire value), picking the dominant desire, then
+   `CreatureAgenda`/`CreaturePlan` to turn that into an action, and finally
+   `Creature::ProcessState`. The learning tree (`CreatureLearner.cpp`) plugs in
+   at the point where a desire needs an opinion about a candidate object.
+1. **The rest of the mind file** — the reader stops after the desire block; the
+   remainder (learning episodes, beliefs, attitude) is the bulk of the bytes.
+   Same method: walk the nested deserializers with `work/parse_mindreader.py`.
+2. **The version-17 behaviour profiles** — separate format, separate work.
    Note the fifteen creature tuning tables are `.bss`, filled from this data —
    there is nothing to read out of the exe, and our headers *and* the vendor's
    have all fifteen wrong at 0x10 (RTTI wrapper only, payload 56..916 bytes).
