@@ -53,6 +53,7 @@ cmake --build build --config Release
 - **~100% coverage** of 569 vendor types (entity hierarchy complete)
 - **0 TODO comments remaining** — all stubs documented with descriptive comments
 - **Ghidra headless pipeline operational**
+- **Save/load: 91 of 178 save types exact** — table-driven, generated from the binary
 - **bw_viewer links bw_core** — dual entity system with state sync
 - **LHVM: 464/465 typed natives (100%)** — only NONE stub remaining
 - **LHVM bindings: ~430 natives wired with real bodies** (LHVMObjects.cpp, 8 chunks, ~3,900 lines)
@@ -303,32 +304,72 @@ Also implemented:
 - Base::operator new/delete: defined (were declared but missing)
 
 ## What's Next (priority order)
-DONE this session: MP2 decoder, billboard spell FX, tolerant bone remap,
-person-only gestures, hand-phase state, SET_HEADING_AND_SPEED movement,
-decompiler pipeline, GameOSFile + GameThing save/load foundation.
 
-Remaining (mostly decompiler-driven — use `tools/decomp/bw_decomp.py`):
-1. **Phase 7 leaf fan-out** — extract vtable slots 58/59/60 (Load/Save/GetSaveType)
-   for every savable leaf, translate against the GameThing pattern, add the
-   top-level save/load driver → load retail `.sav`. Per-class fan-out =
-   multi-agent workflow. (Foundation + pattern already in place.)
-2. **PSys scope-A** — faithful port of the ~128-class Atom/Rule particle engine
-   (AtomCollection/AtomCore, EmitterRule*, UR_*/AR_*, EC_*) for byte-exact spell
-   visuals. Decompilation already extracted to `work/decomp/psys_atoms.txt`.
-3. **HandState 6C-faithful** — drive the real polymorphic HandState subclasses
-   (opaque-blob fields → needs per-method decompilation).
-4. **Computer player AI** behaviour.
-5. **Multiplayer** — LAN-only, planned for a SEPARATE PRIVATE repo + server
+### Session 2026-08-30 (Phase 7 + 6C-faithful + PSys scope-A)
+All three landed via the decompiler pipeline; see the commits for detail.
+
+- **Phase 7 (save/load)** — the fan-out is done *as data*, not 200 hand-written
+  method pairs. Every Save body in the binary is the same shape (delegate to
+  parent, then run a field list), so slots 58/59/60 across all 200 savable
+  classes were parsed into `src/core/SaveLoadTable.gen.cpp` (152 rows, 908 field
+  ops, 178 save-type ids) and one chain walker in `SaveLoad.cpp` replays them in
+  both directions. Pointers are an object graph: an object is written inline the
+  first time it is referenced, by ordinal after that.
+  **91 of 178 save types have a fully exact chain**; `SaveFields`/`LoadFields`
+  refuse the other 87 rather than write a stream that disagrees with the
+  original. Those need per-class work (Town, Citadel, Creature, the animal
+  state-dispatch at 0x417e40, the Spell family's container walks).
+  Fixed seven wrong save-type ids inherited from vendor v1.41 — Rock was
+  carrying Workshop's (82; the real one is 111).
+- **6C-faithful hand** — real polymorphic `HandState` objects owned by `CHand`,
+  Exit-then-Enter transitions, viewer reports `GET_HAND_STATE` off the live
+  state. Found that these bodies are mostly *drawing* (Holding::Update is 700
+  lines of mesh calls), so draws funnel through a hook and what is translated is
+  the behaviour underneath: Normal's idle-clip latch, PlayAnim's completion
+  flag, Grain's offer lerp, and the three virtuals Holding adds at slots 5..7
+  that the old header was missing.
+- **PSys scope-A** — the atom/rule engine (`black/PSysEngine.h`). The lever was
+  that every rule publishes its parameters to the particle editor from vtable
+  slot 3, so `work/parse_psysrules.py` recovered **49 rule classes / 210
+  parameters** with real names, offsets, types and ranges
+  (`work/decomp/psys_rules.json`). Implemented: Atom (304 bytes, offsets
+  asserted), the shared 8-slot rule interface with its condition gate, five
+  appearance rules, six event conditions, three emitters.
+
+Remaining:
+1. **Phase 7 completion** — the 87 partial save types. Each needs its container
+   walk translated by hand; the table + walker are in place and the parser
+   reports exactly which chain row blocks each type.
+2. **PSys rule graphs** — byte-exact spell visuals are NOT reachable from this
+   data set: there are no `.psy` files in `game_data` and no rule-name table in
+   the exe, so the graphs are constructed in code, one function per effect.
+   Reproducing a specific spell means decompiling those constructors and
+   plugging them into the engine that now exists.
+3. **PSys renderer half** — the ParticleCreator family and the 74-slot
+   Particle3D* leaves, once there is a renderer in core to bind them to.
+4. **HandState blob fields** — Camera/Tug/Creature/Citadel keep their opaque
+   blocks; each is waiting on a different subsystem (GCamera save/restore,
+   physics records, CreatureMental command state, the citadel interface).
+5. **Computer player AI** behaviour.
+6. **Multiplayer** — LAN-only, planned for a SEPARATE PRIVATE repo + server
    emulator (BWGameSpy online backend is dead; descoped). Design TBD.
 
-Ghidra cross-check is not yet live: `work/ghidra_project` has 0 vftable labels
-(RTTI analyzer never run on import) — re-analyse with RTTI on to enable it.
-IDA idalib is the sole working extractor and is sufficient.
+Ghidra cross-check is still not live: `work/ghidra_project` has 0 vftable labels
+(RTTI analyzer never run on import). IDA idalib is the sole working extractor
+and has been sufficient throughout.
 
 ## Common Pitfalls (learned the hard way)
 - **Vendor addresses are v1.41, binary is v1.0** — use MSVC mangled name search in Ghidra, not raw addresses
 - `IsWorshipSite` has two overloads in base: `IsWorshipSite_1()` (no args) and `IsWorshipSite_0(Creature*)` — use suffixed names
 - `DoCreatureMimicAfterAddingResource` takes `GInterfaceStatus*` (pointer), not reference
 - `GetDistanceFromObject` has overloads: `GetDistanceFromObject_1(Object*)` — use suffixed name
+- **Save-type ids from vendor v1.41 can be wrong for v1.0** — take them from the
+  binary's vtable slot 60 (`work/decomp/save_ids.txt`), not from vendor headers
+- **Hex-Rays writes a field address six different ways** and scales the offset by
+  whatever pointer type it picked (`this + 32` on an `int*` is byte 128). Any
+  extractor that reads offsets out of pseudocode has to normalise for that first
+  — see `normalize()` in `work/parse_saveslots.py`
+- **The build dir is path-pinned**: a `build/` configured under `D:/` will not
+  work from `G:/`. Delete and re-run cmake if the drive letter changed
 - BuildingSite inherits GameThing (NOT Object), so its `Init()`/`Process()` are NEW vtable entries, not overrides
 - CameraMode has its OWN vtable hierarchy completely separate from GameThing
