@@ -22,7 +22,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**601 headers | 254 implementations | 17 viewer modules | ~50,500 lines of C++ | 252 commits**
+**612 headers | 265 implementations | 35 viewer files | ~57,000 lines of C++ | 10 test suites | 288 commits**
 
 The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts drive entity spawning, the LHVM dispatches ~430 wired native functions, villagers play real ANM skeletal animations from `AllAnims.anm`, real MP2 voice/dialogue decodes and plays, spell casts throw camera-facing particle FX, and the camera follows whatever the script tells it to.
 
@@ -88,7 +88,22 @@ A second decompiler toolchain (`tools/decomp/`) now drives faithful translation:
 - Slot-based binary snapshot (`BWSV` magic, v1) with section tags `GTRN`/`ENTS`/`HAND`/`LGLB`/`LINF`
 - F5 saves slot 0, F9 loads it
 - `SAVE_GAME_IN_SLOT` script native fires real serialization via `g_save_slot_func`
-- **Native save format foundation** (toward loading retail `.sav`): `GameOSFile` serializer translated from the binary — `Open/Close/Write/Read` reproducing the on-disk byte format + the running checksum rule (`buf[0] + size` per op, folded at field 0x214), with `GameThing::Save/Load/GetSaveType/SaveExtraData`. Verified by `test_save` (write→read roundtrip + checksum consistency). Per-leaf-class fan-out + top-level driver still to come.
+- **Native save format** (toward loading retail `.sav`): `GameOSFile` reproduces the on-disk byte format and the running checksum rule (`buf[0] + size` per op, folded at 0x214). The per-class fan-out is done *as data* rather than 200 hand-copied method pairs — every `Save` body in the binary has the same shape, so vtable slots 58/59/60 across all 200 savable classes were parsed into a generated field table (152 rows, 908 field ops, 178 save-type ids) that one chain walker replays in both directions. Pointers are an object graph: an object is written inline the first time it is referenced, by ordinal thereafter. **91 of 178 save types have a chain recovered exactly**; the rest are *refused* rather than half-written. `test_saveload` covers the round trip, the checksum, and a shared object coming back as one pointer rather than two copies.
+
+**Creature AI — recovered from the binary**
+- **Attributes** — the 24 feature extractors a decision tree branches on, with their real thresholds (a town is big at 40, a forest at 20 trees, alive is above 20% health). Ids cross-check against chlasm's CC0 enum.
+- **Belief vectors** — what the creature can notice about each kind of thing. A creature can learn that burning houses matter because `OnFire` is in the abode vector, and can never learn anything about a burning forest, because it is not in the forest one.
+- **Learning** — greedy decision-tree induction with gain ratio (C4.5, per creature, at runtime). Impurity blends two entropies, weighting *whether* it liked a thing double against *how much*. `test_learning` shows a creature shown burning and intact houses discovering `OnFire` unaided.
+- **Opinions** — the 11-level −1…+1 scale, read from `.rdata` rather than inferred. The bands overlap, which biases every opinion one step down and makes the top level unreachable: a creature can hate something completely and never quite love it that much.
+- **CreatureMind reader** — parses the four saved minds the game ships (Khazar/Lethys/Nemesis, "Matey"; ComputerControlledCreature, "Richard"), giving 40 desires with their sources. Validated by enum alignment: desire 0's sources come out as exactly the `IMPRESS_*` ones, desire 1's the `COMPASSION_*`, and so on.
+- **Desire dynamics** — per-tick decay, per-source-type decay, and the 40×40 dependency matrix that couples every desire to every other. Getting hungry making a creature less playful is one signed number in that matrix.
+- **Plans and actions** — 95 action names and 32 dispatch slots decoded out of an inlined initialiser IDA never made a function.
+
+**Particle engine (PSys scope-A)**
+- The atom/rule engine: `Atom` (304 bytes, offsets asserted), the shared 8-slot rule interface with its condition gate, five appearance rules, six event conditions, three emitters — with **210 parameters recovered under their real names** from the rules' own editor registrations.
+
+**Hand (6C-faithful)**
+- Real polymorphic `HandState` objects owned by a `HandMachine`, Exit-then-Enter transitions, and the three virtuals `HandStateHolding` adds that the vendor header was missing entirely.
 
 ### Phase 0: Reconnaissance — COMPLETE
 - [x] Acquire original game files
