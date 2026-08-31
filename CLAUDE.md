@@ -387,8 +387,8 @@ Remaining:
   the current *action* and maps back: the current plan sits at mental+3912, so
   its action is at +3936, which is what the attribute reads.
 
-- **95 action names recovered** (`CreatureActionNames.h`) by decoding the
-  dispatch-table initialiser — an inlined `mov [table + 80*i], offset "..."` run
+- **95 action names + 52 dispatch slots** (`CreatureActionNames.h`) by decoding
+  the dispatch-table initialiser — an inlined `mov [table + 80*i], offset "..."` run
   around 0x481000 that IDA never made a function, hence no xref. Only entries
   233..327 are named; 1..232 are never written. Record layout: 80 bytes, name
   at +0, handler at +32, second code pointer at +52 (`sub_4B6CA0` dispatches).
@@ -461,6 +461,11 @@ and has been sufficient throughout.
   whatever pointer type it picked (`this + 32` on an `int*` is byte 128). Any
   extractor that reads offsets out of pseudocode has to normalise for that first
   — see `normalize()` in `work/parse_saveslots.py`
+- **A pointer into the code segment is not necessarily a function.** The action
+  table's +52 entries looked like handler addresses and passed every range check;
+  they are two-instruction vcall thunks (`mov eax,[ecx]; jmp [eax+N]`) holding a
+  pointer-to-member. Read the bytes at an address before calling it an
+  implementation.
 - **Check before writing a new header**: `black/CHand.h` and
   `black/CreatureLearning.h` are vendor structs with real recovered layouts
   (0x49C4 and 0x16168). A host-side type that wants the same name must take a
