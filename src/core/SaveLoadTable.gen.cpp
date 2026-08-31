@@ -5,7 +5,7 @@
 // Each row is one class's own contribution to the save stream, applied
 // after its parent's -- the order the original code delegates in.
 //
-// 152 rows (97 usable), 908 fields, 178 save-type ids (91 fully exact).
+// 152 rows (98 usable), 908 fields, 178 save-type ids (122 fully exact).
 
 #include "black/SaveLoadTable.h"
 
@@ -927,7 +927,7 @@ const ClassDesc kClasses[] = {
     { "PlannedAbode", 64, 0, 1, HOOK_NONE, true },  // 0x403f00
     { "GWaterfall", -1, 1, 0, HOOK_NONE, true },  // 0x404e70
     { "Abode", 30, 1, 10, HOOK_NONE, false },  // 0x405070
-    { "Cow", 45, 11, 12, HOOK_NONE, false },  // 0x4178f0
+    { "Cow", 45, 11, 12, HOOK_NONE, true },  // 0x4178f0
     { "Bat", 3, 23, 0, HOOK_NONE, true },  // 0x41a1e0
     { "SpellBat", 4, 23, 1, HOOK_NONE, true },  // 0x41ac00
     { "SpellWolf", 3, 24, 5, HOOK_NONE, true },  // 0x41c050

@@ -329,6 +329,13 @@ PRIMS = {
     "sub_589540", "sub_4EBF70", "sub_4EC100", "sub_531BC0", "sub_531F30",
     "sub_533120", "sub_533110", "sub_533B90", "sub_533BF0", "sub_531FF0",
     "sub_532060", "sub_5341D0",
+    # The animal per-state Save/Load dispatch (sub_417F20 / sub_417F30 forward
+    # to sub_417E40 / sub_417EB0). Both index a 53-row PMF table whose Save and
+    # Load columns are assigned 0 for every single row by the initialiser at
+    # sub_5707FF -- the hook shipped with nothing registered in it, so both
+    # calls hit `if (!fn) return 0` and move no bytes. Verified column by
+    # column, not assumed from the two rows that were legible.
+    "sub_417F20", "sub_417F30", "sub_417E40", "sub_417EB0",
     "sub_533C50", "sub_533C90",                               # checksum marker
     "sub_5B3190",                                             # loader progress tick
     "sub_73445E", "sub_7344DA", "sub_733E17", "sub_7290DE",   # stack helpers
