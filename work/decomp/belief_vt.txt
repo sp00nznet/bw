@@ -1,0 +1,12 @@
+0x80ecb0 CreatureBelief
+0x80eb30 CreatureBeliefAboutAbode
+0x80eae8 CreatureBeliefAboutCitadel
+0x80eaa0 CreatureBeliefAboutContext
+0x80ebc0 CreatureBeliefAboutCreature
+0x80ea58 CreatureBeliefAboutFlock
+0x80ec08 CreatureBeliefAboutForest
+0x80ec50 CreatureBeliefAboutTown
+0x80eb78 CreatureBeliefAboutVillager
+0x80e7a4 CreatureBeliefList
+0x80ea10 CreatureBeliefSmall
+0x80e784 CreatureBeliefs

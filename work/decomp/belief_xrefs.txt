@@ -1,0 +1,101 @@
+// ---- xrefs to 0x80ecb0 ----
+data         from 0x4b9eb8     in 0x4b9ea0
+data         from 0x4bb116     in 0x4bb110
+// ---- xrefs to 0x80eb30 ----
+data         from 0x4b912f     in 0x4b8ff0
+data         from 0x4bb5c9     in 0x4bb460
+data         from 0x4bcb2b     in 0x4bcb00
+data         from 0x4bd015     in 0x4bd010
+// ---- xrefs to 0x80eae8 ----
+data         from 0x4b916c     in 0x4b8ff0
+data         from 0x4bb57d     in 0x4bb460
+data         from 0x4bccbb     in 0x4bcc90
+data         from 0x4bd055     in 0x4bd050
+// ---- xrefs to 0x80eaa0 ----
+data         from 0x4b91a9     in 0x4b8ff0
+data         from 0x4bbb06     in 0x4bb460
+data         from 0x4bcdd8     in 0x4bcdb0
+data         from 0x4bd090     in 0x4bd090
+// ---- xrefs to 0x80ebc0 ----
+data         from 0x4b90ae     in 0x4b8ff0
+data         from 0x4bb754     in 0x4bb460
+data         from 0x4bc70b     in 0x4bc6e0
+data         from 0x4bcf55     in 0x4bcf50
+// ---- xrefs to 0x80ea58 ----
+data         from 0x4b91fe     in 0x4b8ff0
+data         from 0x4bb4e5     in 0x4bb460
+data         from 0x4bc5eb     in 0x4bc5c0
+data         from 0x4bcf15     in 0x4bcf10
+// ---- xrefs to 0x80ec08 ----
+data         from 0x4b9071     in 0x4b8ff0
+data         from 0x4bb531     in 0x4bb460
+data         from 0x4bc8ab     in 0x4bc880
+data         from 0x4bcf95     in 0x4bcf90
+// ---- xrefs to 0x80ec50 ----
+data         from 0x4b9034     in 0x4b8ff0
+data         from 0x4bb496     in 0x4bb460
+data         from 0x4bc3cb     in 0x4bc3a0
+data         from 0x4bced5     in 0x4bced0
+// ---- xrefs to 0x80eb78 ----
+data         from 0x4b90f2     in 0x4b8ff0
+data         from 0x4bb6b6     in 0x4bb460
+data         from 0x4bc99b     in 0x4bc970
+data         from 0x4bcfd5     in 0x4bcfd0
+data         from 0x4bd41f     in 0x4bd3d0
+// ---- xrefs to 0x80e7a4 ----
+data         from 0x4b5b11     in 0x4b5ac0
+// ---- xrefs to 0x80ea10 ----
+data         from 0x4b9237     in 0x4b8ff0
+data         from 0x4bb618     in 0x4bb460
+data         from 0x4bb667     in 0x4bb460
+data         from 0x4bb705     in 0x4bb460
+data         from 0x4bb7a6     in 0x4bb460
+data         from 0x4bb7f5     in 0x4bb460
+data         from 0x4bb844     in 0x4bb460
+data         from 0x4bb893     in 0x4bb460
+data         from 0x4bb8e2     in 0x4bb460
+data         from 0x4bb931     in 0x4bb460
+data         from 0x4bb980     in 0x4bb460
+data         from 0x4bb9cf     in 0x4bb460
+data         from 0x4bba1e     in 0x4bb460
+data         from 0x4bba6d     in 0x4bb460
+data         from 0x4bbabc     in 0x4bb460
+data         from 0x4bbb52     in 0x4bb460
+data         from 0x4bbba1     in 0x4bb460
+data         from 0x4bc2ab     in 0x4bc280
+data         from 0x4bce95     in 0x4bce90
+// ---- xrefs to 0x80e784 ----
+data         from 0x4b5b56     in 0x4b5ac0
+data         from 0x4bb016     in 0x4bb010
+// ---- xrefs to 0x4bbf80 ----
+code         from 0x4b903a     in 0x4b8ff0
+code         from 0x4bb49c     in 0x4bb460
+code         from 0x4bc3d1     in 0x4bc3a0
+// ---- xrefs to 0x4bc3a0 ----
+data         from 0x80ec84     in (not in a function)
+// ---- xrefs to 0x4bc030 ----
+code         from 0x4b90b4     in 0x4b8ff0
+code         from 0x4bb75a     in 0x4bb460
+code         from 0x4bc711     in 0x4bc6e0
+// ---- xrefs to 0x4bc6e0 ----
+data         from 0x80ebf4     in (not in a function)
+// ---- xrefs to 0x4bc0e0 ----
+code         from 0x4b9077     in 0x4b8ff0
+code         from 0x4bb537     in 0x4bb460
+code         from 0x4bc8b1     in 0x4bc880
+// ---- xrefs to 0x4bc880 ----
+data         from 0x80ec3c     in (not in a function)
+// ---- xrefs to 0x4bc120 ----
+code         from 0x4b90f8     in 0x4b8ff0
+code         from 0x4bb6bc     in 0x4bb460
+code         from 0x4bc9a1     in 0x4bc970
+// ---- xrefs to 0x4bc970 ----
+data         from 0x80ebac     in (not in a function)
+// ---- xrefs to 0x4bc1d0 ----
+code         from 0x4b9135     in 0x4b8ff0
+code         from 0x4bb5cf     in 0x4bb460
+code         from 0x4bcb31     in 0x4bcb00
+// ---- xrefs to 0x4bcb00 ----
+data         from 0x80eb64     in (not in a function)
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

@@ -10,13 +10,15 @@ and decompile every slot via Hex-Rays.
     py -3.11 bw_decomp.py <exe-or-i64> classes <classlist.txt> <out.txt> [slot ...]
     py -3.11 bw_decomp.py <exe-or-i64> vtable  <ClassName>
     py -3.11 bw_decomp.py <exe-or-i64> addr    <0xADDR> [more 0xADDR ...]
+    py -3.11 bw_decomp.py <exe-or-i64> xrefs   <0xADDR> [...]   who references it
+    py -3.11 bw_decomp.py <exe-or-i64> callees <0xADDR> [...]   what it calls
 
 The first run on the .exe analyses + saves a .i64; pass that .i64 afterwards
 for fast reopen.
 """
 import sys
 import idapro
-import ida_auto, ida_funcs, ida_name, ida_bytes, ida_hexrays, idc, idautils
+import ida_auto, ida_funcs, ida_name, ida_bytes, ida_hexrays, ida_xref, idc, idautils
 
 VTABLE_PATTERNS = ("??_7{c}@@6B@", "{c}::`vftable'", "??_7{c}@@6B@@")
 
@@ -139,6 +141,42 @@ def main():
                 continue
             s = ida_bytes.get_strlit_contents(ea, -1, 0)
             print("%s\t%s" % (nm, s.decode("latin-1") if s else "?"))
+    elif cmd == "xrefs":
+        # Who references this address, and from which function. The vtable walk
+        # only reaches virtual methods; a class like AttributeTest is plain data
+        # with non-virtual methods, so the only way in is to follow references
+        # from something we have already identified.
+        for a in sys.argv[3:]:
+            ea = int(a, 16)
+            print("// ---- xrefs to %s ----" % hex(ea))
+            seen = set()
+            for xref in idautils.XrefsTo(ea, 0):
+                f = ida_funcs.get_func(xref.frm)
+                owner = hex(f.start_ea) if f else "(not in a function)"
+                key = (owner, xref.frm)
+                if key in seen:
+                    continue
+                seen.add(key)
+                print("%-12s from %-12s in %s" % (
+                    "data" if xref.iscode == 0 else "code", hex(xref.frm), owner))
+    elif cmd == "callees":
+        # Every function this one calls, in address order -- the cheap way to
+        # map a subsystem once one entry point into it is known.
+        for a in sys.argv[3:]:
+            ea = int(a, 16)
+            f = ida_funcs.get_func(ea)
+            print("// ---- callees of %s ----" % hex(ea))
+            if not f:
+                continue
+            out = []
+            for item in idautils.FuncItems(f.start_ea):
+                for xref in idautils.XrefsFrom(item, 0):
+                    if xref.type in (ida_xref.fl_CN, ida_xref.fl_CF):
+                        callee = ida_funcs.get_func(xref.to)
+                        if callee and callee.start_ea not in out:
+                            out.append(callee.start_ea)
+            for c in out:
+                print(hex(c))
     else:
         print("unknown command", cmd, file=sys.stderr)
         save = False

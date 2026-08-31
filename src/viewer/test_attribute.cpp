@@ -7,6 +7,8 @@
 // threshold falls where the binary puts it.
 
 #include <black/Attribute.h>
+#include <black/GameThingWithPos.h>
+#include <black/CreatureBeliefAttributes.h>
 
 #include <cstdio>
 #include <cstring>
@@ -25,12 +27,11 @@ static uint32_t TownPop(const GameThingWithPos*) { return g_town_pop; }
 static uint32_t Carrying(const Creature*) { return g_carrying; }
 static float    Belief(const GameThingWithPos*, const Creature*) { return g_belief; }
 
-// Evaluate needs a non-null object to get past the guards; the stubbed
-// attributes never dereference it.
-static GameThingWithPos* FakeObj() {
-    static char storage[64] = {0};
-    return reinterpret_cast<GameThingWithPos*>(storage);
-}
+// A real object, not a cast buffer: DescribeObject runs every attribute in a
+// vector and several of them make virtual calls on their subject, so the test
+// subject needs an actual vtable. GameThingWithPos has no pure virtuals, so it
+// stands in directly.
+struct TestThing : GameThingWithPos {};
 
 int main() {
     // --- registry -----------------------------------------------------------
@@ -80,7 +81,8 @@ int main() {
     w.town_belief_in = Belief;
     SetAttributeWorld(w);
 
-    GameThingWithPos* obj = FakeObj();
+    TestThing thing;
+    GameThingWithPos* obj = &thing;
 
     // --- the clamp ----------------------------------------------------------
     // A feature bigger than the bucket count must saturate; wrapping would send
@@ -136,6 +138,98 @@ int main() {
         if (v >= a->GetNumValues()) safe = false;
     }
     CHECK(safe, "with no world and no object, every attribute stays in range");
+
+    // --- belief feature vectors ---------------------------------------------
+    // Each kind of belief describes its subject with a fixed ordered list. That
+    // list is the limit of what the creature can ever learn to tell apart.
+    SetAttributeWorld(w);
+
+    uint32_t n = 0;
+    const ATTRIBUTE_TYPE* v = GetBeliefAttributes(CREATURE_BELIEF_BASE, n);
+    CHECK(v && n == 7, "the common vector is the seven from the base builder");
+    CHECK(v[0] == ATTRIBUTE_TYPE_ALLEGIANCE && v[6] == ATTRIBUTE_TYPE_TYPE,
+          "and is in the order the builder installs them");
+
+    bool prefix_ok = true;
+    for (uint32_t k = 0; k < _CREATURE_BELIEF_KIND_COUNT; ++k) {
+        uint32_t kn = 0;
+        const ATTRIBUTE_TYPE* kv =
+            GetBeliefAttributes(static_cast<CREATURE_BELIEF_KIND>(k), kn);
+        if (!kv || kn < 7) { prefix_ok = false; continue; }
+        for (uint32_t i = 0; i < 7; ++i)
+            if (kv[i] != v[i]) prefix_ok = false;
+    }
+    CHECK(prefix_ok, "every belief kind opens with the common seven");
+
+    v = GetBeliefAttributes(CREATURE_BELIEF_ABODE, n);
+    CHECK(n == 11 && v[7] == ATTRIBUTE_TYPE_ABODE_TYPE &&
+          v[8] == ATTRIBUTE_TYPE_LIFE && v[9] == ATTRIBUTE_TYPE_ABODE_ON_FIRE &&
+          v[10] == ATTRIBUTE_TYPE_ABODE_BEING_BUILT,
+          "an abode belief adds type, life, fire and under-construction");
+
+    v = GetBeliefAttributes(CREATURE_BELIEF_TOWN, n);
+    CHECK(n == 11 && v[7] == ATTRIBUTE_TYPE_RELIGIOUS_BELIEF_IN_YOU &&
+          v[10] == ATTRIBUTE_TYPE_TRIBE,
+          "a town belief adds belief-in-you first and tribe last");
+
+    v = GetBeliefAttributes(CREATURE_BELIEF_FOREST, n);
+    CHECK(n == 8 && v[7] == ATTRIBUTE_TYPE_FOREST_SIZE,
+          "a forest belief adds only its size");
+
+    v = GetBeliefAttributes(CREATURE_BELIEF_CITADEL, n);
+    CHECK(n == 7, "citadel, context and flock beliefs add nothing");
+
+    v = GetBeliefAttributes(CREATURE_BELIEF_VILLAGER, n);
+    CHECK(n == 11 && v[7] == ATTRIBUTE_TYPE_SEX &&
+          v[8] == ATTRIBUTE_TYPE_VILLAGER_JOB,
+          "a villager belief adds sex and job");
+
+    // The asymmetry is the point: a creature can learn about a burning house
+    // because OnFire is in the abode vector, and can never learn anything about
+    // a burning forest, because it is not in the forest one.
+    bool abode_has_fire = false, forest_has_fire = false;
+    v = GetBeliefAttributes(CREATURE_BELIEF_ABODE, n);
+    for (uint32_t i = 0; i < n; ++i)
+        if (v[i] == ATTRIBUTE_TYPE_ABODE_ON_FIRE) abode_has_fire = true;
+    v = GetBeliefAttributes(CREATURE_BELIEF_FOREST, n);
+    for (uint32_t i = 0; i < n; ++i)
+        if (v[i] == ATTRIBUTE_TYPE_ABODE_ON_FIRE) forest_has_fire = true;
+    CHECK(abode_has_fire && !forest_has_fire,
+          "fire is describable on an abode but not on a forest");
+
+    CHECK(GetBeliefAttributes(
+              static_cast<CREATURE_BELIEF_KIND>(_CREATURE_BELIEF_KIND_COUNT), n) == nullptr,
+          "an unknown belief kind has no vector");
+    CHECK(n == 0, "and reports zero length");
+
+    // --- describing an object ------------------------------------------------
+    g_forest = 25;
+    uint8_t vec[kMaxBeliefAttributes] = {0};
+    const uint32_t wrote = DescribeObject(CREATURE_BELIEF_FOREST, obj, nullptr,
+                                          vec, kMaxBeliefAttributes);
+    CHECK(wrote == 8, "describing a forest fills the whole vector");
+    CHECK(vec[7] == 2, "and the forest-size slot carries its bucket");
+
+    uint8_t small[3] = {0, 0, 0};
+    CHECK(DescribeObject(CREATURE_BELIEF_TOWN, obj, nullptr, small, 3) == 3,
+          "a short buffer is filled to capacity, not overrun");
+    CHECK(DescribeObject(CREATURE_BELIEF_TOWN, obj, nullptr, nullptr, 8) == 0,
+          "no buffer means nothing written");
+
+    bool in_range = true;
+    for (uint32_t k = 0; k < _CREATURE_BELIEF_KIND_COUNT; ++k) {
+        uint8_t buf[kMaxBeliefAttributes] = {0};
+        const uint32_t got = DescribeObject(static_cast<CREATURE_BELIEF_KIND>(k),
+                                            obj, nullptr, buf, kMaxBeliefAttributes);
+        uint32_t kn = 0;
+        const ATTRIBUTE_TYPE* kv =
+            GetBeliefAttributes(static_cast<CREATURE_BELIEF_KIND>(k), kn);
+        for (uint32_t i = 0; i < got; ++i) {
+            Attribute* a = GetAttribute(kv[i]);
+            if (a && buf[i] >= a->GetNumValues()) in_range = false;
+        }
+    }
+    CHECK(in_range, "every feature in every vector is a valid bucket for its attribute");
 
     printf(g_fail ? "\n%d FAILURE(S)\n" : "\nALL PASS\n", g_fail);
     return g_fail ? 1 : 0;
