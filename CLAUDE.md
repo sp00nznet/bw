@@ -461,6 +461,12 @@ and has been sufficient throughout.
   whatever pointer type it picked (`this + 32` on an `int*` is byte 128). Any
   extractor that reads offsets out of pseudocode has to normalise for that first
   — see `normalize()` in `work/parse_saveslots.py`
+- **"No xref to that table" often means IDA never made the writer a function.**
+  Three dead ends this session were `.bss` dispatch tables filled by inlined
+  initialisers IDA left unanalysed; since `xrefs`/`callees`/`addr` are all
+  function-scoped, such a table looks like it has no writer at all. Run
+  `bw_decomp.py <i64> mkfunc <start> <end>` over the region first — it forces
+  the range to code, creates functions, and saves the `.i64`.
 - **A pointer into the code segment is not necessarily a function.** The action
   table's +52 entries looked like handler addresses and passed every range check;
   they are two-instruction vcall thunks (`mov eax,[ecx]; jmp [eax+N]`) holding a
