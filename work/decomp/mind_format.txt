@@ -1,0 +1,97 @@
+# CreatureMind read grammar, extracted by work/parse_mindreader.py
+# Each row is one primitive read in source order, with the version
+# gate it sits under and whether it repeats in a loop.
+
+== 0x4C95D0  (sub_4C95D0 (top level))  54 reads ==
+#     bytes  loop   guard
+0     4             -
+1     2      yes    -
+2     4             -
+3     4             -
+4     4             -
+5     4             -
+6     4             -
+7     4             -
+8     4             version >= 0x11
+9     4             -
+10    4      yes    -
+11    4      yes    -
+12    4      yes    -
+13    4      yes    -
+14    4      yes    version < 7
+15    4      yes    -
+16    4      yes    -
+17    4      yes    -
+18    4      yes    -
+19    4      yes    -
+20    4      yes    version < 0xF
+21    4             -
+22    4             -
+23    4             -
+24    4             -
+25    4             -
+26    4      yes    -
+27    4      yes    -
+28    4             -
+29    4      yes    -
+30    4      yes    version >= 8
+31    4             -
+32    4      yes    -
+33    4      yes    version >= 8
+34    4             -
+35    4             -
+36    4      yes    version >= 0x10
+37    4      yes    version >= 0x10
+38    4             version >= 0x17
+39    4             version < 0xB
+40    4      yes    version < 0xB
+41    4             -
+42    4             -
+43    4             -
+44    4             version >= 0x18
+45    4      yes    version >= 0x1B
+46    4      yes    version >= 0x1C
+47    4             version >= 0x1C
+48    1      yes    version >= 0x1C
+49    4      yes    version >= 0x1D
+50    4      yes    version >= 0x1D
+51    4      yes    version >= 0x1D and version >= 0x1F
+52    4             version >= 0x1E
+53    4             version >= 0x20
+
+== 0x4ca1e0  (nested deserializers)  1 reads ==
+#     bytes  loop   guard
+0     4             -
+
+== 0x4ca260  (nested deserializers)  2 reads ==
+#     bytes  loop   guard
+0     4             -
+1     4      yes    -
+
+== 0x4c9d70  (nested deserializers)  3 reads ==
+#     bytes  loop   guard
+0     4      yes    -
+1     4      yes    -
+2     4      yes    version < 0x14
+
+== 0x4ca040  (nested deserializers)  17 reads ==
+#     bytes  loop   guard
+0     4             -
+1     4             -
+2     4             -
+3     4             -
+4     4             -
+5     4             version < 0xE
+6     4             -
+7     4             version >= 6
+8     2             -
+9     4             -
+10    4             -
+11    4             -
+12    4             -
+13    4             -
+14    4             -
+15    4             version >= 0x16
+16    4             version >= 0x16 and version >= 0x16
+
+# 77 reads total across the functions dumped so far.

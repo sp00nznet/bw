@@ -66,12 +66,45 @@ a 32-byte block, a length-prefixed UTF-16 name (all three read `"Matey"`), then
 `40` — `NUM_CREATURE_DESIRES` — followed by per-desire records of an index and
 three floats.
 
-**Do not extrapolate that.** The same offsets are meaningless in the version-17
-and version-30 files, so the format is versioned with genuinely different
-layouts, and a reader written from the version-25 files alone would be
-confidently wrong on five of the eight. `sub_4C7CF0` decompiles to 247 lines of
-`__usercall` with the arguments spread across stack junk; it needs real work
-before a reader is written, not a plausible guess.
+### The format, recovered
+
+The stream is flat little-endian, read sequentially through three primitives on
+a 1024-byte buffered reader (confirmed by disassembly — cursor at `+0x50C`,
+buffer at `+0x10C`, refilled by `sub_6AB2E0` when a read would pass 1024):
+
+| primitive | bytes |
+|---|---|
+| `sub_6AB4B0` | 1 |
+| `sub_6AB4F0` | 2 |
+| `sub_6AB530` | 4 |
+
+Versioning is one global, `dword_BCC4D4`, with gates wrapping the fields each
+revision added — `version >= 0x11`, `>= 0x18`, `< 7`, and so on. That makes the
+format recoverable the same way the save tables were: read the ordered sequence
+of primitive calls and note the gate each sits under.
+
+`work/parse_mindreader.py` does exactly that; `work/decomp/mind_format.txt` is
+its output. The top-level deserializer is `sub_4C95D0` — **54 reads, 20 of them
+version-gated, 27 inside loops**, across 14 distinct gates from `< 7` up to
+`>= 0x20`. Five nested deserializers add 23 more.
+
+Its first two reads are a 4-byte count then that many 2-byte characters: the
+creature's name, length-prefixed UTF-16. That checks out against the files —
+offset 36 in the version-25 minds (`"Matey"`, all three) and offset 40 in the
+version-30 one (`"Richard"`), the four-byte shift being a field the loader
+prologue gained between those revisions.
+
+Also in the loader: `sub_4C9460` reads two length-prefixed byte blocks and puts
+each through `LHVersion::DecryptBlock`, then compares one against
+`LHNetGetCurrentUsedProfile` — the 28 bytes of high-entropy data at offset 8 in
+every file. The minds are profile-stamped.
+
+**Still not written as a reader, deliberately.** The grammar above is real, but
+a reader has to consume it in exactly the right order across all three versions,
+and the failure mode is silent: plausible floats in the wrong fields. The next
+step is to drive `work/decomp/mind_format.txt` against the eight shipped files
+and require that every one parses to exactly its own length — that is the check
+that makes it safe, and it has not been run yet.
 
 ## Why this matters for the learning code
 

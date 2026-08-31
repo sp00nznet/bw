@@ -1,0 +1,206 @@
+// ---- 0x4ca1e0 ----
+int __thiscall sub_4CA1E0(char *this, int a2)
+{
+  int result; // eax
+  int i; // edi
+  int v5; // [esp+Ch] [ebp-4h] BYREF
+
+  sub_4B9C80();
+  sub_6AB530(&v5);
+  result = v5;
+  for ( i = 0; i < v5; this += 4 )
+  {
+    sub_4CA2E0(a2);
+    sub_4CA2E0(a2);
+    result = v5;
+    ++i;
+  }
+  return result;
+}
+
+// ---- 0x4ca260 ----
+unsigned int __thiscall sub_4CA260(char *this, unsigned int a2)
+{
+  unsigned int result; // eax
+  unsigned int i; // esi
+
+  sub_6AB530(&a2);
+  result = a2;
+  for ( i = 0; i < a2; this += 4 )
+  {
+    sub_6AB530(this);
+    result = a2;
+    ++i;
+  }
+  return result;
+}
+
+// ---- 0x4c9d70 ----
+unsigned int __thiscall sub_4C9D70(_DWORD *this, int a2)
+{
+  int i; // edi
+  unsigned int result; // eax
+  _DWORD *v5; // eax
+  _DWORD *v6; // esi
+  _DWORD *v7; // eax
+  _DWORD *v8; // ecx
+  _DWORD *v9; // edx
+  unsigned int j; // [esp+10h] [ebp-Ch]
+  unsigned int v11; // [esp+14h] [ebp-8h] BYREF
+  _BYTE v12[4]; // [esp+18h] [ebp-4h] BYREF
+
+  for ( i = 0; i < 2; ++i )
+  {
+    result = sub_6AB530(&v11);
+    for ( j = 0; j < v11; ++j )
+    {
+      v5 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_23, 1234);
+      if ( v5 )
+      {
+        v5[1] = 0;
+        *v5 = &CreatureActionKnownAbout::`vftable';
+        v6 = v5;
+      }
+      else
+      {
+        v6 = 0;
+      }
+      sub_6AB530(v6 + 2);
+      if ( (unsigned int)dword_BCC4D4 < 0x14 )
+        sub_6AB530(v12);
+      if ( !sub_4C3F50(i, j) )
+      {
+        if ( v6 )
+        {
+          v7 = (_DWORD *)sub_73445E(8);
+          if ( v7 )
+          {
+            v7[1] = v6;
+            *v7 = 0;
+            v8 = (_DWORD *)this[2 * i + 2];
+            if ( v8 )
+            {
+              do
+              {
+                v9 = v8;
+                v8 = (_DWORD *)*v8;
+              }
+              while ( v8 );
+              *v9 = v7;
+            }
+            else
+            {
+              this[2 * i + 2] = v7;
+            }
+            ++this[2 * i + 3];
+          }
+        }
+      }
+      result = j + 1;
+    }
+  }
+  return result;
+}
+
+// ---- 0x4ca040 ----
+int __thiscall sub_4CA040(int this, int a2)
+{
+  int v3; // edi
+  int v5; // [esp+8h] [ebp-8h] BYREF
+  float v6; // [esp+Ch] [ebp-4h] BYREF
+
+  v3 = a2;
+  sub_6AB530(this + 112);
+  sub_6AB530(this + 8);
+  sub_6AB530(&v6);
+  sub_6AB530(this + 20);
+  sub_6AB530(this + 24);
+  if ( (unsigned int)dword_BCC4D4 < 0xE )
+    sub_6AB530(&a2);
+  sub_6AB530(this + 28);
+  if ( (unsigned int)dword_BCC4D4 >= 6 )
+    sub_6AB530(this + 32);
+  sub_6AB4F0(this + 36);
+  sub_6AB530(this + 44);
+  sub_6AB530(this + 48);
+  sub_6AB530(this + 52);
+  sub_6AB530(this + 56);
+  sub_6AB530(this + 60);
+  sub_6AB530(this + 64);
+  if ( (unsigned int)dword_BCC4D4 >= 0x16 )
+  {
+    sub_6AB530(&a2);
+    sub_4D0310(a2);
+    if ( (unsigned int)dword_BCC4D4 >= 0x16 )
+      sub_6AB530(&v5);
+  }
+  sub_4D5C40(v5);
+  sub_4D5CE0(v6);
+  (*(void (__thiscall **)(_DWORD, _DWORD))(**(_DWORD **)(this + 88) + 8))(
+    *(_DWORD *)(this + 88),
+    *(_DWORD *)(this + 108));
+  sub_469A20(v3);
+  sub_461380(*(_DWORD *)(this + 84));
+  (*(void (__thiscall **)(_DWORD))(**(_DWORD **)(this + 88) + 16))(*(_DWORD *)(this + 88));
+  return sub_5D1180(*(_DWORD *)(this + 88));
+}
+
+// ---- 0x4c0100 ----
+float *__thiscall sub_4C0100(float *this, int a2, int a3)
+{
+  int v5; // ebx
+  double v6; // st7
+  double v7; // st7
+  char v9; // c0
+  double v10; // st7
+  double v11; // st7
+  char v13; // c0
+  float v15; // [esp+0h] [ebp-1Ch]
+  float v16; // [esp+0h] [ebp-1Ch]
+  float v17; // [esp+20h] [ebp+4h]
+  float v18; // [esp+20h] [ebp+4h]
+
+  *((_DWORD *)this + 3) = a2;
+  v5 = *(_DWORD *)(*(_DWORD *)(a3 + 40) + 500) + 14 * a2 + 7 * a2;
+  *(_DWORD *)this = dword_BAACC8[v5];
+  if ( dword_C22134 )
+  {
+    v17 = flt_BAC0DC[41 * a2];
+    v6 = v17 + v17;
+    v15 = v6;
+    sub_67BCB0(v15, (int)aCDevBlackCreat_5, 95);
+    v7 = v6 - v17 + *this;
+    *this = v7;
+    if ( v9 )
+    {
+      *this = 0.0;
+    }
+    else if ( v7 > 1.0 )
+    {
+      *this = 1.0;
+    }
+  }
+  *((_DWORD *)this + 1) = dword_BA9208[v5];
+  if ( dword_C22134 )
+  {
+    v18 = flt_BAC0E0[41 * a2];
+    v10 = v18 + v18;
+    v16 = v10;
+    sub_67BCB0(v16, (int)aCDevBlackCreat_5, 102);
+    v11 = v10 - v18 + this[1];
+    this[1] = v11;
+    if ( v13 )
+    {
+      this[1] = 0.0;
+      this[2] = 0.0;
+      return this;
+    }
+    if ( v11 > 1.0 )
+      this[1] = 1.0;
+  }
+  this[2] = 0.0;
+  return this;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

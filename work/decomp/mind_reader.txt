@@ -1,0 +1,355 @@
+// ---- 0x4C95D0 ----
+int __thiscall sub_4C95D0(_DWORD *this, int a2)
+{
+  unsigned int v3; // edi
+  _WORD *v4; // ebx
+  int v5; // ecx
+  unsigned int v6; // ecx
+  int v7; // eax
+  _DWORD *v8; // ebx
+  _DWORD *v9; // edi
+  unsigned int v10; // eax
+  int v11; // edi
+  int v12; // edi
+  _DWORD *v13; // eax
+  _DWORD *v14; // ecx
+  _DWORD *v15; // edx
+  bool v16; // cf
+  unsigned int v17; // ebx
+  _DWORD *v18; // edi
+  unsigned int v19; // ebx
+  _DWORD *v20; // edi
+  unsigned int v21; // ebx
+  _DWORD *v22; // edi
+  _DWORD *v23; // edi
+  int v24; // ebx
+  _DWORD *v25; // edi
+  int v26; // ebx
+  unsigned int j; // edi
+  unsigned int k; // edi
+  unsigned int m; // edi
+  int v30; // edi
+  unsigned int *v31; // eax
+  unsigned int n; // edi
+  int result; // eax
+  int v34; // edi
+  unsigned __int8 *v35; // eax
+  int v36; // eax
+  int v37; // eax
+  _DWORD *v38; // edi
+  int v39; // ebx
+  int v40; // eax
+  char *v41; // [esp-8h] [ebp-CCh]
+  int v42; // [esp-4h] [ebp-C8h]
+  int v43; // [esp+0h] [ebp-C4h] BYREF
+  _DWORD *v44; // [esp+10h] [ebp-B4h] BYREF
+  unsigned int v45; // [esp+14h] [ebp-B0h] BYREF
+  unsigned int v46; // [esp+18h] [ebp-ACh] BYREF
+  unsigned int v47; // [esp+1Ch] [ebp-A8h] BYREF
+  unsigned int v48; // [esp+20h] [ebp-A4h] BYREF
+  float v49; // [esp+24h] [ebp-A0h] BYREF
+  unsigned int i; // [esp+28h] [ebp-9Ch]
+  unsigned int v51; // [esp+2Ch] [ebp-98h] BYREF
+  int v52; // [esp+30h] [ebp-94h] BYREF
+  char v53[4]; // [esp+34h] [ebp-90h] BYREF
+  int v54; // [esp+38h] [ebp-8Ch] BYREF
+  char v55[4]; // [esp+3Ch] [ebp-88h] BYREF
+  char v56[4]; // [esp+40h] [ebp-84h] BYREF
+  _WORD v57[64]; // [esp+44h] [ebp-80h] BYREF
+
+  sub_6AB530(&v48);
+  v3 = 0;
+  if ( v48 )
+  {
+    v4 = v57;
+    do
+    {
+      sub_6AB4F0(v4);
+      ++v3;
+      ++v4;
+    }
+    while ( v3 < v48 );
+  }
+  v5 = this[33606];
+  v57[v3] = 0;
+  if ( !v5
+    || !(*(int (__thiscall **)(int))(*(_DWORD *)v5 + 28))(v5)
+    || *(_DWORD *)((*(int (__thiscall **)(_DWORD))(*(_DWORD *)this[33606] + 28))(this[33606]) + 248) != 2 )
+  {
+    v6 = 0;
+    if ( v48 )
+    {
+      v7 = 224;
+      do
+      {
+        *(_WORD *)(this[33606] + v7) = *(_WORD *)((char *)&v43 + v7 - 156);
+        ++v6;
+        v7 += 2;
+      }
+      while ( v6 < v48 );
+    }
+    *(_WORD *)(this[33606] + 2 * v6 + 224) = 0;
+  }
+  sub_6AB530(this[33606] + 364);
+  sub_6AB530(this[33606] + 368);
+  sub_6AB530(this[33606] + 372);
+  sub_6AB530(this[33606] + 376);
+  sub_6AB530(this[33606] + 380);
+  sub_6AB530(this[33606] + 384);
+  if ( (unsigned int)dword_BCC4D4 >= 0x11 )
+    sub_6AB530(this[33606] + 388);
+  sub_6AB530(&v47);
+  v45 = 0;
+  if ( v47 )
+  {
+    v8 = this + 204;
+    v44 = this + 84;
+    do
+    {
+      v9 = v44;
+      sub_6AB530(v44 - 80);
+      sub_6AB530(v9);
+      sub_6AB530(v9 + 200);
+      sub_6AB530(v9 + 40);
+      v10 = dword_BCC4D4;
+      if ( (unsigned int)dword_BCC4D4 < 7 )
+      {
+        sub_6AB530(v56);
+        v10 = dword_BCC4D4;
+      }
+      if ( v10 >= 6 && v10 < 0xA )
+      {
+        sub_6AB530(v55);
+        v10 = dword_BCC4D4;
+      }
+      if ( v10 >= 9 )
+      {
+        while ( *v8 )
+        {
+          v11 = *(_DWORD *)(*v8 + 4);
+          sub_542C40(v11, 0);
+          sub_7290DE(v11);
+        }
+        sub_6AB530(&v51);
+        for ( i = 0; i < v51; ++i )
+        {
+          sub_6AB530(&v54);
+          sub_6AB530(&v49);
+          sub_6AB530(&v52);
+          v42 = 1032;
+          v41 = aCDevBlackCreat_23;
+          if ( sub_746D70(16) )
+            v12 = sub_4C0100(v52, this[33606]);
+          else
+            v12 = 0;
+          *(_DWORD *)v12 = v54;
+          *(float *)(v12 + 4) = v49;
+          if ( v12 )
+          {
+            v13 = (_DWORD *)sub_73445E(8);
+            if ( v13 )
+            {
+              v13[1] = v12;
+              *v13 = 0;
+              v14 = (_DWORD *)*v8;
+              if ( !*v8 )
+                goto LABEL_33;
+              do
+              {
+                v15 = v14;
+                v14 = (_DWORD *)*v14;
+              }
+              while ( v14 );
+              if ( v15 )
+                *v15 = v13;
+              else
+LABEL_33:
+                *v8 = v13;
+              ++v8[1];
+            }
+          }
+        }
+        v10 = dword_BCC4D4;
+        if ( (unsigned int)dword_BCC4D4 < 0xF )
+        {
+          sub_6AB530(v53);
+          v10 = dword_BCC4D4;
+        }
+        v9 = v44;
+      }
+      v8 += 2;
+      v16 = ++v45 < v47;
+      v44 = v9 + 1;
+    }
+    while ( v16 );
+  }
+  else
+  {
+    v10 = dword_BCC4D4;
+  }
+  if ( v10 >= 6 && v10 < 0xA )
+  {
+    sub_6AB530(&v44);
+    sub_6AB530(&v44);
+    sub_6AB530(&v44);
+    sub_6AB530(&v44);
+    sub_6AB530(&v44);
+  }
+  sub_4CA1E0(a2);
+  if ( (unsigned int)dword_BCC4D4 >= 0xC )
+    sub_4CA260(a2);
+  v17 = 0;
+  if ( v47 )
+  {
+    v18 = this + 24948;
+    do
+    {
+      sub_6AB530(v18 + 1);
+      sub_6AB530(v18);
+      ++v17;
+      v18 += 2;
+    }
+    while ( v17 < v47 );
+  }
+  sub_6AB530(&v46);
+  v19 = 0;
+  if ( v46 )
+  {
+    v20 = this + 24392;
+    do
+    {
+      sub_6AB530(v20 - 6);
+      if ( (unsigned int)dword_BCC4D4 >= 8 )
+        sub_6AB530(v20);
+      ++v19;
+      ++v20;
+    }
+    while ( v19 < v46 );
+  }
+  sub_6AB530(&v46);
+  v21 = 0;
+  if ( v46 )
+  {
+    v22 = this + 24440;
+    do
+    {
+      sub_6AB530(v22 - 42);
+      if ( (unsigned int)dword_BCC4D4 >= 8 )
+        sub_6AB530(v22);
+      ++v21;
+      ++v22;
+    }
+    while ( v21 < v46 );
+  }
+  sub_6AB530(this + 25364);
+  sub_6AB530(this + 25366);
+  if ( (unsigned int)dword_BCC4D4 >= 0x10 )
+  {
+    v23 = this + 25376;
+    v24 = 40;
+    do
+    {
+      sub_6AB530(v23++);
+      --v24;
+    }
+    while ( v24 );
+    v25 = this + 25416;
+    v26 = 17;
+    do
+    {
+      sub_6AB530(v25++);
+      --v26;
+    }
+    while ( v26 );
+  }
+  sub_4C9D70(a2);
+  if ( (unsigned int)dword_BCC4D4 >= 0x17 )
+    sub_6AB530(this + 29986);
+  this[29986] = 1;
+  if ( (unsigned int)dword_BCC4D4 < 0xB )
+  {
+    sub_6AB530(&v45);
+    for ( j = 0; j < v45; ++j )
+      sub_6AB530(v53);
+    *(_DWORD *)(*(_DWORD *)(this[33606] + 360) + 8) = 0;
+  }
+  else
+  {
+    sub_6AB530(&v49);
+    sub_4D5D80(v49);
+  }
+  sub_6AB530(this[33606] + 4716);
+  sub_6AB530(this[33606] + 4712);
+  sub_4CA040(a2);
+  sub_461380(this[33606]);
+  if ( (unsigned int)dword_BCC4D4 < 0x12 )
+    v42 = 0;
+  else
+    v42 = a2;
+  sub_5E6A60(v42);
+  if ( (unsigned int)dword_BCC4D4 >= 0x18 )
+    sub_6AB530(this[33606] + 4288);
+  if ( (unsigned int)dword_BCC4D4 >= 0x1B )
+  {
+    for ( k = 4360; k < 0x1118; k += 4 )
+      sub_6AB530(k + this[33606]);
+  }
+  if ( (unsigned int)dword_BCC4D4 >= 0x1C )
+  {
+    for ( m = 4464; m < 0x1190; m += 4 )
+      sub_6AB530(m + this[33606]);
+    sub_6AB530(&v45);
+    if ( v45 )
+    {
+      v30 = this[33606];
+      *(_DWORD *)(v30 + 4496) = sub_79A330(v45);
+      **(_DWORD **)(this[33606] + 4496) = v45;
+      v31 = *(unsigned int **)(this[33606] + 4496);
+      for ( n = 0; n < *v31; ++n )
+      {
+        sub_6AB4B0((char *)v31 + n);
+        v31 = *(unsigned int **)(this[33606] + 4496);
+      }
+    }
+    else
+    {
+      *(_DWORD *)(this[33606] + 4496) = 0;
+    }
+  }
+  result = (*(int (__thiscall **)(_DWORD))(*(_DWORD *)this[33606] + 28))(this[33606]);
+  if ( result )
+  {
+    v34 = this[33606];
+    v35 = (unsigned __int8 *)(*(int (__thiscall **)(int, _DWORD, _DWORD))(*(_DWORD *)v34 + 28))(v34, 0, 0);
+    v36 = sub_5F7D20(v35);
+    sub_59E870(0, v34, v36);
+    v37 = sub_4619D0((_DWORD *)this[33606]);
+    result = (*(int (__thiscall **)(int))(*(_DWORD *)v37 + 16))(v37);
+  }
+  if ( (unsigned int)dword_BCC4D4 >= 0x1D )
+  {
+    v38 = this + 24855;
+    v39 = 45;
+    do
+    {
+      sub_6AB530(v38 - 45);
+      result = sub_6AB530(v38);
+      if ( (unsigned int)dword_BCC4D4 >= 0x1F )
+        result = sub_6AB530(v38 + 45);
+      ++v38;
+      --v39;
+    }
+    while ( v39 );
+  }
+  if ( (unsigned int)dword_BCC4D4 >= 0x1E )
+  {
+    v40 = sub_4619D0((_DWORD *)this[33606]);
+    result = sub_6AB530(v40 + 19112);
+  }
+  if ( (unsigned int)dword_BCC4D4 >= 0x20 )
+    return sub_6AB530(this + 24385);
+  return result;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
