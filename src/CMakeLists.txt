@@ -221,9 +221,10 @@ add_library(bw_core STATIC
     core/Attribute.cpp
     core/CreatureBeliefAttributes.cpp
     core/CreatureOpinion.cpp
+    core/CreatureLearner.cpp
     # Hand state system
     core/HandState.cpp
-    core/CHand.cpp
+    core/HandMachine.cpp
     # Dance/GroupBehaviour subsystem
     core/PlayerMessage.cpp
     core/GroupBehaviour.cpp
@@ -376,6 +377,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Creature decision-tree induction
+add_executable(test_learning
+    viewer/test_learning.cpp
+)
+target_link_libraries(test_learning PRIVATE bw_core)
+set_target_properties(test_learning PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

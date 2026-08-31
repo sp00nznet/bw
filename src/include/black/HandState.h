@@ -13,7 +13,7 @@
 
 #include <cstdint>
 
-struct CHand;
+struct HandMachine;
 struct GameThing;
 struct LHMatrix;
 
@@ -40,7 +40,7 @@ struct HandState {
     virtual void Update(float param_1, LHMatrix* param_2); // vtable[3]
     virtual bool AllowCameraTricons();                     // vtable[4]
 
-    CHand* hand;   // 0x04
+    HandMachine* hand;   // 0x04
 };
 static_assert(sizeof(HandState) == 0x8, "HandState size mismatch");
 

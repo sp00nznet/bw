@@ -13,6 +13,8 @@ and decompile every slot via Hex-Rays.
     py -3.11 bw_decomp.py <exe-or-i64> xrefs   <0xADDR> [...]   who references it
     py -3.11 bw_decomp.py <exe-or-i64> callees <0xADDR> [...]   what it calls
     py -3.11 bw_decomp.py <exe-or-i64> floats  <0xADDR> <count>  read a data table
+    py -3.11 bw_decomp.py <exe-or-i64> disasm  <0xADDR> [...]   raw instructions
+    py -3.11 bw_decomp.py <exe-or-i64> doubles <0xADDR> <count>  read a double table
 
 The first run on the .exe analyses + saves a .i64; pass that .i64 afterwards
 for fast reopen.
@@ -160,6 +162,27 @@ def main():
                 seen.add(key)
                 print("%-12s from %-12s in %s" % (
                     "data" if xref.iscode == 0 else "code", hex(xref.frm), owner))
+    elif cmd == "disasm":
+        # Raw instructions. Hex-Rays folds x87 idioms away -- an fyl2x becomes a
+        # multiply with a discarded call, say -- so anything numerically load
+        # bearing has to be read at this level before it is trusted.
+        for a in sys.argv[3:]:
+            ea = int(a, 16)
+            f = ida_funcs.get_func(ea)
+            print("// ---- disasm %s ----" % hex(ea))
+            if not f:
+                print("(no function)")
+                continue
+            for item in idautils.FuncItems(f.start_ea):
+                print("%s  %s" % (hex(item), idc.GetDisasm(item)))
+    elif cmd == "doubles":
+        base = int(sys.argv[3], 16)
+        count = int(sys.argv[4]) if len(sys.argv) > 4 else 1
+        import struct as _struct
+        for i in range(count):
+            raw = ida_bytes.get_bytes(base + i * 8, 8)
+            val = _struct.unpack("<d", raw)[0] if raw else float("nan")
+            print("[%2d] %s  %.17g" % (i, hex(base + i * 8), val))
     elif cmd == "floats":
         # Read a run of floats from a data address. Tuning tables live in .rdata
         # as bare arrays with no symbol beyond the first element, and reading

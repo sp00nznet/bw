@@ -1,12 +1,12 @@
-// CHand — owner of the eleven HandState objects and the transitions between
-// them. See CHand.h for why this struct is host-shaped rather than a copy of
-// the original's 18 KB layout.
+// HandMachine — owner of the eleven HandState objects and the transitions
+// between them. See HandMachine.h for why this is host-shaped rather than a
+// copy of the original's layout; the authentic HandMachine struct lives in HandMachine.h.
 
-#include "black/CHand.h"
+#include "black/HandMachine.h"
 
 #include "black/GameThing.h"
 
-CHand g_hand;
+HandMachine g_hand;
 
 namespace {
 
@@ -49,7 +49,7 @@ HandState* StateFor(HAND_STATES id) {
 void SetHandDrawHooks(const HandDrawHooks& hooks) { g_hooks = hooks; }
 const HandDrawHooks& GetHandDrawHooks() { return g_hooks; }
 
-void CHand::Init() {
+void HandMachine::Init() {
     for (int i = 0; i < _HAND_STATES_COUNT; ++i)
         StateFor(static_cast<HAND_STATES>(i))->hand = this;
     state_id = HAND_STATE_INVISIBLE;
@@ -57,12 +57,12 @@ void CHand::Init() {
     state->Enter();
 }
 
-void CHand::Shutdown() {
+void HandMachine::Shutdown() {
     if (state) state->Exit();
     state = nullptr;
 }
 
-void CHand::SetState(HAND_STATES id) {
+void HandMachine::SetState(HAND_STATES id) {
     if (state && id == state_id) return;  // Enter resets state data; do not re-run it
     if (state) state->Exit();
     state_id = id;
@@ -71,7 +71,7 @@ void CHand::SetState(HAND_STATES id) {
     state->Enter();
 }
 
-void CHand::Update(float delta_time, LHMatrix* transform) {
+void HandMachine::Update(float delta_time, LHMatrix* transform) {
     if (!state) Init();
     // The original advances animation counters by a global frame delta in
     // animation ticks; the viewer runs at BW's 10 Hz sim rate, so one tick per
@@ -80,11 +80,11 @@ void CHand::Update(float delta_time, LHMatrix* transform) {
     state->Update(delta_time, transform);
 }
 
-void CHand::DrawTheHeldObject() {
+void HandMachine::DrawTheHeldObject() {
     if (state) state->DrawTheHeldObject();
 }
 
-HAND_STATES CHand::ChooseState(const HandInput& in) {
+HAND_STATES HandMachine::ChooseState(const HandInput& in) {
     // The original drives these transitions from its interface layer, which we
     // do not have. This is our ordering over the same inputs: a scripted
     // animation owns the hand outright, then the modal interfaces, then what

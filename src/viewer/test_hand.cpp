@@ -7,7 +7,7 @@
 // behaviour that survives translation -- Normal's idle-clip latch, PlayAnim's
 // completion flag, and Grain's offer lerp.
 
-#include <black/CHand.h>
+#include <black/HandMachine.h>
 #include <black/HandState.h>
 
 #include <cstdio>
@@ -20,7 +20,7 @@ static int g_fail = 0;
 static uint32_t StubAnimLength(uint32_t /*anim_id*/) { return 4; }
 
 static int g_draws = 0;
-static void StubDrawHand(CHand*, uint32_t, uint32_t, LHMatrix*) { ++g_draws; }
+static void StubDrawHand(HandMachine*, uint32_t, uint32_t, LHMatrix*) { ++g_draws; }
 
 int main() {
     HandDrawHooks hooks;
@@ -30,36 +30,36 @@ int main() {
 
     // --- state selection --------------------------------------------------
     HandInput in;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_NORMAL, "idle hand rests in NORMAL");
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_NORMAL, "idle hand rests in NORMAL");
 
     in.over_land = false;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_INVISIBLE, "off the land the hand hides");
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_INVISIBLE, "off the land the hand hides");
 
     in = HandInput();
     in.holding = true;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_HOLDING, "carrying something is HOLDING");
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_HOLDING, "carrying something is HOLDING");
     in.holding_grain = true;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_GRAIN, "carrying grain is the GRAIN state");
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_GRAIN, "carrying grain is the GRAIN state");
 
     in = HandInput();
     in.tugging = true;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_TUG, "pulling on something is TUG");
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_TUG, "pulling on something is TUG");
 
     in = HandInput();
     in.over_creature = true;
     in.holding = true;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_CREATURE,
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_CREATURE,
           "the creature interface outranks what the hand is carrying");
 
     in = HandInput();
     in.scripted_anim = true;
     in.over_land = false;
     in.holding = true;
-    CHECK(CHand::ChooseState(in) == HAND_STATE_PLAY_ANIM,
+    CHECK(HandMachine::ChooseState(in) == HAND_STATE_PLAY_ANIM,
           "a scripted animation takes the hand over everything else");
 
     // --- transitions ------------------------------------------------------
-    CHand hand;
+    HandMachine hand;
     hand.Init();
     CHECK(hand.GetState() == HAND_STATE_INVISIBLE, "hand starts invisible");
     CHECK(hand.GetStateObject() != nullptr, "a state object is live from Init");

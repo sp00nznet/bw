@@ -25,7 +25,7 @@
 #include <black/Object.h>
 #include <black/LHVM.h>
 #include <black/LHVMObjects.h>
-#include <black/CHand.h>
+#include <black/HandMachine.h>
 #include <black/types.h>
 
 namespace bw {
@@ -748,7 +748,7 @@ void GameState::UpdateHand(int mouse_x, int mouse_y, int screen_w, int screen_h)
     g_hand.pos[2] = hand.z;
     g_hand.target_screen[0] = hand.screen_x;
     g_hand.target_screen[1] = hand.screen_y;
-    g_hand.SetState(CHand::ChooseState(in));
+    g_hand.SetState(HandMachine::ChooseState(in));
     g_hand.Update(delta_time, nullptr);
     hand.phase = static_cast<int>(g_hand.GetState());
 }

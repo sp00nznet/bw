@@ -9,7 +9,7 @@
 // an idle-clip latch that restarts the blend when the clip changes, a frame
 // counter, a completion flag, a captured target, a lerp between two positions
 // -- and that is what is translated here, at the field offsets the binary uses
-// (see HandState.h). Every draw call funnels through the CHand hooks so the
+// (see HandState.h). Every draw call funnels through the HandMachine hooks so
 // renderer can be supplied later without touching these bodies again.
 //
 // Where a body depends on a subsystem core does not have -- the interface
@@ -18,7 +18,7 @@
 
 #include "black/HandState.h"
 
-#include "black/CHand.h"
+#include "black/HandMachine.h"
 #include "black/GameThing.h"
 
 #include <cstring>
@@ -36,7 +36,7 @@ uint32_t AnimLength(uint32_t anim_id) {
     return n ? n : 1;  // never divide by zero when no renderer is installed
 }
 
-void DrawHand(CHand* hand, uint32_t anim_id, uint32_t frame, LHMatrix* xf) {
+void DrawHand(HandMachine* hand, uint32_t anim_id, uint32_t frame, LHMatrix* xf) {
     const HandDrawHooks& h = GetHandDrawHooks();
     if (h.draw_hand) h.draw_hand(hand, anim_id, frame, xf);
 }
