@@ -222,6 +222,7 @@ add_library(bw_core STATIC
     core/CreatureBeliefAttributes.cpp
     core/CreatureOpinion.cpp
     core/CreatureLearner.cpp
+    core/CreatureMindFile.cpp
     # Hand state system
     core/HandState.cpp
     core/HandMachine.cpp
@@ -377,6 +378,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# CreatureMind file reader
+add_executable(test_mind
+    viewer/test_mind.cpp
+)
+target_link_libraries(test_mind PRIVATE bw_core)
+set_target_properties(test_mind PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
