@@ -85,10 +85,32 @@ the mind loader's gates stop at 0x20. A later build's data with more or larger
 tables would read as exactly this: a consistent format, a correct loader, and
 twice as many bytes as v1.0 knows how to consume.
 
-That is a hypothesis, not a finding. Testing it needs a v1.0-era `info.dat`, or
-the record layouts pinned down well enough to walk the file and see where it
-stops making sense. Either way, a reader written against the v1.0 registrar
-would be reading the wrong file, so none is written.
+Two further facts, one solid and one that closes the door for now:
+
+* **The header is 44 bytes.** The dword at offset 40 is 580,710, which is the
+  file size less 44 exactly, so the payload runs from 44 to EOF. That much is
+  certain.
+* **The one table findable by content is not where the layout predicts.**
+  `DETAIL_CREATURE_DESIRE_DEPENDENCIES` is a 40x40 matrix of mostly-zero floats
+  with a near-zero diagonal — a sharp enough signature to search for, and it
+  sits at roughly offset 393,676. The flat layout from 44 predicts 118,866.
+
+So the gap is structural, not just a size difference: reading the 65 tables
+sequentially from 44 does not land on the data. Either the file belongs to a
+later build, or `sub_425250` reaches its sections some way this pass has not
+found. A periodicity test on the early tables came back inconclusive in both
+directions, so it settles nothing.
+
+**Calling this blocked.** Not because it is unknowable, but because every cheap
+avenue is spent and what remains is scanning 580 KB for structures whose shape
+is unknown — which is how a confident wrong answer gets built. It needs either a
+v1.0-era `info.dat` to compare against, or the record layouts reversed one at a
+time from the code that consumes them, at which point walking the file becomes
+checkable rather than speculative.
+
+The rest of the creature work does not depend on this. The agenda and action
+logic is code, and can be recovered the same way the desire dynamics were: take
+the arithmetic from the binary, take the tuning from the host.
 
 **The tables are `.bss`.** Dumping `unk_BA6310` gives 0xFFFFFFFF across every
 record — slot 8 is a `-1` initialiser, not shipped data. The configuration is
