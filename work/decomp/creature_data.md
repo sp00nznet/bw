@@ -101,6 +101,22 @@ later build, or `sub_425250` reaches its sections some way this pass has not
 found. A periodicity test on the early tables came back inconclusive in both
 directions, so it settles nothing.
 
+### Re-verified after `mkfunc`
+
+The "there is no second registrar" claim above rested on xrefs, and xrefs are
+function-scoped -- exactly the trap that hid three other things this session. So
+it was re-tested: `mkfunc 0x420000 0x435000` created **482 functions IDA had
+never analysed** in the info-loading code, and the xref was run again.
+
+The answer did not change. `sub_425250` is still the only caller of the table
+loaders, and `sub_5B1630` still has 62 callers (the 61 loaders plus the
+registrar). So the 276 KB / 580 KB gap is *not* explained by a registrar hiding
+in unanalysed code, and the version-mismatch hypothesis stands as the leading
+explanation rather than an untested one.
+
+Worth stating because the same re-test on the animal save dispatch went the
+other way and unblocked 31 save types. This one genuinely holds.
+
 **Calling this blocked.** Not because it is unknowable, but because every cheap
 avenue is spent and what remains is scanning 580 KB for structures whose shape
 is unknown — which is how a confident wrong answer gets built. It needs either a

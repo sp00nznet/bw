@@ -138,3 +138,10 @@ decompiled initialiser independently contains exactly 95 string assignments, all
 
 Expect a large "spots refused" count -- data interleaved with the code -- which
 is normal and harmless.
+
+**Caveat.** `mkfunc` will happily create a function at padding or data, and the
+`.i64` is saved, so the noise persists. Spurious entries show up as functions
+starting a few bytes before a real one (`0x42c5a3` just before `0x42c95f`, say)
+and as extra xref rows. Nothing important broke -- the RTTI vtable walk was
+re-checked afterwards and GameThing still reports 63 slots, Attribute 13 -- but
+sanity-check a vtable count after a large run rather than assuming.

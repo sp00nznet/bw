@@ -1,0 +1,33 @@
+// ---- 0x4ABA10 ----
+int __thiscall sub_4ABA10(_DWORD *this, _DWORD *a2, int a3, int a4)
+{
+  _DWORD *v5; // eax
+  int result; // eax
+
+  if ( this[37] )
+    (*(void (__thiscall **)(_DWORD *))(*this + 2452))(this);
+  sub_45FA70(aStoppingBecaus_0, a4, a4);
+  v5 = (_DWORD *)(this[89] + 3912);
+  v5[1] = a2[1];
+  v5[2] = a2[2];
+  v5[3] = a2[3];
+  v5[4] = a2[4];
+  v5[5] = a2[5];
+  v5[6] = a2[6];
+  v5[7] = a2[7];
+  v5[8] = a2[8];
+  v5[9] = a2[9];
+  v5[10] = a2[10];
+  v5[11] = a2[11];
+  result = sub_4B6CA0((_DWORD *)(this[89] + 1808), *(_DWORD *)(this[89] + 3936));
+  if ( result )
+  {
+    sub_4D1680(this, a3);
+    result = sub_4BE390(*(_DWORD *)(this[89] + 3920));
+    this[1047] = 1;
+  }
+  return result;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
