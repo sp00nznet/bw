@@ -1,0 +1,20 @@
+// ---- 0x4B78E0 ----
+int __thiscall sub_4B78E0(char *this)
+{
+  return sub_4B78F0(this + 12);
+}
+
+// ---- 0x4C3650 ----
+_DWORD *__thiscall sub_4C3650(_DWORD *this, int a2, int a3, int a4, int a5)
+{
+  this[3] = a3;
+  this[1] = 0;
+  *this = &CreatureLearningContext::`vftable';
+  this[2] = a2;
+  this[4] = a5;
+  this[5] = (*(int (__thiscall **)(int))(*(_DWORD *)a4 + 52))(a4);
+  return this;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

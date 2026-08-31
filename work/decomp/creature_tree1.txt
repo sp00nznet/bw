@@ -1,0 +1,318 @@
+// ---- 0x4b1ac0 ----
+int __thiscall sub_4B1AC0(_DWORD *this)
+{
+  _DWORD *v1; // eax
+  _DWORD *v2; // eax
+  _DWORD *v3; // eax
+  _DWORD *v4; // eax
+  _DWORD *v5; // eax
+  _DWORD *v6; // eax
+  _DWORD *v7; // eax
+  _DWORD *v8; // eax
+  _DWORD *v9; // eax
+  _DWORD *v10; // ebp
+  _DWORD *v11; // eax
+  _DWORD *v12; // ebx
+  _DWORD *v13; // eax
+  _DWORD *v14; // edi
+  int v15; // edi
+  int v16; // ebx
+  int result; // eax
+  double v18; // st7
+  int v19; // ebx
+  _DWORD *v20; // [esp+0h] [ebp-24h]
+  _DWORD *v21; // [esp+4h] [ebp-20h]
+  _DWORD *v22; // [esp+8h] [ebp-1Ch]
+  _DWORD *v23; // [esp+Ch] [ebp-18h]
+  _DWORD *v24; // [esp+10h] [ebp-14h]
+  _DWORD *v25; // [esp+14h] [ebp-10h]
+  _DWORD *v26; // [esp+18h] [ebp-Ch]
+  _DWORD *v27; // [esp+1Ch] [ebp-8h]
+
+  v1 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 42);
+  if ( v1 )
+  {
+    v1[1] = 0;
+    *v1 = &AttributeAllegiance::`vftable';
+    v1[2] = 1;
+    v27 = v1;
+  }
+  else
+  {
+    v27 = 0;
+  }
+  v2 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 45);
+  if ( v2 )
+  {
+    v2[1] = 0;
+    *v2 = &AttributeOrigin::`vftable';
+    v2[2] = 0;
+    v26 = v2;
+  }
+  else
+  {
+    v26 = 0;
+  }
+  v3 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 48);
+  if ( v3 )
+  {
+    v3[1] = 0;
+    *v3 = &AttributeAnimate::`vftable';
+    v3[2] = 0;
+    v25 = v3;
+  }
+  else
+  {
+    v25 = 0;
+  }
+  v4 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 51);
+  if ( v4 )
+  {
+    v4[1] = 0;
+    *v4 = &AttributePlayerNumber::`vftable';
+    v4[2] = 0;
+    v24 = v4;
+  }
+  else
+  {
+    v24 = 0;
+  }
+  v5 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 54);
+  if ( v5 )
+  {
+    v5[1] = 0;
+    *v5 = &AttributeIsHarderThanMe::`vftable';
+    v5[2] = 0;
+    v23 = v5;
+  }
+  else
+  {
+    v23 = 0;
+  }
+  v6 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 57);
+  if ( v6 )
+  {
+    v6[1] = 0;
+    *v6 = &AttributeCreatureType::`vftable';
+    v6[2] = 0;
+    v22 = v6;
+  }
+  else
+  {
+    v22 = 0;
+  }
+  v7 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 60);
+  if ( v7 )
+  {
+    v7[1] = 0;
+    *v7 = &AttributeType::`vftable';
+    v7[2] = 6;
+    v21 = v7;
+  }
+  else
+  {
+    v21 = 0;
+  }
+  v8 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 63);
+  if ( v8 )
+  {
+    v8[1] = 0;
+    *v8 = &AttributeSex::`vftable';
+    v8[2] = 0;
+    v20 = v8;
+  }
+  else
+  {
+    v20 = 0;
+  }
+  v9 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 66);
+  if ( v9 )
+  {
+    v9[1] = 0;
+    *v9 = &AttributeVillagerJob::`vftable';
+    v9[2] = 0;
+    v10 = v9;
+  }
+  else
+  {
+    v10 = 0;
+  }
+  v11 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 69);
+  if ( v11 )
+  {
+    v11[1] = 0;
+    *v11 = &AttributeLife::`vftable';
+    v11[2] = 1;
+    v12 = v11;
+  }
+  else
+  {
+    v12 = 0;
+  }
+  v13 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_2, 72);
+  v14 = v13;
+  if ( v13 )
+  {
+    sub_4B1DE0(v13);
+    *v14 = &AttributeOnFire::`vftable';
+    v14[2] = 1;
+  }
+  else
+  {
+    v14 = 0;
+  }
+  if ( sub_4300A0(120, aCDevBlackCreat_2, 76) )
+    v15 = sub_4BD3D0(v27, v26, v25, v24, v23, v22, v21, v20, v10, v12, v14);
+  else
+    v15 = 0;
+  if ( sub_4300A0(24, aCDevBlackCreat_2, 82) )
+    v16 = sub_4C3650(2, 4, v15, 0);
+  else
+    v16 = 0;
+  result = sub_4300A0(20, aCDevBlackCreat_2, 86);
+  if ( result )
+  {
+    v18 = flt_B0CDE4;
+    *(_DWORD *)(result + 4) = 0;
+    *(_DWORD *)(result + 16) = 0;
+    *(float *)(result + 12) = v18;
+    *(_DWORD *)result = &CreatureLearningEpisode::`vftable';
+    *(_DWORD *)(result + 8) = v16;
+  }
+  else
+  {
+    result = 0;
+  }
+  v19 = *(_DWORD *)(this[89] + 9512);
+  if ( !*(_DWORD *)(v19 + 16) )
+  {
+    sub_6D5810((_DWORD *)(v19 + 12), result);
+    result = sub_4B78E0(v19);
+  }
+  if ( v15 )
+    return (*(int (__thiscall **)(int, int))(*(_DWORD *)v15 + 4))(v15, 1);
+  return result;
+}
+
+// ---- 0x4bc120 ----
+_DWORD *__thiscall sub_4BC120(_DWORD *this)
+{
+  _DWORD *v2; // eax
+  _DWORD *v3; // eax
+  _DWORD *v4; // eax
+  _DWORD *result; // eax
+
+  sub_4BBC20();
+  v2 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 95);
+  if ( v2 )
+  {
+    v2[1] = 0;
+    *v2 = &AttributeSex::`vftable';
+    v2[2] = 0;
+  }
+  else
+  {
+    v2 = 0;
+  }
+  this[26] = v2;
+  v3 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 96);
+  if ( v3 )
+  {
+    v3[1] = 0;
+    *v3 = &AttributeVillagerJob::`vftable';
+    v3[2] = 0;
+  }
+  else
+  {
+    v3 = 0;
+  }
+  this[27] = v3;
+  v4 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 97);
+  if ( v4 )
+  {
+    v4[1] = 0;
+    *v4 = &AttributeLife::`vftable';
+    v4[2] = 0;
+  }
+  else
+  {
+    v4 = 0;
+  }
+  this[28] = v4;
+  result = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 98);
+  if ( result )
+  {
+    result[1] = 0;
+    result[2] = 0;
+    *result = &AttributeOnFire::`vftable';
+    this[29] = result;
+  }
+  else
+  {
+    this[29] = 0;
+  }
+  return result;
+}
+
+// ---- 0x4bc1d0 ----
+_DWORD *__thiscall sub_4BC1D0(_DWORD *this)
+{
+  _DWORD *v2; // eax
+  _DWORD *v3; // eax
+  _DWORD *v4; // eax
+  _DWORD *result; // eax
+
+  sub_4BBC20();
+  v2 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 112);
+  if ( v2 )
+  {
+    v2[1] = 0;
+    *v2 = &AttributeAbodeType::`vftable';
+    v2[2] = 0;
+  }
+  else
+  {
+    v2 = 0;
+  }
+  this[26] = v2;
+  v3 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 113);
+  if ( v3 )
+  {
+    v3[1] = 0;
+    *v3 = &AttributeLife::`vftable';
+    v3[2] = 0;
+  }
+  else
+  {
+    v3 = 0;
+  }
+  this[27] = v3;
+  v4 = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 114);
+  if ( v4 )
+  {
+    v4[1] = 0;
+    *v4 = &AttributeOnFire::`vftable';
+    v4[2] = 0;
+  }
+  else
+  {
+    v4 = 0;
+  }
+  this[28] = v4;
+  result = (_DWORD *)sub_4300A0(12, aCDevBlackCreat_1, 115);
+  if ( result )
+  {
+    result[1] = 0;
+    result[2] = 0;
+    *result = &AttributeAbodeBeingBuilt::`vftable';
+    this[29] = result;
+  }
+  else
+  {
+    this[29] = 0;
+  }
+  return result;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

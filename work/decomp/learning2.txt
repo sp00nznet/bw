@@ -1,0 +1,18 @@
+// ---- 0x4B78F0 ----
+int __thiscall sub_4B78F0(_DWORD *this, int a2)
+{
+  int result; // eax
+
+  sub_4B7810(a2);
+  while ( 1 )
+  {
+    result = *(_DWORD *)(this[2] + 24);
+    if ( !result )
+      break;
+    sub_4B81E0(this);
+  }
+  return result;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

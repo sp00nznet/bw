@@ -220,6 +220,7 @@ add_library(bw_core STATIC
     core/SubArgument.cpp
     core/Attribute.cpp
     core/CreatureBeliefAttributes.cpp
+    core/CreatureOpinion.cpp
     # Hand state system
     core/HandState.cpp
     core/CHand.cpp

@@ -1,0 +1,143 @@
+// ---- 0x4B9820 ----
+double __thiscall sub_4B9820(float *this, int a2)
+{
+  float *v2; // edi
+  unsigned int v3; // ebx
+  _DWORD *v4; // esi
+  bool v5; // zf
+  int v6; // eax
+  int v7; // edi
+  _DWORD *v8; // eax
+  _DWORD *v9; // ecx
+  int v10; // edx
+  _DWORD *v11; // ecx
+  int v12; // ebx
+  _DWORD *v13; // edi
+  _DWORD *v14; // eax
+  _DWORD *v15; // esi
+  float v17; // [esp+10h] [ebp-30h]
+  float v18; // [esp+14h] [ebp-2Ch]
+  float v19; // [esp+18h] [ebp-28h]
+  unsigned int v21; // [esp+20h] [ebp-20h]
+  float v22; // [esp+24h] [ebp-1Ch]
+  _DWORD *v23; // [esp+28h] [ebp-18h] BYREF
+  unsigned int v24; // [esp+2Ch] [ebp-14h]
+  __int64 v25; // [esp+30h] [ebp-10h]
+  int v26; // [esp+38h] [ebp-8h]
+  int v27; // [esp+3Ch] [ebp-4h]
+
+  v2 = this;
+  v22 = this[2];
+  v3 = 0;
+  v19 = 0.0;
+  v17 = 0.0;
+  v21 = 0;
+  if ( !(*(int (__thiscall **)(_DWORD))(**(_DWORD **)dword_BA4E78[a2] + 32))(*(_DWORD *)dword_BA4E78[a2]) )
+  {
+LABEL_28:
+    v17 = 1.0;
+    return (v22 - v19) / v17;
+  }
+  while ( 1 )
+  {
+    v4 = *(_DWORD **)v2;
+    v5 = *(_DWORD *)v2 == 0;
+    v24 = 0;
+    v23 = 0;
+    if ( !v5 )
+      break;
+LABEL_13:
+    v10 = *((_DWORD *)v2 + 1);
+    v25 = v24;
+    v26 = v10;
+    v27 = 0;
+    v18 = (double)v24 / (double)v10;
+    v19 = sub_4B99E0(&v23) * v18 + v19;
+    if ( v18 > 0.0 )
+    {
+      sub_4B9BB0(v18);
+      v17 = v17 - v18 * v18;
+    }
+    v11 = v23;
+    if ( v23 )
+    {
+      do
+      {
+        v12 = v11[1];
+        v13 = 0;
+        v14 = v11;
+        if ( !v11 )
+          break;
+        do
+        {
+          v15 = (_DWORD *)*v14;
+          if ( v14[1] == v12 )
+          {
+            if ( v14 == v11 )
+              v23 = (_DWORD *)*v14;
+            else
+              *v13 = v15;
+            --v24;
+            sub_7290DE(v14);
+            v11 = v23;
+          }
+          else
+          {
+            v13 = v14;
+          }
+          v14 = v15;
+        }
+        while ( v15 );
+      }
+      while ( v11 );
+      v3 = v21;
+    }
+    v21 = ++v3;
+    if ( v3 >= (*(int (__thiscall **)(_DWORD))(**(_DWORD **)dword_BA4E78[a2] + 32))(*(_DWORD *)dword_BA4E78[a2]) )
+    {
+      if ( v17 < 1.0 )
+        goto LABEL_28;
+      return (v22 - v19) / v17;
+    }
+    v2 = this;
+  }
+  while ( 1 )
+  {
+    v6 = sub_4BA8F0(a2, v3);
+    if ( !v6 )
+    {
+      v7 = v4[1];
+      if ( v7 )
+      {
+        v8 = (_DWORD *)sub_73445E(8);
+        if ( v8 )
+        {
+          v9 = v23;
+          v8[1] = v7;
+          *v8 = v9;
+          v23 = v8;
+          ++v24;
+        }
+      }
+      goto LABEL_11;
+    }
+    if ( v6 == 2 )
+      return 0.0;
+LABEL_11:
+    v4 = (_DWORD *)*v4;
+    if ( !v4 )
+    {
+      v2 = this;
+      goto LABEL_13;
+    }
+  }
+}
+
+// ---- 0x4B9B80 ----
+BOOL __cdecl sub_4B9B80(float a1, int a2)
+{
+  return fabs(a1 - flt_B0CDC0[a2]) <= 0.25;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

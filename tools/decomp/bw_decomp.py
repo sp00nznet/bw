@@ -12,6 +12,7 @@ and decompile every slot via Hex-Rays.
     py -3.11 bw_decomp.py <exe-or-i64> addr    <0xADDR> [more 0xADDR ...]
     py -3.11 bw_decomp.py <exe-or-i64> xrefs   <0xADDR> [...]   who references it
     py -3.11 bw_decomp.py <exe-or-i64> callees <0xADDR> [...]   what it calls
+    py -3.11 bw_decomp.py <exe-or-i64> floats  <0xADDR> <count>  read a data table
 
 The first run on the .exe analyses + saves a .i64; pass that .i64 afterwards
 for fast reopen.
@@ -159,6 +160,17 @@ def main():
                 seen.add(key)
                 print("%-12s from %-12s in %s" % (
                     "data" if xref.iscode == 0 else "code", hex(xref.frm), owner))
+    elif cmd == "floats":
+        # Read a run of floats from a data address. Tuning tables live in .rdata
+        # as bare arrays with no symbol beyond the first element, and reading
+        # them beats inferring them from the code that indexes them.
+        base = int(sys.argv[3], 16)
+        count = int(sys.argv[4]) if len(sys.argv) > 4 else 1
+        import struct as _struct
+        for i in range(count):
+            raw = ida_bytes.get_bytes(base + i * 4, 4)
+            val = _struct.unpack("<f", raw)[0] if raw else float("nan")
+            print("[%2d] %s  %g" % (i, hex(base + i * 4), val))
     elif cmd == "callees":
         # Every function this one calls, in address order -- the cheap way to
         # map a subsystem once one entry point into it is known.

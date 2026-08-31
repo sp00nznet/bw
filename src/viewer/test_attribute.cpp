@@ -9,7 +9,9 @@
 #include <black/Attribute.h>
 #include <black/GameThingWithPos.h>
 #include <black/CreatureBeliefAttributes.h>
+#include <black/CreatureOpinion.h>
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -230,6 +232,59 @@ int main() {
         }
     }
     CHECK(in_range, "every feature in every vector is a valid bucket for its attribute");
+
+    // --- the opinion scale ---------------------------------------------------
+    // Everything a creature learns ends up as one of eleven levels from -1 to
+    // +1. The table came out of .rdata; these check the parts of its behaviour
+    // that reading the code alone would have got wrong.
+    using namespace creature;
+
+    CHECK(kOpinionLevels == 11, "eleven levels");
+    CHECK(OpinionValue(kOpinionNeutral) == 0.0f, "the neutral level is zero");
+    CHECK(OpinionValue(0) == -1.0f && OpinionValue(10) == 1.0f,
+          "the scale runs from -1 to +1");
+    CHECK(OpinionValue(-1) == 0.0f && OpinionValue(99) == 0.0f,
+          "an out-of-range level reads as zero rather than off the end");
+
+    bool spacing_ok = true;
+    for (int32_t i = 1; i < kOpinionLevels; ++i)
+        if (std::fabs((OpinionValue(i) - OpinionValue(i - 1)) - 0.2f) > 1e-5f)
+            spacing_ok = false;
+    CHECK(spacing_ok, "levels are 0.2 apart");
+
+    CHECK(OpinionFromMean(-1.0f) == 0, "a mean at the bottom of the scale");
+
+    // The tolerance is 0.25 against a 0.2 spacing, so bands overlap and the
+    // scan from the most negative upward decides. That biases every opinion one
+    // step down -- dead-centre reads as slightly negative.
+    CHECK(OpinionFromMean(0.0f) == 4,
+          "a neutral mean resolves down to -0.2, because that band reaches it first");
+    CHECK(OpinionFromMean(0.1f) == 5, "and 0.1 resolves down to 0.0");
+    CHECK(OpinionFromMean(1.0f) == 9, "a mean at the top of the scale reads as +0.8");
+
+    // Level 10 needs a mean above 1.05 and weights live on [-1, 1], so nothing
+    // a creature can experience ever reaches it.
+    bool top_reachable = false;
+    for (int i = -100; i <= 100; ++i)
+        if (OpinionFromMean(i / 100.0f) == 10) top_reachable = true;
+    CHECK(!top_reachable,
+          "the top level is unreachable: a creature never quite loves anything");
+    CHECK(OpinionFromMean(1.1f) == 10, "only an out-of-range mean would reach it");
+
+    CHECK(OpinionFromMean(5.0f) == kOpinionNone, "far off the scale matches nothing");
+    CHECK(OpinionFromMean(-5.0f) == kOpinionNone, "in both directions");
+
+    CHECK(OpinionFromEpisodes(nullptr, 0) == kOpinionNeutral,
+          "no evidence at all means no view either way");
+    const float liked[] = {1.0f, 1.0f, 1.0f};
+    CHECK(OpinionFromEpisodes(liked, 3) == kOpinionMaxReachable,
+          "consistent strong approval reads as high as the scale permits");
+    const float mixed[] = {1.0f, -1.0f};
+    CHECK(OpinionFromEpisodes(mixed, 2) == 4,
+          "approval and disapproval in equal measure cancel to the middle band");
+
+    CHECK(kInitialLessonWeight == 0.8f,
+          "a creature's innate lessons start weighted near the top, not blank");
 
     printf(g_fail ? "\n%d FAILURE(S)\n" : "\nALL PASS\n", g_fail);
     return g_fail ? 1 : 0;

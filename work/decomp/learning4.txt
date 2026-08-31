@@ -1,0 +1,136 @@
+// ---- 0x4B9490 ----
+unsigned int __thiscall sub_4B9490(int *this, int a2)
+{
+  unsigned int result; // eax
+  int v4; // edi
+  int v5; // esi
+  int *v6; // eax
+  _DWORD *v7; // edx
+  int *v8; // edi
+  _DWORD *v9; // ecx
+  int *v10; // [esp+4h] [ebp-8h]
+  unsigned int v11; // [esp+8h] [ebp-4h]
+
+  result = this[31];
+  v11 = 0;
+  if ( result )
+  {
+    v10 = this + 7;
+    do
+    {
+      v4 = *v10;
+      v5 = sub_746D70(12);
+      if ( v5 )
+      {
+        *(float *)(v5 + 4) = sub_4B9820(v4);
+        *(_DWORD *)v5 = v4;
+        *(_DWORD *)(v5 + 8) = this;
+      }
+      else
+      {
+        v5 = 0;
+      }
+      v6 = (int *)sub_73445E(8);
+      v7 = 0;
+      if ( v6 )
+      {
+        *v6 = v5;
+        v6[1] = 0;
+        v8 = v6;
+      }
+      else
+      {
+        v8 = 0;
+      }
+      v9 = *(_DWORD **)a2;
+      if ( *(_DWORD *)a2 )
+      {
+        while ( *(float *)(v5 + 4) <= (double)*(float *)(*v9 + 4) )
+        {
+          v7 = v9;
+          v9 = (_DWORD *)v9[1];
+          if ( !v9 )
+            goto LABEL_17;
+        }
+        v8[1] = (int)v9;
+        if ( v7 )
+          v7[1] = v8;
+        else
+          *(_DWORD *)a2 = v8;
+        if ( v9 )
+          goto LABEL_20;
+LABEL_17:
+        if ( !v7 )
+          goto LABEL_18;
+        v7[1] = v8;
+      }
+      else
+      {
+LABEL_18:
+        *(_DWORD *)a2 = v8;
+      }
+LABEL_20:
+      ++*(_DWORD *)(a2 + 4);
+      result = v11 + 1;
+      v11 = result;
+      ++v10;
+    }
+    while ( result < this[31] );
+  }
+  return result;
+}
+
+// ---- 0x4B9410 ----
+int __fastcall sub_4B9410(int a1)
+{
+  int v1; // esi
+  _DWORD *v2; // eax
+  double v3; // st7
+  int v4; // edx
+  float v6; // [esp+8h] [ebp-8h]
+
+  v1 = 0;
+  if ( *(_DWORD *)(a1 + 4) )
+  {
+LABEL_4:
+    v2 = *(_DWORD **)a1;
+    v3 = 0.0;
+    if ( *(_DWORD *)a1 )
+    {
+      do
+      {
+        v4 = v2[1];
+        v2 = (_DWORD *)*v2;
+        v3 = v3 + *(float *)(v4 + 12);
+      }
+      while ( v2 );
+    }
+    v6 = v3 / (double)*(unsigned int *)(a1 + 4);
+    while ( !sub_4B9B80(v6, v1) )
+    {
+      if ( ++v1 >= 11 )
+        return -1;
+    }
+    return v1;
+  }
+  else
+  {
+    while ( 1 )
+    {
+      a1 = *(_DWORD *)(a1 + 12);
+      if ( !a1 )
+        return 5;
+      if ( *(_DWORD *)(a1 + 4) )
+        goto LABEL_4;
+    }
+  }
+}
+
+// ---- 0x4B93F0 ----
+BOOL __thiscall sub_4B93F0(float *this)
+{
+  return this[2] < 0.0099999998;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
