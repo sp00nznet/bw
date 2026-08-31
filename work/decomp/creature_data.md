@@ -57,11 +57,38 @@ every one of these at 0x10. Twelve of them are corrected in `src/include/black/`
 to their real sizes with an opaque payload; the sizes are now right even though
 the field layouts are not yet recovered.
 
-**Not yet a reader.** The 65 tables sum to 270,442 bytes against a 580,754-byte
-file, and 103 call sites mention a `DETAIL_` name against the 65 that match the
-four-argument shape — so roughly 38 registrations use a different signature and
-are unaccounted for. The flat-dump reading is consistent with everything seen so
-far and unproven, which is not enough to build a reader on.
+### The binary path, and why the sizes do not reconcile
+
+`sub_72D2F0(buf, n, -1)` reads and `sub_72D2B0(buf, n)` writes, so the fifth
+argument to each loader selects direction: with a current `info.dat` the game
+streams fixed-size records straight out of it, and when the `.dat` is stale it
+looks each record up by name in the parsed `info.txt` tree and writes the `.dat`
+back. Records are fixed size with no embedded lengths — `sub_429AD0` reads 4
+then 376 bytes and checks the total came to 380.
+
+Chased the accounting to the end and it does not close:
+
+* The 65 registrations read **276,264 bytes**; `info.dat` is **580,754**.
+* 26 of the 61 loaders do two reads per record, not one — that correction is in
+  the figure above (it was 270,442 before).
+* The other 38 `DETAIL_` call sites are three-argument `sub_5B1630` lookups —
+  the text path for the magic info, with no binary read.
+* Cross-referencing all 61 loaders, and everything that calls `sub_5B1630`,
+  finds exactly one caller: `sub_425250`. There is no second registrar.
+* ASCII runs are spread evenly across all 580 KB, so it is not fixed tables
+  followed by a string region.
+
+The most likely explanation is that the shipped `info.dat` does not belong to
+this executable. `runblack_decrypted.exe` is v1.0; `info.dat` is dated 5 Mar
+2001, and the `CreatureMind` files in the same install run to version 30 while
+the mind loader's gates stop at 0x20. A later build's data with more or larger
+tables would read as exactly this: a consistent format, a correct loader, and
+twice as many bytes as v1.0 knows how to consume.
+
+That is a hypothesis, not a finding. Testing it needs a v1.0-era `info.dat`, or
+the record layouts pinned down well enough to walk the file and see where it
+stops making sense. Either way, a reader written against the v1.0 registrar
+would be reading the wrong file, so none is written.
 
 **The tables are `.bss`.** Dumping `unk_BA6310` gives 0xFFFFFFFF across every
 record — slot 8 is a `-1` initialiser, not shipped data. The configuration is
