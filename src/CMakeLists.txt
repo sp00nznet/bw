@@ -218,6 +218,7 @@ add_library(bw_core STATIC
     core/CreatureDatabase.cpp
     core/CreaturePen.cpp
     core/SubArgument.cpp
+    core/Attribute.cpp
     # Hand state system
     core/HandState.cpp
     core/CHand.cpp
@@ -373,6 +374,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Creature decision-tree attributes
+add_executable(test_attribute
+    viewer/test_attribute.cpp
+)
+target_link_libraries(test_attribute PRIVATE bw_core)
+set_target_properties(test_attribute PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
