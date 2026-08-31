@@ -144,6 +144,44 @@ out of the binary rather than inferred: a reasonable guess from the code alone
 with. A creature does not start blank; its innate lessons arrive already
 weighted near the top of the scale.
 
+## What the feedback is actually keyed on
+
+`sub_4C3030` is the learning-feedback reporter, and its format string settles
+what an episode records:
+
+```
+"Feedback: %.4f on action %s satisfying desire %s (acting on object %s)"
+```
+
+with the action name read from the dispatch table at 80-byte stride, the desire
+name from `CreatureInitialDesireInfo` at 448-byte stride, and the object type
+name at 64. So a learning episode is a signed feedback value
+against the triple **(action, desire, object)** — which is exactly the shape
+`LearningEpisode` in `CreatureLearner.h` already carries: a feature vector
+describing the object, and a weight. The desire selects which tree; the action
+is what the tree's leaf is an opinion about.
+
+That is corroboration from a direction the learning work did not come from, and
+it is the reason the episode model can be trusted without the induction node
+layout.
+
+## The action dispatch table
+
+`sub_4B6CA0` dispatches an action through a table at `0x8FFCB8`, 80 bytes per
+action, 328 entries:
+
+| offset | contents |
+|---|---|
+| +0 | the action's name (entry 0 is `"Undefined"`) |
+| +32 | handler function pointer |
+| +36 | a `this` offset into CreatureMental |
+| +48 | an argument passed to the handler |
+
+Only entry 0 is present in the image; the rest is `.bss` with no data xref to
+any writer, so it is filled through a base pointer the disassembler cannot
+attribute. Finding that initialiser is what would give the full action-to-code
+mapping.
+
 ## Struct sizes recovered
 
 | type | size | note |

@@ -1,0 +1,185 @@
+// ---- 0x4C3540 ----
+_DWORD *__thiscall sub_4C3540(_DWORD *this, int a2, _DWORD *a3, int a4, int a5, int a6)
+{
+  _DWORD *v7; // esi
+  int v8; // ecx
+  int v9; // ecx
+  int v10; // ecx
+
+  v7 = this + 2;
+  *this = &Base::`vftable';
+  this[1] = 0;
+  this[3] = 0;
+  this[2] = &CreaturePlan::`vftable';
+  sub_4D1380(this + 2);
+  *this = &CreatureContext::`vftable';
+  v7[1] = a3[1];
+  v7[2] = a3[2];
+  v7[3] = a3[3];
+  v7[4] = a3[4];
+  v7[5] = a3[5];
+  v7[6] = a3[6];
+  v7[7] = a3[7];
+  v7[8] = a3[8];
+  v7[9] = a3[9];
+  v7[10] = a3[10];
+  v7[11] = a3[11];
+  this[22] = a4;
+  v8 = this[5];
+  if ( v8 )
+    this[5] = (*(int (__thiscall **)(int))(*(_DWORD *)v8 + 52))(v8);
+  v9 = this[6];
+  if ( v9 )
+    this[6] = (*(int (__thiscall **)(int))(*(_DWORD *)v9 + 52))(v9);
+  v10 = this[7];
+  if ( v10 )
+    this[7] = (*(int (__thiscall **)(int))(*(_DWORD *)v10 + 52))(v10);
+  this[21] = (*(int (__thiscall **)(int))(*(_DWORD *)a6 + 52))(a6);
+  this[14] = 0;
+  this[18] = 0;
+  this[16] = 0;
+  this[15] = 0;
+  this[19] = 0;
+  this[17] = a5;
+  return this;
+}
+
+// ---- 0x4C3030 ----
+int __thiscall sub_4C3030(int this, int a2, int a3, int a4, int a5)
+{
+  int result; // eax
+  int v8; // eax
+  const char *v9; // edi
+  double v10; // st7
+  const char *v11; // edi
+  double v12; // st7
+  const char *v13; // edi
+  double v14; // st7
+  const char *v15; // edi
+  int v16; // edx
+  unsigned int v17; // ecx
+  char v18; // al
+  char *v19; // edi
+  char *v20; // esi
+  int v21; // eax
+  const char *v22; // eax
+  const char *v23; // eax
+  const char *v24; // edi
+  unsigned int v25; // ecx
+  char v26; // al
+  char *v27; // edi
+  const char *v28; // esi
+  int v29; // eax
+  float v30; // [esp+24h] [ebp-904h]
+  char v31[256]; // [esp+28h] [ebp-900h] BYREF
+  char v32[256]; // [esp+128h] [ebp-800h] BYREF
+  char v33[256]; // [esp+228h] [ebp-700h] BYREF
+  char v34[256]; // [esp+328h] [ebp-600h] BYREF
+  char v35[256]; // [esp+428h] [ebp-500h] BYREF
+  char v36[256]; // [esp+528h] [ebp-400h] BYREF
+  char v37[256]; // [esp+628h] [ebp-300h] BYREF
+  char v38[256]; // [esp+728h] [ebp-200h] BYREF
+  char v39[256]; // [esp+828h] [ebp-100h] BYREF
+
+  if ( a5 != 2 || (result = dword_BF4FAC) != 0 )
+  {
+    *(_DWORD *)(this + 92928) = a3 + 1;
+    strcpy((char *)(this + 92932), &aDirectPlayerFe[256 * a5]);
+    v30 = *(float *)(this + 99780);
+    v8 = (*(int (__thiscall **)(_DWORD))(**(_DWORD **)(a2 + 24) + 44))(*(_DWORD *)(a2 + 24));
+    sub_733E17(
+      this + 93188,
+      "Feedback: %.4f on action %s satisfying desire %s (acting on object %s)",
+      v30,
+      (&off_8FFCB8)[20 * *(_DWORD *)(a2 + 32)],
+      (const char *)&unk_B89790 + 448 * *(_DWORD *)(a2 + 16),
+      &aTown[64 * v8]);
+    v9 = aIncrease;
+    if ( *(float *)(this + 99780) <= 0.0 )
+      v9 = aDecrease;
+    v10 = *(float *)(this + 99780);
+    strcpy(v38, v9);
+    v11 = aChoose;
+    if ( v10 <= 0.0 )
+      v11 = aAvoid;
+    v12 = *(float *)(this + 99780);
+    strcpy(v31, v11);
+    v13 = aTo;
+    if ( v12 <= 0.0 )
+      v13 = aNotTo;
+    v14 = *(float *)(this + 99780);
+    strcpy(v39, v13);
+    v15 = aIs;
+    if ( v14 <= 0.0 )
+      v15 = aIsnt;
+    strcpy(v39, v15);
+    v16 = 448 * *(_DWORD *)(a2 + 16);
+    strcpy(v37, &byte_B897D0[v16]);
+    strcpy(v34, &byte_B89850[v16]);
+    v17 = strlen(&byte_B89890[v16]) + 1;
+    v18 = v17;
+    v17 >>= 2;
+    qmemcpy(v35, &byte_B89890[v16], 4 * v17);
+    v20 = &byte_B89890[4 * v17 + v16];
+    v19 = &v35[4 * v17];
+    LOBYTE(v17) = v18;
+    v21 = *(_DWORD *)(a2 + 20);
+    qmemcpy(v19, v20, v17 & 3);
+    if ( !v21 || *(_DWORD *)(v21 + 48) == *(_DWORD *)(this + 134424) )
+    {
+      v32[0] = 0;
+    }
+    else
+    {
+      if ( a4 )
+        v22 = (const char *)sub_4B9CB0(a4);
+      else
+        v22 = aNothing;
+      sub_733E17(v32, "%s", v22);
+    }
+    if ( !a4 || *(_DWORD *)(*(_DWORD *)(a2 + 24) + 48) == *(_DWORD *)(this + 134424) )
+    {
+      v33[0] = 0;
+    }
+    else
+    {
+      v23 = (const char *)sub_4B9CB0(a4);
+      sub_733E17(v33, "%s", v23);
+    }
+    v24 = (&off_8FFCB8)[20 * *(_DWORD *)(a2 + 32)];
+    v25 = strlen(v24) + 1;
+    v26 = v25;
+    v25 >>= 2;
+    qmemcpy(v36, v24, 4 * v25);
+    v28 = &v24[4 * v25];
+    v27 = &v36[4 * v25];
+    LOBYTE(v25) = v26;
+    v29 = *(_DWORD *)(this + 100112);
+    qmemcpy(v27, v28, v25 & 3);
+    switch ( v29 )
+    {
+      case 0:
+        result = sub_733E17((a3 << 8) + this + 93444, "I've learnt to %s my %s", v38, v37);
+        break;
+      case 1:
+        result = sub_733E17((a3 << 8) + this + 93444, "I've learnt to %s %s when I %s", v31, v32, v34);
+        break;
+      case 2:
+        result = sub_733E17((a3 << 8) + this + 93444, "I've learnt to %s %s when I %s", v31, v33, v34);
+        break;
+      case 3:
+        if ( dword_BA8BD0[10 * *(_DWORD *)(a2 + 16)] )
+          result = sub_733E17((a3 << 8) + this + 93444, "I've learnt to %s %s when I %s %s", v31, v36, v35, v33);
+        else
+          result = sub_733E17((a3 << 8) + this + 93444, "I've learnt to %s %s when I %s %s", v31, v36, v35, v32);
+        break;
+      default:
+        result = sub_733E17((a3 << 8) + this + 93444, aWarningInvalid);
+        break;
+    }
+  }
+  return result;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

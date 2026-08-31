@@ -1,0 +1,72 @@
+// ---- 0x4D15B0 ----
+int __thiscall sub_4D15B0(_DWORD *this, int a2)
+{
+  return sub_4D15E0(this, (_DWORD *)(48 * *(_DWORD *)(this[89] + 3736) + this[89] + 1816), a2);
+}
+
+// ---- 0x4D1680 ----
+int __thiscall sub_4D1680(_DWORD *this, int a2)
+{
+  int v3; // ecx
+  int result; // eax
+  int v5; // ecx
+  _BYTE v6[8]; // [esp+4h] [ebp-70h] BYREF
+  _DWORD v7[26]; // [esp+Ch] [ebp-68h] BYREF
+
+  v3 = this[89];
+  result = *(_DWORD *)(v3 + 3920);
+  if ( (unsigned int)result < 0x28 )
+  {
+    result = sub_4C0560(*(_DWORD *)(v3 + 3920));
+    if ( result < 61 )
+      goto LABEL_6;
+    v5 = *(_DWORD *)(this[89] + 8 * *(_DWORD *)(this[89] + 3920) + 816);
+    if ( v5 )
+      result = *(_DWORD *)(*(_DWORD *)(v5 + 4) + 12);
+    if ( result < 61 )
+    {
+LABEL_6:
+      sub_4C3540(this, this[89] + 3912, result, a2, *(_DWORD *)(this[89] + 119936));
+      sub_4D2370(v6);
+      ++dword_BCEDF8;
+      sub_4D13A0(v7);
+      return sub_430270(v6);
+    }
+  }
+  return result;
+}
+
+// ---- 0x4B6CA0 ----
+BOOL __thiscall sub_4B6CA0(_DWORD *this, int a2)
+{
+  _DWORD *v3; // edi
+  int v4; // eax
+  int v6; // ecx
+
+  v3 = this + 550;
+  sub_4DE990(this + 550);
+  v4 = ((int (__thiscall *)(char *, int))dword_8FFCD8[20 * a2])(
+         (char *)this + dword_8FFCDC[20 * a2],
+         dword_8FFCE8[20 * a2]);
+  if ( !*(_DWORD *)(this[1349] + 4536) && this[1329] )
+  {
+    sub_45FA70(aOutsideArea, 1, 1);
+    sub_4DE990(v3);
+    this[a2 + 1379] = 1;
+    return 0;
+  }
+  if ( this[557] == -1 )
+  {
+    v6 = this[555];
+    if ( !v6 )
+    {
+      this[557] = 0;
+      return v4 == 0;
+    }
+    this[557] = v6 - 1;
+  }
+  return v4 == 0;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
