@@ -380,13 +380,21 @@ Remaining:
   DesireDependency 176 B, SourceBoundsInfo 28 B/type) — all were 0x10 in our
   headers *and* the vendor's.
 
+- **Plans landed** (`ActionPlan`/`PlanState` in `CreatureDesire.h`, from
+  sub_4B2720 / sub_4D1450 / sub_4D15E0). A plan is a desire + a
+  `CREATURE_ACTION` + up to three belief targets; all 40 slots are pre-assigned
+  to their desire at init. Resolved why `AttributeCreatureDominantDesire` reads
+  the current *action* and maps back: the current plan sits at mental+3912, so
+  its action is at +3936, which is what the attribute reads.
+
 Remaining:
-0. **Creature AI: agenda and actions** — the desire layer is done bar its
-   tuning values. Next is `CreatureAgenda`/`CreaturePlan`: turning the dominant
-   desire into a `CREATURE_ACTION` (328 of them, `CreatureActionInfo` is
-   268 B/record), then `Creature::ProcessState`. The learning tree
-   (`CreatureLearner.cpp`) plugs in where a desire needs an opinion about a
-   candidate object.
+0. **Creature AI: the plan chooser** — what is still missing between a dominant
+   desire and a plan is the selection itself: which `CREATURE_ACTION` a desire
+   picks, and against which belief. `DETAIL_CREATURE_DESIRE_ACTION_TABLE`
+   (40 x 136) is the data for it and is `.bss`; the *code* that consumes it is
+   the target, reachable the same way sub_4BEB30 was. Then
+   `Creature::ProcessState`. The learning tree plugs in where a desire needs an
+   opinion about a candidate object.
 1. **An info.dat reader — blocked on a version mismatch, probably.** The loader
    is fully understood (`sub_425250`, 65 tables, fixed-size records, direction
    chosen by the read/write helper; `work/decomp/info_layout.txt`). But the
