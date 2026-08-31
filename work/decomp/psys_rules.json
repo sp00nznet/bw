@@ -1,0 +1,2526 @@
+{
+ "AR_FadeAlpha": {
+  "cls": "AR_FadeAlpha",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x8731bc",
+  "slots": 8,
+  "props": [
+   {
+    "name": "StartTime",
+    "off": 32,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "StopTime",
+    "off": 36,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "StartAlpha",
+    "off": 40,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "StopAlpha",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   }
+  ]
+ },
+ "AR_FadeAlphaWithHeightAboveLandscape": {
+  "cls": "AR_FadeAlphaWithHeightAboveLandscape",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x873228",
+  "slots": 8,
+  "props": [
+   {
+    "name": "RefHeight",
+    "off": 40,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   },
+   {
+    "name": "AlphaAtZero",
+    "off": 32,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "AlphaAtRefHeight",
+    "off": 36,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   }
+  ]
+ },
+ "AR_FadeCollectionAlpha": {
+  "cls": "AR_FadeCollectionAlpha",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x8731e0",
+  "slots": 8,
+  "props": [
+   {
+    "name": "StartTime",
+    "off": 32,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "StopTime",
+    "off": 36,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "StartAlpha",
+    "off": 40,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "StopAlpha",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "TimesAreAfterCloseDown",
+    "off": 48,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "SetAlphaAfterStopTime",
+    "off": 49,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "AR_FadeOutOnceConditionTrue": {
+  "cls": "AR_FadeOutOnceConditionTrue",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x873204",
+  "slots": 8,
+  "props": [
+   {
+    "name": "TimeToFadeOut",
+    "off": 32,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "FadeAlpha",
+    "off": 40,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "ShrinkScale",
+    "off": 41,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "AR_GetColorFromParent": {
+  "cls": "AR_GetColorFromParent",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x87324c",
+  "slots": 8,
+  "props": []
+ },
+ "AR_SetAnimPlay": {
+  "cls": "AR_SetAnimPlay",
+  "parent": "AR_GetColorFromParent",
+  "vftable": "0x873198",
+  "slots": 8,
+  "props": []
+ },
+ "AddSoundToAtom": {
+  "cls": "AddSoundToAtom",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x873108",
+  "slots": 8,
+  "props": [
+   {
+    "name": "Sound",
+    "off": 32,
+    "type": "sound",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "StopOtherSoundsFirst",
+    "off": 60,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "Delay",
+    "off": 64,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "DoCameraShake",
+    "off": 68,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "CameraShakeRadius",
+    "off": 72,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   },
+   {
+    "name": "CameraShakeDuration",
+    "off": 76,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   }
+  ]
+ },
+ "AppearanceRuleFadeOut": {
+  "cls": "AppearanceRuleFadeOut",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x8730e4",
+  "slots": 8,
+  "props": [
+   {
+    "name": "VanishAge",
+    "off": 32,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   }
+  ]
+ },
+ "AppearanceRuleTumble": {
+  "cls": "AppearanceRuleTumble",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x873270",
+  "slots": 8,
+  "props": [
+   {
+    "name": "TumbleSpeed",
+    "off": 36,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "MaxTumbleSpeed",
+    "off": 40,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   },
+   {
+    "name": "RestrictMaxRotation",
+    "off": 32,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "AtomCore": {
+  "cls": "AtomCore",
+  "parent": "AtomCollection",
+  "vftable": "0x8702f8",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@AR_FadeOutOnceConditionTrue": {
+  "cls": "AtomData@AR_FadeOutOnceConditionTrue",
+  "parent": "AtomCollection",
+  "vftable": "0x839944",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@AddSoundToAtom": {
+  "cls": "AtomData@AddSoundToAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x839a44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@AddSubCollectionsToAtom": {
+  "cls": "AtomData@AddSubCollectionsToAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x83a544",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@AttatchFireBallToAtom": {
+  "cls": "AtomData@AttatchFireBallToAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x839c44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@CheckShieldDeflections": {
+  "cls": "AtomData@CheckShieldDeflections",
+  "parent": "AtomCollection",
+  "vftable": "0x83a744",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@CreateNewBaseAtom": {
+  "cls": "AtomData@CreateNewBaseAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x83a644",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@ER_GlintsOnTarget": {
+  "cls": "AtomData@ER_GlintsOnTarget",
+  "parent": "AtomCollection",
+  "vftable": "0x83ad44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@ER_MultiPickup": {
+  "cls": "AtomData@ER_MultiPickup",
+  "parent": "AtomCollection",
+  "vftable": "0x872770",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@RemoveRuleAfterConditionTrue": {
+  "cls": "AtomData@RemoveRuleAfterConditionTrue",
+  "parent": "AtomCollection",
+  "vftable": "0x83b544",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@RemoveSoundFromAtom": {
+  "cls": "AtomData@RemoveSoundFromAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x839b44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_Articulate": {
+  "cls": "AtomData@UR_Articulate",
+  "parent": "AtomCollection",
+  "vftable": "0x871224",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_BankedTurning": {
+  "cls": "AtomData@UR_BankedTurning",
+  "parent": "AtomCollection",
+  "vftable": "0x839e44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_BeliefSprite": {
+  "cls": "AtomData@UR_BeliefSprite",
+  "parent": "AtomCollection",
+  "vftable": "0x839744",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_CloudGather": {
+  "cls": "AtomData@UR_CloudGather",
+  "parent": "AtomCollection",
+  "vftable": "0x83c344",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_CreatureSpellGeneric": {
+  "cls": "AtomData@UR_CreatureSpellGeneric",
+  "parent": "AtomCollection",
+  "vftable": "0x83bc44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_Explosion": {
+  "cls": "AtomData@UR_Explosion",
+  "parent": "AtomCollection",
+  "vftable": "0x83c644",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_FollowTargets": {
+  "cls": "AtomData@UR_FollowTargets",
+  "parent": "AtomCollection",
+  "vftable": "0x83b244",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_ForestPath": {
+  "cls": "AtomData@UR_ForestPath",
+  "parent": "AtomCollection",
+  "vftable": "0x83a344",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_GesturingRecognised": {
+  "cls": "AtomData@UR_GesturingRecognised",
+  "parent": "AtomCollection",
+  "vftable": "0x8715ac",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_HealSpellChakra": {
+  "cls": "AtomData@UR_HealSpellChakra",
+  "parent": "AtomCollection",
+  "vftable": "0x8723bc",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_InitialSpin": {
+  "cls": "AtomData@UR_InitialSpin",
+  "parent": "AtomCollection",
+  "vftable": "0x83b044",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_LightSheetOnObject": {
+  "cls": "AtomData@UR_LightSheetOnObject",
+  "parent": "AtomCollection",
+  "vftable": "0x872020",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_LightningStrike": {
+  "cls": "AtomData@UR_LightningStrike",
+  "parent": "AtomCollection",
+  "vftable": "0x871cf0",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_ManaPathNew": {
+  "cls": "AtomData@UR_ManaPathNew",
+  "parent": "AtomCollection",
+  "vftable": "0x839644",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_ObjectArcer": {
+  "cls": "AtomData@UR_ObjectArcer",
+  "parent": "AtomCollection",
+  "vftable": "0x871bcc",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_OrientSpriteWithRandomAngle": {
+  "cls": "AtomData@UR_OrientSpriteWithRandomAngle",
+  "parent": "AtomCollection",
+  "vftable": "0x83b644",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_OrientSpriteWithVelocity": {
+  "cls": "AtomData@UR_OrientSpriteWithVelocity",
+  "parent": "AtomCollection",
+  "vftable": "0x83c744",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_OrientWithVelocity": {
+  "cls": "AtomData@UR_OrientWithVelocity",
+  "parent": "AtomCollection",
+  "vftable": "0x83b744",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_Plasma": {
+  "cls": "AtomData@UR_Plasma",
+  "parent": "AtomCollection",
+  "vftable": "0x839444",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_SideSpin": {
+  "cls": "AtomData@UR_SideSpin",
+  "parent": "AtomCollection",
+  "vftable": "0x83af44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_SimpleBeam": {
+  "cls": "AtomData@UR_SimpleBeam",
+  "parent": "AtomCollection",
+  "vftable": "0x838f44",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_SphereSurfaceTracer": {
+  "cls": "AtomData@UR_SphereSurfaceTracer",
+  "parent": "AtomCollection",
+  "vftable": "0x83a244",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_StormCast": {
+  "cls": "AtomData@UR_StormCast",
+  "parent": "AtomCollection",
+  "vftable": "0x875440",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_TownCentreBelief": {
+  "cls": "AtomData@UR_TownCentreBelief",
+  "parent": "AtomCollection",
+  "vftable": "0x871f20",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_VapourEndEffect": {
+  "cls": "AtomData@UR_VapourEndEffect",
+  "parent": "AtomCollection",
+  "vftable": "0x83a444",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_VolFXOnObject": {
+  "cls": "AtomData@UR_VolFXOnObject",
+  "parent": "AtomCollection",
+  "vftable": "0x872144",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UR_VortexAttract": {
+  "cls": "AtomData@UR_VortexAttract",
+  "parent": "AtomCollection",
+  "vftable": "0x83c544",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@UpdateRuleShieldSpark": {
+  "cls": "AtomData@UpdateRuleShieldSpark",
+  "parent": "AtomCollection",
+  "vftable": "0x83a144",
+  "slots": 63,
+  "props": []
+ },
+ "AtomData@ZR_ChainGesture": {
+  "cls": "AtomData@ZR_ChainGesture",
+  "parent": "AtomCollection",
+  "vftable": "0x8717fc",
+  "slots": 63,
+  "props": []
+ },
+ "AtomDataRipple@UpdateRuleGravityWithFloor": {
+  "cls": "AtomDataRipple@UpdateRuleGravityWithFloor",
+  "parent": "AtomCollection",
+  "vftable": "0x839d44",
+  "slots": 63,
+  "props": []
+ },
+ "AttatchFireBallToAtom": {
+  "cls": "AttatchFireBallToAtom",
+  "parent": "AR_GetColorFromParent",
+  "vftable": "0x873834",
+  "slots": 8,
+  "props": []
+ },
+ "BaseAtomModifierData": {
+  "cls": "BaseAtomModifierData",
+  "parent": "AtomCollection",
+  "vftable": "0x839144",
+  "slots": 63,
+  "props": []
+ },
+ "BaseCollectionModifierData": {
+  "cls": "BaseCollectionModifierData",
+  "parent": "AtomCollection",
+  "vftable": "0x839244",
+  "slots": 63,
+  "props": []
+ },
+ "CollectionData@ER_BurstFromParentAtom": {
+  "cls": "CollectionData@ER_BurstFromParentAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x83ab44",
+  "slots": 63,
+  "props": []
+ },
+ "CollectionData@ER_EmitFromParentAtom": {
+  "cls": "CollectionData@ER_EmitFromParentAtom",
+  "parent": "AtomCollection",
+  "vftable": "0x83ae44",
+  "slots": 63,
+  "props": []
+ },
+ "CollectionData@EmitterRule": {
+  "cls": "CollectionData@EmitterRule",
+  "parent": "AtomCollection",
+  "vftable": "0x83a844",
+  "slots": 63,
+  "props": []
+ },
+ "CollectionData@EmitterRuleLightningSprite": {
+  "cls": "CollectionData@EmitterRuleLightningSprite",
+  "parent": "AtomCollection",
+  "vftable": "0x83a944",
+  "slots": 63,
+  "props": []
+ },
+ "CollectionData@UR_AtomsAtEPTarget": {
+  "cls": "CollectionData@UR_AtomsAtEPTarget",
+  "parent": "AtomCollection",
+  "vftable": "0x83c844",
+  "slots": 63,
+  "props": []
+ },
+ "CreateNewBaseAtom": {
+  "cls": "CreateNewBaseAtom",
+  "parent": "AtomCreateRule",
+  "vftable": "0x873858",
+  "slots": 8,
+  "props": [
+   {
+    "name": "BaseGroup",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": -1,
+    "max": 24
+   },
+   {
+    "name": "SoundCreation",
+    "off": 48,
+    "type": "sound",
+    "width": 4,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "CreateRuleMakeChain": {
+  "cls": "CreateRuleMakeChain",
+  "parent": "OnceOnlyCreateRule",
+  "vftable": "0x8737a4",
+  "slots": 8,
+  "props": [
+   {
+    "name": "NumAtoms",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 20
+   }
+  ]
+ },
+ "CreateRuleSphere": {
+  "cls": "CreateRuleSphere",
+  "parent": "OnceOnlyCreateRule",
+  "vftable": "0x87387c",
+  "slots": 9,
+  "props": [
+   {
+    "name": "NumAtoms",
+    "off": 56,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 20
+   },
+   {
+    "name": "Radius",
+    "off": 60,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 20.0
+   },
+   {
+    "name": "SoundOfCreate",
+    "off": 64,
+    "type": "sound",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "SetInitFrameFromIndex",
+    "off": 88,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "CreateRule_GameObjectRef": {
+  "cls": "CreateRule_GameObjectRef",
+  "parent": "AtomCreateRule",
+  "vftable": "0x873910",
+  "slots": 8,
+  "props": [
+   {
+    "name": "DoShower",
+    "off": 68,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "Alpha",
+    "off": 72,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "OffsetY",
+    "off": 76,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   }
+  ]
+ },
+ "DiskEmitter": {
+  "cls": "DiskEmitter",
+  "parent": null,
+  "vftable": "0x8736cc",
+  "slots": 8,
+  "props": [
+   {
+    "name": "Radius",
+    "off": 84,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   },
+   {
+    "name": "Height",
+    "off": 88,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   }
+  ]
+ },
+ "EC_AtomAlphaAbove": {
+  "cls": "EC_AtomAlphaAbove",
+  "parent": null,
+  "vftable": "0x872ee4",
+  "slots": 8,
+  "props": [
+   {
+    "name": "AlphaValue",
+    "off": 16,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   }
+  ]
+ },
+ "ER_BurstFromParentAtom": {
+  "cls": "ER_BurstFromParentAtom",
+  "parent": "AtomCreateRule",
+  "vftable": "0x8725bc",
+  "slots": 8,
+  "props": [
+   {
+    "name": "MaxAtoms",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 100
+   },
+   {
+    "name": "MaxAlpha",
+    "off": 48,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "PulseMagnitude",
+    "off": 52,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "PulseSpeed",
+    "off": 56,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "AtomAgeMaxSize",
+    "off": 60,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "AtomAgeZeroSize",
+    "off": 64,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   }
+  ]
+ },
+ "ER_EmitFromParentAtom": {
+  "cls": "ER_EmitFromParentAtom",
+  "parent": "AtomCreateRule",
+  "vftable": "0x8725e0",
+  "slots": 8,
+  "props": [
+   {
+    "name": "MaxAtoms",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 100
+   },
+   {
+    "name": "MaxAlpha",
+    "off": 48,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "PulseMagnitude",
+    "off": 52,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "PulseSpeed",
+    "off": 56,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "AtomAgeMaxSize",
+    "off": 60,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "AtomAgeZeroSize",
+    "off": 64,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "DoScaling",
+    "off": 72,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "DeleteAtoms",
+    "off": 73,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "EmitOnlyAboveLandscape",
+    "off": 74,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "EmitterRule": {
+  "cls": "EmitterRule",
+  "parent": "AtomCollection",
+  "vftable": "0x83a844",
+  "slots": 63,
+  "props": []
+ },
+ "EmitterRuleConical": {
+  "cls": "EmitterRuleConical",
+  "parent": null,
+  "vftable": "0x873714",
+  "slots": 8,
+  "props": [
+   {
+    "name": "Speed",
+    "off": 84,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "Spread",
+    "off": 88,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.570796
+   },
+   {
+    "name": "Radius",
+    "off": 92,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 20.0
+   }
+  ]
+ },
+ "EmitterRuleLightningSprite": {
+  "cls": "EmitterRuleLightningSprite",
+  "parent": "AtomCreateRule",
+  "vftable": "0x8736a8",
+  "slots": 8,
+  "props": [
+   {
+    "name": "SpecLife",
+    "off": 44,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "EmissionFreq",
+    "off": 48,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "MaxAtoms",
+    "off": 52,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 500
+   },
+   {
+    "name": "MaxTotalAtomsToEmit",
+    "off": 56,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 500
+   },
+   {
+    "name": "Randomise",
+    "off": 60,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "EmitterRuleSimple": {
+  "cls": "EmitterRuleSimple",
+  "parent": null,
+  "vftable": "0x873684",
+  "slots": 8,
+  "props": [
+   {
+    "name": "Speed",
+    "off": 84,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "OrientWithParent",
+    "off": 88,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "EventConditionAtomBelowHeight": {
+  "cls": "EventConditionAtomBelowHeight",
+  "parent": null,
+  "vftable": "0x872ec0",
+  "slots": 8,
+  "props": [
+   {
+    "name": "CutOffHeight",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": -20.0,
+    "max": 20.0
+   }
+  ]
+ },
+ "EventConditionAtomBelowSpeed": {
+  "cls": "EventConditionAtomBelowSpeed",
+  "parent": null,
+  "vftable": "0x872f74",
+  "slots": 8,
+  "props": [
+   {
+    "name": "CutOffSpeed",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 20.0
+   }
+  ]
+ },
+ "EventConditionAtomCloseWater": {
+  "cls": "EventConditionAtomCloseWater",
+  "parent": "EventConditionAtomBelowHeight",
+  "vftable": "0x872f08",
+  "slots": 8,
+  "props": [
+   {
+    "name": "CutOffHeight",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": -20.0,
+    "max": 20.0
+   }
+  ]
+ },
+ "EventConditionAtomDelay": {
+  "cls": "EventConditionAtomDelay",
+  "parent": null,
+  "vftable": "0x872de8",
+  "slots": 8,
+  "props": [
+   {
+    "name": "DelayTime",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   }
+  ]
+ },
+ "EventConditionAtomHasBeenDeflected": {
+  "cls": "EventConditionAtomHasBeenDeflected",
+  "parent": "EC_DeflectionInAtomsHierarchy",
+  "vftable": "0x872f98",
+  "slots": 8,
+  "props": []
+ },
+ "EventConditionAtomInUse": {
+  "cls": "EventConditionAtomInUse",
+  "parent": "EC_DeflectionInAtomsHierarchy",
+  "vftable": "0x872f50",
+  "slots": 8,
+  "props": []
+ },
+ "EventConditionAtomLimitedTime": {
+  "cls": "EventConditionAtomLimitedTime",
+  "parent": null,
+  "vftable": "0x872e30",
+  "slots": 8,
+  "props": [
+   {
+    "name": "StartTime",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "StopTime",
+    "off": 20,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   }
+  ]
+ },
+ "EventConditionAtomNearVillagers": {
+  "cls": "EventConditionAtomNearVillagers",
+  "parent": "EC_DeflectionInAtomsHierarchy",
+  "vftable": "0x872e0c",
+  "slots": 8,
+  "props": []
+ },
+ "FloatProvider_ParentAtomScale": {
+  "cls": "FloatProvider_ParentAtomScale",
+  "parent": null,
+  "vftable": "0x872ff4",
+  "slots": 6,
+  "props": [
+   {
+    "name": "Scale",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 100.0
+   }
+  ]
+ },
+ "FlyingAtomData@UR_Tornado": {
+  "cls": "FlyingAtomData@UR_Tornado",
+  "parent": "AtomCollection",
+  "vftable": "0x83c144",
+  "slots": 63,
+  "props": []
+ },
+ "GJPSysInterface": {
+  "cls": "GJPSysInterface",
+  "parent": "AtomCollection",
+  "vftable": "0x8386f8",
+  "slots": 77,
+  "props": []
+ },
+ "HelpSystemInfo": {
+  "cls": "HelpSystemInfo",
+  "parent": "HelpSystem",
+  "vftable": "0x86825c",
+  "slots": 11,
+  "props": []
+ },
+ "OnceOnlyCreateRule": {
+  "cls": "OnceOnlyCreateRule",
+  "parent": "AtomCreateRule",
+  "vftable": "0x8722f8",
+  "slots": 8,
+  "props": []
+ },
+ "PSysBase": {
+  "cls": "PSysBase",
+  "parent": "AtomCollection",
+  "vftable": "0x808b04",
+  "slots": 63,
+  "props": []
+ },
+ "PSysFileData": {
+  "cls": "PSysFileData",
+  "parent": null,
+  "vftable": "0x8701bc",
+  "slots": 5,
+  "props": [
+   {
+    "name": "DeleteOnCloseDown",
+    "off": 28,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaxSpellAge",
+    "off": 32,
+    "type": "float",
+    "width": 4,
+    "min": -1.0,
+    "max": 20.0
+   }
+  ]
+ },
+ "PSysInterface": {
+  "cls": "PSysInterface",
+  "parent": "AtomCollection",
+  "vftable": "0x838830",
+  "slots": 77,
+  "props": []
+ },
+ "PSysManager": {
+  "cls": "PSysManager",
+  "parent": "AtomCollection",
+  "vftable": "0x8701ec",
+  "slots": 63,
+  "props": []
+ },
+ "PSysSound": {
+  "cls": "PSysSound",
+  "parent": "AtomCollection",
+  "vftable": "0x875198",
+  "slots": 63,
+  "props": []
+ },
+ "ParentAtomData@ER_GlintsOnTarget": {
+  "cls": "ParentAtomData@ER_GlintsOnTarget",
+  "parent": "AtomCollection",
+  "vftable": "0x83ac44",
+  "slots": 63,
+  "props": []
+ },
+ "Particle3DAnim": {
+  "cls": "Particle3DAnim",
+  "parent": "AtomCollection",
+  "vftable": "0x8743d0",
+  "slots": 74,
+  "props": []
+ },
+ "Particle3DAnimWithCamera": {
+  "cls": "Particle3DAnimWithCamera",
+  "parent": "AtomCollection",
+  "vftable": "0x8744fc",
+  "slots": 74,
+  "props": []
+ },
+ "Particle3DObj": {
+  "cls": "Particle3DObj",
+  "parent": "AtomCollection",
+  "vftable": "0x873f20",
+  "slots": 74,
+  "props": []
+ },
+ "Particle3DObjAnimTextured": {
+  "cls": "Particle3DObjAnimTextured",
+  "parent": "AtomCollection",
+  "vftable": "0x87404c",
+  "slots": 74,
+  "props": []
+ },
+ "Particle3DPnt": {
+  "cls": "Particle3DPnt",
+  "parent": "AtomCollection",
+  "vftable": "0x838968",
+  "slots": 74,
+  "props": []
+ },
+ "Particle3DSprite": {
+  "cls": "Particle3DSprite",
+  "parent": "AtomCollection",
+  "vftable": "0x838cec",
+  "slots": 74,
+  "props": []
+ },
+ "ParticleAnimCreator": {
+  "cls": "ParticleAnimCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x87292c",
+  "slots": 10,
+  "props": [
+   {
+    "name": "SpeedUpFactor",
+    "off": 68,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "MeshEnum",
+    "off": 72,
+    "type": "mesh_enum",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshFileName",
+    "off": 76,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshFileName1",
+    "off": 92,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshFileName2",
+    "off": 108,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "AnimFileName",
+    "off": 128,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "AnimEnum",
+    "off": 124,
+    "type": "anim_enum",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 144,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 145,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 146,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "PlayAnim",
+    "off": 161,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseInitFrame",
+    "off": 162,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NeverClip",
+    "off": 163,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseDynamicLighting",
+    "off": 164,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseGlobalAlpha",
+    "off": 165,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseSuperSortedPolys",
+    "off": 160,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FrameToStartBlend",
+    "off": 152,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1000.0
+   },
+   {
+    "name": "FrameToEndBlend",
+    "off": 156,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1000.0
+   }
+  ]
+ },
+ "ParticleAnimWithCameraCreator": {
+  "cls": "ParticleAnimWithCameraCreator",
+  "parent": "ParticleAnimCreator",
+  "vftable": "0x872984",
+  "slots": 10,
+  "props": [
+   {
+    "name": "PauseBeforePlay",
+    "off": 188,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "CameraFileName",
+    "off": 172,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "ParticleBaseMeshCreator": {
+  "cls": "ParticleBaseMeshCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872878",
+  "slots": 10,
+  "props": [
+   {
+    "name": "MeshFileName",
+    "off": 52,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshEnum",
+    "off": 68,
+    "type": "mesh_enum",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FaceCamera",
+    "off": 77,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FaceCameraSprite",
+    "off": 76,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "HeightStretch",
+    "off": 72,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "UseScriptHightlightPulse",
+    "off": 78,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "ParticleChainCreator": {
+  "cls": "ParticleChainCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872a60",
+  "slots": 12,
+  "props": [
+   {
+    "name": "TextureFileName",
+    "off": 60,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NumTexturesForWholeChain",
+    "off": 104,
+    "type": "int",
+    "width": 4,
+    "min": -1,
+    "max": 32
+   },
+   {
+    "name": "FrameOfHead",
+    "off": 88,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 32
+   },
+   {
+    "name": "FrameOfTail",
+    "off": 92,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 32
+   },
+   {
+    "name": "FileOffset",
+    "off": 84,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 32
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 76,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 77,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 78,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseDynamicLighting",
+    "off": 81,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FrameHeight",
+    "off": 96,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 256
+   },
+   {
+    "name": "FrameWidth",
+    "off": 100,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 256
+   }
+  ]
+ },
+ "ParticleChainJoint": {
+  "cls": "ParticleChainJoint",
+  "parent": "AtomCollection",
+  "vftable": "0x838e18",
+  "slots": 74,
+  "props": []
+ },
+ "ParticleCreator": {
+  "cls": "ParticleCreator",
+  "parent": null,
+  "vftable": "0x872958",
+  "slots": 10,
+  "props": [
+   {
+    "name": "UsePlayerColor",
+    "off": 13,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UsePlayerColorBlend",
+    "off": 16,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "LoopAnim",
+    "off": 12,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "ColorA",
+    "off": 20,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "ColorR",
+    "off": 24,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "ColorG",
+    "off": 28,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "ColorB",
+    "off": 32,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "SpecColorR",
+    "off": 36,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "SpecColorG",
+    "off": 40,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "SpecColorB",
+    "off": 44,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 255
+   },
+   {
+    "name": "InitialScale",
+    "off": 48,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   }
+  ]
+ },
+ "ParticleGJMeshCreator": {
+  "cls": "ParticleGJMeshCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872900",
+  "slots": 10,
+  "props": [
+   {
+    "name": "MeshFileName",
+    "off": 56,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 72,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 73,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 74,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "ParticleGoodEvilCreator": {
+  "cls": "ParticleGoodEvilCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872a94",
+  "slots": 10,
+  "props": [
+   {
+    "name": "AlignmentSwitch",
+    "off": 60,
+    "type": "float",
+    "width": 4,
+    "min": -1.0,
+    "max": 1.0
+   }
+  ]
+ },
+ "ParticleLightMap": {
+  "cls": "ParticleLightMap",
+  "parent": "AtomCollection",
+  "vftable": "0x874d04",
+  "slots": 74,
+  "props": []
+ },
+ "ParticleLightMapCreator": {
+  "cls": "ParticleLightMapCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x8729b0",
+  "slots": 10,
+  "props": [
+   {
+    "name": "TextureFileName",
+    "off": 84,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "Pitch",
+    "off": 100,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 12
+   },
+   {
+    "name": "NumFramesInUse",
+    "off": 108,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "NumFramesInFile",
+    "off": 104,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "RandJitter",
+    "off": 112,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 10.0
+   },
+   {
+    "name": "UseRandJitter",
+    "off": 116,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FrameRate",
+    "off": 120,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "PlayAnim",
+    "off": 124,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "ShiftX",
+    "off": 128,
+    "type": "float",
+    "width": 4,
+    "min": -5.0,
+    "max": 5.0
+   },
+   {
+    "name": "ShiftZ",
+    "off": 132,
+    "type": "float",
+    "width": 4,
+    "min": -5.0,
+    "max": 5.0
+   }
+  ]
+ },
+ "ParticleMeshCreator": {
+  "cls": "ParticleMeshCreator",
+  "parent": "ParticleBaseMeshCreator",
+  "vftable": "0x8728a4",
+  "slots": 10,
+  "props": [
+   {
+    "name": "MeshChangeMaterialProps",
+    "off": 88,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 85,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 86,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 87,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseGlobalAlpha",
+    "off": 90,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "DrawWithLandscapeColor",
+    "off": 94,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NeverClip",
+    "off": 91,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseDynamicLighting",
+    "off": 92,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "CastHumanShadow",
+    "off": 93,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "DrawCutByPlane",
+    "off": 95,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "ParticleMeshCreatorAnimTextured": {
+  "cls": "ParticleMeshCreatorAnimTextured",
+  "parent": "ParticleBaseMeshCreator",
+  "vftable": "0x8728d0",
+  "slots": 10,
+  "props": [
+   {
+    "name": "MeshChangeMaterialProps",
+    "off": 88,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 85,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 86,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 87,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseGlobalAlpha",
+    "off": 90,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NeverClip",
+    "off": 93,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseDynamicLighting",
+    "off": 95,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "TextureHeight",
+    "off": 104,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 128
+   },
+   {
+    "name": "TextureWidth",
+    "off": 108,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 128
+   },
+   {
+    "name": "SlideU",
+    "off": 112,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "SlideV",
+    "off": 113,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "DrawMelted",
+    "off": 116,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseInitFrame",
+    "off": 114,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseFrameRate",
+    "off": 115,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FrameRateMax",
+    "off": 120,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "NumFrames",
+    "off": 100,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 64
+   },
+   {
+    "name": "FrameRate",
+    "off": 96,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "PlayAnim",
+    "off": 94,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "InitialOffsetFrac",
+    "off": 124,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 1.0
+   },
+   {
+    "name": "StretchY",
+    "off": 128,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "DrawWithLandscapeColor",
+    "off": 132,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "ParticleMistCreator": {
+  "cls": "ParticleMistCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872a34",
+  "slots": 10,
+  "props": [
+   {
+    "name": "RandomiseScale",
+    "off": 120,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "IsShadowMap",
+    "off": 121,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "LoadLightMap",
+    "off": 122,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "TakeRatioFromMatrix",
+    "off": 123,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "TextureFileName",
+    "off": 96,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "Pitch",
+    "off": 84,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 12
+   },
+   {
+    "name": "NumFramesInUse",
+    "off": 92,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "NumFramesInFile",
+    "off": 88,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "InitialScaleMin",
+    "off": 112,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "Ratio",
+    "off": 116,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   }
+  ]
+ },
+ "ParticlePlayerSymbol": {
+  "cls": "ParticlePlayerSymbol",
+  "parent": "AtomCollection",
+  "vftable": "0x874aac",
+  "slots": 74,
+  "props": []
+ },
+ "ParticlePointCreator": {
+  "cls": "ParticlePointCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872c9c",
+  "slots": 10,
+  "props": []
+ },
+ "ParticleSpriteCreator": {
+  "cls": "ParticleSpriteCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x8729dc",
+  "slots": 10,
+  "props": [
+   {
+    "name": "UseLandscapeColor",
+    "off": 121,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FrameRate",
+    "off": 88,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "PlayAnim",
+    "off": 120,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 80,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 81,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 82,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NumFrames",
+    "off": 76,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "InitFrame",
+    "off": 112,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 32
+   },
+   {
+    "name": "FileOffset",
+    "off": 116,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 64
+   },
+   {
+    "name": "TextureFileName",
+    "off": 60,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseScale",
+    "off": 122,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseInitFrame",
+    "off": 123,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "SetHorozontal",
+    "off": 124,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "SetVertical",
+    "off": 125,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "CentreAtBase",
+    "off": 126,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "RandomiseFrameDirection",
+    "off": 127,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "IgnoreRotation",
+    "off": 129,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "StretchVertically",
+    "off": 92,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 5.0
+   },
+   {
+    "name": "SpriteOriginX",
+    "off": 96,
+    "type": "float",
+    "width": 4,
+    "min": -1.0,
+    "max": 1.0
+   },
+   {
+    "name": "SpriteOriginY",
+    "off": 100,
+    "type": "float",
+    "width": 4,
+    "min": -1.0,
+    "max": 1.0
+   },
+   {
+    "name": "NumSpritesPerRow",
+    "off": 104,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 16
+   },
+   {
+    "name": "ScaleAlpha",
+    "off": 108,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 255
+   }
+  ]
+ },
+ "ParticleSymbolSpriteCreator": {
+  "cls": "ParticleSymbolSpriteCreator",
+  "parent": "ParticlePointCreator",
+  "vftable": "0x872a08",
+  "slots": 10,
+  "props": []
+ },
+ "ParticleVolBlendMeshCreator": {
+  "cls": "ParticleVolBlendMeshCreator",
+  "parent": "ParticleCreator",
+  "vftable": "0x872ac0",
+  "slots": 10,
+  "props": [
+   {
+    "name": "MeshFileName1",
+    "off": 60,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshFileName2",
+    "off": 76,
+    "type": "filename",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MeshChangeMaterialProps",
+    "off": 95,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "UseAdditiveAlpha",
+    "off": 92,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialUpdateZBuffer",
+    "off": 93,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "MaterialSetDoubleSided",
+    "off": 94,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "NumFrames",
+    "off": 104,
+    "type": "int",
+    "width": 4,
+    "min": 1,
+    "max": 64
+   },
+   {
+    "name": "FrameRate",
+    "off": 100,
+    "type": "float",
+    "width": 4,
+    "min": 0.0,
+    "max": 50.0
+   },
+   {
+    "name": "PlayAnim",
+    "off": 97,
+    "type": "bool",
+    "width": 1,
+    "min": null,
+    "max": null
+   }
+  ]
+ },
+ "RemoveSoundFromAtom": {
+  "cls": "RemoveSoundFromAtom",
+  "parent": "AppearanceUpdateRule",
+  "vftable": "0x873174",
+  "slots": 8,
+  "props": [
+   {
+    "name": "Sound",
+    "off": 32,
+    "type": "sound",
+    "width": 4,
+    "min": null,
+    "max": null
+   },
+   {
+    "name": "FadeStep",
+    "off": 60,
+    "type": "int",
+    "width": 4,
+    "min": 0,
+    "max": 30
+   }
+  ]
+ },
+ "RenderParticle": {
+  "cls": "RenderParticle",
+  "parent": "AtomCollection",
+  "vftable": "0x838a94",
+  "slots": 74,
+  "props": []
+ }
+}

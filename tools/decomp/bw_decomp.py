@@ -125,6 +125,20 @@ def main():
         for a in sys.argv[3:]:
             print("// ---- %s ----" % a)
             print(decompile(int(a, 16)))
+    elif cmd == "strings":
+        # Resolve IDA's auto-named string symbols (aVanishage, aSpeed, ...) back
+        # to their actual text. The auto-name loses case and punctuation, which
+        # matters when the string is a property name being recovered verbatim.
+        names = sys.argv[3:]
+        if names == ["-"]:
+            names = [l.strip() for l in sys.stdin if l.strip()]
+        for nm in names:
+            ea = ida_name.get_name_ea(idc.BADADDR, nm)
+            if ea == idc.BADADDR:
+                print("%s\t?" % nm)
+                continue
+            s = ida_bytes.get_strlit_contents(ea, -1, 0)
+            print("%s\t%s" % (nm, s.decode("latin-1") if s else "?"))
     else:
         print("unknown command", cmd, file=sys.stderr)
         save = False

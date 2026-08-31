@@ -260,6 +260,7 @@ add_library(bw_core STATIC
     core/InnerCamera.cpp
     # Particle system base
     core/PSysBase.cpp
+    core/PSysEngine.cpp
     # Multiplayer/networking
     core/LayerCommunication.cpp
     core/MPFEMessageObject.cpp
@@ -372,6 +373,15 @@ add_executable(test_save
 )
 target_link_libraries(test_save PRIVATE bw_core)
 set_target_properties(test_save PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Atom/rule particle engine (PSys scope-A)
+add_executable(test_psys
+    viewer/test_psys.cpp
+)
+target_link_libraries(test_psys PRIVATE bw_core)
+set_target_properties(test_psys PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

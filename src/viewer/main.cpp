@@ -39,6 +39,8 @@
 #include "sad_loader.h"
 #include "psys_fx.h"
 
+#include <black/PSysEngine.h>
+
 #include <black/LHVMObjects.h>
 #include <black/Object.h>
 #include "save_state.h"
@@ -1248,6 +1250,9 @@ int main(int argc, char* argv[]) {
             lhvm::SpellSnap fx_spells[64];
             uint32_t fx_n = lhvm::SnapshotSpells(fx_spells, 64);
             bw::psysfx::Sync(fx_spells, fx_n, fx_dt, GetTerrainHeight);
+            // The recovered atom/rule engine's height-based rules sample the
+            // same terrain (black/PSysEngine.h).
+            psys::SetLandscapeHeightFn(GetTerrainHeight);
         }
 
         Display();
