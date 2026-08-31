@@ -363,13 +363,15 @@ All three landed via the decompiler pipeline; see the commits for detail.
   is ours — arithmetic exact, storage shape a choice.
 
 Remaining:
-0. **Creature AI: the CreatureMind file format** — the blocker for desires, and
-   the most valuable single thing left. `game_data/CreatureMind/` ships eight
-   pre-trained minds; `sub_4C7CF0` loads them through the same GameOSFile
-   primitives as Phase 7. The format is **versioned (17 / 25 / 30) with
-   different layouts** — version 25 is legible by inspection, the others are
-   not, so the loader has to be decompiled properly rather than pattern-matched.
-   See `work/decomp/creature_data.md`.
+0. **Creature AI: a validated CreatureMind reader** — the grammar is recovered
+   (`work/parse_mindreader.py` → `work/decomp/mind_format.txt`): flat
+   little-endian stream, 1/2/4-byte reads, version-gated on `dword_BCC4D4`.
+   77 reads extracted so far across the top-level and five nested
+   deserializers. What remains is to walk the remaining nested loaders and then
+   **validate by parsing all eight shipped minds to exactly their own length** —
+   that check is what makes a reader safe to ship, since the failure mode is
+   silent (plausible floats in the wrong fields). See
+   `work/decomp/creature_data.md`.
    Note the fifteen creature tuning tables are `.bss`, filled from this data —
    there is nothing to read out of the exe, and our headers *and* the vendor's
    have all fifteen wrong at 0x10 (RTTI wrapper only, payload 56..916 bytes).
