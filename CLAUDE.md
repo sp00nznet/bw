@@ -336,7 +336,22 @@ All three landed via the decompiler pipeline; see the commits for detail.
   asserted), the shared 8-slot rule interface with its condition gate, five
   appearance rules, six event conditions, three emitters.
 
+- **Creature AI: attribute layer** — the 24 Attribute classes that turn the
+  world into decision-tree inputs. Schema recovered mechanically from their
+  shared 13-slot vtable and cross-checked against chlasm's ATTRIBUTE_TYPE
+  (CC0): ids 0-23, no collisions. Thresholds verbatim (town big at 40, forest
+  at 20 trees, alive above 20% life, height 0.25/0.75/1.25, belief
+  0.2/0.4/0.6). **Corrected the vendor layout: Attribute is 0xC, not 0x8** —
+  the binary deletes with size 12 and writes a value field at offset 8 that the
+  vendor header omits.
+
 Remaining:
+0. **Creature AI: the tree itself** — AttributeTest and DecisionTree are plain
+   data structs, so their methods are non-virtual and the RTTI vtable walk
+   cannot see them. Needs an xref-based extraction (find callers of the
+   Attribute vtable slots, or of CreatureMental's members) before the tree walk
+   and the learning-episode update can be translated rather than guessed.
+   Everything the tree *branches on* is now in place.
 1. **Phase 7 completion** — the 87 partial save types. Each needs its container
    walk translated by hand; the table + walker are in place and the parser
    reports exactly which chain row blocks each type.
