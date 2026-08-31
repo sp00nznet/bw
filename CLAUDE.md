@@ -387,12 +387,17 @@ Remaining:
    268 B/record), then `Creature::ProcessState`. The learning tree
    (`CreatureLearner.cpp`) plugs in where a desire needs an opinion about a
    candidate object.
-1. **An info.dat reader** — the tuning ships in `game_data/info.dat` (580 KB,
-   `LiOnHeAdInfo`, Mar 2001), loaded by `sub_425250` which registers 65 named
-   tables (`work/decomp/info_layout.txt`). Blocker: those 65 sum to 270 KB of
-   580 KB, and 103 call sites mention a `DETAIL_` name against 65 matching the
-   4-arg shape — ~38 registrations use another signature. Find those, and the
-   flat-dump layout is provable by the sizes summing to the file.
+1. **An info.dat reader — blocked on a version mismatch, probably.** The loader
+   is fully understood (`sub_425250`, 65 tables, fixed-size records, direction
+   chosen by the read/write helper; `work/decomp/info_layout.txt`). But the
+   registrations read 276 KB of a 580 KB file, there is provably only one
+   registrar, and strings are spread evenly throughout — so the shipped
+   `info.dat` (5 Mar 2001) most likely belongs to a **later build than
+   v1.0**, like the CreatureMind files that run to version 30 while the loader's
+   gates stop at 0x20. Confirming that needs a v1.0-era `info.dat` or enough
+   record layouts to walk the file until it stops making sense. Writing a reader
+   before then means reading the wrong file and getting numbers instead of an
+   error.
    **`GBaseInfo` is a 16-byte header with the payload after** — this is why
    every info struct sat at 0x10 in our headers *and* the vendor's; twelve are
    now corrected to their real sizes with an opaque payload.
