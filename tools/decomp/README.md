@@ -106,3 +106,35 @@ python work/apply_save_ids.py      # stamps GetSaveType() ids across src/
 
 `parse_saveslots.py` prints which class rows it could not model exactly; those
 are marked in the table and the runtime refuses them (see SaveLoadTable.h).
+
+
+## When a region is invisible: `mkfunc`
+
+Several of this binary's dispatch tables are `.bss`, filled by long inlined
+initialisers that IDA never recognised as functions. That is worse than it
+sounds, because everything else here -- `xrefs`, `callees`, `addr` -- is
+function-scoped. A table filled that way looks like it has *no writer at all*:
+`xrefs` on it returns nothing, and the natural conclusion is that the data must
+come from somewhere else entirely.
+
+```bash
+py -3.11 bw_decomp.py <i64> mkfunc 0x47F000 0x484000
+```
+
+forces the range to code and creates functions over it, then saves the `.i64`
+so it sticks. Regions that came back empty before start decompiling.
+
+Two that needed it:
+
+| range | what it turned out to be |
+|---|---|
+| `0x47F000..0x484000` | the creature action table's initialiser (`sub_48004C`, 1513 lines) |
+| `0x570700..0x571000` | the animal per-state dispatch initialiser (`sub_5707FF`, 1914 lines) |
+
+The action one doubles as a check on work already shipped: the 95 action names
+in `CreatureActionNames.cpp` were decoded by scanning raw instructions, and the
+decompiled initialiser independently contains exactly 95 string assignments, all
+95 landing on an action-name slot. Two methods, same answer.
+
+Expect a large "spots refused" count -- data interleaved with the code -- which
+is normal and harmless.

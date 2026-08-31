@@ -16,6 +16,7 @@ and decompile every slot via Hex-Rays.
     py -3.11 bw_decomp.py <exe-or-i64> disasm  <0xADDR> [...]   raw instructions
     py -3.11 bw_decomp.py <exe-or-i64> doubles <0xADDR> <count>  read a double table
     py -3.11 bw_decomp.py <exe-or-i64> table   <0xBASE> <recsz> <count> [rows]
+    py -3.11 bw_decomp.py <exe-or-i64> mkfunc  <0xSTART> <0xEND>   force-analyse a range
 
 The first run on the .exe analyses + saves a .i64; pass that .i64 afterwards
 for fast reopen.
@@ -163,6 +164,37 @@ def main():
                 seen.add(key)
                 print("%-12s from %-12s in %s" % (
                     "data" if xref.iscode == 0 else "code", hex(xref.frm), owner))
+    elif cmd == "mkfunc":
+        # Force IDA to treat a range as code and make functions out of it.
+        #
+        # Several of this binary's dispatch tables are filled by long inlined
+        # initialisers that IDA never recognised as functions. Everything else
+        # in the toolkit -- xrefs, callees, decompile -- is function-scoped, so
+        # those regions are invisible until this runs. It is the difference
+        # between "no xref to that table" and reading the code that fills it.
+        #
+        #   mkfunc <0xSTART> <0xEND>
+        start, end = int(sys.argv[3], 16), int(sys.argv[4], 16)
+        made = existing = failed = 0
+        ea = start
+        while ea < end:
+            f = ida_funcs.get_func(ea)
+            if f:
+                existing += 1
+                ea = max(f.end_ea, ea + 1)
+                continue
+            if not ida_bytes.is_code(ida_bytes.get_flags(ea)):
+                idc.create_insn(ea)
+            if ida_funcs.add_func(ea):
+                made += 1
+                f = ida_funcs.get_func(ea)
+                ea = max(f.end_ea, ea + 1) if f else ea + 1
+            else:
+                failed += 1
+                ea += 1
+        ida_auto.auto_wait()
+        print("[*] %s..%s: %d functions created, %d already present, %d spots refused"
+              % (hex(start), hex(end), made, existing, failed))
     elif cmd == "disasm":
         # Raw instructions. Hex-Rays folds x87 idioms away -- an fyl2x becomes a
         # multiply with a discarded call, say -- so anything numerically load
