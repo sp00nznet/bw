@@ -36,7 +36,7 @@ IDA Professional 9.1 idalib (see `E:\ida\IDA-HEADLESS.md`). First run on the
 
 ```powershell
 # one-time: analyse + cache (copy keeps game_data clean)
-copy D:\recomp\pc\bw\game_data\runblack_decrypted.exe E:\ida\work\bw.exe
+copy G:\recomp\pc\bw\game_data\runblack_decrypted.exe E:\ida\work\bw.exe
 py -3.11 bw_probe.py E:\ida\work\bw.exe              # sanity: names + a vftable walk
 
 # extract: decompile every class in the list (uses the cached .i64)
@@ -58,9 +58,9 @@ Same RTTI-vftable walk against the pre-analysed project at
 
 ```bash
 /c/tools/ghidra/ghidra_12.0.3_PUBLIC/support/analyzeHeadless.bat \
-  D:/recomp/pc/bw/work/ghidra_project BlackAndWhite \
+  G:/recomp/pc/bw/work/ghidra_project BlackAndWhite \
   -process runblack_decrypted.exe -noanalysis \
-  -scriptPath D:/recomp/pc/bw/work \
+  -scriptPath G:/recomp/pc/bw/work \
   -postScript GhidraDumpClass.java <classlist.txt> <out.txt>
 ```
 

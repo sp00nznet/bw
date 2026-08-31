@@ -8,16 +8,16 @@ Ghidra decompilations and wiring game systems.
 Static recompilation of Black & White (2001) — rebuilding the original x86 binary as clean C++ from decompiled vendor reference material (bw1-decomp).
 
 ## Key Paths
-- **Git repo root**: `D:/recomp/pc/bw`
-- **Source root**: `D:/recomp/pc/bw/src`
-- **Headers**: `D:/recomp/pc/bw/src/include/black/`
-- **Implementations**: `D:/recomp/pc/bw/src/core/`
-- **Vendor reference**: `D:/recomp/pc/bw/vendor/bw1-decomp/black/` (569 decompiled struct headers)
-- **CMakeLists.txt**: `D:/recomp/pc/bw/src/CMakeLists.txt`
+- **Git repo root**: `G:/recomp/pc/bw`
+- **Source root**: `G:/recomp/pc/bw/src`
+- **Headers**: `G:/recomp/pc/bw/src/include/black/`
+- **Implementations**: `G:/recomp/pc/bw/src/core/`
+- **Vendor reference**: `G:/recomp/pc/bw/vendor/bw1-decomp/black/` (569 decompiled struct headers)
+- **CMakeLists.txt**: `G:/recomp/pc/bw/src/CMakeLists.txt`
 
 ## Build System
 ```bash
-cd /d/recomp/pc/bw/src
+cd /g/recomp/pc/bw/src
 cmake -G "Visual Studio 17 2022" -A Win32 -S . -B build
 cmake --build build --config Release
 ```
