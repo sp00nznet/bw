@@ -223,6 +223,7 @@ add_library(bw_core STATIC
     core/CreatureOpinion.cpp
     core/CreatureLearner.cpp
     core/CreatureMindFile.cpp
+    core/CreatureDesire.cpp
     # Hand state system
     core/HandState.cpp
     core/HandMachine.cpp

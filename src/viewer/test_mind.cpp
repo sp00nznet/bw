@@ -8,9 +8,11 @@
 // parser knows nothing about either enum, so that alignment cannot come from a
 // wrong offset.
 
+#include <black/CreatureDesire.h>
 #include <black/CreatureMindFile.h>
 
 #include <cstdio>
+#include <cmath>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -179,6 +181,103 @@ int main() {
 
         CHECK(real.parsed_bytes > 0 && real.parsed_bytes < real.total_bytes,
               "  the desire block is a prefix of the file, rest still unread");
+    }
+
+    // --- the desire model, fed from a real mind -----------------------------
+    {
+        CreatureMind seeded;
+        std::vector<uint8_t> synth = BuildMind(25, "Modelled", 2);
+        CHECK(LoadCreatureMind(synth.data(), synth.size(), seeded),
+              "a mind for the desire model parses");
+
+        DesireModel model;
+        model.InitFromMind(seeded);
+        int act = 0, srcs = 0;
+        for (uint32_t i = 0; i < kNumCreatureDesires; ++i) {
+            if (model.active[i]) ++act;
+            srcs += int(model.source_count[i]);
+        }
+        CHECK(act == 20, "the model takes its active desires from the mind");
+        CHECK(srcs == 80, "and its sources: two per desire across all forty");
+
+        DesireTuning tuning[kNumCreatureDesires];
+        for (DesireTuning& t : tuning) {
+            t.rate = 1.0f;            // no decay by default
+            t.min_value = 0.0f;
+            t.max_value = 10.0f;
+            t.slow_max = 10.0f;
+        }
+        SourceBounds bounds[64];
+        for (SourceBounds& b : bounds) { b.min_value = 0.0f; b.max_value = 1.0f; b.decay = 0.0f; }
+
+        // Nothing active has any value yet, so the dominant desire is whichever
+        // active one comes first.
+        CHECK(model.DominantDesire() == 1, "with no values the first active desire leads");
+
+        model.desires[7].value = 5.0f;
+        CHECK(model.DominantDesire() == 7, "the strongest active desire leads");
+        model.active[7] = false;
+        CHECK(model.DominantDesire() != 7, "an inactive desire never leads");
+        model.active[7] = true;
+
+        // A rate below 1 inflates: (1/0.5 - 1) * dt + 1 = 1 + dt.
+        DesireModel m2;
+        m2.InitFromMind(seeded);
+        m2.desires[1].value = 1.0f;
+        DesireTuning fast[kNumCreatureDesires];
+        for (DesireTuning& t : fast) { t.rate = 0.5f; t.max_value = 100.0f; t.slow_max = 100.0f; }
+        m2.UpdateDesire(1, fast[1], bounds, 64, 1.0f);
+        CHECK(std::fabs(m2.desires[1].value - 2.0f) < 1e-5f,
+              "a rate of 0.5 doubles the desire over one second");
+
+        // The clamp holds on both sides.
+        m2.desires[1].value = 1000.0f;
+        m2.UpdateDesire(1, tuning[1], bounds, 64, 1.0f);
+        CHECK(m2.desires[1].value == 10.0f, "the value is clamped to the tuning maximum");
+
+        // The coupling: desire 1 rising drags desire 3 with it, and pushes
+        // desire 5 the other way. This is the bit that makes desires a system
+        // rather than 40 independent numbers.
+        DesireModel m3;
+        m3.InitFromMind(seeded);
+        for (uint32_t i = 0; i < kNumCreatureDesires; ++i) m3.active[i] = true;
+        m3.desires[1].value = 1.0f;
+        m3.desires[3].value = 1.0f;
+        m3.desires[5].value = 1.0f;
+        m3.desires[9].value = 1.0f;
+        m3.dependency[1][3] = 1.0f;    // positive: amplify
+        m3.dependency[1][5] = -1.0f;   // negative: damp
+        m3.UpdateDesire(1, fast[1], bounds, 64, 1.0f);
+        CHECK(std::fabs(m3.desires[3].value - 2.0f) < 1e-5f,
+              "a positive dependency amplifies the other desire by the same factor");
+        CHECK(std::fabs(m3.desires[5].value - 0.5f) < 1e-5f,
+              "a negative one divides by it");
+        CHECK(std::fabs(m3.desires[9].value - 1.0f) < 1e-5f,
+              "and an uncoupled desire is untouched");
+
+        // Sources decay at their own per-type rate, into their own bounds.
+        DesireModel m4;
+        m4.InitFromMind(seeded);
+        m4.sources[1][0].value = 1.0f;
+        SourceBounds decaying[64];
+        for (SourceBounds& b : decaying) { b.min_value = 0.25f; b.max_value = 1.0f; b.decay = 0.5f; }
+        m4.UpdateDesire(1, tuning[1], decaying, 64, 1.0f);
+        CHECK(std::fabs(m4.sources[1][0].value - 0.5f) < 1e-5f, "a source decays by its rate");
+        m4.UpdateDesire(1, tuning[1], decaying, 64, 10.0f);
+        CHECK(std::fabs(m4.sources[1][0].value - 0.25f) < 1e-5f,
+              "and stops at its own floor, not the desire's");
+
+        // The bias is held within a fifth of the species target.
+        DesireModel m5;
+        m5.InitFromMind(seeded);
+        DesireTuning drift[kNumCreatureDesires];
+        for (DesireTuning& t : drift) {
+            t.rate = 1.0f; t.max_value = 10.0f; t.slow_max = 10.0f;
+            t.bias_gain = 100.0f; t.type_target = 1.0f;
+        }
+        m5.UpdateDesire(1, drift[1], bounds, 64, 1.0f);
+        CHECK(std::fabs(m5.desires[1].bias - 1.2f) < 1e-5f,
+              "the bias cannot drift more than 0.2 above its species target");
     }
 
     if (!found) {
