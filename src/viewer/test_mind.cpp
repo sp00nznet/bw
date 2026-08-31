@@ -332,20 +332,24 @@ int main() {
 
         // 52 of the named actions also carry the address of the function that
         // implements them, which is the entry point for the next pass.
-        int with_handler = 0;
+        int with_dispatch = 0;
         bool plausible = true;
         for (uint32_t a = 0; a < kNumCreatureActions; ++a) {
-            const uint32_t h = GetCreatureActionHandlerAddress(a);
-            if (!h) continue;
-            ++with_handler;
-            if (h < 0x400000 || h > 0x800000) plausible = false;
+            const int32_t v = GetCreatureActionVTableSlot(a);
+            if (v < 0) continue;
+            ++with_dispatch;
+            if (v > 512) plausible = false;
+            const uint32_t t = GetCreatureActionThunkAddress(a);
+            if (t < 0x400000 || t > 0x800000) plausible = false;
         }
-        CHECK(with_handler == 52, "52 named actions carry a handler address");
-        CHECK(plausible, "and every one lands inside the binary's code range");
-        CHECK(GetCreatureActionHandlerAddress(236) == 0x4ab4f0,
-              "Kick is implemented at 0x4AB4F0");
-        CHECK(GetCreatureActionHandlerAddress(100) == 0,
-              "an unnamed action has no handler");
+        CHECK(with_dispatch == 52, "52 named actions have a dispatch entry");
+        CHECK(plausible, "every slot and thunk address is in a sane range");
+        CHECK(GetCreatureActionVTableSlot(236) == 227,
+              "Kick dispatches to vtable slot 227");
+        CHECK(GetCreatureActionVTableSlot(245) == GetCreatureActionVTableSlot(246),
+              "action variants can share one implementation");
+        CHECK(GetCreatureActionVTableSlot(100) == -1,
+              "an unnamed action has no dispatch entry");
 
         // A plan's action can be named, which is what makes agenda output readable.
         ActionPlan p;

@@ -27,9 +27,23 @@ const char* GetCreatureActionName(uint32_t action);
 // How many of the 328 carry a name.
 uint32_t CountNamedCreatureActions();
 
-// Address of the function implementing this action in the v1.0 binary, or 0.
-// Not callable -- recorded so a later pass can go straight to the code for an
-// action rather than hunting for it. 52 of the 95 named actions have one.
-uint32_t GetCreatureActionHandlerAddress(uint32_t action);
+// Where an action dispatches to.
+//
+// The +52 slot in each action record is NOT the implementing function, which is
+// what it looked like at first. It is a compiler-generated vcall thunk --
+// `mov eax,[ecx] ; jmp [eax+N]` -- so the record holds a pointer-to-member and
+// sub_4B6CA0's call is the MSVC PMF sequence: adjust `this` by the record's
+// delta, then tail-call a virtual slot. The useful part is therefore the slot,
+// not the thunk address.
+//
+// 52 of the 95 named actions dispatch this way, across 32 distinct slots --
+// variants share an implementation (245 and 246 both reach slot 194).
+//
+// Returns the vtable slot index, or -1 if the action has no dispatch entry.
+int32_t GetCreatureActionVTableSlot(uint32_t action);
+
+// The thunk's own address in the v1.0 binary, or 0. Kept for provenance so the
+// decode can be re-checked against the image.
+uint32_t GetCreatureActionThunkAddress(uint32_t action);
 
 }  // namespace creature

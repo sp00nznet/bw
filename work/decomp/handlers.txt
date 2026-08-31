@@ -1,0 +1,6 @@
+// ---- 0x4AB4F0 ----
+// (no function at 0x4ab4f0)
+// ---- 0x4AB410 ----
+// (no function at 0x4ab410)
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
