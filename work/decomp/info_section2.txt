@@ -1,0 +1,106 @@
+// ---- 0x5B1720 ----
+int __stdcall sub_5B1720(int a1, int a2)
+{
+  int v2; // esi
+  int v3; // eax
+  int v4; // eax
+  int result; // eax
+
+  v2 = 0;
+  v3 = sub_5B1210(a1);
+  if ( !v3 )
+    return 0;
+  v4 = *(_DWORD *)(v3 + 136);
+  if ( !v4 )
+    return 0;
+  result = *(_DWORD *)(v4 + 284);
+  if ( !result )
+    return 0;
+  while ( a2 != v2 )
+  {
+    result = *(_DWORD *)(result + 740);
+    ++v2;
+    if ( !result )
+      return 0;
+  }
+  return result;
+}
+
+// ---- 0x5B14A0 ----
+int __thiscall sub_5B14A0(_DWORD *this, int a2, int a3, int a4)
+{
+  int v5; // eax
+  int v6; // ebp
+  int v8; // edi
+  int v10; // eax
+  unsigned __int16 v11; // ax
+  int v12; // [esp+Ch] [ebp-8h]
+  int v13; // [esp+10h] [ebp-4h]
+
+  v12 = 0;
+  v13 = 0;
+  v5 = sub_5B1210(a2);
+  if ( v5 )
+  {
+    v6 = *(_DWORD *)(v5 + 136);
+    if ( v6 )
+    {
+      while ( 1 )
+      {
+        v8 = *(_DWORD *)(v6 + 284);
+        if ( v8 )
+          break;
+LABEL_6:
+        if ( !v13 )
+          goto LABEL_7;
+LABEL_8:
+        v6 = *(_DWORD *)(v6 + 288);
+        if ( !v6 )
+          return v12;
+      }
+      while ( sub_734DE0(v8, a3) )
+      {
+        v8 = *(_DWORD *)(v8 + 740);
+        if ( !v8 )
+          goto LABEL_6;
+      }
+      v13 = 1;
+      if ( !sub_5B1670(v6) )
+        goto LABEL_8;
+      if ( !*(_BYTE *)(v8 + 608) )
+      {
+        if ( *(_WORD *)(v6 + 274) <= 4u )
+          sub_5B1760(a4, *(unsigned __int16 *)(v6 + 274), *(_DWORD *)(v8 + 96));
+        else
+          sub_5B17A0(a4, *(unsigned __int16 *)(v6 + 274), v8 + 96);
+        v11 = *(_WORD *)(v6 + 274);
+        a4 += v11;
+        v12 += v11;
+        goto LABEL_8;
+      }
+      if ( strlen((const char *)(v6 + 128)) )
+      {
+        v10 = sub_5B14A0(v6 + 128, v8 + 608, a4);
+        if ( v10 )
+        {
+          a4 += v10;
+          v12 += v10;
+        }
+        goto LABEL_8;
+      }
+LABEL_7:
+      sub_5B1760(a4, *(unsigned __int16 *)(v6 + 274), 0);
+      a4 += *(unsigned __int16 *)(v6 + 274);
+      ++this[2119];
+      goto LABEL_8;
+    }
+  }
+  else
+  {
+    ++this[2119];
+  }
+  return 0;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

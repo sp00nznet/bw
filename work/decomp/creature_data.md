@@ -30,7 +30,40 @@ slot 1. Extracted from `work/decomp/creature_ai.txt`:
 The counts corroborate the enums: 40 = `NUM_CREATURE_DESIRES`, 328 =
 `NUM_CREATURE_ACTIONS`, 17 = creature species, 61 = the desire-source table.
 
-**But the tables are `.bss`.** Dumping `unk_BA6310` gives 0xFFFFFFFF across every
+### Where they are filled from
+
+`sub_425250` is the info loader. It opens `scripts\info.dat`, compares its
+timestamp against `balance.cpp` and `scripts\info.txt`, and either streams the
+binary or re-parses the text. `game_data/info.dat` ships — 580,754 bytes, magic
+`LiOnHeAdInfo`, dated 5 Mar 2001 — so the tuning is on disk, just not in the
+executable.
+
+It registers **65 named tables** in one pass, each as
+`load(file, "DETAIL_...", &table, count, from_binary)`; the names are resolved in
+`work/decomp/info_sections.txt` and the full list with counts and record sizes
+in `work/decomp/info_layout.txt`. The creature ones:
+
+    DETAIL_CREATURE_ACTION                        328 x 268
+    DETAIL_CREATURE_DESIRE_DEPENDENCIES            40 x 176
+    DETAIL_CREATURE_DESIRE_TABLE                   40 x 448
+    DETAIL_CREATURE_DESIRE_SOURCE_TABLE            61 x 164
+    DETAIL_CREATURE_DESIRE_SOURCE_THRESHOLD_BOUNDS 61 x  28
+
+**This settles the `GBaseInfo` question.** Each loader copies its payload to
+`record + 16`: the source-bounds loader moves 12 bytes into a 28-byte record,
+the desire-table loader 432 into 448. So `GBaseInfo` is a 16-byte header and the
+payload follows it — which is exactly why both our headers and the vendor's had
+every one of these at 0x10. Twelve of them are corrected in `src/include/black/`
+to their real sizes with an opaque payload; the sizes are now right even though
+the field layouts are not yet recovered.
+
+**Not yet a reader.** The 65 tables sum to 270,442 bytes against a 580,754-byte
+file, and 103 call sites mention a `DETAIL_` name against the 65 that match the
+four-argument shape — so roughly 38 registrations use a different signature and
+are unaccounted for. The flat-dump reading is consistent with everything seen so
+far and unproven, which is not enough to build a reader on.
+
+**The tables are `.bss`.** Dumping `unk_BA6310` gives 0xFFFFFFFF across every
 record — slot 8 is a `-1` initialiser, not shipped data. The configuration is
 loaded at runtime, so there is nothing to read out of the executable and the
 record layouts have to come from whatever fills them.

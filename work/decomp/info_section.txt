@@ -1,0 +1,14 @@
+// ---- 0x5B1630 ----
+int __stdcall sub_5B1630(int a1, int a2, int a3)
+{
+  int v3; // eax
+
+  v3 = sub_5B1720(a1, a2);
+  if ( v3 )
+    return sub_5B14A0(a1, v3, a3);
+  else
+    return 0;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll

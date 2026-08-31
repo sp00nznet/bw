@@ -1,0 +1,4172 @@
+// ---- 0x429ad0 ----
+int __cdecl sub_429AD0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  _DWORD *v6; // ebp
+  _DWORD *v7; // esi
+  const void *v8; // ebx
+  _DWORD *i; // ebp
+  int v10; // [esp+1Ch] [ebp+Ch]
+  unsigned int v11; // [esp+24h] [ebp+14h]
+  int v12; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (_DWORD *)(a3 + 20);
+      v11 = a4;
+      do
+      {
+        v7 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v7, 4, -1);
+        *(v6 - 1) = *v7;
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 5);
+        v8 = (const void *)sub_746D70(376);
+        sub_72D2F0(v8, 376, -1);
+        qmemcpy(v6, v8, 0x178u);
+        sub_7290DE(v8);
+        v6 += 99;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v12 = 0;
+    if ( a4 )
+    {
+      for ( i = (_DWORD *)(a3 + 20); ; i += 99 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v12, a1 + 280);
+        v10 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 4);
+        *(i - 1) = **(_DWORD **)(a1 + 8472);
+        *(_DWORD *)(a1 + 8472) += 4;
+        sub_4304A0(i - 5);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 376);
+        qmemcpy(i, *(const void **)(a1 + 8472), 0x178u);
+        *(_DWORD *)(a1 + 8472) += 376;
+        if ( v10 != 380 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v12 + 1;
+        if ( ++v12 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x429c80 ----
+int __cdecl sub_429C80(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(72);
+        sub_72D2F0(v7, 72, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x48u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 88;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 88 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 72);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x48u);
+        *(_DWORD *)(a1 + 8472) += 72;
+        sub_4304A0(i);
+        if ( v8 != 72 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x429db0 ----
+int __cdecl sub_429DB0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v16 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *v7 = *v9;
+        sub_7290DE(v9);
+        v7 += 73;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 73 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v13 = (int)*v11 + 32;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 4);
+        *i = *(_DWORD *)*v11;
+        *v11 = (char *)*v11 + 4;
+        if ( v15 + 36 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x429f50 ----
+char __cdecl sub_429F50(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // esi
+  _DWORD *v9; // edi
+  _DWORD *v10; // edi
+  int v11; // ecx
+  int *v12; // esi
+  _DWORD *i; // edi
+  int v14; // ebx
+  int v15; // [esp-8h] [ebp-18h]
+  int v16; // [esp+1Ch] [ebp+Ch]
+  int v17; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 292);
+      do
+      {
+        sub_42A140(a6);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *(v8 - 1) = *v9;
+        sub_7290DE(v9);
+        v10 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v10, 4, -1);
+        *v8 = *v10;
+        result = sub_7290DE(v10);
+        v8 += 74;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 292); ; i += 74 )
+      {
+        *v12 = v11 + 280;
+        v14 = sub_5B1630(a2, v17, v11 + 280);
+        if ( !v14 )
+          break;
+        v16 = sub_42A0D0(v12, a6);
+        sub_72D2B0(*v12, 4);
+        *(i - 1) = *(_DWORD *)*v12;
+        v15 = *v12 + 4;
+        *v12 = v15;
+        sub_72D2B0(v15, 4);
+        *i = *(_DWORD *)*v12;
+        *v12 += 4;
+        if ( v16 + 8 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42a1d0 ----
+char __cdecl sub_42A1D0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // esi
+  int v11; // ecx
+  int *v12; // esi
+  _DWORD *i; // edi
+  int v14; // ebx
+  _DWORD *v15; // ecx
+  int v16; // [esp-8h] [ebp-18h]
+  int v17; // [esp+1Ch] [ebp+Ch]
+  int v18; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 292);
+      do
+      {
+        sub_42A140(a6);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *(v8 - 1) = *v9;
+        sub_7290DE(v9);
+        v10 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v10, 8, -1);
+        *v8 = *v10;
+        v8[1] = v10[1];
+        result = sub_7290DE(v10);
+        v8 += 75;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 292); ; i += 75 )
+      {
+        *v12 = v11 + 280;
+        v14 = sub_5B1630(a2, v18, v11 + 280);
+        if ( !v14 )
+          break;
+        v17 = sub_42A0D0(v12, a6);
+        sub_72D2B0(*v12, 4);
+        *(i - 1) = *(_DWORD *)*v12;
+        v16 = *v12 + 4;
+        *v12 = v16;
+        sub_72D2B0(v16, 8);
+        v15 = (_DWORD *)*v12;
+        *i = *(_DWORD *)*v12;
+        i[1] = v15[1];
+        *v12 += 8;
+        if ( v17 + 12 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42a360 ----
+char __cdecl sub_42A360(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // esi
+  int v11; // ecx
+  int *v12; // esi
+  _DWORD *i; // edi
+  int v14; // ebx
+  _DWORD *v15; // ecx
+  int v16; // [esp-8h] [ebp-18h]
+  int v17; // [esp+1Ch] [ebp+Ch]
+  int v18; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 260);
+      do
+      {
+        sub_428740(a6);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *(v8 - 1) = *v9;
+        sub_7290DE(v9);
+        v10 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v10, 16, -1);
+        *v8 = *v10;
+        v8[1] = v10[1];
+        v8[2] = v10[2];
+        v8[3] = v10[3];
+        result = sub_7290DE(v10);
+        v8 += 69;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 260); ; i += 69 )
+      {
+        *v12 = v11 + 280;
+        v14 = sub_5B1630(a2, v18, v11 + 280);
+        if ( !v14 )
+          break;
+        v17 = sub_428630(v12, a6);
+        sub_72D2B0(*v12, 4);
+        *(i - 1) = *(_DWORD *)*v12;
+        v16 = *v12 + 4;
+        *v12 = v16;
+        sub_72D2B0(v16, 16);
+        v15 = (_DWORD *)*v12;
+        *i = *(_DWORD *)*v12;
+        i[1] = v15[1];
+        i[2] = v15[2];
+        i[3] = v15[3];
+        *v12 += 16;
+        if ( v17 + 20 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42a510 ----
+char __cdecl sub_42A510(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  int v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // edx
+  int v11; // esi
+  int v12; // ecx
+  int *v13; // esi
+  int i; // edi
+  int v15; // ebx
+  _DWORD *v16; // edx
+  _DWORD *v17; // eax
+  _DWORD *v18; // eax
+  int v19; // [esp-8h] [ebp-18h]
+  int v20; // [esp+1Ch] [ebp+Ch]
+  int v21; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = a3 + 276;
+      do
+      {
+        sub_4280F0(a6);
+        v9 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v9, 16, -1);
+        v10 = (_DWORD *)(v8 - 16);
+        *v10 = *v9;
+        v10[1] = v9[1];
+        v10[2] = v9[2];
+        v10[3] = v9[3];
+        sub_7290DE(v9);
+        v11 = sub_746D70(18);
+        sub_72D2F0(v11, 18, -1);
+        *(_DWORD *)v8 = *(_DWORD *)v11;
+        *(_DWORD *)(v8 + 4) = *(_DWORD *)(v11 + 4);
+        *(_DWORD *)(v8 + 8) = *(_DWORD *)(v11 + 8);
+        *(_DWORD *)(v8 + 12) = *(_DWORD *)(v11 + 12);
+        *(_WORD *)(v8 + 16) = *(_WORD *)(v11 + 16);
+        result = sub_7290DE(v11);
+        v8 += 296;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v21 = 0;
+    if ( a4 )
+    {
+      v12 = a1;
+      v13 = (int *)(a1 + 8472);
+      for ( i = a3 + 276; ; i += 296 )
+      {
+        *v13 = v12 + 280;
+        v15 = sub_5B1630(a2, v21, v12 + 280);
+        if ( !v15 )
+          break;
+        v20 = sub_427B70(v13, a6);
+        sub_72D2B0(*v13, 16);
+        v16 = (_DWORD *)*v13;
+        v17 = (_DWORD *)(i - 16);
+        *v17 = *(_DWORD *)*v13;
+        v17[1] = v16[1];
+        v17[2] = v16[2];
+        v17[3] = v16[3];
+        v19 = *v13 + 16;
+        *v13 = v19;
+        sub_72D2B0(v19, 18);
+        v18 = (_DWORD *)*v13;
+        *(_DWORD *)i = *(_DWORD *)*v13;
+        *(_DWORD *)(i + 4) = v18[1];
+        *(_DWORD *)(i + 8) = v18[2];
+        *(_DWORD *)(i + 12) = v18[3];
+        *(_WORD *)(i + 16) = *((_WORD *)v18 + 8);
+        *v13 += 18;
+        if ( v20 + 34 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v21 + 1;
+        if ( ++v21 >= a4 )
+          return result;
+        v12 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42a6f0 ----
+int __cdecl sub_42A6F0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  _DWORD *v13; // ecx
+  int v14; // [esp-8h] [ebp-1Ch]
+  int v15; // [esp+10h] [ebp-4h]
+  int v16; // [esp+20h] [ebp+Ch]
+  unsigned int v17; // [esp+28h] [ebp+14h]
+  int v18; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v17 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v9, 12, -1);
+        *v7 = *v9;
+        v7[1] = v9[1];
+        v7[2] = v9[2];
+        sub_7290DE(v9);
+        v7 += 75;
+        result = --v17;
+      }
+      while ( v17 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 75 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v18, v10 + 280);
+        v15 = result;
+        if ( !result )
+          break;
+        v16 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v14 = (int)*v11 + 32;
+        *v11 = (const void *)v14;
+        sub_72D2B0(v14, 12);
+        v13 = *v11;
+        *i = *(_DWORD *)*v11;
+        i[1] = v13[1];
+        i[2] = v13[2];
+        *v11 = (char *)*v11 + 12;
+        if ( v16 + 44 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42a8b0 ----
+int __cdecl sub_42A8B0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  char *v7; // ebp
+  _DWORD *v8; // esi
+  char *v9; // eax
+  const void *v10; // ebx
+  int v11; // esi
+  const void **v12; // ebx
+  char *i; // ebp
+  _DWORD *v14; // ecx
+  char *v15; // edx
+  int v16; // [esp-8h] [ebp-1Ch]
+  int v17; // [esp+10h] [ebp-4h]
+  int v18; // [esp+20h] [ebp+Ch]
+  unsigned int v19; // [esp+28h] [ebp+14h]
+  int v20; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (char *)(a3 + 276);
+      v19 = a4;
+      do
+      {
+        sub_4280F0(a6);
+        v8 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v8, 16, -1);
+        v9 = v7 - 16;
+        *(_DWORD *)v9 = *v8;
+        *((_DWORD *)v9 + 1) = v8[1];
+        *((_DWORD *)v9 + 2) = v8[2];
+        *((_DWORD *)v9 + 3) = v8[3];
+        sub_7290DE(v8);
+        v10 = (const void *)sub_746D70(48);
+        sub_72D2F0(v10, 48, -1);
+        qmemcpy(v7, v10, 0x30u);
+        sub_7290DE(v10);
+        v7 += 324;
+        result = --v19;
+      }
+      while ( v19 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v20 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (const void **)(a1 + 8472);
+      for ( i = (char *)(a3 + 276); ; i += 324 )
+      {
+        *v12 = (const void *)(v11 + 280);
+        result = sub_5B1630(a2, v20, v11 + 280);
+        v17 = result;
+        if ( !result )
+          break;
+        v18 = sub_427B70(v12, a6);
+        sub_72D2B0(*v12, 16);
+        v14 = *v12;
+        v15 = i - 16;
+        *(_DWORD *)v15 = *(_DWORD *)*v12;
+        *((_DWORD *)v15 + 1) = v14[1];
+        *((_DWORD *)v15 + 2) = v14[2];
+        *((_DWORD *)v15 + 3) = v14[3];
+        v16 = (int)*v12 + 16;
+        *v12 = (const void *)v16;
+        sub_72D2B0(v16, 48);
+        qmemcpy(i, *v12, 0x30u);
+        *v12 = (char *)*v12 + 48;
+        if ( v18 + 64 != v17 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v20 + 1;
+        if ( ++v20 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      ++*(_DWORD *)(v11 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42aa80 ----
+char __cdecl sub_42AA80(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // esi
+  int v11; // ecx
+  int *v12; // esi
+  _DWORD *i; // edi
+  int v14; // ebx
+  int v15; // [esp-8h] [ebp-18h]
+  int v16; // [esp+1Ch] [ebp+Ch]
+  int v17; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 260);
+      do
+      {
+        sub_428740(a6);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *(v8 - 1) = *v9;
+        sub_7290DE(v9);
+        v10 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v10, 4, -1);
+        *v8 = *v10;
+        result = sub_7290DE(v10);
+        v8 += 66;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 260); ; i += 66 )
+      {
+        *v12 = v11 + 280;
+        v14 = sub_5B1630(a2, v17, v11 + 280);
+        if ( !v14 )
+          break;
+        v16 = sub_428630(v12, a6);
+        sub_72D2B0(*v12, 4);
+        *(i - 1) = *(_DWORD *)*v12;
+        v15 = *v12 + 4;
+        *v12 = v15;
+        sub_72D2B0(v15, 4);
+        *i = *(_DWORD *)*v12;
+        *v12 += 4;
+        if ( v16 + 8 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ac00 ----
+int __cdecl sub_42AC00(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  _DWORD *v13; // ecx
+  int v14; // [esp-8h] [ebp-1Ch]
+  int v15; // [esp+10h] [ebp-4h]
+  int v16; // [esp+20h] [ebp+Ch]
+  unsigned int v17; // [esp+28h] [ebp+14h]
+  int v18; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v17 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v9, 8, -1);
+        *v7 = *v9;
+        v7[1] = v9[1];
+        sub_7290DE(v9);
+        v7 += 74;
+        result = --v17;
+      }
+      while ( v17 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 74 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v18, v10 + 280);
+        v15 = result;
+        if ( !result )
+          break;
+        v16 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v14 = (int)*v11 + 32;
+        *v11 = (const void *)v14;
+        sub_72D2B0(v14, 8);
+        v13 = *v11;
+        *i = *(_DWORD *)*v11;
+        i[1] = v13[1];
+        *v11 = (char *)*v11 + 8;
+        if ( v16 + 40 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42adb0 ----
+int __cdecl sub_42ADB0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  char *v6; // ebp
+  const void *v7; // ebx
+  const void *v8; // ebx
+  char *i; // ebp
+  int v10; // [esp+1Ch] [ebp+Ch]
+  unsigned int v11; // [esp+24h] [ebp+14h]
+  int v12; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (char *)(a3 + 256);
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_73445E(240);
+        sub_72D2F0(v7, 240, -1);
+        qmemcpy(v6 - 240, v7, 0xF0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 256);
+        v8 = (const void *)sub_746D70(20);
+        sub_72D2F0(v8, 20, -1);
+        qmemcpy(v6, v8, 0x14u);
+        sub_7290DE(v8);
+        v6 += 276;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v12 = 0;
+    if ( a4 )
+    {
+      for ( i = (char *)(a3 + 256); ; i += 276 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v12, a1 + 280);
+        v10 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 240);
+        qmemcpy(i - 240, *(const void **)(a1 + 8472), 0xF0u);
+        *(_DWORD *)(a1 + 8472) += 240;
+        sub_4304A0(i - 256);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 20);
+        qmemcpy(i, *(const void **)(a1 + 8472), 0x14u);
+        *(_DWORD *)(a1 + 8472) += 20;
+        if ( v10 != 260 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v12 + 1;
+        if ( ++v12 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42af70 ----
+int __cdecl sub_42AF70(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(128);
+        sub_72D2F0(v7, 128, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x80u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 144;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 144 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 128);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x80u);
+        *(_DWORD *)(a1 + 8472) += 128;
+        sub_4304A0(i);
+        if ( v8 != 128 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b0b0 ----
+char __cdecl sub_42B0B0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // esi
+  int v11; // ecx
+  int *v12; // esi
+  _DWORD *i; // edi
+  int v14; // ebx
+  int v15; // [esp-8h] [ebp-18h]
+  int v16; // [esp+1Ch] [ebp+Ch]
+  int v17; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 292);
+      do
+      {
+        sub_42A140(a6);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *(v8 - 1) = *v9;
+        sub_7290DE(v9);
+        v10 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v10, 4, -1);
+        *v8 = *v10;
+        result = sub_7290DE(v10);
+        v8 += 74;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 292); ; i += 74 )
+      {
+        *v12 = v11 + 280;
+        v14 = sub_5B1630(a2, v17, v11 + 280);
+        if ( !v14 )
+          break;
+        v16 = sub_42A0D0(v12, a6);
+        sub_72D2B0(*v12, 4);
+        *(i - 1) = *(_DWORD *)*v12;
+        v15 = *v12 + 4;
+        *v12 = v15;
+        sub_72D2B0(v15, 4);
+        *i = *(_DWORD *)*v12;
+        *v12 += 4;
+        if ( v16 + 8 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b230 ----
+int __cdecl sub_42B230(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 500);
+      v16 = a4;
+      do
+      {
+        sub_42B480(a6);
+        v8 = (const void *)sub_746D70(212);
+        sub_72D2F0(v8, 212, -1);
+        qmemcpy(v7 - 53, v8, 0xD4u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *v7 = *v9;
+        sub_7290DE(v9);
+        v7 += 126;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 500); ; i += 126 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_42B3F0(v11, a6);
+        sub_72D2B0(*v11, 212);
+        qmemcpy(i - 53, *v11, 0xD4u);
+        v13 = (int)*v11 + 212;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 4);
+        *i = *(_DWORD *)*v11;
+        *v11 = (char *)*v11 + 4;
+        if ( v15 + 216 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b540 ----
+int __cdecl sub_42B540(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  char *v7; // ebp
+  _DWORD *v8; // esi
+  char *v9; // eax
+  const void *v10; // ebx
+  int v11; // esi
+  const void **v12; // ebx
+  char *i; // ebp
+  _DWORD *v14; // ecx
+  char *v15; // edx
+  int v16; // [esp-8h] [ebp-1Ch]
+  int v17; // [esp+10h] [ebp-4h]
+  int v18; // [esp+20h] [ebp+Ch]
+  unsigned int v19; // [esp+28h] [ebp+14h]
+  int v20; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (char *)(a3 + 276);
+      v19 = a4;
+      do
+      {
+        sub_4280F0(a6);
+        v8 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v8, 16, -1);
+        v9 = v7 - 16;
+        *(_DWORD *)v9 = *v8;
+        *((_DWORD *)v9 + 1) = v8[1];
+        *((_DWORD *)v9 + 2) = v8[2];
+        *((_DWORD *)v9 + 3) = v8[3];
+        sub_7290DE(v8);
+        v10 = (const void *)sub_746D70(28);
+        sub_72D2F0(v10, 28, -1);
+        qmemcpy(v7, v10, 0x1Cu);
+        sub_7290DE(v10);
+        v7 += 304;
+        result = --v19;
+      }
+      while ( v19 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v20 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (const void **)(a1 + 8472);
+      for ( i = (char *)(a3 + 276); ; i += 304 )
+      {
+        *v12 = (const void *)(v11 + 280);
+        result = sub_5B1630(a2, v20, v11 + 280);
+        v17 = result;
+        if ( !result )
+          break;
+        v18 = sub_427B70(v12, a6);
+        sub_72D2B0(*v12, 16);
+        v14 = *v12;
+        v15 = i - 16;
+        *(_DWORD *)v15 = *(_DWORD *)*v12;
+        *((_DWORD *)v15 + 1) = v14[1];
+        *((_DWORD *)v15 + 2) = v14[2];
+        *((_DWORD *)v15 + 3) = v14[3];
+        v16 = (int)*v12 + 16;
+        *v12 = (const void *)v16;
+        sub_72D2B0(v16, 28);
+        qmemcpy(i, *v12, 0x1Cu);
+        *v12 = (char *)*v12 + 28;
+        if ( v18 + 44 != v17 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v20 + 1;
+        if ( ++v20 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      ++*(_DWORD *)(v11 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b710 ----
+int __cdecl sub_42B710(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(68);
+        sub_72D2F0(v7, 68, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x44u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 84;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 84 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 68);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x44u);
+        *(_DWORD *)(a1 + 8472) += 68;
+        sub_4304A0(i);
+        if ( v8 != 68 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b840 ----
+int __cdecl sub_42B840(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(36);
+        sub_72D2F0(v7, 36, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x24u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 52;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 52 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 36);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x24u);
+        *(_DWORD *)(a1 + 8472) += 36;
+        sub_4304A0(i);
+        if ( v8 != 36 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42b970 ----
+int __cdecl sub_42B970(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  char *v7; // ebp
+  const void *v8; // ebx
+  const void *v9; // ebx
+  int v10; // esi
+  const void **v11; // ebx
+  char *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (char *)(a3 + 288);
+      v16 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 32, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (const void *)sub_746D70(44);
+        sub_72D2F0(v9, 44, -1);
+        qmemcpy(v7, v9, 0x2Cu);
+        sub_7290DE(v9);
+        v7 += 332;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (char *)(a3 + 288); ; i += 332 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 32, *v11, 0x20u);
+        v13 = (int)*v11 + 32;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 44);
+        qmemcpy(i, *v11, 0x2Cu);
+        *v11 = (char *)*v11 + 44;
+        if ( v15 + 76 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42bb20 ----
+int __cdecl sub_42BB20(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  char *v7; // ebp
+  const void *v8; // ebx
+  const void *v9; // ebx
+  int v10; // esi
+  const void **v11; // ebx
+  char *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (char *)(a3 + 288);
+      v16 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 32, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (const void *)sub_746D70(52);
+        sub_72D2F0(v9, 52, -1);
+        qmemcpy(v7, v9, 0x34u);
+        sub_7290DE(v9);
+        v7 += 340;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (char *)(a3 + 288); ; i += 340 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 32, *v11, 0x20u);
+        v13 = (int)*v11 + 32;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 52);
+        qmemcpy(i, *v11, 0x34u);
+        *v11 = (char *)*v11 + 52;
+        if ( v15 + 84 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42bcd0 ----
+int __cdecl sub_42BCD0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  _DWORD *v13; // ecx
+  int v14; // [esp-8h] [ebp-1Ch]
+  int v15; // [esp+10h] [ebp-4h]
+  int v16; // [esp+20h] [ebp+Ch]
+  unsigned int v17; // [esp+28h] [ebp+14h]
+  int v18; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v17 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v9, 8, -1);
+        *v7 = *v9;
+        v7[1] = v9[1];
+        sub_7290DE(v9);
+        v7 += 74;
+        result = --v17;
+      }
+      while ( v17 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 74 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v18, v10 + 280);
+        v15 = result;
+        if ( !result )
+          break;
+        v16 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v14 = (int)*v11 + 32;
+        *v11 = (const void *)v14;
+        sub_72D2B0(v14, 8);
+        v13 = *v11;
+        *i = *(_DWORD *)*v11;
+        i[1] = v13[1];
+        *v11 = (char *)*v11 + 8;
+        if ( v16 + 40 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42be80 ----
+int __cdecl sub_42BE80(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(20);
+        sub_72D2F0(v7, 20, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x14u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 36;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 36 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 20);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x14u);
+        *(_DWORD *)(a1 + 8472) += 20;
+        sub_4304A0(i);
+        if ( v8 != 20 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42bfb0 ----
+int __cdecl sub_42BFB0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(20);
+        sub_72D2F0(v7, 20, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x14u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 36;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 36 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 20);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x14u);
+        *(_DWORD *)(a1 + 8472) += 20;
+        sub_4304A0(i);
+        if ( v8 != 20 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c0e0 ----
+int __cdecl sub_42C0E0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_73445E(64);
+        sub_72D2F0(v7, 64, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x40u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 144;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 144 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 64);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x40u);
+        *(_DWORD *)(a1 + 8472) += 64;
+        sub_4304A0(i);
+        if ( v8 != 64 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c210 ----
+int __cdecl sub_42C210(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(136);
+        sub_72D2F0(v7, 136, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x88u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 152;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 152 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 136);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x88u);
+        *(_DWORD *)(a1 + 8472) += 136;
+        sub_4304A0(i);
+        if ( v8 != 136 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c350 ----
+int __cdecl sub_42C350(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(56);
+        sub_72D2F0(v7, 56, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x38u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 72;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 72 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 56);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x38u);
+        *(_DWORD *)(a1 + 8472) += 56;
+        sub_4304A0(i);
+        if ( v8 != 56 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c480 ----
+int __cdecl sub_42C480(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(80);
+        sub_72D2F0(v7, 80, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x50u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 100;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 100 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 80);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x50u);
+        *(_DWORD *)(a1 + 8472) += 80;
+        sub_4304A0(i);
+        if ( v8 != 80 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c5b0 ----
+int __cdecl sub_42C5B0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(252);
+        sub_72D2F0(v7, 252, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0xFCu);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 268;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 268 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 252);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0xFCu);
+        *(_DWORD *)(a1 + 8472) += 252;
+        sub_4304A0(i);
+        if ( v8 != 252 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c6f0 ----
+int __cdecl sub_42C6F0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(120);
+        sub_72D2F0(v7, 120, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x78u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 136;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 136 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 120);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x78u);
+        *(_DWORD *)(a1 + 8472) += 120;
+        sub_4304A0(i);
+        if ( v8 != 120 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c820 ----
+int __cdecl sub_42C820(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(160);
+        sub_72D2F0(v7, 160, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0xA0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 176;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 176 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 160);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0xA0u);
+        *(_DWORD *)(a1 + 8472) += 160;
+        sub_4304A0(i);
+        if ( v8 != 160 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42c960 ----
+unsigned int __cdecl sub_42C960(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  unsigned int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  unsigned int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(432);
+        sub_72D2F0(v7, 432, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x1B0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 448;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 448 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 432);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x1B0u);
+        *(_DWORD *)(a1 + 8472) += 432;
+        sub_4304A0(i);
+        if ( v8 != 432 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42caa0 ----
+int __cdecl sub_42CAA0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(148);
+        sub_72D2F0(v7, 148, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x94u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 164;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 164 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 148);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x94u);
+        *(_DWORD *)(a1 + 8472) += 148;
+        sub_4304A0(i);
+        if ( v8 != 148 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42cbe0 ----
+int __cdecl sub_42CBE0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(68);
+        sub_72D2F0(v7, 68, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x44u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 84;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 84 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 68);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x44u);
+        *(_DWORD *)(a1 + 8472) += 68;
+        sub_4304A0(i);
+        if ( v8 != 68 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42cd10 ----
+char __cdecl sub_42CD10(int a1, int a2, _DWORD *a3, unsigned int a4, char a5)
+{
+  int v5; // eax
+  unsigned int v6; // ebx
+  _DWORD *v7; // edi
+  _DWORD *v8; // esi
+  int v9; // ebp
+  _DWORD *i; // ebx
+  int v11; // edi
+  _DWORD *v12; // eax
+
+  LOBYTE(v5) = a5;
+  if ( a5 )
+  {
+    v6 = a4;
+    if ( a4 )
+    {
+      v7 = a3;
+      do
+      {
+        v8 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v8, 12, -1);
+        v7[4] = *v8;
+        v7[5] = v8[1];
+        v7[6] = v8[2];
+        sub_7290DE(v8);
+        LOBYTE(v5) = sub_4304A0(v7);
+        v7 += 7;
+        --v6;
+      }
+      while ( v6 );
+    }
+  }
+  else
+  {
+    LOBYTE(v5) = a4;
+    v9 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 7 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        v5 = sub_5B1630(a2, v9, a1 + 280);
+        v11 = v5;
+        if ( !v5 )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 12);
+        v12 = *(_DWORD **)(a1 + 8472);
+        i[4] = *v12;
+        i[5] = v12[1];
+        i[6] = v12[2];
+        *(_DWORD *)(a1 + 8472) += 12;
+        sub_4304A0(i);
+        if ( v11 != 12 )
+          ++*(_DWORD *)(a1 + 8476);
+        LOBYTE(v5) = a4;
+        if ( ++v9 >= a4 )
+          return v5;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return v5;
+}
+
+// ---- 0x42ce20 ----
+int __cdecl sub_42CE20(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(40);
+        sub_72D2F0(v7, 40, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x28u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 56;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 56 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 40);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x28u);
+        *(_DWORD *)(a1 + 8472) += 40;
+        sub_4304A0(i);
+        if ( v8 != 40 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42cf50 ----
+int __cdecl sub_42CF50(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(88);
+        sub_72D2F0(v7, 88, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x58u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 104;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 104 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 88);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x58u);
+        *(_DWORD *)(a1 + 8472) += 88;
+        sub_4304A0(i);
+        if ( v8 != 88 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42d080 ----
+int __cdecl sub_42D080(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  _DWORD *v6; // ebp
+  const void *v7; // ebx
+  _DWORD *v8; // esi
+  _DWORD *i; // ebp
+  _DWORD *v10; // edx
+  int v11; // [esp+1Ch] [ebp+Ch]
+  unsigned int v12; // [esp+24h] [ebp+14h]
+  int v13; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (_DWORD *)(a3 + 104);
+      v12 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(88);
+        sub_72D2F0(v7, 88, -1);
+        qmemcpy(v6 - 22, v7, 0x58u);
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 26);
+        v8 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v8, 8, -1);
+        *v6 = *v8;
+        v6[1] = v8[1];
+        sub_7290DE(v8);
+        v6 += 28;
+        result = --v12;
+      }
+      while ( v12 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v13 = 0;
+    if ( a4 )
+    {
+      for ( i = (_DWORD *)(a3 + 104); ; i += 28 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v13, a1 + 280);
+        v11 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 88);
+        qmemcpy(i - 22, *(const void **)(a1 + 8472), 0x58u);
+        *(_DWORD *)(a1 + 8472) += 88;
+        sub_4304A0(i - 26);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 8);
+        v10 = *(_DWORD **)(a1 + 8472);
+        *i = *v10;
+        i[1] = v10[1];
+        *(_DWORD *)(a1 + 8472) += 8;
+        if ( v11 != 96 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v13 + 1;
+        if ( ++v13 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42d220 ----
+int __cdecl sub_42D220(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(176);
+        sub_72D2F0(v7, 176, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0xB0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 192;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 192 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 176);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0xB0u);
+        *(_DWORD *)(a1 + 8472) += 176;
+        sub_4304A0(i);
+        if ( v8 != 176 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42d360 ----
+int __cdecl sub_42D360(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(96);
+        sub_72D2F0(v7, 96, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x60u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 112;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 112 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 96);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x60u);
+        *(_DWORD *)(a1 + 8472) += 96;
+        sub_4304A0(i);
+        if ( v8 != 96 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42d490 ----
+char __cdecl sub_42D490(int a1, int a2, _DWORD *a3, unsigned int a4, char a5)
+{
+  int v5; // eax
+  unsigned int v6; // ebx
+  _DWORD *v7; // edi
+  _DWORD *v8; // esi
+  int v9; // ebp
+  _DWORD *i; // ebx
+  int v11; // edi
+  _DWORD *v12; // eax
+
+  LOBYTE(v5) = a5;
+  if ( a5 )
+  {
+    v6 = a4;
+    if ( a4 )
+    {
+      v7 = a3;
+      do
+      {
+        v8 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v8, 12, -1);
+        v7[4] = *v8;
+        v7[5] = v8[1];
+        v7[6] = v8[2];
+        sub_7290DE(v8);
+        LOBYTE(v5) = sub_4304A0(v7);
+        v7 += 7;
+        --v6;
+      }
+      while ( v6 );
+    }
+  }
+  else
+  {
+    LOBYTE(v5) = a4;
+    v9 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 7 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        v5 = sub_5B1630(a2, v9, a1 + 280);
+        v11 = v5;
+        if ( !v5 )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 12);
+        v12 = *(_DWORD **)(a1 + 8472);
+        i[4] = *v12;
+        i[5] = v12[1];
+        i[6] = v12[2];
+        *(_DWORD *)(a1 + 8472) += 12;
+        sub_4304A0(i);
+        if ( v11 != 12 )
+          ++*(_DWORD *)(a1 + 8476);
+        LOBYTE(v5) = a4;
+        if ( ++v9 >= a4 )
+          return v5;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return v5;
+}
+
+// ---- 0x42d5a0 ----
+char __cdecl sub_42D5A0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int v5; // eax
+  unsigned int v6; // ebx
+  int v7; // edi
+  _DWORD *v8; // esi
+  int v9; // ebp
+  int i; // ebx
+  int v11; // edi
+  _DWORD *v12; // eax
+
+  LOBYTE(v5) = a5;
+  if ( a5 )
+  {
+    v6 = a4;
+    if ( a4 )
+    {
+      v7 = a3;
+      do
+      {
+        v8 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v8, 8, -1);
+        *(_DWORD *)(v7 + 16) = *v8;
+        *(_DWORD *)(v7 + 20) = v8[1];
+        sub_7290DE(v8);
+        LOBYTE(v5) = sub_4304A0(v7);
+        v7 += 24;
+        --v6;
+      }
+      while ( v6 );
+    }
+  }
+  else
+  {
+    LOBYTE(v5) = a4;
+    v9 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 24 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        v5 = sub_5B1630(a2, v9, a1 + 280);
+        v11 = v5;
+        if ( !v5 )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 8);
+        v12 = *(_DWORD **)(a1 + 8472);
+        *(_DWORD *)(i + 16) = *v12;
+        *(_DWORD *)(i + 20) = v12[1];
+        *(_DWORD *)(a1 + 8472) += 8;
+        sub_4304A0(i);
+        if ( v11 != 8 )
+          ++*(_DWORD *)(a1 + 8476);
+        LOBYTE(v5) = a4;
+        if ( ++v9 >= a4 )
+          return v5;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return v5;
+}
+
+// ---- 0x42d6a0 ----
+char __cdecl sub_42D6A0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  char result; // al
+  unsigned int v7; // ebp
+  _DWORD *v8; // edi
+  _DWORD *v9; // esi
+  _DWORD *v10; // edx
+  _DWORD *v11; // esi
+  int v12; // ecx
+  int *v13; // esi
+  _DWORD *i; // edi
+  int v15; // ebx
+  _DWORD *v16; // edx
+  _DWORD *v17; // eax
+  _DWORD *v18; // eax
+  int v19; // [esp-8h] [ebp-18h]
+  int v20; // [esp+1Ch] [ebp+Ch]
+  int v21; // [esp+24h] [ebp+14h]
+
+  result = a5;
+  if ( a5 )
+  {
+    v7 = a4;
+    if ( a4 )
+    {
+      v8 = (_DWORD *)(a3 + 276);
+      do
+      {
+        sub_4280F0(a6);
+        v9 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v9, 16, -1);
+        v10 = v8 - 4;
+        *v10 = *v9;
+        v10[1] = v9[1];
+        v10[2] = v9[2];
+        v10[3] = v9[3];
+        sub_7290DE(v9);
+        v11 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v11, 8, -1);
+        *v8 = *v11;
+        v8[1] = v11[1];
+        result = sub_7290DE(v11);
+        v8 += 71;
+        --v7;
+      }
+      while ( v7 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v21 = 0;
+    if ( a4 )
+    {
+      v12 = a1;
+      v13 = (int *)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 276); ; i += 71 )
+      {
+        *v13 = v12 + 280;
+        v15 = sub_5B1630(a2, v21, v12 + 280);
+        if ( !v15 )
+          break;
+        v20 = sub_427B70(v13, a6);
+        sub_72D2B0(*v13, 16);
+        v16 = (_DWORD *)*v13;
+        v17 = i - 4;
+        *v17 = *(_DWORD *)*v13;
+        v17[1] = v16[1];
+        v17[2] = v16[2];
+        v17[3] = v16[3];
+        v19 = *v13 + 16;
+        *v13 = v19;
+        sub_72D2B0(v19, 8);
+        v18 = (_DWORD *)*v13;
+        *i = *(_DWORD *)*v13;
+        i[1] = v18[1];
+        *v13 += 8;
+        if ( v20 + 24 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v21 + 1;
+        if ( ++v21 >= a4 )
+          return result;
+        v12 = a1;
+      }
+      result = a1;
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42d860 ----
+int __cdecl sub_42D860(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v16 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *v7 = *v9;
+        sub_7290DE(v9);
+        v7 += 73;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 73 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v13 = (int)*v11 + 32;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 4);
+        *i = *(_DWORD *)*v11;
+        *v11 = (char *)*v11 + 4;
+        if ( v15 + 36 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42da00 ----
+int __cdecl sub_42DA00(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(20);
+        sub_72D2F0(v7, 20, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x14u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 36;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 36 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 20);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x14u);
+        *(_DWORD *)(a1 + 8472) += 20;
+        sub_4304A0(i);
+        if ( v8 != 20 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42db30 ----
+int __cdecl sub_42DB30(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(160);
+        sub_72D2F0(v7, 160, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0xA0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 176;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 176 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 160);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0xA0u);
+        *(_DWORD *)(a1 + 8472) += 160;
+        sub_4304A0(i);
+        if ( v8 != 160 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42dc70 ----
+int __cdecl sub_42DC70(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(260);
+        sub_72D2F0(v7, 260, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x104u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 276;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 276 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 260);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x104u);
+        *(_DWORD *)(a1 + 8472) += 260;
+        sub_4304A0(i);
+        if ( v8 != 260 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ddb0 ----
+int __cdecl sub_42DDB0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(168);
+        sub_72D2F0(v7, 168, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0xA8u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 184;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 184 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 168);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0xA8u);
+        *(_DWORD *)(a1 + 8472) += 168;
+        sub_4304A0(i);
+        if ( v8 != 168 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42def0 ----
+int __cdecl sub_42DEF0(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  int v13; // [esp-8h] [ebp-1Ch]
+  int v14; // [esp+10h] [ebp-4h]
+  int v15; // [esp+20h] [ebp+Ch]
+  unsigned int v16; // [esp+28h] [ebp+14h]
+  int v17; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v16 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v9, 4, -1);
+        *v7 = *v9;
+        sub_7290DE(v9);
+        v7 += 73;
+        result = --v16;
+      }
+      while ( v16 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v17 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 73 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v17, v10 + 280);
+        v14 = result;
+        if ( !result )
+          break;
+        v15 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v13 = (int)*v11 + 32;
+        *v11 = (const void *)v13;
+        sub_72D2B0(v13, 4);
+        *i = *(_DWORD *)*v11;
+        *v11 = (char *)*v11 + 4;
+        if ( v15 + 36 != v14 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v17 + 1;
+        if ( ++v17 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e090 ----
+int __cdecl sub_42E090(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  _DWORD *v7; // ebp
+  const void *v8; // ebx
+  _DWORD *v9; // esi
+  int v10; // esi
+  const void **v11; // ebx
+  _DWORD *i; // ebp
+  _DWORD *v13; // ecx
+  int v14; // [esp-8h] [ebp-1Ch]
+  int v15; // [esp+10h] [ebp-4h]
+  int v16; // [esp+20h] [ebp+Ch]
+  unsigned int v17; // [esp+28h] [ebp+14h]
+  int v18; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (_DWORD *)(a3 + 288);
+      v17 = a4;
+      do
+      {
+        sub_428740(a6);
+        v8 = (const void *)sub_746D70(32);
+        sub_72D2F0(v8, 32, -1);
+        qmemcpy(v7 - 8, v8, 0x20u);
+        sub_7290DE(v8);
+        v9 = (_DWORD *)sub_746D70(8);
+        sub_72D2F0(v9, 8, -1);
+        *v7 = *v9;
+        v7[1] = v9[1];
+        sub_7290DE(v9);
+        v7 += 74;
+        result = --v17;
+      }
+      while ( v17 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v18 = 0;
+    if ( a4 )
+    {
+      v10 = a1;
+      v11 = (const void **)(a1 + 8472);
+      for ( i = (_DWORD *)(a3 + 288); ; i += 74 )
+      {
+        *v11 = (const void *)(v10 + 280);
+        result = sub_5B1630(a2, v18, v10 + 280);
+        v15 = result;
+        if ( !result )
+          break;
+        v16 = sub_428630(v11, a6);
+        sub_72D2B0(*v11, 32);
+        qmemcpy(i - 8, *v11, 0x20u);
+        v14 = (int)*v11 + 32;
+        *v11 = (const void *)v14;
+        sub_72D2B0(v14, 8);
+        v13 = *v11;
+        *i = *(_DWORD *)*v11;
+        i[1] = v13[1];
+        *v11 = (char *)*v11 + 8;
+        if ( v16 + 40 != v15 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v18 + 1;
+        if ( ++v18 >= a4 )
+          return result;
+        v10 = a1;
+      }
+      ++*(_DWORD *)(v10 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e240 ----
+int __cdecl sub_42E240(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  _DWORD *v6; // ebp
+  const void *v7; // ebx
+  _DWORD *v8; // esi
+  _DWORD *i; // ebp
+  int v10; // [esp+1Ch] [ebp+Ch]
+  unsigned int v11; // [esp+24h] [ebp+14h]
+  int v12; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (_DWORD *)(a3 + 256);
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_73445E(240);
+        sub_72D2F0(v7, 240, -1);
+        qmemcpy(v6 - 60, v7, 0xF0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 64);
+        v8 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v8, 4, -1);
+        *v6 = *v8;
+        sub_7290DE(v8);
+        v6 += 65;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v12 = 0;
+    if ( a4 )
+    {
+      for ( i = (_DWORD *)(a3 + 256); ; i += 65 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v12, a1 + 280);
+        v10 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 240);
+        qmemcpy(i - 60, *(const void **)(a1 + 8472), 0xF0u);
+        *(_DWORD *)(a1 + 8472) += 240;
+        sub_4304A0(i - 64);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 4);
+        *i = **(_DWORD **)(a1 + 8472);
+        *(_DWORD *)(a1 + 8472) += 4;
+        if ( v10 != 244 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v12 + 1;
+        if ( ++v12 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e3f0 ----
+int __cdecl sub_42E3F0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(84);
+        sub_72D2F0(v7, 84, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x54u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 100;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 100 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 84);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x54u);
+        *(_DWORD *)(a1 + 8472) += 84;
+        sub_4304A0(i);
+        if ( v8 != 84 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e520 ----
+int __cdecl sub_42E520(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(144);
+        sub_72D2F0(v7, 144, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x90u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 160;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 160 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 144);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x90u);
+        *(_DWORD *)(a1 + 8472) += 144;
+        sub_4304A0(i);
+        if ( v8 != 144 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e660 ----
+int __cdecl sub_42E660(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(60);
+        sub_72D2F0(v7, 60, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x3Cu);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 76;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 76 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 60);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x3Cu);
+        *(_DWORD *)(a1 + 8472) += 60;
+        sub_4304A0(i);
+        if ( v8 != 60 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e790 ----
+int __cdecl sub_42E790(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(48);
+        sub_72D2F0(v7, 48, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x30u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 64;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 64 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 48);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x30u);
+        *(_DWORD *)(a1 + 8472) += 48;
+        sub_4304A0(i);
+        if ( v8 != 48 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42e8c0 ----
+int __cdecl sub_42E8C0(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  _DWORD *v6; // ebp
+  const void *v7; // ebx
+  _DWORD *v8; // esi
+  _DWORD *i; // ebp
+  _DWORD *v10; // edx
+  int v11; // [esp+1Ch] [ebp+Ch]
+  unsigned int v12; // [esp+24h] [ebp+14h]
+  int v13; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (_DWORD *)(a3 + 256);
+      v12 = a4;
+      do
+      {
+        v7 = (const void *)sub_73445E(240);
+        sub_72D2F0(v7, 240, -1);
+        qmemcpy(v6 - 60, v7, 0xF0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 64);
+        v8 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v8, 12, -1);
+        *v6 = *v8;
+        v6[1] = v8[1];
+        v6[2] = v8[2];
+        sub_7290DE(v8);
+        v6 += 67;
+        result = --v12;
+      }
+      while ( v12 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v13 = 0;
+    if ( a4 )
+    {
+      for ( i = (_DWORD *)(a3 + 256); ; i += 67 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v13, a1 + 280);
+        v11 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 240);
+        qmemcpy(i - 60, *(const void **)(a1 + 8472), 0xF0u);
+        *(_DWORD *)(a1 + 8472) += 240;
+        sub_4304A0(i - 64);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 12);
+        v10 = *(_DWORD **)(a1 + 8472);
+        *i = *v10;
+        i[1] = v10[1];
+        i[2] = v10[2];
+        *(_DWORD *)(a1 + 8472) += 12;
+        if ( v11 != 252 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v13 + 1;
+        if ( ++v13 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ea90 ----
+int __cdecl sub_42EA90(int a1, int a2, int a3, unsigned int a4, char a5, int a6)
+{
+  int result; // eax
+  char *v7; // ebp
+  _DWORD *v8; // esi
+  char *v9; // eax
+  const void *v10; // ebx
+  int v11; // esi
+  const void **v12; // ebx
+  char *i; // ebp
+  _DWORD *v14; // ecx
+  char *v15; // edx
+  int v16; // [esp-8h] [ebp-1Ch]
+  int v17; // [esp+10h] [ebp-4h]
+  int v18; // [esp+20h] [ebp+Ch]
+  unsigned int v19; // [esp+28h] [ebp+14h]
+  int v20; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v7 = (char *)(a3 + 276);
+      v19 = a4;
+      do
+      {
+        sub_4280F0(a6);
+        v8 = (_DWORD *)sub_746D70(16);
+        sub_72D2F0(v8, 16, -1);
+        v9 = v7 - 16;
+        *(_DWORD *)v9 = *v8;
+        *((_DWORD *)v9 + 1) = v8[1];
+        *((_DWORD *)v9 + 2) = v8[2];
+        *((_DWORD *)v9 + 3) = v8[3];
+        sub_7290DE(v8);
+        v10 = (const void *)sub_746D70(28);
+        sub_72D2F0(v10, 28, -1);
+        qmemcpy(v7, v10, 0x1Cu);
+        sub_7290DE(v10);
+        v7 += 304;
+        result = --v19;
+      }
+      while ( v19 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v20 = 0;
+    if ( a4 )
+    {
+      v11 = a1;
+      v12 = (const void **)(a1 + 8472);
+      for ( i = (char *)(a3 + 276); ; i += 304 )
+      {
+        *v12 = (const void *)(v11 + 280);
+        result = sub_5B1630(a2, v20, v11 + 280);
+        v17 = result;
+        if ( !result )
+          break;
+        v18 = sub_427B70(v12, a6);
+        sub_72D2B0(*v12, 16);
+        v14 = *v12;
+        v15 = i - 16;
+        *(_DWORD *)v15 = *(_DWORD *)*v12;
+        *((_DWORD *)v15 + 1) = v14[1];
+        *((_DWORD *)v15 + 2) = v14[2];
+        *((_DWORD *)v15 + 3) = v14[3];
+        v16 = (int)*v12 + 16;
+        *v12 = (const void *)v16;
+        sub_72D2B0(v16, 28);
+        qmemcpy(i, *v12, 0x1Cu);
+        *v12 = (char *)*v12 + 28;
+        if ( v18 + 44 != v17 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v20 + 1;
+        if ( ++v20 >= a4 )
+          return result;
+        v11 = a1;
+      }
+      ++*(_DWORD *)(v11 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ec60 ----
+int __cdecl sub_42EC60(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  _DWORD *v6; // ebp
+  const void *v7; // ebx
+  _DWORD *v8; // esi
+  _DWORD *i; // ebp
+  int v10; // [esp+1Ch] [ebp+Ch]
+  unsigned int v11; // [esp+24h] [ebp+14h]
+  int v12; // [esp+24h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = (_DWORD *)(a3 + 256);
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_73445E(240);
+        sub_72D2F0(v7, 240, -1);
+        qmemcpy(v6 - 60, v7, 0xF0u);
+        sub_7290DE(v7);
+        sub_4304A0(v6 - 64);
+        v8 = (_DWORD *)sub_746D70(4);
+        sub_72D2F0(v8, 4, -1);
+        *v6 = *v8;
+        sub_7290DE(v8);
+        v6 += 65;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v12 = 0;
+    if ( a4 )
+    {
+      for ( i = (_DWORD *)(a3 + 256); ; i += 65 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v12, a1 + 280);
+        v10 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 240);
+        qmemcpy(i - 60, *(const void **)(a1 + 8472), 0xF0u);
+        *(_DWORD *)(a1 + 8472) += 240;
+        sub_4304A0(i - 64);
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 4);
+        *i = **(_DWORD **)(a1 + 8472);
+        *(_DWORD *)(a1 + 8472) += 4;
+        if ( v10 != 244 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v12 + 1;
+        if ( ++v12 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ee10 ----
+int __cdecl sub_42EE10(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(28);
+        sub_72D2F0(v7, 28, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x1Cu);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 44;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 44 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 28);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x1Cu);
+        *(_DWORD *)(a1 + 8472) += 28;
+        sub_4304A0(i);
+        if ( v8 != 28 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42ef40 ----
+int __cdecl sub_42EF40(int a1, int a2, int a3, unsigned int a4, char a5)
+{
+  int result; // eax
+  int v6; // ebp
+  const void *v7; // ebx
+  int v8; // ebp
+  int v10; // [esp+10h] [ebp-4h]
+  unsigned int v11; // [esp+28h] [ebp+14h]
+  int i; // [esp+28h] [ebp+14h]
+
+  if ( a5 )
+  {
+    result = a4;
+    if ( a4 )
+    {
+      v6 = a3;
+      v11 = a4;
+      do
+      {
+        v7 = (const void *)sub_746D70(34);
+        sub_72D2F0(v7, 34, -1);
+        qmemcpy((void *)(v6 + 16), v7, 0x22u);
+        sub_7290DE(v7);
+        sub_4304A0(v6);
+        v6 += 52;
+        result = --v11;
+      }
+      while ( v11 );
+    }
+  }
+  else
+  {
+    result = a4;
+    v10 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 52 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        result = sub_5B1630(a2, v10, a1 + 280);
+        v8 = result;
+        if ( !result )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 34);
+        qmemcpy((void *)(i + 16), *(const void **)(a1 + 8472), 0x22u);
+        *(_DWORD *)(a1 + 8472) += 34;
+        sub_4304A0(i);
+        if ( v8 != 34 )
+          ++*(_DWORD *)(a1 + 8476);
+        result = v10 + 1;
+        if ( ++v10 >= a4 )
+          return result;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return result;
+}
+
+// ---- 0x42f070 ----
+char __cdecl sub_42F070(int a1, int a2, _DWORD *a3, unsigned int a4, char a5)
+{
+  int v5; // eax
+  unsigned int v6; // ebx
+  _DWORD *v7; // edi
+  _DWORD *v8; // esi
+  int v9; // ebp
+  _DWORD *i; // ebx
+  int v11; // edi
+  _DWORD *v12; // eax
+
+  LOBYTE(v5) = a5;
+  if ( a5 )
+  {
+    v6 = a4;
+    if ( a4 )
+    {
+      v7 = a3;
+      do
+      {
+        v8 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v8, 12, -1);
+        v7[4] = *v8;
+        v7[5] = v8[1];
+        v7[6] = v8[2];
+        sub_7290DE(v8);
+        LOBYTE(v5) = sub_4304A0(v7);
+        v7 += 7;
+        --v6;
+      }
+      while ( v6 );
+    }
+  }
+  else
+  {
+    LOBYTE(v5) = a4;
+    v9 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 7 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        v5 = sub_5B1630(a2, v9, a1 + 280);
+        v11 = v5;
+        if ( !v5 )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 12);
+        v12 = *(_DWORD **)(a1 + 8472);
+        i[4] = *v12;
+        i[5] = v12[1];
+        i[6] = v12[2];
+        *(_DWORD *)(a1 + 8472) += 12;
+        sub_4304A0(i);
+        if ( v11 != 12 )
+          ++*(_DWORD *)(a1 + 8476);
+        LOBYTE(v5) = a4;
+        if ( ++v9 >= a4 )
+          return v5;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return v5;
+}
+
+// ---- 0x42f180 ----
+char __cdecl sub_42F180(int a1, int a2, _DWORD *a3, unsigned int a4, char a5)
+{
+  int v5; // eax
+  unsigned int v6; // ebx
+  _DWORD *v7; // edi
+  _DWORD *v8; // esi
+  int v9; // ebp
+  _DWORD *i; // ebx
+  int v11; // edi
+  _DWORD *v12; // eax
+
+  LOBYTE(v5) = a5;
+  if ( a5 )
+  {
+    v6 = a4;
+    if ( a4 )
+    {
+      v7 = a3;
+      do
+      {
+        v8 = (_DWORD *)sub_746D70(12);
+        sub_72D2F0(v8, 12, -1);
+        v7[4] = *v8;
+        v7[5] = v8[1];
+        v7[6] = v8[2];
+        sub_7290DE(v8);
+        LOBYTE(v5) = sub_4304A0(v7);
+        v7 += 7;
+        --v6;
+      }
+      while ( v6 );
+    }
+  }
+  else
+  {
+    LOBYTE(v5) = a4;
+    v9 = 0;
+    if ( a4 )
+    {
+      for ( i = a3; ; i += 7 )
+      {
+        *(_DWORD *)(a1 + 8472) = a1 + 280;
+        v5 = sub_5B1630(a2, v9, a1 + 280);
+        v11 = v5;
+        if ( !v5 )
+          break;
+        sub_72D2B0(*(_DWORD *)(a1 + 8472), 12);
+        v12 = *(_DWORD **)(a1 + 8472);
+        i[4] = *v12;
+        i[5] = v12[1];
+        i[6] = v12[2];
+        *(_DWORD *)(a1 + 8472) += 12;
+        sub_4304A0(i);
+        if ( v11 != 12 )
+          ++*(_DWORD *)(a1 + 8476);
+        LOBYTE(v5) = a4;
+        if ( ++v9 >= a4 )
+          return v5;
+      }
+      ++*(_DWORD *)(a1 + 8476);
+    }
+  }
+  return v5;
+}
+
+
+Loading IDA library from: C:\Program Files\IDA Professional 9.1\idalib.dll
