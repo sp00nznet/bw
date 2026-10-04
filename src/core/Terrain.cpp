@@ -4,3 +4,4 @@
 #include <black/Terrain.h>
 
 TerrainHeightFunc g_terrain_height_func = nullptr;
+MeshRadiusFunc g_mesh_radius_func = nullptr;

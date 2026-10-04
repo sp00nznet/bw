@@ -8,6 +8,8 @@
 #include <black/Abode.h>
 #include <black/Town.h>
 #include <black/Villager.h>
+#include <black/Terrain.h>
+#include <cstring>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -632,4 +634,14 @@ bool32_t Abode::IsTooCrowded() {
     float percent = *reinterpret_cast<const float*>(
         reinterpret_cast<const char*>(info) + 0x1A0); // percentTooCrowded
     return (GetPercentAbodeFullWithAdults() > percent) ? 1 : 0;
+}
+
+float Abode::GetRadius() {
+    // v1.0 sub_5EA550: the larger horizontal bound of the abode's 3D object,
+    // times its scale. The mesh is GAbodeInfo::meshId (+0x15C, an AllMeshes.g3d
+    // index: Norse Hut 204, Town Centre 179) and the host measures it.
+    if (!info || !g_mesh_radius_func) return 0.0f;
+    int32_t mesh;
+    std::memcpy(&mesh, reinterpret_cast<const char*>(info) + 0x15C, 4);
+    return g_mesh_radius_func(mesh) * scale;
 }

@@ -12,6 +12,9 @@
 #include <black/Player.h>
 #include <black/Villager.h>
 #include <black/Game.h>
+#include <black/InfoDat.h>
+#include <cstdlib>
+#include <cstring>
 
 extern GGame* g_game;
 
@@ -42,11 +45,11 @@ void Town::SetVillagerActivity(Villager* /*villager*/) {
 }
 
 float Town::GetRadius() {
-    // Original at 0x0073d6e0 — computes radius from MapCoords bounding box
-    // Calculates max(abs(field_0x728.x - field_0x734.x), abs(field_0x728.z - field_0x734.z))
-    // with float conversion and scaling. Complex math involving field_0x728 and field_0x734.
-    // Full implementation computes bounding box from field_0x728/field_0x734
-    return influence;
+    // v1.0 Town vslot 24 (sub_6D0540), from the disassembly: half the larger of
+    // the bounding box's whole-metre width and depth.
+    const int dx = std::abs(static_cast<int>(MetresOf(field_0x734.x) - MetresOf(field_0x728.x)));
+    const int dz = std::abs(static_cast<int>(MetresOf(field_0x734.z) - MetresOf(field_0x728.z)));
+    return static_cast<float>(dx > dz ? dx : dz) * 0.5f;
 }
 
 uint16_t Town::GetNumberOfInstanceForGlobalList() {
@@ -209,21 +212,34 @@ bool Town::CheckForClearArea(MapCoords& /*p1*/, float /*p2*/,
 // ============================================================================
 
 void Town::AddStructureToTown(MultiMapFixed* structure) {
-    // Original at 0x007399a0 — translated from x86 assembly
+    // v1.0 sub_6CD6B0: an abode goes on the town's abode list (+0x74C, link at
+    // abode +0x9C, count +0x750); every structure is told its town (vslot 572)
+    // and the town's bounds are recomputed (sub_6CE1E0).
+    // ponytail: not yet the turn stamp at +0x6E8 or the spell-icon pass when
+    // +0x988 is set; both need systems we don't run.
     if (!structure) return;
-
-    // Set town reference on structure
-    structure->SetTown(this);
-
-    // Check if it's an abode (CastAbode returns non-null for Abode types)
-    Abode* abode = reinterpret_cast<GameThing*>(structure)->CastAbode();
-    if (abode) {
-        // Prepend to abode linked list
+    if (Abode* abode = reinterpret_cast<GameThing*>(structure)->CastAbode()) {
         abode->next = reinterpret_cast<Abode*>(abode_list.head);
         abode_list.head = abode;
+        ++abode_list.count;
+    }
+    structure->SetTown(this);
+    RecalculateBounds();
+}
 
-        // Add abode stats
-        AddAbodeToTownStats(abode);
+// sub_6CE1E0's first half: the min/max of every abode's position +/- its radius,
+// in map units (+0x720 min, +0x72C max). The original also folds in the list
+// at +0x778 and then derives a bounding sphere; neither is done here yet.
+void Town::RecalculateBounds() {
+    field_0x728 = MapCoords(0x7FFFFFFF, 0x7FFFFFFF, 0.0f);
+    field_0x734 = MapCoords(0, 0, 0.0f);
+    for (Abode* a = reinterpret_cast<Abode*>(abode_list.head); a; a = a->next) {  // sub_6CE380
+        const float r = a->GetRadius();
+        const float x = MetresOf(a->coords.x), z = MetresOf(a->coords.z);
+        if (x - r < MetresOf(field_0x728.x)) field_0x728.x = static_cast<int32_t>((x - r) * kMapUnitsPerMetre);
+        if (x + r > MetresOf(field_0x734.x)) field_0x734.x = static_cast<int32_t>((x + r) * kMapUnitsPerMetre);
+        if (z - r < MetresOf(field_0x728.z)) field_0x728.z = static_cast<int32_t>((z - r) * kMapUnitsPerMetre);
+        if (z + r > MetresOf(field_0x734.z)) field_0x734.z = static_cast<int32_t>((z + r) * kMapUnitsPerMetre);
     }
 }
 
@@ -589,4 +605,64 @@ bool32_t Town::GetBestRepairBuildingSite() {
 bool32_t Town::DisplayHowImpressed() {
     // Original at 0x007635d0 — complex
     return 0;
+}
+
+// ============================================================================
+// Construction — v1.0 sub_6CD070 and the helpers it calls. Only the non-zero
+// state is written here: the Town arrives value-initialised (all zero, vtables
+// set), which is everything the original's field-clearing does. Not yet:
+// the desire-flag objects (sub_6D05E0 -> sub_6D8950, a 152-byte object class),
+// the player hookup (sub_6CDFF0: player town list, spell icons; needs GPlayers),
+// and the map-region flag at +0x5E0 (sub_6FE660). docs/constructors.md.
+// ============================================================================
+
+void Town::Construct(const MapCoords& pos, const void* town_info, GPlayer* player,
+                     uint8_t player_num, TRIBE_TYPE tribe, const char* name, uint32_t id) {
+    const char* ti = static_cast<const char*>(town_info);
+    auto info_f = [ti](int off) { float v = 0; if (ti) std::memcpy(&v, ti + off, 4); return v; };
+
+    // Container (sub_456870): info, position, owner.
+    info = static_cast<GContainerInfo*>(const_cast<void*>(town_info));
+    SetPos(pos);
+    owner = player;
+
+    // TownDesire (sub_6D7580 / sub_6D75E0): it knows its town.
+    desire.town = this;
+
+    // 8 player interactions (sub_6D0D20): +0x10 = 1.0, and their EffectValues
+    // (sub_4FC9F0) start with effect 5 at 1.0.
+    for (PlayerTownInteract& pti : player_interactions) {
+        pti.field_0x10 = 1.0f;
+        pti.effect_values.numbers.values[5] = 1.0f;
+    }
+
+    // sub_6CF870: the two multipliers at +0xEAC/+0xEB0.
+    field_0xeb4 = 1.0f;
+    field_0xeb8 = 1.0f;
+
+    // GBelief (sub_430AF0): caps of 10 per player, 41 reaction multipliers of 1,
+    // and each town desire's belief weight from DETAIL_TOWN_DESIRE_INFO (+0x3C
+    // of each 144-byte element, sub_430B70).
+    for (float& cap : belief.belief_in_player_max) cap = 10.0f;
+    for (float& m : belief.boredom_multiplier) m = 1.0f;
+    for (uint32_t d = 0; d < 17; ++d) {
+        const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_TOWN_DESIRE_INFO, d));
+        if (e) std::memcpy(&belief.field_0x18c[d], e + 0x3C, 4);
+    }
+
+    // Identity: id (this[365]), name (this[364]), tribe (this[366]), player byte.
+    field_0x5b4 = id;
+    if (name) {
+        field_0x5b0 = static_cast<char*>(std::malloc(std::strlen(name) + 1));
+        std::strcpy(field_0x5b0, name);
+    }
+    tribe_type = tribe;
+    player_number = player_num;
+
+    // this[370] (sub_6D2810): TownInfo +120, or +188 + 4*n when the game's mode
+    // index at +2104004 is set. ponytail: mode 0 assumed until GGame carries it.
+    influence = info_f(120);
+    // this[374] = TownInfo +184 (the belief sub_430AF0 reads back), this[375] = 1.0.
+    belief_in_neutral_player = info_f(184);
+    field_0x5dc = 1.0f;
 }

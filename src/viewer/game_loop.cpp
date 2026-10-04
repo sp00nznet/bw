@@ -311,6 +311,13 @@ bool GameState::Init(const std::string& script_path) {
 
     // The level, through the game's own loader: towns, abodes, villagers and
     // the rest as bw_core objects (core/LevelLoader.cpp).
+    // bw_core sizes abodes from their meshes (Abode::GetRadius); we own them.
+    s_current_game_state = this;
+    g_mesh_radius_func = [](int32_t id) -> float {
+        const auto& m = s_current_game_state->meshes.meshes;
+        if (id < 0 || id >= static_cast<int32_t>(m.size())) return 0.0f;
+        return std::max(m[id].max_x, m[id].max_z);
+    };
     printf("Game: Loading level...\n"); fflush(stdout);
     std::string level_err;
     if (!level::Load(script_path.c_str(), world, &level_err)) {

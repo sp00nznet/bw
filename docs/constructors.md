@@ -1,0 +1,77 @@
+# Constructors
+
+The level loader (docs/level-loader.md) creates towns, abodes and villagers. This page
+covers how far each of those constructors is translated from v1.0.
+
+**What a translation has to do.** Most of a v1.0 constructor clears fields and sets
+vtable pointers. `new T()` already does both: the classes have no user-declared
+constructors, so value-initialisation zeroes every field and sets the vptrs. A
+translation writes what is left, the **non-zero state and the side effects**.
+
+**Layouts first.** Our class headers came from the vendor's v1.41 reconstruction.
+Where v1.0's code disagrees, the header changes to v1.0, and `offsetof` asserts pin the
+offsets the constructor writes.
+
+## Town (`sub_6CD070`)
+
+### The layout was v1.41
+
+v1.0 allocates 3,872 bytes (0xF20); our `Town` was 0xF28. The constructor pins the
+difference. v1.0 has no `forests` / `field_0x60c` pair at 0x608: TownStats' vtable is
+written there (`this[386]`). Removing those 8 bytes shifts everything after them into
+v1.0's place:
+
+| v1.0 write | Field | Offset |
+|---|---|---|
+| `this[386] = &TownStats::vftable` | `stats` | 0x608 |
+| `this[456] = this[457] = 0x7FFFFFFF` (`sub_6CE1E0`) | bounding-box min | 0x720 |
+| `this[467]` list head, `this[468]++` (`sub_6CD6B0`) | `abode_list` | 0x74C |
+| next town in a player's list | `next` | 0x754 |
+| `this[484] = &GBelief::vftable` | `belief` | 0x790 |
+| `CREATE_TOWN_CENTRE` writes `+2460` | `town_centre` | 0x99C |
+| 17 desire objects, `this[618..634]` | `town_desire_flags` | 0x9A8 |
+| 8 × `sub_6D0D20`, 128 bytes each | `player_interactions` | 0x9EC |
+| `this[939] = this[940] = 1.0f` | `field_0xeb4/eb8` | 0xEAC |
+| `memset(this + 944, 0, 64)` | `field_0xec8[16]` | 0xEC0 |
+| `SET_TOWN_CONGREGATION_POS` writes `+3848` | `congregation_pos` | 0xF08 |
+
+There is one further difference: the two dwords v1.41 keeps before
+`player_interactions`, v1.0 keeps after it. `Town.h` asserts all 18 offsets and the
+0xF20 size. Field names keep their v1.41 numbers; the comments give the v1.0 offsets.
+
+### `Town::Construct`
+
+What it writes:
+- **Container:** info, position and owner.
+- **Desire:** `desire.town = this`.
+- **Interaction records:** each gets `+0x10 = 1.0`, and its `EffectValues` effect 5
+  = 1.0.
+- **Multipliers:** the pair at 0xEAC = 1.0.
+- **Belief:** caps 10.0 per player, 41 reaction multipliers 1.0, and each town desire's
+  weight copied from `DETAIL_TOWN_DESIRE_INFO` (+0x3C of each element, `sub_430B70`).
+- **Identity:** id, name, tribe and player number.
+- **From TownInfo:** influence = TownInfo +120 (`sub_6D2810`), +0x5D8 = TownInfo +184,
+  and +0x5DC = 1.0.
+
+`AddStructureToTown` follows v1.0's `sub_6CD6B0`: link the abode (+0x9C) at +0x74C,
+count at +0x750, then `SetTown`, then recompute the bounds. The bounds are the min/max
+of each abode's position ± its radius (`sub_6CE380`). `GetRadius` (vslot 24,
+`sub_6D0540`, read from the disassembly because Hex-Rays dropped the subtraction) is
+half the larger whole-metre side of that box.
+
+An abode's radius is its mesh's larger horizontal bound times its scale (`sub_5EA550`).
+The mesh is `GAbodeInfo::meshId` at +0x15C, the same ids as the viewer's hand table
+(Norse Hut 204, Town Centre 179). bw_core has no meshes, so the host answers through
+`g_mesh_radius_func`, like terrain height. A `Field` is a flat 5 m (`sub_502D00`).
+
+Land 1, headless with 6 m meshes: the player's 34-abode village has a 127 m radius.
+Town 1 has 562 m, and that is real: the script puts one of its two huts 1.1 km from
+the other.
+
+**Not yet translated:**
+- the 17 desire-flag objects (`sub_6D05E0` → `sub_6D8950`, a 152-byte object class)
+- hooking the town to its player (`sub_6CDFF0`: the player's town list and spell
+  icons; this needs real `GPlayer`s)
+- the map-region flag at +0x5E0 (`sub_6FE660`)
+- the game-mode index that picks influence from TownInfo +188 + 4n
+- the second half of `sub_6CE1E0`, a bounding sphere

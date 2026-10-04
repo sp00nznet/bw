@@ -16,3 +16,10 @@ inline float GetTerrainHeightAt(float x, float z) {
     if (g_terrain_height_func) return g_terrain_height_func(x, z);
     return 0.0f;
 }
+
+// Mesh extent query — the host owns the meshes. The original sizes an abode
+// from its 3D object's bounds (Abode vslot 25, sub_5EA550: the larger of two
+// horizontal bounds, times scale); bw_core has no meshes, so it asks the host
+// for the largest horizontal bound of AllMeshes.g3d entry `mesh_id`, in metres.
+using MeshRadiusFunc = float (*)(int32_t mesh_id);
+extern MeshRadiusFunc g_mesh_radius_func;

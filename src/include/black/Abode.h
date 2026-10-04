@@ -31,6 +31,7 @@ struct Abode : public MultiMapFixed {
     // === Overrides of GameThing virtuals ===
     GPlayer* GetPlayer() override;
     Town* GetTown() override;
+    float GetRadius() override;  // v1.0 vslot 24 -> 25 (sub_5EA550): mesh bounds x scale
     uint32_t JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool param3) override;
     uint32_t JustRemoveResource(RESOURCE_TYPE type, uint32_t amount, bool* param3) override;
     uint32_t GetResource(RESOURCE_TYPE type) override;

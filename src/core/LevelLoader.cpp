@@ -115,12 +115,12 @@ struct Loader {
         float x, z;
         if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
         Town* t = new Town();
-        t->SetPos(MapCoordsFromMetres(x, z));
-        t->info = static_cast<GContainerInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_TOWN_INFO, 0)));
-        t->field_0x5b4 = static_cast<uint32_t>(a[0].n);  // this[365]: the script's town id
         const int tribe = TribeIndex(a[4].s);
-        t->tribe_type = static_cast<TRIBE_TYPE>(tribe < 0 ? 0 : tribe);
-        t->player_number = static_cast<uint8_t>(PlayerIndex(a[2].s));
+        // The loader passes no name (sub_6CD070's a6 is 0 here) and no GPlayer yet.
+        t->Construct(MapCoordsFromMetres(x, z), infodat::Element(infodat::DETAIL_TOWN_INFO, 0), nullptr,
+                     static_cast<uint8_t>(PlayerIndex(a[2].s)),
+                     static_cast<TRIBE_TYPE>(tribe < 0 ? 0 : tribe), nullptr,
+                     static_cast<uint32_t>(a[0].n));
         w.towns.push_back(t);
         return true;
     }
