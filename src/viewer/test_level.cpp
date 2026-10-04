@@ -223,6 +223,16 @@ int main() {
         const std::string rh = miracles::Cast(w, MetresOf(hurt->coords.x), MetresOf(hurt->coords.z));
         std::snprintf(msg, sizeof msg, "the hand draws spiral + Heal and casts on a hurt villager: %s; its life 0.30 -> %.2f", rh.c_str(), hurt->GetLife());
         CHECK(hurt->GetLife() > 0.3f, msg);
+
+        // Water (spiral + 20) on an unplanted field plants it full (sub_4FF8D0).
+        Field* bare = static_cast<Field*>(v0->field_list.head->obj);
+        const int crops0 = bare->field_0xcc;
+        draw(1);
+        draw(20);
+        const std::string rw = miracles::Cast(w, MetresOf(bare->coords.x), MetresOf(bare->coords.z));
+        std::snprintf(msg, sizeof msg, "the hand draws spiral + Water and casts on a field: %s; crops %d -> %d", rw.c_str(), crops0, bare->field_0xcc);
+        CHECK(crops0 == 0 && bare->field_0xcc > 30, msg);
+        bare->field_0xcc = 0;  // leave the rest of the test as it was
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);

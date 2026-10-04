@@ -175,6 +175,23 @@ Spells other than the resource ones act through the base Spell's landing handler
 `test_level` draws spiral + Heal and casts on a villager at 0.3 life, which rises to
 1.0.
 
+## Water
+
+Water does not use the effect record for fields. The spell drops water at random
+points within 6 m (magic 22) or 12 m (magic 23) of where it was cast (`sub_5B8600`)
+for as long as it lasts (SpellWater vslot 330, `sub_6BBD30`). Every object within
+2.5 m of a drop, beyond its own radius, gets `ApplyWaterSpell` (vslot 415).
+
+A field (`sub_4FF8D0`), unless burning, reacts like this:
+- Not fully planted (crops <= type +296): planted full at once (crops = +296 + 1).
+- Otherwise, below full growth (+292): it grows by +336, and its food by the same share
+  a growth step gives.
+
+Burning objects are put out (`sub_5ECB30`), and trees grow (`sub_6DD7B0`). Neither is
+translated yet.
+
+`test_level` draws spiral + Water on an unplanted field: its crops go from 0 to 31.
+
 ## In the viewer
 
 In play mode (`bw_viewer game_data/Land1.txt --play`), the hand works miracles:
@@ -183,7 +200,7 @@ In play mode (`bw_viewer game_data/Land1.txt --play`), the hand works miracles:
 - **Draw the miracle's gesture** the same way (Food 3, Wood 6, and so on; see the table
   above). The HUD's "Miracle:" line says what the hand holds.
 - **Left-click** to cast it under the hand. Food and wood land in a storage pit there;
-  Heal heals the living within its radius; other miracles say they are not translated yet.
+  Heal heals the living within its radius, Water waters the fields there; other miracles say they are not translated yet.
 
 `viewer/miracles.cpp` is the glue. `test_level` drives it headlessly: it draws the
 spiral and Food's gesture as mouse strokes and casts on the village's pit, which gains

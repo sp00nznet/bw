@@ -70,4 +70,11 @@ int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>
 // are not translated.
 float ApplyToLiving(const Effect& e, Object* target);
 
+// One drop of the Water miracle (SpellWater vslot 330, sub_6BBD30): every
+// object within 2.5 m of its edge gets vslot 415 (ApplyWaterSpell) -- a
+// field is planted or grown. The drops fall within 6 m (magic 22) or 12 m
+// (23) of the cast (sub_5B8600) for as long as the spell lasts.
+// ponytail: one drop at the point; only fields answer (fire, trees not yet).
+int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby);
+
 }  // namespace spell

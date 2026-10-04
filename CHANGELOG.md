@@ -10,6 +10,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The Water miracle (`docs/gestures.md`): a field it falls on is planted full or grown
+  (v1.0's `Field::ApplyWaterSpell`).
 - The Heal miracle (`docs/gestures.md`): a spell's effect record, its area, and the
   heal and wound applied to the living, cast from the viewer's hand.
 - Miracles in the viewer (`docs/gestures.md`): hold the middle mouse button to draw a

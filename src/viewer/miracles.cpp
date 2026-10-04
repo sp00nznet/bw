@@ -99,6 +99,15 @@ std::string Cast(level::World& w, float x, float z) {
         g_status = buf;
         return g_status;
     }
+    if (magic == 22 || magic == 23) {  // MAGIC_WATER: one drop at the point
+        std::vector<Object*> near;
+        for (auto& s : w.objects)
+            if (s.obj && std::abs(MetresOf(s.obj->coords.x) - x) < 30.0f && std::abs(MetresOf(s.obj->coords.z) - z) < 30.0f) near.push_back(s.obj);
+        char buf[128];
+        std::snprintf(buf, sizeof buf, "%s: watered %d field(s)", SeedName(seed), spell::WaterDrop(MapCoordsFromMetres(x, z), near));
+        g_status = buf;
+        return g_status;
+    }
     if (!resource) {
         g_status = std::string(SeedName(seed)) + ": casting not translated yet";
         return g_status;

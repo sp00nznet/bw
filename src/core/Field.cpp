@@ -233,7 +233,20 @@ void Field::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 }
 
 float Field::ApplyWaterSpell(SpellWater* /*spell*/) {
-    // Original at 0x00528f30 — complex
+    // v1.0 vslot 415, sub_4FF8D0. Not burning (+0x44): a field not fully
+    // planted (crops <= +296) is planted full at once (crops = +296 + 1);
+    // otherwise, below full growth (+292), it grows by +336 and its food by
+    // that x +304 / +292, as a growth step would.
+    // ponytail: putting out a fire (sub_5ECB30) and the creature's
+    // learning note (sub_4CB260) are not translated.
+    if (fire_effect) return 0.0f;
+    if (static_cast<float>(field_0xcc) <= TypeF(this, 296)) {
+        field_0xcc = static_cast<uint8_t>(static_cast<int>(TypeF(this, 296) + 1.0f));
+    } else if (growth <= TypeF(this, 292)) {
+        const float g = TypeF(this, 336);
+        growth += g;
+        food += g * TypeF(this, 304) / TypeF(this, 292);
+    }
     return 0.0f;
 }
 

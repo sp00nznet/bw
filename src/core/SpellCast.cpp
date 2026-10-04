@@ -2,6 +2,7 @@
 #include <black/SpellCast.h>
 
 #include <black/Abode.h>
+#include <black/Field.h>
 #include <black/Living.h>
 #include <black/InfoDat.h>
 #include <black/Object.h>
@@ -94,6 +95,19 @@ int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>
         const float dx = MetresOf(at.x - o->coords.x), dz = MetresOf(at.z - o->coords.z);
         if (std::sqrt(dx * dx + dz * dz) > o->GetRadius() + e.radius) continue;
         ApplyToLiving(e, o);
+        ++n;
+    }
+    return n;
+}
+
+int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby) {
+    int n = 0;
+    for (Object* o : nearby) {
+        auto* f = dynamic_cast<Field*>(o);
+        if (!f) continue;
+        const float dx = MetresOf(at.x - o->coords.x), dz = MetresOf(at.z - o->coords.z);
+        if (std::sqrt(dx * dx + dz * dz) - f->GetRadius() >= 2.5f) continue;
+        f->ApplyWaterSpell(nullptr);
         ++n;
     }
     return n;
