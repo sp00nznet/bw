@@ -4,6 +4,7 @@
 #include <black/Abode.h>
 #include <black/Field.h>
 #include <black/Fire.h>
+#include <black/LHRandom.h>
 #include <black/Living.h>
 #include <black/InfoDat.h>
 #include <black/Object.h>
@@ -115,5 +116,52 @@ int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby) {
     }
     return n;
 }
+
+namespace {
+struct Active {
+    int magic;
+    MapCoords at;
+    float age;
+    float duration;
+};
+std::vector<Active> g_active;  // v1.0: the game's spell list at +0x201C80
+
+float Duration(int magic_type, float power) {  // sub_5B8FF0 x the cast's power
+    float d = 0.0f;
+    if (const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_MAGIC_EFFECT_INFO, static_cast<uint32_t>(magic_type))))
+        std::memcpy(&d, e + 104, 4);
+    return d * power;
+}
+float WaterRadius(int magic_type) { return magic_type == 22 ? 6.0f : (magic_type == 23 ? 12.0f : 1.0f); }  // sub_5B8600
+
+void WaterTick(const Active& a, const std::vector<Object*>& world) {  // sub_6BBD30
+    const float r = lh::RandomFloat(WaterRadius(a.magic)) * 0.7f + 0.3f;
+    const float ang = lh::RandomFloat(6.2831855f);
+    const MapCoords p(a.at.x + static_cast<int32_t>(std::cos(ang) * r * kMapUnitsPerMetre),
+                      a.at.z + static_cast<int32_t>(std::sin(ang) * r * kMapUnitsPerMetre), a.at.altitude);
+    std::vector<Object*> near;
+    for (Object* o : world)
+        if (o && std::fabs(MetresOf(o->coords.x - p.x)) < 20.0f && std::fabs(MetresOf(o->coords.z - p.z)) < 20.0f) near.push_back(o);
+    WaterDrop(p, near);
+    ApplyInArea(EffectFor(a.magic), p, near);  // the drop lands (vslot 331): heat -4000
+}
+}  // namespace
+
+void StartWater(int magic_type, const MapCoords& at) {
+    g_active.push_back({magic_type, at, 0.0f, Duration(magic_type, 1.0f)});
+}
+
+void ProcessActive(const std::vector<Object*>& world) {
+    for (size_t i = 0; i < g_active.size();) {
+        Active& a = g_active[i];
+        a.age = static_cast<float>(100.0 * 0.001 + static_cast<double>(a.age));  // dword_C22D78 (assumed 100 ms: it is set at runtime) x 0.001, in double as v1.0 does
+        if (a.duration >= 0.0f && a.age > a.duration) { g_active.erase(g_active.begin() + static_cast<long>(i)); continue; }
+        if (a.magic == 22 || a.magic == 23) WaterTick(a, world);
+        ++i;
+    }
+}
+
+int ActiveCount() { return static_cast<int>(g_active.size()); }
+void ClearActive() { g_active.clear(); }
 
 }  // namespace spell

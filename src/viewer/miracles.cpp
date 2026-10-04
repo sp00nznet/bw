@@ -99,16 +99,9 @@ std::string Cast(level::World& w, float x, float z) {
         g_status = buf;
         return g_status;
     }
-    if (magic == 22 || magic == 23) {  // MAGIC_WATER: one drop at the point
-        std::vector<Object*> near;
-        for (auto& s : w.objects)
-            if (s.obj && std::abs(MetresOf(s.obj->coords.x) - x) < 30.0f && std::abs(MetresOf(s.obj->coords.z) - z) < 30.0f) near.push_back(s.obj);
-        const int fields = spell::WaterDrop(MapCoordsFromMetres(x, z), near);
-        // Its effect too: value [0] = -4000, cooling any fire it lands on.
-        spell::ApplyInArea(spell::EffectFor(magic), MapCoordsFromMetres(x, z), near);
-        char buf[128];
-        std::snprintf(buf, sizeof buf, "%s: watered %d field(s)", SeedName(seed), fields);
-        g_status = buf;
+    if (magic == 22 || magic == 23) {  // MAGIC_WATER: rains for its duration, a drop a turn
+        spell::StartWater(magic, MapCoordsFromMetres(x, z));
+        g_status = std::string(SeedName(seed)) + ": raining";
         return g_status;
     }
     if (!resource) {

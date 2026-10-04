@@ -78,4 +78,20 @@ float ApplyToLiving(const Effect& e, Object* target);
 // ponytail: one drop at the point; only fields answer (fire, trees not yet).
 int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby);
 
+// Spells that last (the game's spell list, +0x201C80; sub_6B7570 each
+// turn). A spell ages a tenth of a second a turn (sub_6B7730) and stops
+// past its duration -- the effect record's +104 x the cast's power, seconds
+// (set at cast, sub_6BFEA0): water 6, heal and fire 20.
+// What it does while it lasts is the spell's own tick: Water drops once a
+// turn at a random point rand(R) x 0.7 + 0.3 m from the cast in a random
+// direction (sub_6BBD30; R from sub_5B8600), watering what is there and
+// applying its effect.
+// ponytail: the cast's power is 1 (the icon's power is not modelled), and
+// only Water has a per-turn tick here -- the other spells deliver through
+// their particle effect, which is not built, so they land once when cast.
+void StartWater(int magic_type, const MapCoords& at);
+void ProcessActive(const std::vector<Object*>& world);
+int ActiveCount();
+void ClearActive();
+
 }  // namespace spell

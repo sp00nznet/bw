@@ -231,8 +231,12 @@ int main() {
         draw(1);
         draw(20);
         const std::string rw = miracles::Cast(w, MetresOf(bare->coords.x), MetresOf(bare->coords.z));
-        std::snprintf(msg, sizeof msg, "the hand draws spiral + Water and casts on a field: %s; crops %d -> %d", rw.c_str(), crops0, bare->field_0xcc);
-        CHECK(crops0 == 0 && bare->field_0xcc > 30, msg);
+        const int active = spell::ActiveCount();
+        int turns = 0;
+        for (; spell::ActiveCount() && turns < 200; ++turns) level::Process(w);
+        std::snprintf(msg, sizeof msg, "the hand draws spiral + Water and casts on a field: %s, %d spell(s) for %d turns; crops %d -> %d",
+                      rw.c_str(), active, turns, crops0, bare->field_0xcc);
+        CHECK(active == 1 && turns >= 59 && turns <= 61 && crops0 == 0 && bare->field_0xcc > 30, msg);  // 6 s at 10 turns a second
         bare->field_0xcc = 0;  // leave the rest of the test as it was
 
         // Fire (Fire.cpp, sub_6C52A0): heat a hut past its ignition point; it
@@ -252,12 +256,10 @@ int main() {
         const float t1 = fire::Temperature(hut), life1 = hut->GetLife();
         draw(1);
         draw(20);
+        // Water rains on it for 60 turns, a drop a turn within 0.3-4.5 m; a
+        // drop that lands on the hut cools it by about 21 degrees.
         miracles::Cast(w, MetresOf(hut->coords.x), MetresOf(hut->coords.z));
-        // One drop cools a hut by about 21 degrees (-4000 against capacity
-        // 2000); the spell drops every turn while it lasts. Here, 20 more.
-        const spell::Effect water = spell::EffectFor(22);
-        for (int turn = 0; turn < 20; ++turn) { spell::ApplyInArea(water, hut->coords, {hut}); level::Process(w); }
-        for (int turn = 0; turn < 50; ++turn) level::Process(w);
+        for (int turn = 0; turn < 120; ++turn) level::Process(w);
         std::snprintf(msg, sizeof msg, "a hut set alight burns (%.0f -> %.0f degrees, ignition %.0f; life %.2f -> %.2f; up to %d fires), and Water puts it out (now %.0f degrees, %d fires)",
                       t0, t1, fire::Ignition(hut), life0, life1, most, fire::Temperature(hut), fire::Count());
         CHECK(t0 >= fire::Ignition(hut) && life1 < life0 && fire::Temperature(hut) < fire::Ignition(hut), msg);

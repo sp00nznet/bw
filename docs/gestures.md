@@ -190,7 +190,26 @@ A field (`sub_4FF8D0`), unless burning, reacts like this:
 Burning objects are put out (`sub_5ECB30`), and trees grow (`sub_6DD7B0`). Neither is
 translated yet.
 
-`test_level` draws spiral + Water on an unplanted field: its crops go from 0 to 31.
+## Spells that last
+
+A spell lives on the game's spell list (+0x201C80) and is ticked each turn
+(`sub_6B7570`):
+
+- It ages by one turn's time (`sub_6B7730`) and stops past its duration. The duration
+  is the effect record's +104 times the cast's power: water 6 seconds, heal and fire
+  20.
+- Water's own tick (`sub_6BBD30`) drops once a turn. The drop lands
+  rand(R) x 0.7 + 0.3 m from the cast in a random direction, where R is 6 or 12 m. It
+  waters what is there and applies Water's effect, so its -4000 heat cools fires.
+
+`test_level` casts Water on an unplanted field. The spell rains for 61 turns and the
+field's crops go from 0 to 31. The same cast puts out a burning hut.
+
+Assumed:
+- The cast's power is 1; the spell icon's power is not modelled.
+- A turn is 100 ms (`dword_C22D78` is set at runtime).
+- The other spells still land once when cast: they deliver through their particle
+  effect, which is not built.
 
 ## In the viewer
 
@@ -210,7 +229,7 @@ Simplified:
 - Every miracle counts as known (Land 1 has no worship-site icons yet).
 - A stroke is matched when the button comes up. v1.0 matches every frame and starts
   the trail again after each match.
-- A cast is one landing, so one first drop.
+- A cast other than Water is one landing, so one first drop.
 
 Not yet: the hand's other gesture modes (power-ups, cancelling, the creature's
 gestures), the spell's particle effect, piles where no store takes the drop, and the

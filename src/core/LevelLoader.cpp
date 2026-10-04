@@ -8,6 +8,7 @@
 #include <black/BigForest.h>
 #include <black/Field.h>
 #include <black/Fire.h>
+#include <black/SpellCast.h>
 #include <black/Forest.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
@@ -378,11 +379,13 @@ void Process(World& w) {
         }
         s.obj->Process();
     }
-    // The fires (sub_6C6A30), which may spread to anything in the world.
-    if (fire::Count()) {
+    // Spells that last (sub_6B7570), then the fires (sub_6C6A30); both
+    // reach anything in the world.
+    if (spell::ActiveCount() || fire::Count()) {
         std::vector<Object*> all;
         all.reserve(w.objects.size());
         for (const Spawned& s : w.objects) if (s.obj) all.push_back(s.obj);
+        spell::ProcessActive(all);
         fire::Process(all);
     }
     ++g_game_turn;

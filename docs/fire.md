@@ -66,7 +66,8 @@ throws (`AttatchFireBallToAtom`), so it waits on the particle system. Water's ef
 is -4000, which puts fires out.
 
 `test_level` heats a hut with 40 hits of 1000. It catches at 207 degrees, burns from
-life 1.00 to 0.96 over 100 turns, and goes out under 20 turns of Water's effect.
+life 1.00 to 0.96 over 100 turns, and goes out under a Water miracle cast on it (the
+spell rains for about 60 turns; see `docs/gestures.md`).
 
 ## Not yet
 
