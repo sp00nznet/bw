@@ -10,6 +10,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Choosing miracles by gesture (`docs/gestures.md`): v1.0's selection at a worship
+  site. A spiral, then each spell's own gesture, chooses that spell; this works for
+  all 23 spells with a sequence in the data.
 - The gesture recognizer (`docs/gestures.md`): v1.0's stroke trail with corner
   detection, and turn-by-turn matching against the 81 templates in `Gestures.jty`,
   mirrored and size-banded where the template allows. `test_gesture`: 76 of 81

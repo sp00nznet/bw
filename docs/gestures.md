@@ -74,21 +74,55 @@ twice the corner, 0.589 rad.
 coarsely-sampled curves. The trail reproduces a template's corners closely: template 20
 comes back with the same six points, turns within 0.01 rad, and the same octants.
 
-## What the gestures mean
+## Choosing a miracle
 
-- **Power-up gestures.** A spell seed (`DETAIL_SPELL_SEEDS`, the table at 0xCBE310)
-  offers up to three stages: magic types at +296..+304 and their power-up gestures at
-  +308..+316 (`sub_58F820`). On Land 1's data these are gestures 1 and 2, the big
-  spirals.
-- **Magic types.** These index the MAGIC_* info sections laid end to end: 0-9
-  general, 10-11 heal, 12 teleport, 13 forest, 14-15 food, 16-18 storm, 19-20 shield,
-  21 wood, 22-23 water, 24-25 flocks, 26-41 creature spells. Each record's first field
-  is its own type, which confirms the order.
+At a worship site the hand chooses a spell by a short sequence of gestures
+(`sub_58F990` / `sub_58F9C0`, then `sub_590420` each frame):
+
+- Each spell seed (`DETAIL_SPELL_SEEDS`, the table at 0xCBE310) names up to three
+  gestures at +256, +260 and +264. The first is a spiral: 1 for miracles, 2 for
+  creature spells.
+- Drawing a spiral that one of the player's spell icons begins with starts the
+  selection. The candidates are those icons' seeds. The gestures that would advance
+  are the candidates' next gestures.
+- Each gesture drawn keeps the seeds whose next gesture it is, and only those the
+  player still has (`sub_5F9100`). A seed whose sequence ends there is chosen: game
+  command 37, `sub_523770(37, seed)`.
+- Gesture 5 cancels. The selection also ends after `DETAIL_SPELL_SYSTEM_INFO` +28
+  seconds without progress (`flt_CC1214`), or when no candidate is left.
+
+| Spell | Gestures | Spell | Gestures |
+|---|---|---|---|
+| Storm | 1, 12 | Wood | 1, 6 |
+| Nature | 1, 16 | Water | 1, 20 |
+| Fire | 1, 7 | Flying flock | 1, 15 |
+| Food | 1, 3 | Ground flock | 1, 22 |
+| Shield | 1, 9 | Teleport | 1, 21 |
+| Physical shield | 1, 11 | Beam explosion | 1, 8 |
+| Lightning bolt | 1, 10 | Creature spells | 2, then 7-19 |
+| Heal | 1, 13 | | |
+
+Seven creature spells (fat, thin, hungry, frightened, tired, ill, thirsty) have no
+second gesture in this data, so they cannot be chosen this way.
+
+`test_gesture` draws each spell's sequence from the templates and gets that spell for
+all 23 that have one.
+
+## Other gestures in the data
+
+- **Power-up gestures.** A seed's three stages are magic types at +296..+304, with
+  their power-up gestures at +308..+316 (`sub_58F820`). On this data those are 1 and
+  2.
+- **Magic types** index the MAGIC_* info sections laid end to end: 0-9 general, 10-11
+  heal, 12 teleport, 13 forest, 14-15 food, 16-18 storm, 19-20 shield, 21 wood, 22-23
+  water, 24-25 flocks, 26-41 creature spells. Each record's first field is its own
+  type, which confirms the order. The info class makes its spell at vslot 13: for
+  example `GMagicResourceInfo` builds a SpellResource (`sub_5B8540`), and heal and
+  water work the same way (`sub_5B94B0`, `sub_5B8590`).
 - **The hand's own gestures** are fields of `DETAIL_SPELL_SYSTEM_INFO`:
   +16 = 14, +20 = 1, +24 = 2, +48 = 15.
-- **Spell icons.** A seed's +268 is the gesture asked for over a spell icon
-  (`sub_58FC40` -> `sub_6C0500`).
+- **Over a spell icon**, the hand asks for the gesture at seed +268 (`sub_58FC40`).
 
-Not yet: the hand side. That covers capturing the mouse into the trail, choosing which
-gestures to ask for from what the hand holds or is over (`sub_58FC40` and its
-helpers), and casting the spell that results.
+Not yet: feeding the mouse into the trail in the viewer, the hand's other gesture
+modes, and casting. Casting means the chosen seed in the hand, then the spell made by
+its magic info, then the spell's effect.

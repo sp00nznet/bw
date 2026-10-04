@@ -3,6 +3,7 @@
 // Translated from the decompilation (sub_545110 .. sub_5474D0), with the
 // comparisons read from the disassembly where Hex-Rays lost the x87 flags.
 #include <black/Gesture.h>
+#include <black/InfoDat.h>
 
 #include <cmath>
 #include <cstdio>
@@ -355,6 +356,39 @@ Data Trail::ToData(float screen_ratio) const {  // sub_545360
         if (i >= count - 1 || (At(i).flag & 0xB)) d.pts[d.count++] = At(i).pt;
     d.Finish(screen_ratio);
     return d;
+}
+
+// --- choosing a miracle --------------------------------------------------------
+
+float TimeoutSeconds() {
+    float t = 0.0f;
+    if (const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_SPELL_SYSTEM_INFO, 0))) std::memcpy(&t, e + 28, 4);
+    return t;
+}
+
+bool SpellSelect::Begin(uint8_t g, const bool known[30]) {  // sub_58F9C0
+    for (bool& e : expect) e = false;
+    for (int s = 0; s < 30; ++s) {
+        cand[s] = false;
+        seq[s][0] = seq[s][1] = seq[s][2] = 0;
+    }
+    bool any = false;
+    for (int s = 0; s < 30; ++s) {
+        const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_SPELL_SEEDS, static_cast<uint32_t>(s)));
+        if (!e || !known[s]) continue;
+        int32_t q[3];
+        std::memcpy(q, e + 256, 12);
+        if (q[0] == 0 || q[0] != g) continue;
+        std::memcpy(seq[s], q, 12);
+        cand[s] = true;
+        if (q[1] >= 0 && q[1] < 24) expect[q[1]] = true;
+        any = true;
+    }
+    stage = 1;
+    active = any;
+    timer = 0.0f;
+    first = g;
+    return any;
 }
 
 }  // namespace gesture

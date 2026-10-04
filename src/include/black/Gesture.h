@@ -86,6 +86,35 @@ struct Trail {
     void TurnAt(int p);                 // sub_5473C0
 };
 
+// Choosing a miracle by gestures (the hand at a worship site; v1.0
+// sub_58F990 / sub_58F9C0 to begin, sub_590420 each frame after). Every
+// spell seed has a sequence of up to three gestures (DETAIL_SPELL_SEEDS
+// +256, +260, +264): spiral 1 (2 for creature spells) to open, then the
+// spell's own. Each gesture drawn narrows the seeds still possible; the
+// last one completes selects it.
+float TimeoutSeconds();  // DETAIL_SPELL_SYSTEM_INFO +28 (flt_CC1214)
+
+struct SpellSelect {
+    bool     active = false;   // hand +868
+    uint32_t stage = 0;        // +864
+    float    timer = 0.0f;     // +872, seconds
+    uint8_t  first = 0;        // +876
+    int32_t  seq[30][3] = {};  // +448: each seed's sequence
+    bool     cand[30] = {};    // +808: seeds still possible
+    bool     expect[24] = {};  // +838: gestures that would advance
+
+    // sub_58F9C0: begin with gesture g; `known[i]` says the player has seed i
+    // (in v1.0: an icon at one of its worship sites, sub_7080A0). False when
+    // no seed begins with g.
+    bool Begin(uint8_t g, const bool known[30]);
+    // sub_590420: one frame. `matches(id)` asks the recognizer whether the
+    // stroke so far is gesture id. Returns the seed chosen, or -1; *done is
+    // set when the selection ended (chosen, cancelled with gesture 5, timed
+    // out after DETAIL_SPELL_SYSTEM_INFO +28 seconds, or nothing left).
+    template <class Matches>
+    int Step(float dt, Matches matches, const bool known[30], bool* done);
+};
+
 // The recognizer's angles (v1.0 initialisers at 0x545C50 / 0x5467A0).
 constexpr float kPi = 3.1415927f;
 constexpr float kCornerTurn = 0.39269909f * 3.0f * 0.25f;  // flt_C27628: a turn this sharp is a corner
@@ -95,5 +124,41 @@ constexpr float kMaxDrift = kCornerTurn * 2.0f;            // flt_C275E8: the mo
 float Heading(const Point& a, const Point& b);  // sub_746D50: atan2 in [0, 2pi)
 float AngleDiff(float a, float b);              // sub_544FD0: b - a in (-pi, pi]
 int   Octant(float heading);                    // sub_544F80
+
+template <class Matches>
+int SpellSelect::Step(float dt, Matches matches, const bool known[30], bool* done) {
+    *done = false;
+    timer += dt;
+    if (timer > TimeoutSeconds()) active = false;
+    if (matches(5)) { active = false; *done = true; return -1; }  // cancel
+    bool any = false;
+    for (int g = 1; g < 24; ++g) {
+        if (!expect[g]) continue;
+        any = true;
+        if (!matches(static_cast<uint8_t>(g))) continue;
+        bool advanced = false;
+        for (int s = 0; s < 30; ++s) {
+            if (!cand[s]) continue;
+            if (stage < 3 && seq[s][stage] == g && known[s]) {
+                if (!advanced) { advanced = true; timer = 0.0f; }
+                if (stage == 2 || seq[s][stage + 1] == 0) { active = false; *done = true; return s; }
+            } else {
+                cand[s] = false;
+            }
+        }
+        ++stage;
+        for (bool& e : expect) e = false;
+        bool left = false;
+        for (int s = 0; s < 30; ++s) {
+            if (!cand[s]) continue;
+            if (known[s] && stage < 3) { expect[seq[s][stage]] = true; left = true; }
+            else cand[s] = false;
+        }
+        if (!left) { active = false; *done = true; }
+        return -1;
+    }
+    if (!any) { active = false; *done = true; }
+    return -1;
+}
 
 }  // namespace gesture
