@@ -4,6 +4,10 @@ project(BlackAndWhite VERSION 1.0.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Static CRT: the exes run on machines without the VC++ redistributable
+# (netlab's test VMs), instead of dying with STATUS_DLL_NOT_FOUND.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 # Target: 32-bit x86 (matching original MSVC 6 binary)
 if(MSVC)
     # Use __fastcall for virtual methods (matching original ABI)

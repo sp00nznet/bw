@@ -147,7 +147,8 @@ int main() {
         for (uint16_t k = 0; k < c.count; ++k) {
             const Field& f = kFields[c.first + k];
             if (f.op == OP_CHECKSUM) continue;
-            if (f.n == 0 || f.off > 0x20000) sane = false;
+            // GFootpathFinder (0x640C8) is the largest savable object.
+            if (f.n == 0 || f.off >= 0x640C8) sane = false;
         }
     }
     CHECK(sane, "every field has a non-zero size and a plausible offset");

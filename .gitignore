@@ -89,3 +89,6 @@ work/psys_rtti_classes.txt
 work/patch_log.txt
 work/sample*.mp2
 work/sample*.wav
+
+# netlab build output (recomp-netlab farm builds land here)
+build-farm*/

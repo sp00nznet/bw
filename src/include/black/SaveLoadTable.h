@@ -43,7 +43,7 @@ enum Hook : uint8_t {
 };
 
 struct Field {
-    uint16_t off;  // byte offset into the object
+    uint32_t off;  // byte offset into the object (GFootpathFinder reaches 409,796)
     uint16_t n;    // byte count, or element count for the array ops
     uint8_t  op;   // FieldOp
 };

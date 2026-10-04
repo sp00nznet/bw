@@ -11,7 +11,8 @@ set /a PASS=0, FAIL=0
 rem test_loader / test_mp2 / test_g3d are inspection tools that take a file, not tests.
 for %%t in ("%DIR%\test_*.exe") do if /i not "%%~nt"=="test_loader" if /i not "%%~nt"=="test_mp2" if /i not "%%~nt"=="test_g3d" (
   "%%t" > "%TEMP%\bw_test.log" 2>&1
-  if errorlevel 1 (
+  rem Not "if errorlevel 1": a crash or a missing DLL exits negative (0xC0000135).
+  if !errorlevel! neq 0 (
     set /a FAIL+=1
     echo FAIL %%~nt
     type "%TEMP%\bw_test.log"
