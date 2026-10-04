@@ -61,8 +61,6 @@ static_assert(sizeof(LHLinkedList_HomelessVillager) == 0x8, "size mismatch");
 struct LHListHead_TownSpellIcon { void* head; uint32_t count; };
 static_assert(sizeof(LHListHead_TownSpellIcon) == 0x8, "size mismatch");
 
-struct LHListHead_BuildingSiteList { void* head; uint32_t count; };
-static_assert(sizeof(LHListHead_BuildingSiteList) == 0x8, "size mismatch");
 
 struct LHLinkedList_Playthings { void* first; void* last; };
 static_assert(sizeof(LHLinkedList_Playthings) == 0x8, "size mismatch");
@@ -154,7 +152,7 @@ struct Town : public Container {
     void Birthday();                                                                // 0x0073b5d0
     BuildingSite* AddBuildingSite(PlannedMultiMapFixed* planned);                   // 0x0073b860
     BuildingSite* AddBuildingSiteNoFixedCheck(PlannedMultiMapFixed* planned);       // 0x0073b8a0
-    void AddBuildingSite(BuildingSite* site);                                       // 0x0073b910
+    void AddBuildingSite(BuildingSite* site);                                       // v1.0 sub_6CEAF0: onto the site list (+0x788)
     uint32_t RemoveBuildingSite(MultiMapFixed* structure);                           // 0x0073ba20
     void SetBeliefInPlayer(GPlayer* player, float value);                           // 0x0073ba70
     void SetWorshipPercentage(float percentage);                                    // 0x0073c060
@@ -163,7 +161,7 @@ struct Town : public Container {
     int GetWorshipersNeeded(int param1, int param2, int* result);                   // 0x0073c860
     bool32_t IsBuildingSiteValid(BuildingSite* site);                               // 0x0073cf00
     bool32_t GetBestBuildingSite(const MapCoords& pos, int param);                  // 0x0073cf60
-    void AddPlanned(PlannedMultiMapFixed* planned);                                 // 0x0073d080
+    void AddPlanned(PlannedMultiMapFixed* planned);                                 // v1.0 sub_6CFFB0: tail of the planned list (+0x9A0)
     void RemovePlanned(PlannedMultiMapFixed* planned);                              // 0x0073d0d0
     void AllVillagersCheckNeedNewAbode();                                            // 0x0073d150
     TownSpellIcon* GetNextSpellIcon(TownSpellIcon* icon);                           // 0x0073d360
@@ -188,6 +186,11 @@ struct Town : public Container {
 
     // v1.0 sub_6CD070: the state the constructor leaves on a zeroed Town.
     // See docs/constructors.md for what is translated and what is not yet.
+    // v1.0 sub_6CD9F0(info, 0): how much the town wants the planned building.
+    float PlanScore(const void* info, uint32_t a3);
+    // v1.0 sub_6CE790 -> sub_6CD990 / sub_6CEA40: build the best planned
+    // building whose type has a bit of `mask`; its site, or null.
+    BuildingSite* PlanBuilding(uint32_t mask);
     // v1.0 sub_6D1750: the forests within TownInfo +356 of the store (or the
     // town) that hold wood, from the global list.
     void CollectForests(const std::vector<Forest*>& all);
@@ -245,7 +248,7 @@ struct Town : public Container {
     LHListHead_TownSpellIcon       spell_icon_list;         // 0x770
     LHNodeList                     field_list;               // 0x778 (Field ctor sub_4FEB10)
     LHNodeList                     fish_farms;               // 0x780 (FishFarm ctor sub_502970)
-    LHListHead_BuildingSiteList    building_site_list;       // 0x788
+    LHNodeList                     building_site_list;       // 0x788 — sub_6CEAF0
     GBelief                        belief;                   // 0x790  (0x1D0 bytes)
     uint32_t                       field_0x968;             // 0x960
     uint32_t                       field_0x96c;             // 0x964

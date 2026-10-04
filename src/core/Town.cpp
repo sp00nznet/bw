@@ -7,6 +7,9 @@
 // resources, and player interaction.
 
 #include <black/Town.h>
+#include <black/BuildingSite.h>
+#include <black/EntityFactory.h>
+#include <black/PlannedAbode.h>
 #include <black/BigForest.h>
 #include <black/Forest.h>
 #include <black/Abode.h>
@@ -375,10 +378,6 @@ BuildingSite* Town::AddBuildingSiteNoFixedCheck(PlannedMultiMapFixed* /*planned*
     return nullptr;
 }
 
-void Town::AddBuildingSite(BuildingSite* /*site*/) {
-    // Original at 0x0073b910 — complex
-}
-
 uint32_t Town::RemoveBuildingSite(MultiMapFixed* /*structure*/) {
     // Original at 0x0073ba20 — complex
     return 0;
@@ -421,10 +420,6 @@ bool32_t Town::IsBuildingSiteValid(BuildingSite* /*site*/) {
 bool32_t Town::GetBestBuildingSite(const MapCoords& /*pos*/, int /*param*/) {
     // Original at 0x0073cf60 — complex
     return 0;
-}
-
-void Town::AddPlanned(PlannedMultiMapFixed* /*planned*/) {
-    // Original at 0x0073d080 — complex
 }
 
 void Town::RemovePlanned(PlannedMultiMapFixed* /*planned*/) {
@@ -736,4 +731,113 @@ Forest* Town::NearestForest(const MapCoords& pos) {
         else if (d < best) { best = d; found = f; }
     }
     return found ? found : flagged;
+}
+
+void Town::AddPlanned(PlannedMultiMapFixed* p) {  // sub_6CFFB0
+    // ponytail: TownStats' planned count (sub_6DB100) is not kept.
+    p->next = nullptr;
+    auto** tail = reinterpret_cast<PlannedMultiMapFixed**>(&planned_list.head);
+    while (*tail) tail = &(*tail)->next;
+    *tail = p;
+    ++planned_list.count;
+}
+
+namespace {
+uint32_t InfoU32(const void* info, int off) { uint32_t x = 0; if (info) std::memcpy(&x, static_cast<const char*>(info) + off, 4); return x; }
+float InfoF32(const void* info, int off) { float x = 0; if (info) std::memcpy(&x, static_cast<const char*>(info) + off, 4); return x; }
+}  // namespace
+
+float Town::PlanScore(const void* info, uint32_t a3) {
+    // sub_6CD9F0, read from the disassembly. The type is abode info +288
+    // (GAbodeInfo vslot 16); the base want is +276.
+    // ponytail: only the abode type (2) and types without a case of their
+    // own are scored; the special cases (20, 36, 68, 132, 256 wonder, 516,
+    // 1028 town centre, 4100, 8196) score 0 until translated, and a3 (the
+    // turn-based decay) is not used.
+    const int32_t type = static_cast<int32_t>(InfoU32(info, 288));
+    float base = InfoF32(info, 276);
+    // Sites already building the same type share the want (+0x788).
+    uint32_t building_same = 0;
+    for (LHNode* n = building_site_list.head; n; n = n->next) {
+        auto* site = static_cast<BuildingSite*>(n->obj);
+        if (site->root_building && InfoU32(site->root_building->info, 288) == static_cast<uint32_t>(type)) ++building_same;
+    }
+    if (base == 0.0f) return 0.0f;
+    float r = base;
+    switch (type) {
+    case 20: case 36: case 68: case 132: case 256: case 516: case 1028: case 4100: case 8196: return 0.0f;
+    default: break;
+    }
+    if (type == 2) {
+        // Spare room for adults (stats +0x4C) less the homeless (+0x764),
+        // against a tenth of the town plus one.
+        const int32_t spare = static_cast<int32_t>(stats.field_0x4c) - static_cast<int32_t>(reinterpret_cast<const uint32_t&>(homeless_list.last));
+        const int32_t need = static_cast<int32_t>(static_cast<uint32_t>(stats.num_adults + stats.num_children) / 10u + 1u);
+        if (spare > need && !a3) {
+            r = 0.0f;
+        } else if (spare < 0) {
+            float x = base + static_cast<float>(spare) / static_cast<float>(need) * -1.0f;
+            if (x > 0.8f) x = 0.8f;
+            const float over = -10.0f > static_cast<float>(spare) ? -10.0f : static_cast<float>(spare);
+            const uint32_t n = static_cast<uint32_t>(static_cast<int>(over * -1.0f));
+            const uint32_t room = InfoU32(info, 0x174);  // maxAdults
+            const float f = n > room ? static_cast<float>(room) / static_cast<float>(n) * 0.2f
+                                     : static_cast<float>(n) / static_cast<float>(room) * 0.2f + 0.2f;
+            r = x * (f + 0.6f);
+        }
+        // The town's count of this abode (stats byte table +0x108, by +292).
+        const uint32_t number = InfoU32(info, 292);
+        const uint32_t have = number < 16 ? reinterpret_cast<const uint8_t*>(&stats)[0x108 + number] : 0;
+        float div = static_cast<float>(have + 1);
+        if (div < 10.0f) div = 10.0f;
+        r = r - r / div * static_cast<float>(have);
+    }
+    if (building_same) r /= static_cast<float>(building_same);
+    return r;
+}
+
+void Town::AddBuildingSite(BuildingSite* site) {  // sub_6CEAF0
+    // ponytail: TownStats' site counts (sub_6DB140) are not kept.
+    if (!site || building_site_list.Has(site)) return;
+    building_site_list.Add(site);
+    field_0x5e8 = 1;
+    field_0x5ec = 0;
+}
+
+BuildingSite* Town::PlanBuilding(uint32_t mask) {
+    // sub_6CD990: the planned building of a masked type the town wants most.
+    PlannedMultiMapFixed* best = nullptr;
+    float best_score = 0.0f;
+    for (PlannedMultiMapFixed* p = static_cast<PlannedMultiMapFixed*>(planned_list.head); p; p = p->next) {
+        if (!(InfoU32(p->info, 288) & mask)) continue;  // vslot 324 -> info +288
+        const float s = PlanScore(p->info, 0);
+        if (s > best_score) { best_score = s; best = p; }
+    }
+    if (!best) return nullptr;
+    // sub_6CEA40: the building (vslot 320 -> sub_403E80 -> sub_401BA0: an
+    // abode at its planned place, nothing built yet), the plan gone, a site.
+    // ponytail: the land check (sub_5BFD30), PostCreatePlanned (vslot 322)
+    // and the +0x30 flag are not translated; new buildings are not drawn by
+    // the viewer until it learns of them.
+    const char* e0 = static_cast<const char*>(infodat::Element(infodat::DETAIL_ABODE_INFO, 0));
+    EntityCreateParams params;
+    params.world_x = MetresOf(best->coords.x);
+    params.world_z = MetresOf(best->coords.z);
+    params.angle = best->field_0x28;
+    params.scale = best->scale;
+    params.mesh_id = -1;
+    params.type_enum = static_cast<uint32_t>((reinterpret_cast<const char*>(best->info) - e0) / 456);
+    params.type_name = "";
+    Object* o = EntityFactory::CreateEntity(ENTITY_CAT_ABODE, params);
+    Abode* abode = o ? o->CastAbode() : nullptr;
+    if (!abode) return nullptr;
+    abode->percent_built = 0.0f;
+    abode->JoinTown(this);
+    auto** link = reinterpret_cast<PlannedMultiMapFixed**>(&planned_list.head);
+    while (*link && *link != best) link = &(*link)->next;
+    if (*link) { *link = best->next; --planned_list.count; }
+    delete best;
+    abode->CreateBuildingSite();  // vslot 309
+    AddBuildingSite(abode->building_site);
+    return abode->building_site;
 }

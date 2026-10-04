@@ -91,3 +91,35 @@ Abodes 0.027. For_Children is 0.5: there is no working creche, which halves it.
 - the +32/+48 have/want counts for Abodes, Civic and Worship: Civic's are read raw, the
   others are not translated
 - the advisor's every-50-turns commentary
+
+## Planned buildings and the planner
+
+`CREATE_PLANNED_ABODE` (land-script case 8) makes a PlannedAbode, a 76-byte ghost
+holding the abode record, place, angle and scale. It goes at the tail of the town's
+planned list (+0x9A0, `sub_6CFFB0`). Land 1 plans a Norse wonder for the village, and
+three huts, a shack and a wonder for town 4.
+
+The Abodes desire's handler (`sub_6E8290`) first tries to join a building site. When it
+can't, and once a turn per town (+0x5E4, cleared by `Town::Process`), it asks the
+planner for an abode (`sub_6CE790(2)`):
+
+1. The planner (`sub_6CD990`) takes the planned building, of a type with bit 2, that
+   the town wants most (`sub_6CD9F0`, read from the disassembly). For an abode (type 2):
+   - spare = room for adults (TownStats +0x4C) minus the homeless (+0x764);
+     need = a tenth of the town, plus one.
+   - Spare room above need: no want. Spare room between 0 and need: the base want
+     (info +276).
+   - More homeless than room: the base plus the shortfall over need (at most 0.8),
+     times 0.6 + a term for how many homeless one hut would take.
+   - Then less for each one the town already has (TownStats byte table +0x108), and
+     shared among sites already building the same type.
+2. The chosen plan becomes an abode at its place with nothing built (`sub_6CEA40` ->
+   `sub_403E80` -> `sub_401BA0`). The abode joins the town, and the plan is removed.
+3. The abode gets its StandardBuildingSite (vslot 309, `sub_505740` / `sub_433FE0`),
+   which goes on the town's site list (+0x788, `sub_6CEAF0`).
+
+Land 1's towns have room to spare, so nothing is started at first, as in v1.0.
+`test_level` takes town 4's spare room away and the planner starts a hut.
+
+Not yet: villagers building (joining a site, fetching wood, states 39-41); the other
+types' scoring cases; the land check before building; TownStats' planned/site counts.

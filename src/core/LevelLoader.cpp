@@ -12,8 +12,10 @@
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
 #include <black/Living.h>
+#include <black/PlannedAbode.h>
 #include <black/MultiMapFixed.h>
 #include <black/Object.h>
+#include <black/Terrain.h>
 #include <black/Town.h>
 #include <black/TownCentre.h>
 #include <black/Villager.h>
@@ -172,6 +174,29 @@ struct Loader {
         return true;
     }
 
+    // case 8: (town, pos, abode, angle x 1000, scale x 1000, ...). A plan the
+    // town may build later: sub_403D60 -> PlannedAbode (sub_403B80 /
+    // sub_5F6940) at the tail of the town's planned list (sub_6CFFB0).
+    // ponytail: a planned town centre (+288 == 0x404, sub_6D65A0) is kept as
+    // a plain planned abode.
+    bool CreatePlannedAbode(const Args& a) {
+        float x, z;
+        if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
+        Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
+        const int i = infodat::FindAbode(a[2].s.c_str());
+        if (!town || i < 0) return false;
+        auto* p = new PlannedAbode();
+        p->coords = MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z));
+        p->info = static_cast<GObjectInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_ABODE_INFO, static_cast<uint32_t>(i))));
+        p->field_0x28 = a[3].n * 0.001f;
+        p->scale = a[4].n * 0.001f;
+        p->creation_turn = static_cast<int>(g_game_turn);
+        p->town = town;
+        town->AddPlanned(p);
+        w.planned.push_back(p);
+        return true;
+    }
+
     // case 18: the villager, then its home is the abode whose cell holds the
     // home position (the original walks every town's abode list comparing
     // the integer parts of x and z), unless that abode is already full.
@@ -260,6 +285,7 @@ struct Loader {
         if (cmd == "SET_TOWN_UNINHABITABLE") return SetTownUninhabitable(a);
         if (cmd == "CREATE_ABODE") return CreateAbode(cmd, a, false);
         if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
+        if (cmd == "CREATE_PLANNED_ABODE") return CreatePlannedAbode(a);
         if (cmd == "CREATE_VILLAGER_POS") return CreateVillagerPos(a);
         if (cmd == "CREATE_NEW_TOWN_FIELD")
             return CreateTownStructure(ENTITY_CAT_FIELD, cmd, a, a.size() > 3 ? a[3].f : 0.0f);

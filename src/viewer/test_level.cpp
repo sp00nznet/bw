@@ -3,8 +3,10 @@
 // simulation turns. Needs game_data/ (Land1.txt, info.dat); skips without it.
 #include <black/Abode.h>
 #include <black/BigForest.h>
+#include <black/BuildingSite.h>
 #include <black/Field.h>
 #include <black/Forest.h>
+#include <black/PlannedMultiMapFixed.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LevelLoader.h>
@@ -97,6 +99,40 @@ int main() {
     CHECK(g_cell_flags_func == nullptr || watered > 0, msg);
     CHECK(indexed == total, "every abode's index is below its town's count");
     CHECK(radii_ok, "towns with abodes have a radius; the player village's is 50-300 m (town 1's 562 m is real: the script puts one of its huts 1.1 km away)");
+
+    // CREATE_PLANNED_ABODE x6: plans on their towns' lists (sub_6CFFB0),
+    // scored by the planner (sub_6CD9F0).
+    {
+        uint32_t planned = 0;
+        for (Town* t : w.towns) {
+            planned += t->planned_list.count;
+            for (auto* p = static_cast<PlannedMultiMapFixed*>(t->planned_list.head); p; p = p->next)
+                printf("      town %u plans %s: want %.3f (base %.3f); room %u, homeless %u, people %d\n", t->field_0x5b4,
+                       infodat::DebugName(infodat::DETAIL_ABODE_INFO, static_cast<uint32_t>((reinterpret_cast<const char*>(p->info) -
+                           static_cast<const char*>(infodat::Element(infodat::DETAIL_ABODE_INFO, 0))) / 456)),
+                       t->PlanScore(p->info, 0), *reinterpret_cast<const float*>(reinterpret_cast<const char*>(p->info) + 276),
+                       t->stats.field_0x4c, reinterpret_cast<const uint32_t&>(t->homeless_list.last),
+                       t->stats.num_adults + t->stats.num_children);
+        }
+        CHECK(planned == 6, "six planned abodes on their towns' lists");
+
+        // The planner (sub_6CE790(2)) starts nothing while there is room to
+        // spare. With town 4's spare room taken away it starts its best-wanted
+        // hut: an abode with nothing built, on the town's abode list, with a
+        // site on the town's site list.
+        Town* t4 = level::FindTown(w, 4);
+        CHECK(t4->PlanBuilding(2) == nullptr, "town 4 starts nothing while it has room (sub_6CD9F0 case 2)");
+        const uint32_t room = t4->stats.field_0x4c, plans = t4->planned_list.count, abodes4 = t4->abode_list.count;
+        t4->stats.field_0x4c = 0;
+        BuildingSite* site = t4->PlanBuilding(2);
+        t4->stats.field_0x4c = room;
+        Abode* hut = site ? site->root_building->CastAbode() : nullptr;
+        std::snprintf(msg, sizeof msg, "without spare room town 4 starts a hut: site %s, %.0f%% built, abodes %u -> %u, plans %u -> %u, sites %u",
+                      site ? "yes" : "no", hut ? hut->percent_built * 100.0f : -1.0f, abodes4, t4->abode_list.count, plans,
+                      t4->planned_list.count, t4->building_site_list.count);
+        CHECK(hut && hut->percent_built == 0.0f && hut->GetTown() == t4 && t4->abode_list.count == abodes4 + 1 &&
+              t4->planned_list.count == plans - 1 && t4->building_site_list.Has(site) && hut->building_site == site, msg);
+    }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);
 

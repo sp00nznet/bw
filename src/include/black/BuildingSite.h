@@ -10,6 +10,7 @@
 // management, and position calculation methods.
 
 #include "GameThing.h"
+#include "LHNodeList.h"
 
 // Forward declarations
 struct MultiMapFixed;
@@ -20,11 +21,6 @@ struct Object;
 struct Villager;
 
 // LHLinkedList<Villager> — 8-byte linked list head
-struct LHLinkedList_Villager {
-    Villager* first;  // 0x00
-    Villager* last;   // 0x04
-};
-static_assert(sizeof(LHLinkedList_Villager) == 0x8, "LHLinkedList_Villager size mismatch");
 
 struct BuildingSite : public GameThing {
     // === New virtual methods (extending vtable at 0xFC — 12 entries) ===
@@ -66,12 +62,15 @@ struct BuildingSite : public GameThing {
     void BuildBy(float amount);                                             // 0x0043d080
 
     // === Fields ===
+    // v1.0 sub_433FE0: the site of a building under construction (or repair).
+    void Construct(MultiMapFixed* building);
     MultiMapFixed*           root_building;          // 0x14
-    LHLinkedList_Villager    building_worker_list;   // 0x18
+    LHNodeList               building_worker_list;   // 0x18 — its builders
     uint8_t                  field_0x20[0x14];       // 0x20
-    LHPoint                  building_positions[127]; // 0x34
-    uint8_t                  field_0x628[0x14];      // 0x628
-    uint8_t                  field_0x63c[0x4];       // 0x63C
-    float                    life;                   // 0x640
+    LHPoint                  building_positions[128]; // 0x34 — sub_435460, around the building
+    uint32_t                 wood_used;              // 0x634 — v1.0 this[397]
+    uint32_t                 field_0x638;            // 0x638 — v1.0 this[398]: building +0x58 bit 2
+    float                    field_0x63c;            // 0x63C — v1.0 this[399]
+    float                    life;                   // 0x640 — v1.0 this[400]
 };
 static_assert(sizeof(BuildingSite) == 0x644, "BuildingSite size mismatch");

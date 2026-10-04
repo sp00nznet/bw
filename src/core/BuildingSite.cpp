@@ -57,6 +57,18 @@ uint32_t BuildingSite::GetSaveType() { return 0; }
 
 // === Non-virtual methods ===
 
+void BuildingSite::Construct(MultiMapFixed* building) {
+    // sub_433FE0. ponytail: not on the game's global site list (+2104680),
+    // and the 128 build positions around the building's mesh (sub_435460)
+    // are not computed.
+    root_building = building;
+    field_0x638 = (building->field_0x58 >> 2) & 1;
+    building->building_site = this;  // sub_5046F0: building +0x74
+    life = building->GetLife();
+    // A built building that has lost life is being repaired.
+    if (building->IsBuilt() && building->GetLife() < 1.0f) life = building->GetLife() * 1.1f - 0.1f;
+}
+
 // 0x0043bc70 — returns the building this site is constructing
 MultiMapFixed* BuildingSite::GetBuilding() {
     return root_building;

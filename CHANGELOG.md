@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- Planned buildings and the town planner (`docs/town-economy.md`): `CREATE_PLANNED_ABODE`
+  plans go on their towns' lists; the Abodes desire has the town start the abode it
+  wants most, which becomes an unbuilt abode with a building site.
 - The wood job (`docs/villager-states.md`): big forests from the land script, each
   town's forest list, and villagers taking wood from the nearest forest to the store.
 - Farming (`docs/villager-states.md`): fields belong to their town's field list, plant

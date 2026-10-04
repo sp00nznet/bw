@@ -14,6 +14,7 @@ struct Object;
 struct Town;
 
 struct Forest;
+struct PlannedAbode;
 
 namespace level {
 
@@ -28,7 +29,8 @@ struct Spawned {
 struct World {
     std::vector<Town*>   towns;
     std::vector<Spawned> objects;
-    std::vector<Forest*> forests;              // the game's forest list (game +0x201C70)
+    std::vector<Forest*> forests;
+    std::vector<PlannedAbode*> planned;        // CREATE_PLANNED_ABODE (the towns own them)              // the game's forest list (game +0x201C70)
     std::string landscape;                   // LOAD_LANDSCAPE path, as written
     float camera_x = 0, camera_z = 0;        // START_CAMERA_POS
     int   land_number = 0;

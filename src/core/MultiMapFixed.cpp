@@ -146,13 +146,12 @@ bool32_t MultiMapFixed::IsWonder() {
 }
 
 bool32_t MultiMapFixed::CreateBuildingSite() {
-    // Original at 0x00505740 — translated from Ghidra decompilation
-    // Allocates a StandardBuildingSite (0x648 bytes), attaches it to this building
-    StandardBuildingSite* site = static_cast<StandardBuildingSite*>(
-        calloc(1, sizeof(StandardBuildingSite)));
-    if (!site) return 0;
-    // Initialize the building site with reference to this building
-    building_site = site;
+    // v1.0 sub_505740: a StandardBuildingSite (0x648 bytes) for this
+    // building; it becomes building_site (+0x74). The original returns the
+    // site; callers here read building_site.
+    StandardBuildingSite* site = new StandardBuildingSite();
+    site->wood_pile = nullptr;
+    site->Construct(this);
     return 1;
 }
 

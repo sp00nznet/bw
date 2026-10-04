@@ -584,6 +584,27 @@ bool WoodJob(Villager& v) {
     return true;
 }
 
+// sub_6E77D0: join one of the town's building sites.
+// ponytail: building work (sub_6CFE90 -> sub_6E7940, states 39-41) is the
+// next step; until then nobody joins a site.
+bool JoinBuildingSite(Villager& v) {
+    Town* t = v.GetTown();
+    if (!t || !t->building_site_list.count) return false;  // sub_6D0F70
+    return false;
+}
+
+// sub_6E8290: the Abodes desire's handler. Join a site; failing that, once a
+// turn per town (+0x5E4, cleared by Town::Process), have the town start the
+// planned abode it wants most (sub_6CE790(2)) and join that.
+bool AbodesJob(Villager& v) {
+    if (JoinBuildingSite(v)) return true;
+    Town* t = v.GetTown();
+    if (!t || t->field_0x5e4) return false;
+    t->field_0x5e4 = 1;
+    if (!t->PlanBuilding(2)) return false;
+    return JoinBuildingSite(v);
+}
+
 // sub_6EA700: standing in the farm's cell.
 bool AtFarm(const Villager& v, const Object* farm) {
     return (v.coords.x >> 16) == (farm->coords.x >> 16) && (v.coords.z >> 16) == (farm->coords.z >> 16);
@@ -815,6 +836,7 @@ void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 
 bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
 bool VillagerFoodHandler(Villager* v) { return vs::FoodJob(*v); }
 bool VillagerWoodHandler(Villager* v) { return vs::WoodJob(*v); }
+bool VillagerAbodesHandler(Villager* v) { return vs::AbodesJob(*v); }
 
 // vslot 392 (sub_6E01E0): the state, then the upkeep (sub_6E05D0) unless
 // +0xE0 bit 11 asks for a timed transition instead. ponytail: the second
