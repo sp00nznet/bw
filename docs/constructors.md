@@ -136,7 +136,8 @@ and its end at 0xE0.
 - **Starting values:** food = info +704 + rand(0.6), capped at 1.
   `turns_until_next_state_change` = rand(500) + 1.
 - **Starting state:** a villager on a deep-water cell starts DROWNING (16); otherwise
-  DECIDE_WHAT_TO_DO (85). The test is cell flag 0x10 (`sub_5BFB00`). That also
+  CREATED (85), the state a new villager decides from. (An earlier version of this page
+  called 85 DECIDE_WHAT_TO_DO; in v1.0 that state is 163.) The test is cell flag 0x10 (`sub_5BFB00`). That also
   explains the drinking-water test: 0x20 means water, 0x10 means deep.
 - **Sex** is info +504 (0 male). That replaces a guessed bit in `IsMaleVillager`.
 

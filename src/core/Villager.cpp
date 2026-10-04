@@ -581,11 +581,11 @@ void Villager::Construct(uint32_t age, bool flag) {
     }
     turns_until_next_state_change = static_cast<int16_t>(RandInt(500) + 1);
     // sub_5BFB00: on a deep-water cell (flag 0x10, or off the map) it starts
-    // drowning; otherwise deciding what to do.
+    // drowning; otherwise it is Created, the state a new villager decides from.
     const uint32_t cx = static_cast<uint32_t>(coords.x) >> 16, cz = static_cast<uint32_t>(coords.z) >> 16;
     const int32_t flags = g_cell_flags_func ? g_cell_flags_func(cx, cz) : 0;
     const bool deep = flags < 0 || (flags & 0x10);
-    action.top_state = deep ? 16 : 85;  // VILLAGER_STATE_DROWNING : VILLAGER_STATE_DECIDE_WHAT_TO_DO
+    action.top_state = deep ? VILLAGER_STATE_DROWNING : VILLAGER_STATE_CREATED;  // 16 : 85
     action.final_state = action.top_state;
     status = static_cast<uint16_t>((status & ~0x40u) | ((flag ? 1u : 0u) << 6));  // sub_6E5990
 }
