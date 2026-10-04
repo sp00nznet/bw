@@ -6,6 +6,11 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- The v1.0 constructors for towns, abodes and villagers, and v1.0 housing: towns get
+  identity, belief caps and desire weights; abodes join their town with an index and
+  look for drinking water (the original's spiral cell search); villagers get age,
+  scale, food, life and a starting state, and are housed through the original's
+  abode/town/homeless links. Land 1 houses 31 of 55. See `docs/constructors.md`.
 - The game's own level loader (`LevelLoader`): land scripts build a bw_core world of towns
   with their abodes, housed villagers, fields and fish farms, plus trees, animals,
   features and mobile objects, each with its `info.dat` record. Play mode draws that
@@ -22,6 +27,10 @@ history before this file lives in the README's batch log and `git log`.
 - `tools/run_tests.cmd`: runs every test exe and fails on any failure (netlab's QA for bw).
 
 ### Fixed
+- `Town` and `Villager` used the vendor's v1.41 layouts. v1.0's constructors put Town
+  at 0xF20 (no `forests` pair at 0x608) and Villager at 0x128 (home +0x120, town
+  +0x124). Both headers now match, with `offsetof` asserts on the constructor's offsets.
+- `Town::GetRadius` returned `influence`; it is now v1.0's bounding-box half-size.
 - Map scale: everything outside the translated game code converted metres to map units at
   65536 per metre. The original uses 6553.6 (10/65536, `0x3727C5AC`, as `GUtils` already
   had), so a cell is 10 m. At our scale, cell indices ran to about 2,600 on a 512-cell map,
