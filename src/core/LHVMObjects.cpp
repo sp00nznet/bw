@@ -764,7 +764,7 @@ void FlockClear(uint32_t flock_h) {
 
 static void N_FLOCK_CREATE(LHVM* vm) {
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    Flock* f = static_cast<Flock*>(calloc(1, sizeof(Flock)));
+    Flock* f = new Flock();
     if (!f) { vm->PushObject(0); return; }
     MapCoords c = MakeCoords(x, y, z);
     f->coords = c;
@@ -803,7 +803,7 @@ static void N_FLOCK_DISBAND(LHVM* vm) {
     FlockClear(flock);
     Object* o = LookupObject(flock);
     if (o) {
-        free(o);
+        delete reinterpret_cast<Flock*>(o);  // allocated by N_FLOCK_CREATE
         UnregisterObject(flock);
     }
 }
@@ -865,7 +865,7 @@ static void N_CREATE_REWARD(LHVM* vm) {
     int32_t reward_type = vm->PopInt();
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 1.0f;
-    p.type_enum = static_cast<uint32_t>(reward_type);
+    p.type_enum = kNoInfo;  // reward_type is not a feature-info index
     (void)y;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
     uint32_t h = HandleFor(obj);
@@ -886,7 +886,7 @@ static void N_CREATE_RANDOM_VILLAGER_OF_TRIBE(LHVM* vm) {
     (void)y;
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 1.0f;
-    p.type_enum = static_cast<uint32_t>(tribe);
+    p.type_enum = kNoInfo;  // a tribe, not a villager-info index
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_VILLAGER, p);
     uint32_t h = HandleFor(obj);
     NotifySpawn(h, obj, 4 /* VILLAGER */, tribe, x, y, z);
@@ -1931,7 +1931,7 @@ static void N_CREATE_HIGHLIGHT(LHVM* vm) {
     int32_t type = vm->PopInt();
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 1.0f;
-    p.type_enum = static_cast<uint32_t>(type);
+    p.type_enum = kNoInfo;  // highlight type, not a feature-info index
     (void)y;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_FEATURE, p);
     uint32_t h = HandleFor(obj);
@@ -2766,7 +2766,7 @@ static void N_POPULATE_CONTAINER(LHVM* vm) {
             p.world_z = WorldZ(c) + sinf(ang) * radius;
         }
         p.scale = 1.0f;
-        p.type_enum = static_cast<uint32_t>(type);
+        p.type_enum = kNoInfo;  // the script type, not a subtype
         Object* obj = EntityFactory::CreateEntity(CategoryForScriptType(type), p);
         if (obj) {
             uint32_t mh = HandleFor(obj);

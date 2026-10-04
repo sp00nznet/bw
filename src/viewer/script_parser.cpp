@@ -212,6 +212,7 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
                     e.angle = angle;
                     e.scale = scale;
                     e.mesh_id = MapTreeToMesh(tree_type);
+                    e.info_index = tree_type;
                     out.entities.push_back(e);
                 }
             }
@@ -245,6 +246,7 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
                     const char* after = strchr(line + pos, ',');
                     if (after) sscanf(after, ", %d", &animal_type);
                     e.type_name = "ANIMAL";
+                    e.info_index = animal_type;
                     e.angle = 0;
                     e.scale = 1.0f;
                     e.mesh_id = (animal_type >= 0 && animal_type < g_animal_mesh_count) ?
@@ -280,6 +282,7 @@ bool ParseLevelScript(const std::string& path, LevelScript& out) {
                     const char* after = strchr(line + pos, ',');
                     if (after) sscanf(after, ", %d, %f, %*f, %f, %*f, %*f", &ms_type, &scale, &angle);
                     e.type_name = "MOBILE_STATIC";
+                    e.info_index = ms_type;
                     e.angle = angle;
                     e.scale = scale;
                     e.mesh_id = (ms_type >= 0 && ms_type < g_mobile_static_mesh_count) ?

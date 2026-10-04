@@ -15,6 +15,7 @@ struct ScriptEntity {
     float    scale;        // Scale factor
     int      mesh_id;      // Index into AllMeshes.g3d (-1 = unknown)
     std::string type_name; // Original type string for debugging
+    int      info_index = -1; // record in its info.dat table, when the script gives a number
 };
 
 struct LevelScript {

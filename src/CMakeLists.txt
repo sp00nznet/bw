@@ -22,6 +22,7 @@ add_library(bw_core STATIC
     core/GameOSFile.cpp
     core/SaveLoad.cpp
     core/SaveLoadTable.gen.cpp
+    core/InfoDat.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -434,6 +435,25 @@ add_executable(test_saveload
 )
 target_link_libraries(test_saveload PRIVATE bw_core)
 set_target_properties(test_saveload PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# info.dat loader (balance data)
+add_executable(test_infodat
+    viewer/test_infodat.cpp
+)
+target_link_libraries(test_infodat PRIVATE bw_core)
+set_target_properties(test_infodat PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Land 1 spawns headless through EntityFactory with info records attached
+add_executable(test_spawn
+    viewer/test_spawn.cpp
+    viewer/script_parser.cpp
+)
+target_link_libraries(test_spawn PRIVATE bw_core)
+set_target_properties(test_spawn PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

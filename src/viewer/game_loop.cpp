@@ -26,6 +26,7 @@
 #include <black/LHVM.h>
 #include <black/LHVMObjects.h>
 #include <black/HandMachine.h>
+#include <black/InfoDat.h>
 #include <black/types.h>
 
 namespace bw {
@@ -187,6 +188,14 @@ bool GameState::Init(const std::string& script_path) {
         fprintf(stderr, "Game: Failed to load terrain: %s\n", lnd_path.c_str());
         return false;
     }
+
+    // Balance data: every object's info pointer comes from here. The original
+    // reads scripts\info.dat; extracted installs flatten it to the data root.
+    std::string info_err;
+    if (!infodat::Load((dir + "scripts/info.dat").c_str(), &info_err) &&
+        !infodat::Load((dir + "info.dat").c_str(), &info_err))
+        fprintf(stderr, "Game: info.dat not loaded (%s) -- objects run without balance data\n",
+                info_err.c_str());
 
     // Register terrain + LHVM host services
     s_current_game_state = this;
@@ -479,8 +488,9 @@ void GameState::SpawnEntitiesFromScript() {
             params.angle = se.angle;
             params.scale = se.scale;
             params.mesh_id = se.mesh_id;
-            params.type_enum = 0;
-            params.type_name = se.type_name.c_str();
+            params.type_enum = static_cast<uint32_t>(se.info_index);
+            // Generic placeholders ("TREE", "ANIMAL") name no record; real type names do.
+            params.type_name = se.info_index >= 0 ? "" : se.type_name.c_str();
 
             core_obj = EntityFactory::CreateEntity(core_category, params);
             if (core_obj) core_spawned++;

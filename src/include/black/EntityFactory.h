@@ -10,6 +10,9 @@
 struct Object;
 struct GameThing;
 
+// type_enum when the caller has no info record to name.
+constexpr uint32_t kNoInfo = 0xFFFFFFFFu;
+
 // Entity creation parameters (matches what the script parser provides)
 struct EntityCreateParams {
     float    world_x;       // World X position
@@ -17,7 +20,7 @@ struct EntityCreateParams {
     float    angle;         // Y rotation in radians
     float    scale;         // Uniform scale factor
     int      mesh_id;       // Mesh index into AllMeshes.g3d
-    uint32_t type_enum;     // Entity subtype enum value
+    uint32_t type_enum = kNoInfo; // Info record index (the CHL subtype / *_INFO enum), or kNoInfo
     const char* type_name;  // Type string for debugging ("TREE", "NORSE_ABODE_A", etc.)
 };
 

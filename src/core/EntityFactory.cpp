@@ -15,6 +15,7 @@
 #include <black/Terrain.h>
 #include <black/Map.h>
 #include <black/LHVMObjects.h>
+#include <black/InfoDat.h>
 #include <cstdlib>
 #include <cstring>
 
@@ -35,6 +36,19 @@ static void InitObjectFromParams(Object* obj, const EntityCreateParams& params) 
     obj->life = 1.0f;
 }
 
+// The object's balance record. Level scripts name the type (type_name);
+// CHL's CREATE passes the info enum, which is the record index (type_enum).
+// Null when info.dat is not loaded or the type does not resolve -- the
+// object then runs on its built-in defaults, as it did before info.dat.
+static const GObjectInfo* InfoFor(infodat::Section s, const EntityCreateParams& params) {
+    int i = -1;
+    if (params.type_name && *params.type_name)
+        i = s == infodat::DETAIL_ABODE_INFO ? infodat::FindAbode(params.type_name)
+                                            : infodat::FindByName(s, params.type_name);
+    if (i < 0) i = static_cast<int>(params.type_enum);
+    return infodat::Get<GObjectInfo>(s, static_cast<uint32_t>(i));
+}
+
 namespace EntityFactory {
 
 Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) {
@@ -48,8 +62,12 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
     case ENTITY_CAT_CREATURE: obj = CreateCreature(params);     break;
     default: {
         // Generic feature fallback — allocate a Feature
-        Feature* feat = static_cast<Feature*>(calloc(1, sizeof(Feature)));
-        if (feat) { InitObjectFromParams(feat, params); obj = feat; }
+        Feature* feat = new Feature();
+        if (feat) {
+            InitObjectFromParams(feat, params);
+            feat->info = InfoFor(infodat::DETAIL_FEATURE_INFO, params);
+            obj = feat;
+        }
         break;
     }
     }
@@ -58,9 +76,10 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
 }
 
 Object* CreateTree(const EntityCreateParams& params) {
-    Tree* tree = static_cast<Tree*>(calloc(1, sizeof(Tree)));
+    Tree* tree = new Tree();
     if (!tree) return nullptr;
     InitObjectFromParams(tree, params);
+    tree->info = InfoFor(infodat::DETAIL_TREE_INFO, params);
 
     // Insert into map
     tree->InsertMapObject();
@@ -69,9 +88,10 @@ Object* CreateTree(const EntityCreateParams& params) {
 }
 
 Object* CreateAbode(const EntityCreateParams& params) {
-    Abode* abode = static_cast<Abode*>(calloc(1, sizeof(Abode)));
+    Abode* abode = new Abode();
     if (!abode) return nullptr;
     InitObjectFromParams(abode, params);
+    abode->info = InfoFor(infodat::DETAIL_ABODE_INFO, params);
 
     // Start fully built
     abode->percent_built = 1.0f;
@@ -84,9 +104,10 @@ Object* CreateAbode(const EntityCreateParams& params) {
 }
 
 Object* CreateVillager(const EntityCreateParams& params) {
-    Villager* villager = static_cast<Villager*>(calloc(1, sizeof(Villager)));
+    Villager* villager = new Villager();
     if (!villager) return nullptr;
     InitObjectFromParams(villager, params);
+    villager->info = InfoFor(infodat::DETAIL_VILLAGER_INFO, params);
 
     // Initialize villager state
     villager->food = 1.0f;
@@ -98,9 +119,10 @@ Object* CreateVillager(const EntityCreateParams& params) {
 }
 
 Object* CreateMobileStatic(const EntityCreateParams& params) {
-    Rock* rock = static_cast<Rock*>(calloc(1, sizeof(Rock)));
+    Rock* rock = new Rock();
     if (!rock) return nullptr;
     InitObjectFromParams(rock, params);
+    rock->info = InfoFor(infodat::DETAIL_MOBILE_STATIC_INFO, params);
 
     return rock;
 }

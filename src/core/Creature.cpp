@@ -250,7 +250,7 @@ void Creature::InitCreature(const MapCoords& pos, const CreatureInfo* creature_i
 
 Creature* Creature::Create(const MapCoords& pos, const CreatureInfo* creature_info, GPlayer* player) {
     // Original at 0x00474a20 — allocates and initializes a new creature
-    Creature* creature = static_cast<Creature*>(calloc(1, sizeof(Creature)));
+    Creature* creature = new Creature();
     if (!creature) return nullptr;
 
     creature->InitCreature(pos, creature_info, player);
