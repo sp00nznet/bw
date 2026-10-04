@@ -250,8 +250,10 @@ using Handler = bool (*)(Villager*);
 const Handler kHandler[17] = {VillagerFoodHandler, VillagerWoodHandler, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                               nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                               VillagerSleepHandler};
-// Table +96: desires a child may be given (from the table at 0xCC3F60).
-const bool kChildOk[17] = {false};
+// Table +96: desires a child may be given -- Playtime, Protection, Mercy and
+// Relaxation (0xCC3F60 + 104 k + 96, from work/decomp/town_desire_functions.txt).
+const bool kChildOk[17] = {false, false, true, true, true, false, false, false,
+                            false, false, false, false, false, false, false, true, false};
 }  // namespace
 
 bool TownDesire::FindWorkForVillager(Villager* v, float busy) {
