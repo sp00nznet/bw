@@ -50,7 +50,13 @@ struct Villager : public Living {
     // === Non-virtual methods ===
     Town* GetTown();
     Abode* GetHome();
-    void SetHome(Abode* abode);
+    void SetHome(Abode* abode);          // v1.0 sub_6E0D10: home, and the home's town
+    void BecomeHomeless();               // v1.0 sub_6EFD50: onto its town's homeless list
+    // v1.0 sub_6DFC80 (+ Living sub_5AAAE0): the state a new villager starts in.
+    void Construct(uint32_t age, bool flag);
+    void SetAge(uint32_t age) override;  // v1.0 sub_6E23C0
+    bool IsChild() override;             // v1.0 vslot 701 (sub_52E150): +0xE0 bit 3
+    uint32_t Sex() const;                // GVillagerInfo +504: 0 male, 1 female
     void SetTown(Town* town);
     bool IsPregnant() const;
     bool IsHomeless() const;
@@ -84,9 +90,7 @@ struct Villager : public Living {
     uint32_t field_0x114;                  // 0x114
     FireEffect* villager_fire_effect;      // 0x118
     GameThing* target_thing;               // 0x11C
-    Football* football;                    // 0x120
-    uint32_t field_0x124;                  // 0x124
-    uint32_t field_0x128;                  // 0x128
-    Abode*   home;                         // 0x12C — home building
+    Abode*   home;                         // 0x120 — v1.0 sub_6E1CE0 returns this[72]
+    Town*    town;                         // 0x124 — v1.0 GetTown (vslot 18) returns this[73]
 };
-static_assert(sizeof(Villager) == 0x130, "Villager size mismatch");
+static_assert(sizeof(Villager) == 0x128, "Villager size mismatch (v1.0 allocates 296)");

@@ -112,3 +112,65 @@ Land 1: 7 of 57 abodes have water within reach.
   checks. The loader adds food and wood directly instead.
 - `sub_402B80`, which creates door/footpath objects
 - the +0x24 category bit (`sub_5EC8B0`)
+
+## Villager (`sub_6DFF00` → `sub_6DFC80`, Living `sub_5AAAE0`)
+
+### The layout was v1.41
+
+v1.0 allocates 296 bytes (0x128); ours was 0x130. In v1.0, `GetTown` (vslot 18,
+`sub_706D30`) returns `this[73]` and the home is `this[72]` (`sub_6E1CE0`). So +0x120
+is the **home** and +0x124 is the **town**. Our header had `football` at 0x120, two
+extra dwords, and `home` at 0x12C. `Villager` is now 0x128 with `home` and `town`
+where v1.0 keeps them. `GetTown` returns the town directly, and `SetTown` is no longer
+a stub. `Living` already matched v1.0: `birth_turn` 0xA0, the global-list link 0xA4,
+and its end at 0xE0.
+
+### `Villager::Construct`
+
+- **From Living:** speed from info +260, +0x9C = info +300, life = info +296, and a
+  starting birth turn from info +308.
+- **Age (`SetAge`, `sub_6E23C0`):** below the adult age (info +312) the child bit is
+  set (+0xE0 bit 3, the same bit `IsChild` reads at vslot 701). Otherwise the age is at
+  least 18. It also sets the **scale** (`sub_6DFEA0` / `sub_6E2590`): adults land in
+  [0.95, 1.05); children grow from a per-age table at info +740.
+- **Starting values:** food = info +704 + rand(0.6), capped at 1.
+  `turns_until_next_state_change` = rand(500) + 1.
+- **Starting state:** a villager on a deep-water cell starts DROWNING (16); otherwise
+  DECIDE_WHAT_TO_DO (85). The test is cell flag 0x10 (`sub_5BFB00`). That also
+  explains the drinking-water test: 0x20 means water, 0x10 means deep.
+- **Sex** is info +504 (0 male). That replaces a guessed bit in `IsMaleVillager`.
+
+### Housing, as v1.0 links it
+
+- **`Abode::AddVillagerToAbode` (`sub_402DE0`):** take the villager off its town's
+  homeless list or its old home. Link it onto the abode's list (head +0xA0, count
+  +0xA4, link villager +0xE4), set home and town, and join the town if it is a new
+  one. Then count it: children +0xB7; adults +0xB4, the first of each sex into
+  `male_female_villagers`, and males +0xB5.
+- **`RemoveAliveVillagerFromAbode` (`sub_4030C0`):** the reverse.
+- **`Town::AddVillagerToTown` (`sub_6CD8E0`):** refused while uninhabitable. Counted in
+  `TownStats::AddVillager` (`sub_6DABD0`: adults/children, per sex, carried food and
+  wood, disciples). A home in another town is left. Then the best abode with space
+  takes the villager, or it becomes homeless here.
+- **`FindAbodeWithSpaceInTown` (`sub_6CE7D0` / score `sub_403670`):** score = room left
+  for its kind × how few of its sex live there × nearness on a 500 m scale.
+- **`BecomeHomeless` (`sub_6EFD50`):** onto the town's homeless list (+0x760, a count
+  beside it).
+- **The loader's `CREATE_VILLAGER_POS` (case 18):** the abode in the home cell, unless
+  full (villager list = maxAdults). Otherwise the town's best abode with space,
+  otherwise homeless in that town.
+
+Land 1: **31 of 55 villagers housed** (29 before): two whose named home was full now
+go to another abode in the same town, as the original does.
+
+**Not yet translated:**
+- **The game's random generator** (`sub_67BC90` / `sub_67BCB0`). A fixed-seed one
+  stands in, so exact starting values differ.
+- **The length of a game year** (`dword_C22D44`). It is `.bss`, set at runtime by code
+  we have not found: only reads reference it directly. Ages convert to birth turns at
+  1 turn per year until it is recovered. Nothing ages yet, so nothing depends on it.
+- the villager's 3D object and textures
+- the game-wide homeless list
+- the stats' homeless counters (`sub_6DADF0`)
+- `FindAbodeWithSpace`'s second test (vslot 548)
+- the exact distance falloff (`sub_6DF670`)

@@ -171,22 +171,30 @@ struct Loader {
         Object* o = Make(ENTITY_CAT_VILLAGER, "CREATE_VILLAGER_POS", x, z, 0.0f, 1.0f, -1, a[2].s);
         Villager* v = static_cast<Villager*>(o);
         if (!v) return false;
-        v->SetAge(static_cast<uint32_t>(a[3].n));
-        // Cells, as the original compares them: the high words of the map coords.
-        const MapCoords home = MapCoordsFromMetres(hx, hz);
-        const int32_t cx = home.x >> 16, cz = home.z >> 16;
-        for (Town* t : w.towns)
-            for (Abode* ab = reinterpret_cast<Abode*>(t->abode_list.head); ab; ab = ab->next) {
+        v->Construct(static_cast<uint32_t>(a[3].n), false);  // sub_6DFF00 -> sub_6DFC80
+        // The abode in the home's cell (the high words of the map coords), from
+        // every town. A full one (villager list +0xA4 == maxAdults +0x174) is
+        // no home, but its town still takes the villager.
+        const MapCoords home_pos = MapCoordsFromMetres(hx, hz);
+        const int32_t cx = home_pos.x >> 16, cz = home_pos.z >> 16;
+        Abode* home = nullptr;
+        Town* town = nullptr;
+        for (Town* t : w.towns) {
+            for (Abode* ab = reinterpret_cast<Abode*>(t->abode_list.head); ab && !town; ab = ab->next) {
                 if ((ab->coords.x >> 16) != cx || (ab->coords.z >> 16) != cz) continue;
-                // The original refuses when the villager list (+0xA4) has reached
-                // maxAdults (info + 0x174), children included; room-for-adults
-                // agrees because every villager added counts as an adult here.
-                if (ab->GetRoomLeftForAdults() <= 0) return true;  // full: stays homeless
-                ab->AddVillagerToAbode(v);
-                t->AddVillagerToTown(v);
-                return true;
+                town = ab->GetTown();
+                int32_t max_adults = 0;
+                if (ab->info) std::memcpy(&max_adults, reinterpret_cast<const char*>(ab->info) + 0x174, 4);
+                home = static_cast<int32_t>(ab->villagers.count) == max_adults ? nullptr : ab;
             }
-        return true;  // no abode there: homeless, as in the original
+            if (town) break;
+        }
+        if (home) home->AddVillagerToAbode(v);                            // sub_402DE0
+        else if (!town) {}                                                // the game-wide homeless list
+        else if (Abode* other = town->FindAbodeWithSpaceInTown(v, 0.0f))  // sub_6CE7D0
+            other->AddVillagerToAbode(v);
+        else town->AddVillagerToTown(v);                                  // sub_6CD8E0: homeless there
+        return true;
     }
 
     // cases 76/89 and 29/32: a field or fish farm owned by a town.

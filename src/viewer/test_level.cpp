@@ -55,7 +55,7 @@ int main() {
     char msg[128];
     std::snprintf(msg, sizeof msg, "abodes linked into their towns: %d", abodes);
     CHECK(abodes >= 36 && towns_own_their_abodes, msg);
-    std::snprintf(msg, sizeof msg, "villagers housed at their CREATE_VILLAGER_POS home: %d of 55", housed);
+    std::snprintf(msg, sizeof msg, "villagers housed (their named home, or another in its town when that is full): %d of 55", housed);
     CHECK(housed > 0, msg);
     std::snprintf(msg, sizeof msg, "objects with an info record: %d of %zu", with_info, w.objects.size());
     CHECK(with_info == static_cast<int>(w.objects.size()), msg);

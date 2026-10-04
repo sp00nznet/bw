@@ -2,6 +2,7 @@
 // Method stubs from bw1-decomp
 #include "../include/black/TownStats.h"
 #include "../include/black/Villager.h"
+#include <cstring>
 
 // === Override of Base virtuals ===
 
@@ -57,4 +58,22 @@ void TownStats::DecrementNumOfDisciples(VILLAGER_DISCIPLE disciple) {
     if (idx < 16 && num_disciples[idx] > 0) {
         num_disciples[idx]--;
     }
+}
+
+void TownStats::AddVillager(Villager* v) {
+    // v1.0 sub_6DABD0: children (+0x0C, +0x3C) or adults (+0x08); per sex
+    // (+0x54 male, +0x58 female); the villager-info value at +728 summed as a
+    // float into +0xE4; carried food and wood into the totals; disciples by type.
+    if (v->IsChild()) { ++num_children; ++field_0x3c; }
+    else ++num_adults;
+    if (v->Sex()) ++field_0x58; else ++field_0x54;
+    uint32_t info728 = 0;
+    if (v->info) std::memcpy(&info728, reinterpret_cast<const char*>(v->info) + 728, 4);
+    float acc;
+    std::memcpy(&acc, &field_0xe4, 4);
+    acc += static_cast<float>(info728);
+    std::memcpy(&field_0xe4, &acc, 4);
+    total_food += v->resource_held[0];
+    total_wood += v->resource_held[1];
+    if (v->field_0xe0 & 0x200) ++num_disciples[v->disciple_type & 15];
 }

@@ -13,6 +13,7 @@
 #include <black/Villager.h>
 #include <black/Game.h>
 #include <black/InfoDat.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -248,38 +249,24 @@ void Town::AddAbodeToTownStats(Abode* /*abode*/) {
 }
 
 bool Town::AddVillagerToTown(Villager* villager) {
-    // Original at 0x0073a090 — translated from x86 assembly
-    if (!villager) return false;
-
-    // If field_0x5f4 is set, town is locked — reject
-    if (field_0x5f4 != 0) return false;
-
-    // Add to town stats
-    stats.num_adults++;
-
-    // Set town reference on villager
+    // v1.0 sub_6CD8E0. Refused while uninhabitable (+0x5F4); counted; the
+    // villager's town set. A home in another town is left; then the best abode
+    // with space takes it, or it is homeless here.
+    if (!villager || field_0x5f4) return false;
+    stats.AddVillager(villager);
     villager->SetTown(this);
-
-    // Check if villager's current abode belongs to a different town
-    Abode* abode = villager->GetHome();
-    if (abode) {
-        if (abode->GetTown() != this) {
-            // Remove from foreign abode
-            abode->RemoveAliveVillagerFromAbode(villager);
-            villager->SetHome(nullptr);
-            abode = nullptr;
-        }
+    Abode* home = villager->GetHome();
+    if (home && home->GetTown() == this) return true;
+    if (home) {
+        home->RemoveAliveVillagerFromAbode(villager);
+        villager->SetHome(nullptr);
+        villager->SetTown(this);
     }
-
-    if (!abode) {
-        // Try to find a home in this town
-        Abode* found = FindAbodeWithSpaceInTown(villager, 0.0f);
-        if (found) {
-            found->AddVillagerToAbode(villager);
-            return true;
-        }
+    if (Abode* a = FindAbodeWithSpaceInTown(villager, 0.0f)) {
+        a->AddVillagerToAbode(villager);
+        return true;
     }
-
+    villager->BecomeHomeless();
     return true;
 }
 
@@ -315,9 +302,36 @@ bool32_t Town::RequestANewAbode(ABODE_TYPE /*type*/) {
     return 0;
 }
 
-Abode* Town::FindAbodeWithSpaceInTown(Villager* /*villager*/, float /*min_score*/) {
-    // Original at 0x0073b370 — complex
-    return nullptr;
+Abode* Town::FindAbodeWithSpaceInTown(Villager* villager, float min_score) {
+    // v1.0 sub_6CE7D0: the functional abode scoring highest above min_score.
+    // Score (sub_403670): room left for the villager's kind (adults against
+    // maxAdults +0x174, children against maxChildren +0x178), times how few of
+    // the same sex already live there, times nearness (500 m scale).
+    // ponytail: vslot 53 also asks vslot 548, untranslated; distance falloff
+    // (sub_6DF670) read as 1 - d/500 clamped.
+    Abode* best = nullptr;
+    for (Abode* a = reinterpret_cast<Abode*>(abode_list.head); a; a = a->next) {
+        if (!a->IsFunctional() || !a->info) continue;
+        const char* ai = reinterpret_cast<const char*>(a->info);
+        int32_t cap; uint8_t have;
+        if (villager->IsChild()) { std::memcpy(&cap, ai + 0x178, 4); have = a->field_0xb7; }
+        else                     { std::memcpy(&cap, ai + 0x174, 4); have = a->adult_count; }
+        if (cap <= 0) continue;
+        float fill = static_cast<float>(have) / static_cast<float>(cap);
+        if (fill > 1.0f) fill = 1.0f;
+        const float room = 1.0f - fill;
+        if (room <= 0.0f) continue;
+        float same = 0, n = static_cast<float>(a->villagers.count);
+        for (Villager* v = static_cast<Villager*>(a->villagers.head); v; v = v->next_villager)
+            if (v->Sex() == villager->Sex()) same += 1;
+        const float sex_factor = n > 0 ? (1.0f - same / n + 1.0f) * 0.5f : 1.0f;
+        const float dx = MetresOf(a->coords.x - villager->coords.x), dz = MetresOf(a->coords.z - villager->coords.z);
+        float near = 1.0f - std::sqrt(dx * dx + dz * dz) / 500.0f;
+        if (near < 0) near = 0;
+        const float score = (near + 1.0f) * 0.5f * sex_factor * room;
+        if (score > min_score) { min_score = score; best = a; }
+    }
+    return best;
 }
 
 Field* Town::FindClosesFieldToWithFood(const MapCoords& /*pos*/) {

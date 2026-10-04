@@ -556,25 +556,37 @@ void Abode::RemoveAllVillagersFromAbode() {
 }
 
 void Abode::AddVillagerToAbode(Villager* villager) {
-    // Original at 0x00404060: adds villager to abode's villager list
+    // v1.0 sub_402DE0. Off whatever list the villager was on, onto ours
+    // (head +0xA0, count +0xA4, link villager +0xE4), home and town set, then
+    // the counters: children +0xB7; adults +0xB4, the first of each sex in
+    // male_female_villagers, and males +0xB5.
     if (!villager) return;
-
-    // Set the villager's home to this abode
-    villager->SetHome(this);
-
-    // Track male/female for breeding pairs
-    if (villager->IsMaleVillager()) {
-        if (!male_female_villagers[0]) {
-            male_female_villagers[0] = villager;
+    Town* vt = villager->GetTown();
+    if (vt && vt->IsVillagerInHomelessList(villager)) {
+        Villager** link = reinterpret_cast<Villager**>(&vt->homeless_list.first);
+        while (*link && *link != villager) link = &(*link)->next_villager;
+        if (*link) {
+            *link = villager->next_villager;
+            reinterpret_cast<uint32_t&>(vt->homeless_list.last)--;
         }
-    } else if (villager->IsFemaleVillager()) {
-        if (!male_female_villagers[1]) {
-            male_female_villagers[1] = villager;
-        }
+        villager->next_villager = nullptr;
+    } else if (villager->GetHome()) {
+        villager->GetHome()->RemoveAliveVillagerFromAbode(villager);
     }
-
-    // Increment adult count
-    adult_count++;
+    villager->next_villager = static_cast<Villager*>(villagers.head);
+    villagers.head = villager;
+    ++villagers.count;
+    villager->SetHome(this);
+    if (Town* t = GetTown())
+        if (vt != t) t->AddVillagerToTown(villager);
+    if (villager->IsChild()) {
+        ++field_0xb7;
+    } else {
+        const uint32_t sex = villager->Sex() ? 1 : 0;
+        if (!male_female_villagers[sex]) male_female_villagers[sex] = villager;
+        ++adult_count;
+        field_0xb5 = static_cast<uint8_t>(field_0xb5 + (villager->IsMaleVillager() ? 1 : 0));
+    }
 }
 
 void Abode::RemoveDeletedVillagerFromAbode(Villager* villager) {
@@ -586,11 +598,24 @@ void Abode::RemoveDeletedVillagerFromAbode(Villager* villager) {
 }
 
 void Abode::RemoveAliveVillagerFromAbode(Villager* villager) {
-    // Original at 0x00404340: removes living villager from abode
+    // v1.0 sub_4030C0: the counters back, off our list, no home.
     if (!villager) return;
+    if (villager->IsChild()) {
+        if (field_0xb7) --field_0xb7;
+    } else {
+        if (adult_count) --adult_count;
+        if (field_0xb5 && villager->IsMaleVillager()) --field_0xb5;
+    }
+    Villager** link = reinterpret_cast<Villager**>(&villagers.head);
+    while (*link && *link != villager) link = &(*link)->next_villager;
+    if (*link) {
+        *link = villager->next_villager;
+        --villagers.count;
+        villager->next_villager = nullptr;
+    }
     if (male_female_villagers[0] == villager) male_female_villagers[0] = nullptr;
     if (male_female_villagers[1] == villager) male_female_villagers[1] = nullptr;
-    if (adult_count > 0) adult_count--;
+    villager->SetHome(nullptr);
 }
 
 uint8_t Abode::GetNumAdultsInAbode() {

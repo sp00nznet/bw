@@ -13,6 +13,6 @@ struct SpecialVillager : public Villager {
     const char* GetVillagerName() override;
 
     // === Fields ===
-    uint32_t field_0x130;  // 0x130
+    uint32_t field_0x130;  // 0x128 in v1.0 (Villager is 0x128 there; the name keeps its v1.41 offset)
 };
-static_assert(sizeof(SpecialVillager) == 0x134, "SpecialVillager size mismatch");
+static_assert(sizeof(SpecialVillager) == 0x12C, "SpecialVillager: v1.0 Villager (0x128) plus one field");

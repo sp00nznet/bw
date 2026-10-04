@@ -6,6 +6,9 @@
 // can become disciples, carry resources, build structures, and worship.
 
 #include <black/Villager.h>
+#include <black/Terrain.h>
+#include <cstring>
+#include <random>
 #include <black/Abode.h>
 #include <black/BuildingSite.h>
 #include <black/StoragePit.h>
@@ -351,13 +354,11 @@ uint32_t Villager::ProcessState() {
 // ============================================================================
 
 bool32_t Villager::IsMaleVillager() {
-    // Returns true if disciple_type & sex bit indicates male
-    // Sex is stored in the low bit of field_0xf1 (0 = male, 1 = female)
-    return (field_0xf1 & 1) == 0 ? 1 : 0;
+    return Sex() == 0;  // v1.0 vslot 275 (sub_52E250): info +504 == 0
 }
 
 bool32_t Villager::IsFemaleVillager() {
-    return (field_0xf1 & 1) != 0 ? 1 : 0;
+    return Sex() != 0;
 }
 
 // ============================================================================
@@ -450,9 +451,7 @@ bool32_t Villager::CanBeGivenToVillager(Creature* /*creature*/) {
 // ============================================================================
 
 Town* Villager::GetTown() {
-    // Villager gets town from its home abode
-    if (home) return home->GetTown();
-    return nullptr;
+    return town;  // v1.0 vslot 18 (sub_706D30): this[73]
 }
 
 Abode* Villager::GetHome() {
@@ -460,12 +459,14 @@ Abode* Villager::GetHome() {
 }
 
 void Villager::SetHome(Abode* abode) {
+    // v1.0 sub_6E0D10: the home, and the town becomes the home's town.
     home = abode;
+    town = nullptr;
+    if (abode) town = abode->GetTown();
 }
 
-void Villager::SetTown(Town* /*town*/) {
-    // Original at 0x00756530: sets the villager's town reference
-    // Town field is accessed through the Living hierarchy
+void Villager::SetTown(Town* t) {
+    town = t;
 }
 
 bool Villager::IsPregnant() const {
@@ -507,4 +508,98 @@ void Villager::SetFood(float value) {
 
 bool Villager::IsFoodSpeedUp() const {
     return food_speed_up;
+}
+
+// ============================================================================
+// v1.0 construction and housing. docs/constructors.md.
+// ============================================================================
+
+namespace {
+// ponytail: the game's own generator (sub_67BC90 ints, sub_67BCB0 floats) is
+// not translated; a fixed-seed one keeps runs repeatable meanwhile.
+std::mt19937& Rng() { static std::mt19937 r(0x5EED); return r; }
+uint32_t RandInt(uint32_t n) { return n ? Rng()() % n : 0; }
+float RandFloat(float max) { return std::uniform_real_distribution<float>(0.0f, max)(Rng()); }
+float InfoF(const GObjectInfo* info, int off) { float v = 0; if (info) std::memcpy(&v, reinterpret_cast<const char*>(info) + off, 4); return v; }
+uint32_t InfoU(const GObjectInfo* info, int off) { uint32_t v = 0; if (info) std::memcpy(&v, reinterpret_cast<const char*>(info) + off, 4); return v; }
+}  // namespace
+
+// The length of a game year in turns (dword_C22D44). It is .bss, set at runtime
+// by code we have not found (no immediate writes it); only age<->birth-turn
+// conversions use it. ponytail: 1 until recovered -- ages are then counted in
+// turns, which is wrong for aging and right for everything else here.
+int32_t g_turns_per_year = 1;
+uint32_t g_game_turn = 0;
+
+uint32_t Villager::Sex() const { return InfoU(info, 504); }
+
+bool Villager::IsChild() { return (field_0xe0 >> 3) & 1; }
+
+void Villager::SetAge(uint32_t age) {
+    // sub_6E23C0 without its mesh/texture half. Below the adult age (info +312)
+    // the child bit is set; otherwise the age is at least 18 and the bit clear.
+    const uint32_t adult = InfoU(info, 312);
+    if (age < adult) {
+        field_0xe0 |= 8;
+    } else {
+        if (age < 18) age = 18;
+        field_0xe0 &= ~8u;
+    }
+    // sub_6DFEA0 then sub_6E2590: the scale. Adults land in [0.95, 1.05);
+    // children grow towards the next year's size from the table at info +740.
+    if (age >= adult) {
+        scale = 0.9f;
+        const float target = 0.05f - RandFloat(0.1f) + 1.0f;
+        if (scale < target) scale = target;
+    } else {
+        scale = InfoF(info, 740 + 4 * static_cast<int>(age));
+        const float step = (InfoF(info, 748 + 4 * static_cast<int>(age)) - scale) * 0.75f;
+        scale += RandFloat(step > 0 ? step : 0.0f);
+    }
+    birth_turn = static_cast<int32_t>(g_game_turn) - static_cast<int32_t>(age) * g_turns_per_year;  // sub_5ABD10
+}
+
+void Villager::Construct(uint32_t age, bool flag) {
+    // Living (sub_5AAAE0): speed from info +260, +0x9C from info +300, life
+    // from info +296, a starting birth turn from info +308.
+    SetSpeed(static_cast<int>(InfoU(info, 260)));
+    field_0x9c = static_cast<int>(InfoF(info, 300));
+    life = InfoF(info, 296);
+    {
+        const uint32_t base = InfoU(info, 308);
+        const uint32_t years = base - (base >> 2) + RandInt(base >> 1);
+        birth_turn = static_cast<int32_t>(g_game_turn) - static_cast<int32_t>(years) * g_turns_per_year;
+    }
+    // Villager (sub_6DFC80).
+    SetAge(age);
+    if (InfoU(info, 504) == 1) resource_held[2] = 0;
+    food = InfoF(info, 704) + RandFloat(0.6f);
+    if (food > 1.0f) food = 1.0f;
+    {
+        const uint32_t r = RandInt(InfoU(info, 732));
+        last_check_turn = static_cast<int>(g_game_turn - (r < g_game_turn ? r : g_game_turn));
+    }
+    turns_until_next_state_change = static_cast<int16_t>(RandInt(500) + 1);
+    // sub_5BFB00: on a deep-water cell (flag 0x10, or off the map) it starts
+    // drowning; otherwise deciding what to do.
+    const uint32_t cx = static_cast<uint32_t>(coords.x) >> 16, cz = static_cast<uint32_t>(coords.z) >> 16;
+    const int32_t flags = g_cell_flags_func ? g_cell_flags_func(cx, cz) : 0;
+    const bool deep = flags < 0 || (flags & 0x10);
+    action.top_state = deep ? 16 : 85;  // VILLAGER_STATE_DROWNING : VILLAGER_STATE_DECIDE_WHAT_TO_DO
+    action.final_state = action.top_state;
+    status = static_cast<uint16_t>((status & ~0x40u) | ((flag ? 1u : 0u) << 6));  // sub_6E5990
+}
+
+void Villager::BecomeHomeless() {
+    // sub_6EFD50: leave the home, keep the town, join its homeless list once.
+    Town* t = GetTown();
+    if (home) {
+        home->RemoveAliveVillagerFromAbode(this);
+        SetHome(nullptr);
+        SetTown(t);
+    }
+    if (!t || t->IsVillagerInHomelessList(this)) return;
+    next_villager = static_cast<Villager*>(t->homeless_list.first);
+    t->homeless_list.first = this;
+    reinterpret_cast<uint32_t&>(t->homeless_list.last)++;  // v1.0 keeps a count here
 }
