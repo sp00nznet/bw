@@ -7,6 +7,7 @@
 #include <black/Field.h>
 #include <black/Forest.h>
 #include <black/PlannedMultiMapFixed.h>
+#include <black/SpellCast.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LevelLoader.h>
@@ -151,6 +152,27 @@ int main() {
                           pit4 ? pit4->GetResource(static_cast<RESOURCE_TYPE>(1)) : 0, stats_before, t4->stats.field_0x44);
             CHECK(most_builders > 0 && hut->percent_built > 0.0f, msg);
         }
+    }
+
+    // A resource miracle's drops (SpellResource vslot 331 -> sub_618E10):
+    // food (magic 15) and wood (magic 21) cast on the village's storage pit
+    // go into it.
+    {
+        Town* v0 = level::FindTown(w, 0);
+        Object* pit = reinterpret_cast<Object*>(v0->storage_pit_list);
+        const spell::Drop f1 = spell::ResourceDrop(15, true), f2 = spell::ResourceDrop(15, false);
+        const spell::Drop w1 = spell::ResourceDrop(21, true), w2 = spell::ResourceDrop(21, false);
+        const uint32_t food0 = pit->GetResource(static_cast<RESOURCE_TYPE>(0)), wood0 = pit->GetResource(static_cast<RESOURCE_TYPE>(1));
+        const uint32_t left_f = spell::DropResource(f1.resource, f1.amount, pit->coords, {pit});
+        const uint32_t left_w = spell::DropResource(w1.resource, w1.amount, pit->coords, {pit});
+        std::snprintf(msg, sizeof msg, "food miracle drops %u then %u (resource %d), wood %u then %u (resource %d); on the pit: food %u -> %u, wood %u -> %u",
+                      f1.amount, f2.amount, f1.resource, w1.amount, w2.amount, w1.resource, food0,
+                      pit->GetResource(static_cast<RESOURCE_TYPE>(0)), wood0, pit->GetResource(static_cast<RESOURCE_TYPE>(1)));
+        CHECK(f1.resource == 0 && w1.resource == 1 && f1.amount > 0 && w1.amount > 0 && !left_f && !left_w &&
+              pit->GetResource(static_cast<RESOURCE_TYPE>(0)) == food0 + f1.amount &&
+              pit->GetResource(static_cast<RESOURCE_TYPE>(1)) == wood0 + w1.amount, msg);
+        pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), f1.amount, nullptr, nullptr);  // leave the rest of the test as it was
+        pit->RemoveResource(static_cast<RESOURCE_TYPE>(1), w1.amount, nullptr, nullptr);
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);

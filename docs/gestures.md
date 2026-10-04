@@ -123,6 +123,37 @@ all 23 that have one.
   +16 = 14, +20 = 1, +24 = 2, +48 = 15.
 - **Over a spell icon**, the hand asks for the gesture at seed +268 (`sub_58FC40`).
 
+## Casting (so far)
+
+What v1.0 does once a seed is in the hand:
+
+1. The held seed (`SpellSeed`, made from the spell icon: `sub_6BED50` ->
+   `sub_6BEAA0`) casts at a position or at an object (`sub_6C00D0` / `sub_6BFF60`).
+2. That goes through the magic info: `sub_5B8DB0` / `sub_5B8D20`, then the info's
+   vslot 13 to make the Spell, then the Spell's vslot 333 or 334 to start it.
+3. The Spell starts a particle effect (`sub_636B40`). Each particle that lands reports
+   to the spell (vslot 331).
+4. A resource spell (`SpellResource`, `sub_6BBBF0`) then drops its resource there:
+   the first drop is big, the later ones small. The mana it costs is the drop times
+   info +104.
+5. The drop (`sub_618E10`) first goes to whatever nearby takes it: a storage pit takes
+   anything, a pile its own kind, within 1.2 x the object's radius, searching the 3 x 3
+   cells around the point. What's left becomes a MagicFood or MagicWood pile
+   (`sub_5B8230`).
+
+| Miracle | Resource | First drop | Later drops |
+|---|---|---|---|
+| Food (magic 15) | food | 200 | 20 |
+| Wood (magic 21) | wood | 500 | 20 |
+
+Translated in `SpellCast.cpp`: finding a spell's magic info, the drop amount, and the
+drop into nearby stores. `test_level` casts both on the village's storage pit and the
+pit gains exactly that.
+
+The magic info offsets are read 4 bytes earlier than v1.0's code reads them. This is
+inferred from the values (it makes the food-or-wood field 0 or 1), and the MAGIC_*
+loader path is not yet walked to prove it.
+
 Not yet: feeding the mouse into the trail in the viewer, the hand's other gesture
 modes, and casting. Casting means the chosen seed in the hand, then the spell made by
 its magic info, then the spell's effect.

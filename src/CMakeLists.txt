@@ -30,6 +30,7 @@ add_library(bw_core STATIC
     core/LevelLoader.cpp
     core/VillagerStates.cpp
     core/Gesture.cpp
+    core/SpellCast.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp

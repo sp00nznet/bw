@@ -10,6 +10,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Resource miracles' drops (`docs/gestures.md`): food and wood miracles' drop amounts
+  from their magic info, and the drop into a nearby storage pit.
 - Choosing miracles by gesture (`docs/gestures.md`): v1.0's selection at a worship
   site. A spiral, then each spell's own gesture, chooses that spell; this works for
   all 23 spells with a sequence in the data.
