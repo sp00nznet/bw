@@ -9,6 +9,7 @@
 // desires, buildings, fields, worship, resources, and player interaction.
 // Contains embedded TownDesire (0x564), TownStats (0x118), and GBelief (0x1D0).
 
+#include "LHNodeList.h"
 #include <cstddef>
 #include "Container.h"
 #include "TownDesire.h"
@@ -57,12 +58,6 @@ static_assert(sizeof(LHLinkedList_HomelessVillager) == 0x8, "size mismatch");
 
 struct LHListHead_TownSpellIcon { void* head; uint32_t count; };
 static_assert(sizeof(LHListHead_TownSpellIcon) == 0x8, "size mismatch");
-
-struct LHLinkedList_FieldList { void* first; void* last; };
-static_assert(sizeof(LHLinkedList_FieldList) == 0x8, "size mismatch");
-
-struct LHLinkedList_FishFarmList { void* first; void* last; };
-static_assert(sizeof(LHLinkedList_FishFarmList) == 0x8, "size mismatch");
 
 struct LHListHead_BuildingSiteList { void* head; uint32_t count; };
 static_assert(sizeof(LHListHead_BuildingSiteList) == 0x8, "size mismatch");
@@ -242,8 +237,8 @@ struct Town : public Container {
     uint32_t                       field_0x770;             // 0x768
     uint32_t                       field_0x774;             // 0x76C
     LHListHead_TownSpellIcon       spell_icon_list;         // 0x770
-    LHLinkedList_FieldList         field_list;               // 0x778
-    LHLinkedList_FishFarmList      fish_farms;               // 0x780
+    LHNodeList                     field_list;               // 0x778 (Field ctor sub_4FEB10)
+    LHNodeList                     fish_farms;               // 0x780 (FishFarm ctor sub_502970)
     LHListHead_BuildingSiteList    building_site_list;       // 0x788
     GBelief                        belief;                   // 0x790  (0x1D0 bytes)
     uint32_t                       field_0x968;             // 0x960

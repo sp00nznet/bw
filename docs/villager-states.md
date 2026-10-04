@@ -49,6 +49,10 @@ are the ones the code agrees with.
 | 34 ArrivesAtStoragePitForFood | `0x6F7900` | take what it wants to eat from the store, then decide |
 | 117 EatFood | `0x6EAFF0` | eat what it carries, then decide |
 | 118 EatFoodAtHome | `0x6EB080` | top up from home, eat, back to AtHome |
+| 31 GotoStoragePit | `sub_6F7670` | take what it carries to the store |
+| 32 ArrivesAtStoragePitForDropOff | `sub_6F7720` | put one kind of it into the store, then decide |
+| 55 FishermanArrivesAtFishing | `sub_6EA660` | walk into the farm's cell, then fish |
+| 56 Fishing | `sub_6EA730` | cast; a catch is a quarter load; full hands go to the store |
 | 14 Dying | vslot 551, `sub_6F85B0` | on to Dead |
 | 15 Dead | vslot 552 | holds (the body's removal is not translated) |
 
@@ -93,6 +97,28 @@ what it carries. A meal raises food by the share eaten x info +696.
 Land 1, 2,000 turns: mean food falls from 0.77 to 0.69, and 11 meals take 736 food
 out of the village's pit.
 
+## The food job
+
+The Food desire's handler (`sub_6E9100`) ranks the town's food sources by pull x a
+distance falloff, against taking what the villager already carries to the store
+(how full its hands are x the store's falloff). The falloff (`sub_6DF670`) is a
+sigmoid read from a 41-entry table at `0xB461D4`; sources count within 500 m (fish
+farms) or 300 m (fields).
+
+- **Fish farms** sit on the town's list at +0x780; v1.0's constructor (`sub_502970`)
+  snaps a farm to its cell's centre and gives it to the **nearest** town, whatever the
+  script says. A farm's pull is `1 - fishermen / info +288` truncated to an integer, so
+  a farm being fished pulls nobody else: one fisherman per farm.
+- **Fishing** (`sub_6EA730`): each cast catches with one chance in (fishermen); a catch
+  is a quarter of a full load (villager info +612) x the season (spring 1.0, summer 0.9,
+  autumn 0.7, winter 0.6). Full hands go to the store.
+- Fishermen join and leave the farm's list through the fishing states' enter and exit
+  slots (`0x6EA8B0`, `0x6EA910`).
+
+Land 1 starts with 20,000 food in the village's store against a need of 12,025, so
+Food desire is zero and nobody fishes, as in v1.0. With the store emptied, Food desire
+reaches 0.98 and the village's five farms are worked, landing 694 food in 3,000 turns.
+
 **The game's random generator** is translated too (`LHRandom.h`, `sub_746D10`:
 `seed = ror32(9377 × seed + 9439, 13)`). Every random choice above draws from it.
 
@@ -108,7 +134,11 @@ vagrants (130).
   yearly growth in size, the disciple tail, and most of what a death notifies (the
   player's and town's statistics, mourning, dropping what it carried). Without a store
   the original forages for food somewhere in town (`sub_6E3900`); not translated.
-- **All the work handlers** (food, wood, building, repair,
+- **From the food job**: fields (the crop tick `sub_4FF9C0` and the farming states
+  67-69) and the third source at town +0xF00. The fishing cast waits a fixed 20 turns
+  where the original waits out the animation, and the season is always spring (the game
+  clock's start is set at runtime).
+- **The other work handlers** (food, wood, building, repair,
   worship), Relaxation's handler (it needs the town's relax spots), the disciple and
   child deciders, and `SetState`'s exit/enter slots and pause diversion.
 - **The random seed's starting value**: the game sets it at runtime, and we have not

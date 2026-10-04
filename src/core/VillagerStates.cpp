@@ -8,6 +8,7 @@
 #include <black/Villager.h>
 
 #include <black/Abode.h>
+#include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
 #include <black/Terrain.h>
@@ -26,19 +27,39 @@ float InfoF(const Villager& v, int off) { float x = 0; if (v.info) std::memcpy(&
 uint32_t InfoU(const Villager& v, int off) { uint32_t x = 0; if (v.info) std::memcpy(&x, reinterpret_cast<const char*>(v.info) + off, 4); return x; }
 uint8_t InfoB(const Villager& v, int off) { return v.info ? reinterpret_cast<const uint8_t*>(v.info)[off] : 0; }
 
+bool IsFishingState(uint8_t s) { return s == VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING || s == VILLAGER_STATE_FISHING; }
+// On the way to fishing counts as fishing (the original's sub_6E2010 test).
+bool Fishing(const Villager& v) { return IsFishingState(v.action.top_state) || IsFishingState(v.action.final_state); }
+// The fishing states' enter (0x6EA8B0: onto the farm's list, sub_503660) and
+// exit (0x6EA910: off it, sub_5036A0, and the target cleared) slots.
+void FishingSlots(Villager& v, bool was) {
+    const bool now = Fishing(v);
+    auto* farm = static_cast<FishFarm*>(v.target);
+    if (now && !was && farm && v.GetTown() && !farm->villagers.Has(&v)) farm->villagers.Add(&v);
+    if (was && !now) {
+        if (farm) farm->villagers.Remove(&v);
+        v.target = nullptr;
+    }
+}
+
 // vslot 569 (sub_6E1B90), the core: the new state, its turn count from zero.
 // ponytail: the original first may divert a frail villager into
-// PauseForASecond (239), and runs the exit/enter slots of the state table.
+// PauseForASecond (239), and runs every state's exit/enter slots; only the
+// fishing states' are translated.
 void SetState(Villager& v, uint8_t s) {
+    const bool was = Fishing(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = s;
+    if (IsFishingState(v.action.final_state) && !IsFishingState(s)) v.action.final_state = s;  // a stale goal must not keep it a fisherman
     v.action.turns_since_state_change = 0;
+    FishingSlots(v, was);
 }
 
 // sub_5B0E40: walk (the state at villager info +292) to pos, then enter `arrive`.
 void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     uint8_t walk = InfoB(v, 292);
     if (!walk) walk = VILLAGER_STATE_MOVE_TO_POS;
+    const bool was = Fishing(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = walk;
     v.action.final_state = arrive;
@@ -46,6 +67,7 @@ void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     MapCoords p = pos;
     p.altitude = GetTerrainHeightAt(MetresOf(p.x), MetresOf(p.z));
     v.SetGoalPos(p);
+    FishingSlots(v, was);
 }
 // sub_5AC660. ponytail: the original asks the object for its own approach
 // (vslot 32, e.g. an abode's door); straight to its position here.
@@ -365,6 +387,121 @@ void Upkeep(Villager& v) {
     FoodDrain(v);
 }
 
+// --- work: the store, the food job, fishing ----------------------------------
+
+// sub_6DF670 -> sub_6DF550(0.5, x): how much a distance d within `range`
+// still counts -- a sigmoid read from the 41-entry table at 0xB461D4.
+float Falloff(float d, float range) {
+    static const uint32_t kTable[41] = {
+        0x00000000, 0x317763df, 0x322bcc77, 0x32f084a7, 0x33a71301, 0x34684017, 0x35218b62,
+        0x35e0ae34, 0x369c419b, 0x375955de, 0x38172465, 0x38d235bd, 0x39922a17, 0x3a4b32f9,
+        0x3b0d1eb3, 0x3bc38892, 0x3c868d9b, 0x3d35d41d, 0x3dea5e18, 0x3e8762a1, 0x3f000000,
+        0x3f3c4eb0, 0x3f62b43d, 0x3f74a2be, 0x3f7bcb93, 0x3f7e78ef, 0x3f7f72e1, 0x3f7fcd33,
+        0x3f7fedbb, 0x3f7ff96e, 0x3f7ffda3, 0x3f7fff27, 0x3f7fffb2, 0x3f7fffe4, 0x3f7ffff6,
+        0x3f7ffffc, 0x3f7fffff, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000};
+    float x = 1.0f - (d < range ? d : range) / range;
+    x = x < -1.0f ? -1.0f : (x > 1.0f ? 1.0f : x);
+    float y = x - 0.5f;
+    y = y < -1.0f ? -1.0f : (y > 1.0f ? 1.0f : y);
+    int i = static_cast<int>((y + 1.0f) * 20.5f);  // _ftol: truncation
+    if (i > 40) i = 40;
+    float r;
+    std::memcpy(&r, &kTable[i], 4);
+    return r;
+}
+
+int CarryCapacity(const Villager& v) { return static_cast<int>(InfoU(v, 612)); }
+int RoomToCarry(const Villager& v) { return CarryCapacity(v) - v.resource_held[0]; }  // sub_6E11C0
+
+// sub_6E1210: what the villager carries, food first when it has more of it.
+int Carried(const Villager& v, RESOURCE_TYPE* type) {
+    if (v.resource_held[0] > v.resource_held[1]) { *type = static_cast<RESOURCE_TYPE>(0); return v.resource_held[0]; }
+    *type = static_cast<RESOURCE_TYPE>(1);
+    return v.resource_held[1];
+}
+
+// sub_6E3900, simplified: where it would drop things off -- the store, else
+// its town. ponytail: without a store the original asks the town for a spot
+// (sub_6D1550).
+MapCoords DropOffSpot(Villager& v) {
+    if (Abode* store = Store(v); Usable(store)) return store->coords;
+    if (Town* t = v.GetTown()) return t->coords;
+    return v.coords;
+}
+
+// sub_6F7670 (state 31's function): take what it carries to the store.
+bool GotoStoragePit(Villager& v) {
+    if (Abode* store = Store(v); Usable(store)) {
+        MoveToObjectThen(v, store, VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF);
+        return true;
+    }
+    RESOURCE_TYPE type;
+    if (Carried(v, &type) && static_cast<int>(type) < 2) {
+        MoveToPosThen(v, DropOffSpot(v), VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF);
+        return true;
+    }
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+    return false;
+}
+
+// sub_6F7720 (32): put one kind of what it carries into the store
+// (vslot 39, AddResource), then decide.
+// ponytail: without a store the original puts it on something in town.
+void ArrivesAtStoragePit(Villager& v) {
+    RESOURCE_TYPE type;
+    const int n = Carried(v, &type);
+    if (Abode* store = Store(v); n && Usable(store)) {
+        const uint32_t put = store->AddResource(type, static_cast<uint32_t>(n), nullptr, false, store->coords, 0);
+        int16_t& held = v.resource_held[static_cast<int>(type)];  // sub_6E0FB0
+        held = static_cast<int16_t>(held - static_cast<int>(put < static_cast<uint32_t>(held) ? put : static_cast<uint32_t>(held)));
+    }
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
+// sub_503700: a fish farm's pull -- 1 while nobody fishes it, else 0 (the
+// original truncates 1 - fishermen / info +288 to an integer).
+float FishFarmPull(const FishFarm* f) {
+    float k = static_cast<float>(f->villagers.count) / static_cast<float>(static_cast<int32_t>(
+        f->info ? *reinterpret_cast<const uint32_t*>(reinterpret_cast<const char*>(f->info) + 288) : 1));
+    if (k > 1.0f) k = 1.0f;
+    return static_cast<float>(static_cast<int>(1.0f - k));
+}
+
+// sub_6EA5F0: off to fish at a farm.
+bool GoFishing(Villager& v, FishFarm* farm) {
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+    v.target = farm;
+    MoveToObjectThen(v, farm, VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING);
+    return true;
+}
+
+// sub_6E9100: the Food desire's handler. The town's food sources are ranked
+// by pull x distance falloff -- fish farms within 500 m (sub_6D13A0), fields
+// within 300 m (sub_6D14C0), and a third list at town +0xF00 (sub_6D1440)
+// -- against taking what it already carries to the store (how full its hands
+// are x the store's falloff within 500 m). The best wins.
+// ponytail: fields (their crops and the farming states 67-69) and the third
+// source are not translated, so they never outrank a farm.
+bool FoodJob(Villager& v) {
+    Town* t = v.GetTown();
+    if (!t) return false;
+    FishFarm* best = nullptr;
+    float best_score = 0.0f;
+    for (LHNode* n = t->fish_farms.head; n; n = n->next) {
+        auto* f = static_cast<FishFarm*>(n->obj);
+        const float sc = FishFarmPull(f) * Falloff(DistanceM(f->coords, v.coords), 500.0f);
+        if (sc > best_score) { best_score = sc; best = f; }
+    }
+    const float full = 1.0f - (static_cast<float>(RoomToCarry(v)) + 0.00001f) / (static_cast<float>(CarryCapacity(v)) + 0.00001f);
+    if (Falloff(DistanceM(DropOffSpot(v), v.coords), 500.0f) * full > best_score) return GotoStoragePit(v);
+    return best && GoFishing(v, best);
+}
+
+// sub_6EA700: standing in the farm's cell.
+bool AtFarm(const Villager& v, const Object* farm) {
+    return (v.coords.x >> 16) == (farm->coords.x >> 16) && (v.coords.z >> 16) == (farm->coords.z >> 16);
+}
+
 // --- states -----------------------------------------------------------------
 
 void MoveToPos(Villager& v) {  // 1, sub_5AAE80. ponytail: straight-line walking
@@ -497,12 +634,49 @@ void EatFoodAtHome(Villager& v) {  // 118, 0x6EB080: top up from home, eat, AtHo
     SetState(v, VILLAGER_STATE_AT_HOME);
 }
 
+void FishermanArrivesAtFishing(Villager& v) {  // 55, sub_6EA660
+    Object* farm = v.target;
+    if (!farm) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    if (!AtFarm(v, farm)) { MoveToObjectThen(v, farm, VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING); return; }
+    // ponytail: sub_5C1400 / sub_6F1FF0 move it to a free spot first when its
+    // own is taken; it fishes where it stands.
+    SetState(v, VILLAGER_STATE_FISHING);
+}
+
+// The fishing cast's length. The original waits out the animation
+// (sub_5AB3C0: turns x dword_C22D78 against the clip's length); we have no
+// clip lengths in core yet.
+constexpr uint16_t kFishingCastTurns = 20;  // ponytail: a stand-in for the clip length
+
+void Fishing(Villager& v) {  // 56, sub_6EA730
+    auto* farm = static_cast<FishFarm*>(v.target);
+    if (!farm) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    if (v.action.turns_since_state_change < kFishingCastTurns) return;
+    v.action.turns_since_state_change = 0;
+    if (lh::Random(farm->villagers.count) != 0) return;  // one chance in (fishermen)
+    // A catch: a quarter of a full load x the season (spring 1.0, summer 0.9,
+    // autumn 0.7, winter 0.6, sub_529350) x the player's fishing skill (player
+    // +104 + 4 x 7, vslot 434), no more than there is room for.
+    // ponytail: spring always -- the season follows a game clock whose start
+    // (GGameInfo +32) is set at runtime; and there are no players yet (skill 1).
+    const float season = 1.0f;
+    const float room = static_cast<float>(RoomToCarry(v));
+    float catch_ = static_cast<float>(CarryCapacity(v)) * 0.25f * season;
+    if (catch_ > room) catch_ = room;
+    const int n = static_cast<int>(catch_);
+    if (n) v.resource_held[0] = static_cast<int16_t>(v.resource_held[0] + n);  // sub_6E1180
+    if (static_cast<float>(RoomToCarry(v)) < static_cast<float>(n) || RoomToCarry(v) == 0) GotoStoragePit(v);
+}
+
+void ArrivesAtStoragePitForDropOff(Villager& v) { ArrivesAtStoragePit(v); }  // 32
+
 void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 (sub_6F85B0)
 
 }  // namespace
 }  // namespace vs
 
 bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
+bool VillagerFoodHandler(Villager* v) { return vs::FoodJob(*v); }
 
 // vslot 392 (sub_6E01E0): the state, then the upkeep (sub_6E05D0) unless
 // +0xE0 bit 11 asks for a timed transition instead. ponytail: the second
@@ -523,6 +697,10 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_SLEEPING_AT_HOME: vs::SleepingAtHome(*this); break;
     case VILLAGER_STATE_GO_AND_CHILLOUT_OUTSIDE_HOME: vs::GoAndChilloutOutsideHome(*this); break;
     case VILLAGER_STATE_SIT_AND_CHILLOUT: vs::SitAndChillout(*this); break;
+    case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_DROP_OFF: vs::GotoStoragePit(*this); break;
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF: vs::ArrivesAtStoragePitForDropOff(*this); break;
+    case VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING: vs::FishermanArrivesAtFishing(*this); break;
+    case VILLAGER_STATE_FISHING: vs::Fishing(*this); break;
     case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD: vs::GotoStoragePitForFood(*this); break;
     case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD: vs::ArrivesAtStoragePitForFood(*this); break;
     case VILLAGER_STATE_EAT_FOOD: vs::EatFood(*this); break;

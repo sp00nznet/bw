@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- The food job and fishing (`docs/villager-states.md`): the Food desire sends villagers
+  to the town's fish farms; they fish and take the catch to the storage pit. Fish
+  farms and fields go on their towns' lists as v1.0's constructors put them.
 - Villager upkeep, eating and death (`docs/villager-states.md`): food drains each
   turn, hunger costs life and sends villagers to their home or the town's storage
   pit to eat, tired villagers go home, children grow up, and old age or starvation

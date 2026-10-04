@@ -86,7 +86,7 @@ struct Villager : public Living {
     Villager* mother;                      // 0x104
     GPlayer* last_player_to_interact;      // 0x108
     float    field_0x10c;                  // 0x10C
-    float    field_0x110;                  // 0x110
+    Object*  target;                       // 0x110 — v1.0 this[68]: the farm or field worked
     uint32_t field_0x114;                  // 0x114
     FireEffect* villager_fire_effect;      // 0x118
     GameThing* target_thing;               // 0x11C

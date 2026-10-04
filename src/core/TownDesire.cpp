@@ -239,13 +239,14 @@ void TownDesire::Process() {
 }
 
 // The villager handler for each desire (table +64): the villager-side answer.
-// ponytail: only Sleep is translated; Relaxation's (sub_6EFF60) asks the town
+// ponytail: only Food and Sleep are translated; Relaxation's (sub_6EFF60) asks the town
 // for a place to relax (Town vslot 20), which needs objects we do not create;
 // the job handlers (food, wood, building, ...) come next.
 bool VillagerSleepHandler(Villager* v);  // VillagerStates.cpp, sub_6EFF90
+bool VillagerFoodHandler(Villager* v);   // VillagerStates.cpp, sub_6E9100
 namespace {
 using Handler = bool (*)(Villager*);
-const Handler kHandler[17] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+const Handler kHandler[17] = {VillagerFoodHandler, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                               nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                               VillagerSleepHandler};
 // Table +96: desires a child may be given (from the table at 0xCC3F60).

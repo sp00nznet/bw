@@ -2,6 +2,7 @@
 // their abodes and housed villagers come out linked, and the world survives
 // simulation turns. Needs game_data/ (Land1.txt, info.dat); skips without it.
 #include <black/Abode.h>
+#include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LevelLoader.h>
 #include <black/Terrain.h>
@@ -181,6 +182,33 @@ int main() {
                       visited[VILLAGER_STATE_EAT_FOOD] + visited[VILLAGER_STATE_EAT_FOOD_AT_HOME], pit_food0, pit_food1);
         CHECK(visited[VILLAGER_STATE_EAT_FOOD] + visited[VILLAGER_STATE_EAT_FOOD_AT_HOME] > 0 && pit_food1 < pit_food0, msg);
         CHECK(food1 != food0, "food drains (sub_6EACC0)");
+
+        // The food job (sub_6E9100): empty the village's store and the Food
+        // desire rises; villagers go fishing at the town's farms (55/56) and
+        // bring the catch back (31/32).
+        Town* village = level::FindTown(w, 0);
+        uint32_t farms = 0;
+        for (Town* t : w.towns) farms += t->fish_farms.count;
+        if (pit) pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), pit->GetResource(static_cast<RESOURCE_TYPE>(0)), nullptr, nullptr);
+        std::map<int, int> job;
+        uint32_t most_fishers = 0;
+        for (int turn = 0; turn < 3000; ++turn) {
+            level::Process(w);
+            for (auto& p : start) ++job[p.first->action.top_state];
+            for (LHNode* n = village->fish_farms.head; n; n = n->next) {
+                const uint32_t c = static_cast<FishFarm*>(n->obj)->villagers.count;
+                if (c > most_fishers) most_fishers = c;
+            }
+        }
+        const uint32_t pit_food2 = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
+        printf("      %u fish farms (village %u); store emptied: Food desire %.3f; villager-turns fishing %d, at the store %d;"
+               " most fishermen at one farm %u; store food now %u\n",
+               farms, village->fish_farms.count, village->desire.desire[0],
+               job[VILLAGER_STATE_FISHING], job[VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF], most_fishers, pit_food2);
+        CHECK(farms == 13, "13 fish farms on their towns' lists (sub_502970)");
+        std::snprintf(msg, sizeof msg, "with the store empty, villagers fish (%d villager-turns) and land the catch in the store (%u food)",
+                      job[VILLAGER_STATE_FISHING], pit_food2);
+        CHECK(job[VILLAGER_STATE_FISHING] > 0 && pit_food2 > 0, msg);
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
     }

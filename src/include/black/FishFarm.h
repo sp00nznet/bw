@@ -5,6 +5,7 @@
 // Size: 0x98 bytes (inherits 0x7C from MultiMapFixed)
 // Vtable: extends MultiMapFixed
 
+#include "LHNodeList.h"
 #include "MultiMapFixed.h"
 
 // Forward declarations
@@ -12,11 +13,6 @@ struct ControlHandUpdateInfo;
 struct LHOSFile;
 
 // Lionhead linked list of Villagers (LHLinkedList<Villager>)
-struct LHLinkedList_Villager {
-    void*    head;   // 0x0
-    uint32_t count;  // 0x4
-};
-static_assert(sizeof(LHLinkedList_Villager) == 0x8, "LHLinkedList_Villager size mismatch");
 
 struct FishFarm : public MultiMapFixed {
     // === Overrides of Base/GameThing virtuals ===
@@ -78,7 +74,7 @@ struct FishFarm : public MultiMapFixed {
 
     // === Fields ===
     FishFarm*              next;       // 0x7C — linked list next
-    LHLinkedList_Villager  villagers;  // 0x80 — villagers working here
+    LHNodeList             villagers;  // 0x80 — its fishermen (sub_503660 / sub_5036A0)
     uint32_t               field_0x88; // 0x88
     Town*                  town;       // 0x8C
     float                  field_0x90; // 0x90

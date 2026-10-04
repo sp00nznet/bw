@@ -5,6 +5,8 @@
 
 #include <black/Abode.h>
 #include <black/EntityFactory.h>
+#include <black/Field.h>
+#include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/Living.h>
 #include <black/MultiMapFixed.h>
@@ -208,9 +210,30 @@ struct Loader {
         if (a.size() < 3 || !ParsePos(a[1].s, x, z)) return false;
         Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
         if (!town) return false;
+        if (cat == ENTITY_CAT_FISH_FARM) {
+            // sub_502C80: the farm sits at its cell's centre.
+            const MapCoords c = MapCoordsFromMetres(x, z);
+            x = MetresOf((c.x & ~0xFFFF) | 0x8000);
+            z = MetresOf((c.z & ~0xFFFF) | 0x8000);
+        }
         Object* o = Make(cat, cmd, x, z, angle, 1.0f, a[2].n);
         if (!o) return false;
+        if (cat == ENTITY_CAT_FISH_FARM) {
+            // sub_502970: the nearest town (sub_6CE6D0, any player, no range
+            // limit) wins over the script's; the farm goes on its list.
+            auto* farm = static_cast<FishFarm*>(o);
+            Town* best = town;
+            float best_d = 3.4e38f;
+            for (Town* t : w.towns) {
+                const float dx = MetresOf(t->coords.x - o->coords.x), dz = MetresOf(t->coords.z - o->coords.z);
+                if (dx * dx + dz * dz < best_d) { best_d = dx * dx + dz * dz; best = t; }
+            }
+            farm->town = best;
+            best->fish_farms.Add(farm);
+            return true;
+        }
         town->AddStructureToTown(static_cast<MultiMapFixed*>(o));
+        if (cat == ENTITY_CAT_FIELD) town->field_list.Add(o);  // sub_4FEB10
         return true;
     }
 
