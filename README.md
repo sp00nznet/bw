@@ -32,6 +32,12 @@ Two habits did most of the work. First, whole class families share a vtable shap
 
 ### What works right now
 
+![Land 1 from the native level loader](docs/screenshots/land1-native-loader.png)
+
+**World (native level loader)**
+- Land scripts load through the game's own command table and handlers (`docs/level-loader.md`): Land 1 builds 6 towns, 57 abodes owned by their towns, 24 villagers housed in the homes the script names, fields, fish farms, trees, animals and features, 1,946 objects in all, each with its `info.dat` record (`docs/info-dat.md`)
+- Play mode draws that world and the turn processes it: towns, then every object
+
 **Rendering**
 - L3D mesh loader (bind pose + bones preserved for runtime CPU skinning)
 - G3D archive loader (622/626 meshes, 111K verts, 101K tris with DXT1/DXT3 textures)
@@ -64,8 +70,8 @@ Two habits did most of the work. First, whole class families share a vtable shap
   - Chunk 7: GET_INFLUENCE walks real sources, timers, calendar, walk paths, dance, animation modify, AVI sequence
   - Chunk 8: mini-games (arena/football), immersion, fades, save slot, per-object extras
 - Sim throttled to BW's 10 Hz via accumulator-based main loop
-- CHL bytecode loader + 31-opcode stack VM + task management
-- `Land1.txt` / `challenge.chl` load on startup; auto-start scripts tick each frame
+- CHL v7 loader: the shipped `Challenge.chl` parses to its last byte (514 scripts, 156,778 instructions), variables resolve as the compiled code addresses them. Until 2026-10-03 the loader hung on this file, so no story script had ever run; the opcode semantics are still unverified against the game's interpreter (`docs/chl-format.md`)
+- Auto-start scripts tick each frame
 
 **Host integration (viewer ↔ bw_core)**
 - Hand position + clicks → LHVM (`GET_HAND_POSITION/STATE`, `GAME_THING_CLICKED`, `POSITION_CLICKED`)
