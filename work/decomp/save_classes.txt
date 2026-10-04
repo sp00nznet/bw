@@ -1,8 +1,0 @@
-GameOSFile
-Base
-GameThing
-GameThingWithPos
-Object
-Rock
-Tree
-Abode

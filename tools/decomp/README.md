@@ -1,5 +1,9 @@
 # BW decompilation pipeline (class → pseudocode)
 
+> **Output is never distributed.** Everything these tools write under `work/decomp/`
+> and `work/decompiled/` is derived from your own copy of the binary and is gitignored.
+> Run them locally against your own disc to reproduce it.
+
 Recovers C pseudocode for the original game's class methods, to translate into
 `src/`. Two independent decompilers (IDA primary, Ghidra cross-check) so any
 non-trivial body can be diffed for confidence.

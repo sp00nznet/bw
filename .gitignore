@@ -68,3 +68,24 @@ __pycache__/
 work/sample.mp2
 work/sample_decoded.wav
 work/test_decompile_output.txt
+
+# Material derived from the proprietary binary never ships (REPO_RULES s3):
+# decompiler output, address lists, RTTI/vtable maps. The scripts that
+# produce it are tracked; their output lands here, locally.
+work/decomp/
+work/decompiled/
+work/decompiled_*.txt
+work/ghidra_chunk1_town.txt
+work/functions.csv
+work/rtti_classes.csv
+work/vtable_data.*
+work/vtable_match_summary.txt
+work/*_addresses.txt
+work/patch_v120/
+work/game_v120/
+work/clean/
+work/safedisc_strip/
+work/psys_rtti_classes.txt
+work/patch_log.txt
+work/sample*.mp2
+work/sample*.wav
