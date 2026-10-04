@@ -6,6 +6,13 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- Villagers run (`docs/villager-states.md`). This is v1.0's living pass and villager
+  tick, with the decision core: town emergencies, homeless villagers moving in, work
+  offered from the town's desires, sleep, and idling. The home and sleep states and
+  the chill states are in, plus the game's own random generator. Before this, nothing
+  ticked villagers at all.
+- The town tick in v1.0's shape (`docs/town-economy.md`): the 17 desires, and abodes
+  run, worn and counted by their town.
 - The v1.0 constructors for towns, abodes and villagers, and v1.0 housing: towns get
   identity, belief caps and desire weights; abodes join their town with an index and
   look for drinking water (the original's spiral cell search); villagers get age,
@@ -27,6 +34,8 @@ history before this file lives in the README's batch log and `git log`.
 - `tools/run_tests.cmd`: runs every test exe and fails on any failure (netlab's QA for bw).
 
 ### Fixed
+- `VILLAGER_STATES` used v1.41-era numbers for 47 states (85 as DECIDE_WHAT_TO_DO). It is
+  now v1.0's 256 states (chlasm's `GStates.h`, matching the binary's state table).
 - `Town` and `Villager` used the vendor's v1.41 layouts. v1.0's constructors put Town
   at 0xF20 (no `forests` pair at 0x608) and Villager at 0x128 (home +0x120, town
   +0x124). Both headers now match, with `offsetof` asserts on the constructor's offsets.
