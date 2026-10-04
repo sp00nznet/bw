@@ -38,6 +38,7 @@
 #include "helptext.h"
 #include "sad_loader.h"
 #include "psys_fx.h"
+#include "miracles.h"
 
 #include <black/PSysEngine.h>
 
@@ -75,6 +76,7 @@ static int             g_current_mesh = 0;
 static bw::L3DModel*  g_active_model = nullptr;
 static int             g_mouse_x = 0, g_mouse_y = 0;
 static bool            g_lmb_down = false, g_rmb_down = false;
+static bool            g_mmb_drawing = false;  // middle mouse held: drawing a gesture
 
 static std::map<uint32_t, GLuint> g_gl_textures; // skin_id → GL texture
 
@@ -797,6 +799,10 @@ static void RenderHUD() {
     snprintf(line, sizeof(line), "Hand: (%6.1f,%6.1f,%6.1f)  hover=%d held=%d",
              g_game.hand.x, g_game.hand.y, g_game.hand.z, hover, held);
     DrawText2D(8, 36, line);
+    if (g_game_mode) {
+        const std::string m = "Miracle: " + miracles::Status();
+        DrawText2D(8, 144, m.c_str());
+    }
 
     // Animation system stats
     lhvm::ActiveAnimView active[32];
@@ -939,6 +945,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
     case WM_LBUTTONDOWN:
         g_lmb_down = true;
+        if (g_game_mode && miracles::Holding()) {  // cast the miracle in the hand
+            miracles::Cast(g_game.world, g_game.hand.x, g_game.hand.z);
+            return 0;
+        }
         if (g_game_mode) {
             // Latch the click for the LHVM so GAME_THING_CLICKED /
             // POSITION_CLICKED / GET_OBJECT_CLICKED can fire from scripts.
@@ -974,6 +984,21 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             g_game.DropEntity();
         }
         g_dragging = false; ReleaseCapture(); return 0;
+    case WM_MBUTTONDOWN:
+        if (g_game_mode) {
+            g_mmb_drawing = true;
+            miracles::StrokeBegin();
+            miracles::StrokePoint(static_cast<float>(LOWORD(lp)), static_cast<float>(HIWORD(lp)));
+            SetCapture(hwnd);
+        }
+        return 0;
+    case WM_MBUTTONUP:
+        if (g_mmb_drawing) {
+            g_mmb_drawing = false;
+            miracles::StrokeEnd(static_cast<float>(g_width) / static_cast<float>(g_height));
+            ReleaseCapture();
+        }
+        return 0;
     case WM_RBUTTONUP:
         g_rmb_down = false;
         g_zooming = false; ReleaseCapture(); return 0;
@@ -981,6 +1006,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     case WM_MOUSEMOVE:
         g_mouse_x = LOWORD(lp);
         g_mouse_y = HIWORD(lp);
+        if (g_mmb_drawing) miracles::StrokePoint(static_cast<float>(g_mouse_x), static_cast<float>(g_mouse_y));
         if (g_dragging) {
             int mx = LOWORD(lp), my = HIWORD(lp);
             g_cam_yaw   += (mx - g_last_mx) * 0.5f;
@@ -1065,6 +1091,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Failed to init game: %s\n", path.c_str());
             return 1;
         }
+        miracles::Init(path.substr(0, path.find_last_of("/\\") + 1));
         // Copy game data to the globals used by the renderer
         g_landscape = g_game.terrain;
         g_archive = g_game.meshes;

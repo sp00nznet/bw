@@ -154,6 +154,26 @@ The magic info offsets are read 4 bytes earlier than v1.0's code reads them. Thi
 inferred from the values (it makes the food-or-wood field 0 or 1), and the MAGIC_*
 loader path is not yet walked to prove it.
 
-Not yet: feeding the mouse into the trail in the viewer, the hand's other gesture
-modes, and casting. Casting means the chosen seed in the hand, then the spell made by
-its magic info, then the spell's effect.
+## In the viewer
+
+In play mode (`bw_viewer game_data/Land1.txt --play`), the hand works miracles:
+
+- **Hold the middle mouse button** and draw a spiral, then release.
+- **Draw the miracle's gesture** the same way (Food 3, Wood 6, and so on; see the table
+  above). The HUD's "Miracle:" line says what the hand holds.
+- **Left-click** to cast it under the hand. Food and wood land in a storage pit there;
+  other miracles say they are not translated yet.
+
+`viewer/miracles.cpp` is the glue. `test_level` drives it headlessly: it draws the
+spiral and Food's gesture as mouse strokes and casts on the village's pit, which gains
+200 food.
+
+Simplified:
+- Every miracle counts as known (Land 1 has no worship-site icons yet).
+- A stroke is matched when the button comes up. v1.0 matches every frame and starts
+  the trail again after each match.
+- A cast is one landing, so one first drop.
+
+Not yet: the hand's other gesture modes (power-ups, cancelling, the creature's
+gestures), the spell's particle effect, piles where no store takes the drop, and the
+other miracles' effects.

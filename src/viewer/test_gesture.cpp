@@ -86,11 +86,12 @@ int main() {
         const uint32_t n = infodat::Count(infodat::DETAIL_SPELL_SEEDS);
         for (uint32_t i = 0; i < n; ++i) {
             const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_SPELL_SEEDS, i));
-            int32_t magic[3], g[3], seq[4];
+            int32_t magic[3], g[3], seq[4], dflt;
+            std::memcpy(&dflt, e + 292, 4);
             std::memcpy(seq, e + 256, 16);
             std::memcpy(magic, e + 296, 12);
             std::memcpy(g, e + 308, 12);
-            printf("      seed %2u %-26s select %d,%d,%d (+268 %d)", i, infodat::DebugName(infodat::DETAIL_SPELL_SEEDS, i), seq[0], seq[1], seq[2], seq[3]);
+            printf("      seed %2u %-26s select %d,%d,%d (+268 %d) magic %d", i, infodat::DebugName(infodat::DETAIL_SPELL_SEEDS, i), seq[0], seq[1], seq[2], seq[3], dflt);
             for (int k = 0; k < 3; ++k) {
                 if (!magic[k]) continue;
                 ++stages;

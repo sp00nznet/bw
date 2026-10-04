@@ -10,6 +10,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Miracles in the viewer (`docs/gestures.md`): hold the middle mouse button to draw a
+  spiral and then a miracle's gesture, and left-click to cast. Food and wood land in a
+  storage pit under the hand.
 - Resource miracles' drops (`docs/gestures.md`): food and wood miracles' drop amounts
   from their magic info, and the drop into a nearby storage pit.
 - Choosing miracles by gesture (`docs/gestures.md`): v1.0's selection at a worship

@@ -15,6 +15,8 @@
 #include <black/Town.h>
 #include <black/Villager.h>
 #include "lnd_loader.h"
+#include "miracles.h"
+#include <black/Gesture.h>
 
 #include <cmath>
 #include <cstdio>
@@ -173,6 +175,41 @@ int main() {
               pit->GetResource(static_cast<RESOURCE_TYPE>(1)) == wood0 + w1.amount, msg);
         pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), f1.amount, nullptr, nullptr);  // leave the rest of the test as it was
         pit->RemoveResource(static_cast<RESOURCE_TYPE>(1), w1.amount, nullptr, nullptr);
+    }
+
+    // The viewer's hand (viewer/miracles.cpp): a spiral, then Food's gesture
+    // (1, 3), drawn as mouse strokes from the templates, then a click on the
+    // village's storage pit casts it there.
+    {
+        Town* v0 = level::FindTown(w, 0);
+        Object* pit = reinterpret_cast<Object*>(v0->storage_pit_list);
+        gesture::Templates t;
+        const bool ok = miracles::Init(root) && t.Load(root + "Gestures.jty");
+        auto draw = [&](int id) {
+            for (const gesture::Data& d : t.all) {
+                if (d.id != id) continue;
+                miracles::StrokeBegin();
+                for (int i = 0; i + 1 < d.count; ++i) {
+                    const float ax = 100 + d.pts[i].x * 200, ay = 100 + d.pts[i].y * 200;
+                    const float bx = 100 + d.pts[i + 1].x * 200, by = 100 + d.pts[i + 1].y * 200;
+                    const float len = std::sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+                    const int steps = len > 20 ? static_cast<int>(len / 20) : 1;
+                    for (int s = 0; s < steps; ++s) miracles::StrokePoint(ax + (bx - ax) * s / steps, ay + (by - ay) * s / steps);
+                }
+                miracles::StrokePoint(100 + d.pts[d.count - 1].x * 200, 100 + d.pts[d.count - 1].y * 200);
+                miracles::StrokeEnd(640.0f / 480.0f);
+                return;
+            }
+        };
+        draw(1);
+        draw(3);
+        const bool holding = miracles::Holding();
+        const uint32_t food0 = pit->GetResource(static_cast<RESOURCE_TYPE>(0));
+        const std::string r = miracles::Cast(w, MetresOf(pit->coords.x), MetresOf(pit->coords.z));
+        const uint32_t food1 = pit->GetResource(static_cast<RESOURCE_TYPE>(0));
+        std::snprintf(msg, sizeof msg, "the hand draws spiral + Food and casts on the pit: %s; food %u -> %u", r.c_str(), food0, food1);
+        CHECK(ok && holding && food1 > food0, msg);
+        pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), food1 - food0, nullptr, nullptr);
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);

@@ -348,6 +348,7 @@ add_executable(bw_viewer
     viewer/helptext.cpp
     viewer/sad_loader.cpp
     viewer/psys_fx.cpp
+    viewer/miracles.cpp
     viewer/third_party/kjmp2.c
 )
 target_link_libraries(bw_viewer PRIVATE bw_core opengl32 glu32)
@@ -478,6 +479,7 @@ set_target_properties(test_gesture PROPERTIES
 add_executable(test_level
     viewer/test_level.cpp
     viewer/lnd_loader.cpp
+    viewer/miracles.cpp
 )
 target_link_libraries(test_level PRIVATE bw_core)
 set_target_properties(test_level PROPERTIES
