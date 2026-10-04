@@ -27,6 +27,7 @@ add_library(bw_core STATIC
     core/SaveLoad.cpp
     core/SaveLoadTable.gen.cpp
     core/InfoDat.cpp
+    core/LevelLoader.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -458,6 +459,24 @@ add_executable(test_spawn
 )
 target_link_libraries(test_spawn PRIVATE bw_core)
 set_target_properties(test_spawn PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Land 1 through the native level loader, then simulation turns
+add_executable(test_level
+    viewer/test_level.cpp
+)
+target_link_libraries(test_level PRIVATE bw_core)
+set_target_properties(test_level PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# The shipped challenge script loads and runs (timed)
+add_executable(test_chl
+    viewer/test_chl.cpp
+)
+target_link_libraries(test_chl PRIVATE bw_core)
+set_target_properties(test_chl PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

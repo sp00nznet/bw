@@ -25,6 +25,9 @@ struct Field : public Abode {
     // === Overrides of GameThing virtuals ===
     GPlayer* GetPlayer() override;
     Town* GetTown() override;
+    // GetTown reads +0x118, so the setter must write it there too; the inherited
+    // Abode::SetTown writes +0x98 and the field would never know its town.
+    void SetTown(Town* t) override { town = t; }
     float Get2DRadius() override;
     char* GetDebugText() override;
     uint32_t Load(GameOSFile* file) override;

@@ -32,4 +32,10 @@ int MapAbodeToMesh(const std::string& tribe, const std::string& type);
 // Map a tree type ID to a mesh ID
 int MapTreeToMesh(int tree_type);
 
+// Mesh for an object the native level loader made (level::Spawned), or -1 for
+// kinds the viewer has no mesh table for yet. *scale_mul is the draw-scale
+// correction the viewer applies to that kind (villagers draw at 0.4).
+int MeshForSpawn(const std::string& command, const std::string& type_name, int type_index,
+                 float* scale_mul);
+
 } // namespace bw

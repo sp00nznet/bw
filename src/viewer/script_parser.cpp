@@ -139,6 +139,25 @@ int MapTreeToMesh(int tree_type) {
     return g_tree_meshes[0]; // fallback to beech
 }
 
+int MeshForSpawn(const std::string& cmd, const std::string& type, int index, float* scale_mul) {
+    *scale_mul = 1.0f;
+    if (cmd == "CREATE_ABODE" || cmd == "CREATE_TOWN_CENTRE") {
+        int m = MapAbodeToMesh("", type);
+        return m < 0 && cmd == "CREATE_TOWN_CENTRE" ? 179 : m;  // MSH_B_NORS_VILLAGECENTRE
+    }
+    if (cmd == "CREATE_VILLAGER_POS") {
+        *scale_mul = 0.4f;
+        auto it = g_villager_meshes.find(type);
+        return it != g_villager_meshes.end() ? it->second : 501;
+    }
+    if (cmd == "CREATE_NEW_TREE") return MapTreeToMesh(index);
+    if (cmd == "CREATE_NEW_ANIMAL")
+        return index >= 0 && index < g_animal_mesh_count ? g_animal_meshes[index] : 16;
+    if (cmd == "CREATE_MOBILE_STATIC")
+        return index >= 0 && index < g_mobile_static_mesh_count ? g_mobile_static_meshes[index] : 253;
+    return -1;
+}
+
 // Parse "x,z" coordinate string
 static bool ParseCoord(const char* s, float& x, float& z) {
     return sscanf(s, "%f,%f", &x, &z) == 2;

@@ -19,6 +19,7 @@
 #include "g3d_loader.h"
 #include "lnd_loader.h"
 #include "script_parser.h"
+#include <black/LevelLoader.h>
 
 // Forward-declare bw_core types
 struct Object;
@@ -43,6 +44,7 @@ struct GameEntity {
     // Simple physics
     float    vx, vy, vz;      // Velocity (for thrown objects)
     bool     physics_active;
+    float    scale_mul = 1.0f; // viewer draw-scale correction over the object's own scale
 };
 
 // Entity types
@@ -87,7 +89,8 @@ struct GameState {
     // World data
     Landscape              terrain;
     G3DArchive             meshes;
-    LevelScript            script;
+    LevelScript            script;   // world-viewer mode only; play mode loads `world`
+    level::World           world;    // the native level: towns + objects, the sim's authority
 
     // Live entities (viewer-side rendering data)
     std::vector<GameEntity> entities;
@@ -150,7 +153,7 @@ struct GameState {
     float GetTerrainHeight(float wx, float wz) const;
 
     // Spawn entities from script data
-    void SpawnEntitiesFromScript();
+    void SpawnEntitiesFromWorld();
 };
 
 } // namespace bw

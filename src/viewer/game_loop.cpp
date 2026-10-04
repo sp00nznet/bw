@@ -129,6 +129,8 @@ static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
 
     g->entities.push_back(e);
     g->core_entities.push_back(info->obj);
+    // Script-made objects join the world so the turn processes them too.
+    if (info->obj) g->world.objects.push_back({info->obj, "CHL_CREATE", "", -1});
 }
 
 static void HandQueryCallback(lhvm::HandInfo* out) {
@@ -307,15 +309,17 @@ bool GameState::Init(const std::string& script_path) {
         return false;
     }
 
-    // Parse script
-    printf("Game: Parsing level script...\n"); fflush(stdout);
-    if (!ParseLevelScript(script_path, script)) {
-        fprintf(stderr, "Game: Failed to parse script: %s\n", script_path.c_str());
+    // The level, through the game's own loader: towns, abodes, villagers and
+    // the rest as bw_core objects (core/LevelLoader.cpp).
+    printf("Game: Loading level...\n"); fflush(stdout);
+    std::string level_err;
+    if (!level::Load(script_path.c_str(), world, &level_err)) {
+        fprintf(stderr, "Game: Failed to load level: %s\n", level_err.c_str());
         return false;
     }
-
-    // Spawn entities (creates both viewer and bw_core entities)
-    SpawnEntitiesFromScript();
+    printf("Game: %d commands, %d handled, %zu towns, %zu objects\n",
+           world.commands, world.handled, world.towns.size(), world.objects.size());
+    SpawnEntitiesFromWorld();
 
     // Initialize LHVM scripting engine
     vm = nullptr;
@@ -370,8 +374,8 @@ bool GameState::Init(const std::string& script_path) {
     g_hand.Init();
 
     // Init camera at script's camera position
-    cam_x = script.camera_x;
-    cam_z = script.camera_z;
+    cam_x = world.camera_x;
+    cam_z = world.camera_z;
     cam_y = GetTerrainHeight(cam_x, cam_z) + 50.0f;
     cam_yaw = 30.0f;
     cam_pitch = 30.0f;
@@ -427,84 +431,37 @@ ANMSingle* GameState::LibraryPersonAnimByType(int32_t type) const {
     return &lib->animations[lib->person_ids[sel]];
 }
 
-void GameState::SpawnEntitiesFromScript() {
+// Render records for the loaded world, one per bw_core object, index-aligned
+// with core_entities. The objects themselves are the state; these carry only
+// what drawing needs. Objects under water are simulated but not drawn.
+void GameState::SpawnEntitiesFromWorld() {
     entities.clear();
     core_entities.clear();
-    entities.reserve(script.entities.size());
-    core_entities.reserve(script.entities.size());
-
-    int spawned = 0;
-    int core_spawned = 0;
-    for (const auto& se : script.entities) {
-        float y = GetTerrainHeight(se.x, se.z);
-        if (y < 2.0f) continue; // Skip water
-
+    for (const level::Spawned& sp : world.objects) {
+        Object* obj = sp.obj;
         GameEntity e;
-        e.x = se.x;
-        e.y = y;
-        e.z = se.z;
-        e.angle = se.angle;
-        e.scale = se.scale;
-        e.mesh_id = se.mesh_id;
-        e.name = se.type_name;
+        e.x = static_cast<float>(obj->coords.x) / 65536.0f;
+        e.z = static_cast<float>(obj->coords.z) / 65536.0f;
+        e.y = GetTerrainHeight(e.x, e.z);
+        if (e.y < 2.0f) continue;
+        e.mesh_id = MeshForSpawn(sp.command, sp.type_name, sp.type_index, &e.scale_mul);
+        e.angle = obj->y_angle;
+        e.scale = obj->scale * e.scale_mul;
+        e.name = sp.type_name.empty() ? sp.command : sp.type_name;
         e.alive = true;
         e.selected = false;
         e.vx = e.vy = e.vz = 0;
         e.physics_active = false;
-
-        // Determine type
-        EntityCategory core_category = ENTITY_CAT_FEATURE;
-        if (se.type_name.find("ABODE") != std::string::npos ||
-            se.type_name.find("TOWN") != std::string::npos) {
-            e.type = ENTITY_ABODE;
-            core_category = ENTITY_CAT_ABODE;
-        } else if (se.type_name == "TREE") {
-            e.type = ENTITY_TREE;
-            core_category = ENTITY_CAT_TREE;
-        } else if (se.type_name.find("FORESTER") != std::string::npos ||
-                   se.type_name.find("HOUSEWIFE") != std::string::npos ||
-                   se.type_name.find("SHEPHERD") != std::string::npos ||
-                   se.type_name.find("FISHERMAN") != std::string::npos) {
-            e.type = ENTITY_VILLAGER;
-            core_category = ENTITY_CAT_VILLAGER;
-        } else if (se.type_name == "ANIMAL") {
-            e.type = ENTITY_ANIMAL;
-        } else if (se.type_name == "MOBILE_STATIC") {
-            e.type = ENTITY_MOBILE;
-            core_category = ENTITY_CAT_MOBILE;
-        } else {
-            e.type = ENTITY_FEATURE;
-            core_category = ENTITY_CAT_FEATURE;
-        }
-
+        if (sp.command == "CREATE_ABODE" || sp.command == "CREATE_TOWN_CENTRE") e.type = ENTITY_ABODE;
+        else if (sp.command == "CREATE_NEW_TREE")      e.type = ENTITY_TREE;
+        else if (sp.command == "CREATE_VILLAGER_POS")  e.type = ENTITY_VILLAGER;
+        else if (sp.command == "CREATE_NEW_ANIMAL")    e.type = ENTITY_ANIMAL;
+        else if (sp.command == "CREATE_MOBILE_STATIC") e.type = ENTITY_MOBILE;
+        else                                           e.type = ENTITY_FEATURE;
         entities.push_back(e);
-
-        // Create corresponding bw_core entity
-        Object* core_obj = nullptr;
-        if (use_bw_core) {
-            EntityCreateParams params;
-            params.world_x = se.x;
-            params.world_z = se.z;
-            params.angle = se.angle;
-            params.scale = se.scale;
-            params.mesh_id = se.mesh_id;
-            params.type_enum = static_cast<uint32_t>(se.info_index);
-            // Generic placeholders ("TREE", "ANIMAL") name no record; real type names do.
-            params.type_name = se.info_index >= 0 ? "" : se.type_name.c_str();
-
-            core_obj = EntityFactory::CreateEntity(core_category, params);
-            if (core_obj) core_spawned++;
-        }
-        core_entities.push_back(core_obj);
-
-        spawned++;
+        core_entities.push_back(obj);
     }
-
-    printf("Game: Spawned %d viewer entities", spawned);
-    if (use_bw_core) {
-        printf(", %d bw_core entities", core_spawned);
-    }
-    printf("\n");
+    printf("Game: %zu entities to draw\n", entities.size());
     fflush(stdout);
 }
 
@@ -518,16 +475,8 @@ void GameState::ProcessTurn() {
         lhvm::TickSpells();
     }
 
-    // === Phase 1: Run bw_core game logic ===
-    if (use_bw_core) {
-        // Tick bw_core entities — this runs the real game simulation
-        for (size_t i = 0; i < core_entities.size(); i++) {
-            Object* obj = core_entities[i];
-            if (!obj) continue;
-            if (!obj->IsAvailable()) continue;
-            obj->Process();
-        }
-    }
+    // === Phase 1: Run bw_core game logic: towns, then every object ===
+    if (use_bw_core) level::Process(world);
 
     // === Phase 2: Sync bw_core state back to viewer entities ===
     if (use_bw_core) {
@@ -545,7 +494,7 @@ void GameState::ProcessTurn() {
 
             // Sync rotation and scale
             ve.angle = obj->y_angle;
-            ve.scale = obj->scale;
+            ve.scale = obj->scale * ve.scale_mul;
 
             // Sync alive state
             ve.alive = obj->IsAvailable() && obj->IsAlive();

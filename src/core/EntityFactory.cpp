@@ -5,6 +5,15 @@
 #include <black/Object.h>
 #include <black/Tree.h>
 #include <black/Abode.h>
+#include <black/StoragePit.h>
+#include <black/Creche.h>
+#include <black/Workshop.h>
+#include <black/Wonder.h>
+#include <black/Graveyard.h>
+#include <black/TownCentre.h>
+#include <black/Field.h>
+#include <black/FishFarm.h>
+#include <black/MobileObject.h>
 #include <black/Villager.h>
 #include <black/Rock.h>
 #include <black/Bonfire.h>
@@ -60,6 +69,10 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
     case ENTITY_CAT_MOBILE:
     case ENTITY_CAT_ROCK:     obj = CreateMobileStatic(params); break;
     case ENTITY_CAT_CREATURE: obj = CreateCreature(params);     break;
+    case ENTITY_CAT_ANIMAL:   obj = CreateAnimal(params);       break;
+    case ENTITY_CAT_MOBILE_OBJECT: obj = CreateMobileObject(params); break;
+    case ENTITY_CAT_FIELD:    obj = CreateField(params);        break;
+    case ENTITY_CAT_FISH_FARM: obj = CreateFishFarm(params);    break;
     default: {
         // Generic feature fallback — allocate a Feature
         Feature* feat = new Feature();
@@ -87,11 +100,29 @@ Object* CreateTree(const EntityCreateParams& params) {
     return tree;
 }
 
+// The concrete class an abode record asks for, by GAbodeInfo::abodeType
+// (info + 0x120) -- the same switch sub_401BA0 makes before construction.
+// Types with no class of ours yet (totem 20, football pitch 4100, spell
+// dispenser 8196) fall back to a plain Abode.
+static Abode* NewAbodeFor(const GObjectInfo* info) {
+    int32_t type = 2;
+    if (info) std::memcpy(&type, reinterpret_cast<const char*>(info) + 0x120, 4);
+    switch (type) {
+    case 36:   return new StoragePit();
+    case 68:   return new Creche();
+    case 132:  return new Workshop();
+    case 256:  return new Wonder();
+    case 516:  return new Graveyard();
+    case 1028: return new TownCentre();
+    default:   return new Abode();
+    }
+}
+
 Object* CreateAbode(const EntityCreateParams& params) {
-    Abode* abode = new Abode();
-    if (!abode) return nullptr;
+    const GObjectInfo* info = InfoFor(infodat::DETAIL_ABODE_INFO, params);
+    Abode* abode = NewAbodeFor(info);
     InitObjectFromParams(abode, params);
-    abode->info = InfoFor(infodat::DETAIL_ABODE_INFO, params);
+    abode->info = info;
 
     // Start fully built
     abode->percent_built = 1.0f;
@@ -125,6 +156,40 @@ Object* CreateMobileStatic(const EntityCreateParams& params) {
     rock->info = InfoFor(infodat::DETAIL_MOBILE_STATIC_INFO, params);
 
     return rock;
+}
+
+Object* CreateAnimal(const EntityCreateParams& params) {
+    // ponytail: one Animal class for every species; the 17 species subclasses
+    // differ in virtuals we have not translated yet. Add a switch on the
+    // species when one of them needs its own behaviour.
+    Animal* animal = new Animal();
+    InitObjectFromParams(animal, params);
+    animal->info = InfoFor(infodat::DETAIL_ANIMAL_INFO, params);
+    return animal;
+}
+
+Object* CreateMobileObject(const EntityCreateParams& params) {
+    MobileObject* mo = new MobileObject();
+    InitObjectFromParams(mo, params);
+    mo->info = InfoFor(infodat::DETAIL_MOBILE_OBJECT_INFO, params);
+    return mo;
+}
+
+Object* CreateField(const EntityCreateParams& params) {
+    Field* field = new Field();
+    InitObjectFromParams(field, params);
+    field->info = InfoFor(infodat::DETAIL_FIELD_TYPE_INFO, params);
+    field->percent_built = 1.0f;
+    field->InsertMapObject();
+    return field;
+}
+
+Object* CreateFishFarm(const EntityCreateParams& params) {
+    FishFarm* farm = new FishFarm();
+    InitObjectFromParams(farm, params);
+    farm->info = InfoFor(infodat::DETAIL_FISH_FARM_INFO, params);
+    farm->InsertMapObject();
+    return farm;
 }
 
 Object* CreateCreature(const EntityCreateParams& params) {

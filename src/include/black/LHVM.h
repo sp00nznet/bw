@@ -560,7 +560,9 @@ struct VMScript {
     char      name[256];        // 0x000 — script name
     char      filename[256];    // 0x100 — source filename
     VMScriptType script_type;   // 0x200 — what kind of script
-    uint32_t  global_count;     // 0x204 — number of local variables
+    uint32_t  global_count;     // 0x204 — number of local variables (the CHL's var_count)
+    uint32_t  var_offset;       // variable ids above this are locals: local[id - var_offset - 1];
+                                // ids at or below it are globals: global[id - 1] (docs/chl-format.md)
     uint32_t  instruction_addr; // 0x208 — IP of first instruction
     uint32_t  param_count;      // 0x20C — number of parameters
     uint32_t  script_id;        // 0x210 — unique ID
@@ -639,6 +641,7 @@ struct LHVM {
 
     // Methods
     bool LoadBinary(const char* path);
+    float* VarSlot(VMTask* task, uint32_t id);  // variable id -> local or global slot
     void FreeBinary();
     uint32_t StartScript(const char* name);
     uint32_t StartScriptByID(uint32_t script_id);

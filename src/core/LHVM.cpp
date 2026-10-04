@@ -14,6 +14,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
+#include <cstdio>
+#include <vector>
 
 // Forward-declare to avoid including Game.h/GCamera.h (which pull in Base with
 // virtual destructors, causing linker issues when viewer links bw_core).
@@ -2185,83 +2188,101 @@ void LHVM::InitNativeFunctions() {
 // CHL file loading
 // ============================================================================
 
+// Compiled CHL, version 7 (docs/chl-format.md). Parsed from memory with every
+// read bounds-checked: the old stream reader looped forever on a string that
+// ran into end of file, which is what a misread script record produces.
+namespace {
+struct ChlReader {
+    const uint8_t* p;
+    const uint8_t* end;
+    bool ok = true;
+    uint32_t U32() {
+        if (end - p < 4) { ok = false; return 0; }
+        uint32_t v; std::memcpy(&v, p, 4); p += 4; return v;
+    }
+    // A NUL-terminated string, copied into dst (truncated to cap) when given.
+    void Str(char* dst = nullptr, size_t cap = 0) {
+        const uint8_t* z = static_cast<const uint8_t*>(std::memchr(p, 0, end - p));
+        if (!z) { ok = false; p = end; return; }
+        if (dst && cap) {
+            size_t n = std::min<size_t>(z - p, cap - 1);
+            std::memcpy(dst, p, n); dst[n] = 0;
+        }
+        p = z + 1;
+    }
+    bool Bytes(void* dst, size_t n) {
+        if (static_cast<size_t>(end - p) < n) { ok = false; return false; }
+        std::memcpy(dst, p, n); p += n; return true;
+    }
+};
+}  // namespace
+
+// A variable id as the compiled code writes it: ids above the script's
+// var_offset are its locals, the rest are globals, both counted from 1
+// (docs/chl-format.md). Null for an id outside both.
+float* LHVM::VarSlot(VMTask* task, uint32_t id) {
+    const uint32_t off = task->script_id < script_count ? scripts[task->script_id].var_offset : 0;
+    if (id > off) {
+        const uint32_t i = id - off - 1;
+        return i < task->local_var_count ? &task->local_vars[i] : nullptr;
+    }
+    return id >= 1 && id <= global_var_count ? &global_vars[id - 1] : nullptr;
+}
+
 bool LHVM::LoadBinary(const char* path) {
     FILE* f = fopen(path, "rb");
     if (!f) return false;
-
-    // Read header
-    CHLHeader header;
-    if (fread(&header, sizeof(header), 1, f) != 1) {
-        fclose(f);
-        return false;
-    }
-    if (memcmp(header.magic, "LHVM", 4) != 0) {
-        fclose(f);
-        return false;
-    }
-
-    // Read global variables section
-    fread(&global_var_count, sizeof(uint32_t), 1, f);
-    global_vars = static_cast<float*>(calloc(global_var_count, sizeof(float)));
-    // Skip variable name strings (null-terminated, read until all consumed)
-    for (uint32_t i = 0; i < global_var_count; i++) {
-        char c;
-        do { fread(&c, 1, 1, f); } while (c != '\0');
-    }
-
-    // Read code section
-    fread(&instruction_count, sizeof(uint32_t), 1, f);
-    instructions = static_cast<VMInstruction*>(
-        calloc(instruction_count, sizeof(VMInstruction)));
-    fread(instructions, sizeof(VMInstruction), instruction_count, f);
-
-    // Read auto-start section
-    fread(&auto_start_count, sizeof(uint32_t), 1, f);
-    auto_start_scripts = static_cast<uint32_t*>(
-        calloc(auto_start_count, sizeof(uint32_t)));
-    fread(auto_start_scripts, sizeof(uint32_t), auto_start_count, f);
-
-    // Read scripts section
-    fread(&script_count, sizeof(uint32_t), 1, f);
-    scripts = static_cast<VMScript*>(calloc(script_count, sizeof(VMScript)));
-    for (uint32_t i = 0; i < script_count; i++) {
-        // Read null-terminated script name
-        uint32_t j = 0;
-        char c;
-        do {
-            fread(&c, 1, 1, f);
-            if (j < 255) scripts[i].name[j++] = c;
-        } while (c != '\0');
-        scripts[i].name[255] = '\0';
-
-        // Read null-terminated source filename
-        j = 0;
-        do {
-            fread(&c, 1, 1, f);
-            if (j < 255) scripts[i].filename[j++] = c;
-        } while (c != '\0');
-        scripts[i].filename[255] = '\0';
-
-        // Read script metadata
-        fread(&scripts[i].script_type, sizeof(uint32_t), 1, f);
-        fread(&scripts[i].global_count, sizeof(uint32_t), 1, f);
-        // Variable names for this script (skip)
-        for (uint32_t v = 0; v < scripts[i].global_count; v++) {
-            do { fread(&c, 1, 1, f); } while (c != '\0');
-        }
-        fread(&scripts[i].instruction_addr, sizeof(uint32_t), 1, f);
-        fread(&scripts[i].param_count, sizeof(uint32_t), 1, f);
-        fread(&scripts[i].script_id, sizeof(uint32_t), 1, f);
-    }
-
-    // Read data section (string constants)
-    fread(&data_size, sizeof(uint32_t), 1, f);
-    data_section = static_cast<char*>(calloc(data_size + 1, 1));
-    if (data_size > 0) {
-        fread(data_section, 1, data_size, f);
-    }
-
+    std::vector<uint8_t> buf;
+    uint8_t chunk[65536];
+    size_t got;
+    while ((got = fread(chunk, 1, sizeof(chunk), f)) > 0) buf.insert(buf.end(), chunk, chunk + got);
     fclose(f);
+
+    ChlReader r{buf.data(), buf.data() + buf.size()};
+    CHLHeader header;
+    if (!r.Bytes(&header, sizeof(header)) || memcmp(header.magic, "LHVM", 4) != 0) return false;
+
+    // Globals: count, then their names (ids 1..count in the code).
+    global_var_count = r.U32();
+    if (!r.ok || global_var_count > buf.size()) return false;
+    global_vars = static_cast<float*>(calloc(global_var_count + 1, sizeof(float)));
+    for (uint32_t i = 0; i < global_var_count && r.ok; i++) r.Str();
+
+    // Code: 20-byte instructions {opcode, mode, type, value, line}.
+    instruction_count = r.U32();
+    if (!r.ok || instruction_count > buf.size() / sizeof(VMInstruction)) return false;
+    instructions = static_cast<VMInstruction*>(calloc(instruction_count, sizeof(VMInstruction)));
+    if (!r.Bytes(instructions, size_t(instruction_count) * sizeof(VMInstruction))) return false;
+
+    auto_start_count = r.U32();
+    if (!r.ok || auto_start_count > buf.size() / 4) return false;
+    auto_start_scripts = static_cast<uint32_t*>(calloc(auto_start_count + 1, sizeof(uint32_t)));
+    if (!r.Bytes(auto_start_scripts, size_t(auto_start_count) * 4)) return false;
+
+    // Scripts: name, source file, type, var_offset, var_count, the var names,
+    // first instruction, parameter count, id.
+    script_count = r.U32();
+    if (!r.ok || script_count > buf.size()) return false;
+    scripts = static_cast<VMScript*>(calloc(script_count + 1, sizeof(VMScript)));
+    for (uint32_t i = 0; i < script_count && r.ok; i++) {
+        VMScript& s = scripts[i];
+        r.Str(s.name, sizeof(s.name));
+        r.Str(s.filename, sizeof(s.filename));
+        s.script_type = static_cast<VMScriptType>(r.U32());
+        s.var_offset = r.U32();
+        s.global_count = r.U32();
+        for (uint32_t v = 0; v < s.global_count && r.ok; v++) r.Str();
+        s.instruction_addr = r.U32();
+        s.param_count = r.U32();
+        s.script_id = r.U32();
+    }
+
+    // String constants.
+    data_size = r.U32();
+    if (!r.ok || data_size > buf.size()) return false;
+    data_section = static_cast<char*>(calloc(data_size + 1, 1));
+    if (!r.Bytes(data_section, data_size)) return false;
+    if (r.p != r.end) return false;  // the format accounts for every byte; anything left is a misread
 
     // Initialize runtime
     first_task = nullptr;
@@ -2480,17 +2501,10 @@ void LHVM::ExecuteTask(VMTask* task) {
         case OP_PUSH:
             if (task->stack_top < 256) {
                 if (inst.mode == 1) {
-                    // Push local variable
-                    if (inst.uint_val < task->local_var_count) {
-                        task->stack[task->stack_top].type = inst.data_type;
-                        task->stack[task->stack_top].float_val = task->local_vars[inst.uint_val];
-                    }
-                } else if (inst.mode == 2) {
-                    // Push global variable
-                    if (inst.uint_val < global_var_count) {
-                        task->stack[task->stack_top].type = inst.data_type;
-                        task->stack[task->stack_top].float_val = global_vars[inst.uint_val];
-                    }
+                    // Push a variable (one id space for globals and locals)
+                    float* slot = VarSlot(task, inst.uint_val);
+                    task->stack[task->stack_top].type = inst.data_type;
+                    task->stack[task->stack_top].float_val = slot ? *slot : 0.0f;
                 } else {
                     // Push immediate
                     task->stack[task->stack_top].type = inst.data_type;
@@ -2503,10 +2517,9 @@ void LHVM::ExecuteTask(VMTask* task) {
         case OP_POP:
             if (task->stack_top > 0) {
                 task->stack_top--;
-                if (inst.mode == 1 && inst.uint_val < task->local_var_count) {
-                    task->local_vars[inst.uint_val] = task->stack[task->stack_top].float_val;
-                } else if (inst.mode == 2 && inst.uint_val < global_var_count) {
-                    global_vars[inst.uint_val] = task->stack[task->stack_top].float_val;
+                if (inst.mode == 1) {
+                    if (float* slot = VarSlot(task, inst.uint_val))
+                        *slot = task->stack[task->stack_top].float_val;
                 }
             }
             break;

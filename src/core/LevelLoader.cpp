@@ -1,0 +1,284 @@
+// LevelLoader — land scripts into a bw_core world. Each handler follows its
+// case in the original dispatcher (sub_6AD5E0); docs/level-loader.md has the
+// table of commands, what they create, and where this departs from it.
+#include <black/LevelLoader.h>
+
+#include <black/Abode.h>
+#include <black/EntityFactory.h>
+#include <black/InfoDat.h>
+#include <black/Living.h>
+#include <black/MultiMapFixed.h>
+#include <black/Object.h>
+#include <black/Town.h>
+#include <black/TownCentre.h>
+#include <black/Villager.h>
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+
+namespace level {
+namespace {
+
+// One argument as the original's parser stores it: every position has a
+// string, an int and a float slot (a2 + 2048*k, +24576 + 4k, +24624 + 4k), and
+// the handler reads whichever its command's signature says.
+struct Arg {
+    std::string s;
+    int32_t n = 0;
+    float f = 0;
+};
+using Args = std::vector<Arg>;
+
+// "1865.61,2641.24" -> world x, z (sub_6B0630 reads the same text).
+bool ParsePos(const std::string& s, float& x, float& z) {
+    return std::sscanf(s.c_str(), "%f,%f", &x, &z) == 2;
+}
+
+bool ParseLine(const char* line, std::string& name, Args& args) {
+    while (*line == ' ' || *line == '\t') ++line;
+    const char* p = line;
+    while ((*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_') ++p;
+    if (p == line || *p != '(') return false;
+    name.assign(line, p);
+    args.clear();
+    ++p;
+    std::string tok;
+    bool quoted = false, in_quotes = false;
+    for (;; ++p) {
+        const char c = *p;
+        if (!c || c == '\r' || c == '\n') return false;  // unterminated: not a command
+        if (c == '"') { in_quotes = !in_quotes; quoted = true; continue; }
+        if (!in_quotes && (c == ',' || c == ')')) {
+            if (!tok.empty() || quoted || c == ',') {
+                Arg a;
+                size_t b = tok.find_first_not_of(" \t"), e = tok.find_last_not_of(" \t");
+                a.s = b == std::string::npos ? "" : tok.substr(b, e - b + 1);
+                if (!quoted) { a.n = std::atoi(a.s.c_str()); a.f = static_cast<float>(std::atof(a.s.c_str())); }
+                args.push_back(a);
+            }
+            tok.clear(); quoted = false;
+            if (c == ')') return true;
+            continue;
+        }
+        tok += c;
+    }
+}
+
+// TRIBE_TYPE and PLAYER_NAME by their script spellings.
+int TribeIndex(const std::string& s) {
+    static const char* const k[] = {"CELTIC", "AFRICAN", "AZTEC", "JAPANESE", "INDIAN",
+                                    "EGYPTIAN", "GREEK", "NORSE", "TIBETAN"};
+    for (int i = 0; i < 9; ++i) if (s == k[i]) return i;
+    return -1;
+}
+int PlayerIndex(const std::string& s) {
+    static const char* const k[] = {"PLAYER_ONE", "PLAYER_TWO", "PLAYER_THREE", "PLAYER_FOUR",
+                                    "PLAYER_FIVE", "PLAYER_SIX", "PLAYER_SEVEN", "NEUTRAL"};
+    for (int i = 0; i < 8; ++i) if (s == k[i]) return i;
+    return 7;
+}
+
+float WorldX(const Object* o) { return static_cast<float>(o->coords.x) / 65536.0f; }
+float WorldZ(const Object* o) { return static_cast<float>(o->coords.z) / 65536.0f; }
+float WorldX(const Town* t) { return static_cast<float>(t->coords.x) / 65536.0f; }
+float WorldZ(const Town* t) { return static_cast<float>(t->coords.z) / 65536.0f; }
+
+// sub_5256C0, then sub_525710: the town with this id, else the nearest one.
+Town* TownFor(const World& w, int32_t id, float x, float z) {
+    if (Town* t = FindTown(w, static_cast<uint32_t>(id))) return t;
+    Town* best = nullptr;
+    float best_d = 0;
+    for (Town* t : w.towns) {
+        const float dx = WorldX(t) - x, dz = WorldZ(t) - z, d = dx * dx + dz * dz;
+        if (!best || d < best_d) { best = t; best_d = d; }
+    }
+    return best;
+}
+
+struct Loader {
+    World& w;
+
+    Object* Make(EntityCategory cat, const std::string& cmd, float x, float z,
+                 float angle, float scale, int index, const std::string& name = "") {
+        EntityCreateParams p;
+        p.world_x = x; p.world_z = z; p.angle = angle; p.scale = scale; p.mesh_id = -1;
+        p.type_enum = index >= 0 ? static_cast<uint32_t>(index) : kNoInfo;
+        p.type_name = name.c_str();
+        Object* o = EntityFactory::CreateEntity(cat, p);
+        if (o) w.objects.push_back({o, cmd, name, index});
+        return o;
+    }
+
+    // case 2: sub_6CD070(pos, &TownInfo, player, tribe, 0, id)
+    bool CreateTown(const Args& a) {
+        float x, z;
+        if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
+        Town* t = new Town();
+        t->SetPos(MapCoords(static_cast<int32_t>(x * 65536.0f), static_cast<int32_t>(z * 65536.0f), 0.0f));
+        t->info = static_cast<GContainerInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_TOWN_INFO, 0)));
+        t->field_0x5b4 = static_cast<uint32_t>(a[0].n);  // this[365]: the script's town id
+        const int tribe = TribeIndex(a[4].s);
+        t->tribe_type = static_cast<TRIBE_TYPE>(tribe < 0 ? 0 : tribe);
+        t->player_number = static_cast<uint8_t>(PlayerIndex(a[2].s));
+        w.towns.push_back(t);
+        return true;
+    }
+
+    // case 3: sub_6CEC50(player, belief)
+    bool SetTownBelief(const Args& a) {
+        Town* t = a.size() >= 3 ? FindTown(w, static_cast<uint32_t>(a[0].n)) : nullptr;
+        if (!t) return false;
+        t->belief.SetBelief(static_cast<uint8_t>(PlayerIndex(a[1].s)), a[2].f);
+        return true;
+    }
+
+    // case 5: town + 0x5F4 = 1 (AddVillagerToTown then refuses everyone)
+    bool SetTownUninhabitable(const Args& a) {
+        Town* t = a.empty() ? nullptr : FindTown(w, static_cast<uint32_t>(a[0].n));
+        if (!t) return false;
+        t->field_0x5f4 = 1;
+        return true;
+    }
+
+    // cases 7 and 9: sub_401BA0(pos, info, town, angle, scale, food, wood, ...)
+    bool CreateAbode(const std::string& cmd, const Args& a, bool town_centre) {
+        float x, z;
+        if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
+        Town* town = TownFor(w, a[0].n, x, z);
+        if (!town) return false;  // the original returns without creating it too
+        Object* o = Make(ENTITY_CAT_ABODE, cmd, x, z, a[3].n * 0.001f, a[4].n * 0.001f, -1, a[2].s);
+        Abode* abode = o ? o->CastAbode() : nullptr;
+        if (!abode) return false;
+        if (!town_centre && a.size() >= 7) {  // sub_401EB0: vslot 156 with food, then wood
+            abode->JustAddResource(static_cast<RESOURCE_TYPE>(0), static_cast<uint32_t>(a[5].n), false);
+            abode->JustAddResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(a[6].n), false);
+        }
+        town->AddStructureToTown(abode);
+        // case 9: the first town centre created becomes the town's (v1.0 town + 0x99C;
+        // our header names that slot town_centre at 0x9A4).
+        if (town_centre && !town->town_centre)
+            town->town_centre = static_cast<TownCentre*>(abode);
+        return true;
+    }
+
+    // case 18: the villager, then its home is the abode whose cell holds the
+    // home position (the original walks every town's abode list comparing
+    // the integer parts of x and z), unless that abode is already full.
+    bool CreateVillagerPos(const Args& a) {
+        float x, z, hx, hz;
+        if (a.size() < 4 || !ParsePos(a[0].s, x, z) || !ParsePos(a[1].s, hx, hz)) return false;
+        Object* o = Make(ENTITY_CAT_VILLAGER, "CREATE_VILLAGER_POS", x, z, 0.0f, 1.0f, -1, a[2].s);
+        Villager* v = static_cast<Villager*>(o);
+        if (!v) return false;
+        v->SetAge(static_cast<uint32_t>(a[3].n));
+        const int32_t cx = static_cast<int32_t>(hx), cz = static_cast<int32_t>(hz);
+        for (Town* t : w.towns)
+            for (Abode* ab = reinterpret_cast<Abode*>(t->abode_list.head); ab; ab = ab->next) {
+                if ((ab->coords.x >> 16) != cx || (ab->coords.z >> 16) != cz) continue;
+                // The original refuses when the villager list (+0xA4) has reached
+                // maxAdults (info + 0x174), children included; room-for-adults
+                // agrees because every villager added counts as an adult here.
+                if (ab->GetRoomLeftForAdults() <= 0) return true;  // full: stays homeless
+                ab->AddVillagerToAbode(v);
+                t->AddVillagerToTown(v);
+                return true;
+            }
+        return true;  // no abode there: homeless, as in the original
+    }
+
+    // cases 76/89 and 29/32: a field or fish farm owned by a town.
+    bool CreateTownStructure(EntityCategory cat, const std::string& cmd, const Args& a, float angle) {
+        float x, z;
+        if (a.size() < 3 || !ParsePos(a[1].s, x, z)) return false;
+        Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
+        if (!town) return false;
+        Object* o = Make(cat, cmd, x, z, angle, 1.0f, a[2].n);
+        if (!o) return false;
+        town->AddStructureToTown(static_cast<MultiMapFixed*>(o));
+        return true;
+    }
+
+    bool Dispatch(const std::string& cmd, const Args& a) {
+        float x, z;
+        if (cmd == "VERSION") return true;
+        if (cmd == "LOAD_LANDSCAPE") { if (!a.empty()) w.landscape = a[0].s; return true; }
+        if (cmd == "SET_LAND_NUMBER") { if (!a.empty()) w.land_number = a[0].n; return true; }
+        if (cmd == "START_CAMERA_POS") return !a.empty() && ParsePos(a[0].s, w.camera_x, w.camera_z);
+        if (cmd == "CREATE_TOWN") return CreateTown(a);
+        if (cmd == "SET_TOWN_BELIEF") return SetTownBelief(a);
+        if (cmd == "SET_TOWN_UNINHABITABLE") return SetTownUninhabitable(a);
+        if (cmd == "CREATE_ABODE") return CreateAbode(cmd, a, false);
+        if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
+        if (cmd == "CREATE_VILLAGER_POS") return CreateVillagerPos(a);
+        if (cmd == "CREATE_NEW_TOWN_FIELD")
+            return CreateTownStructure(ENTITY_CAT_FIELD, cmd, a, a.size() > 3 ? a[3].f : 0.0f);
+        if (cmd == "CREATE_TOWN_FISH_FARM")
+            return CreateTownStructure(ENTITY_CAT_FISH_FARM, cmd, a, 0.0f);
+        // case 28: (forest, pos, type, flag, angle, scale, scale2)
+        if (cmd == "CREATE_NEW_TREE")
+            return a.size() >= 6 && ParsePos(a[1].s, x, z) &&
+                   Make(ENTITY_CAT_TREE, cmd, x, z, a[4].f, a[5].f, a[2].n);
+        // case 42: (pos, type, ...floats). ponytail: scale = arg2, angle = arg4,
+        // as the viewer always read them; sub_5C3710's own use of the five
+        // floats is not translated yet.
+        if (cmd == "CREATE_MOBILE_STATIC")
+            return a.size() >= 5 && ParsePos(a[0].s, x, z) &&
+                   Make(ENTITY_CAT_MOBILE, cmd, x, z, a[4].f, a[2].f, a[1].n);
+        // case 40: (pos, type, angle*1000, scale*1000)
+        if (cmd == "CREATE_MOBILEOBJECT")
+            return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
+                   Make(ENTITY_CAT_MOBILE_OBJECT, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, a[1].n);
+        // case 75: (pos, name, angle*1000, scale*1000, by_index); by_index != 0
+        // makes arg 1 a record number instead of a name.
+        if (cmd == "CREATE_NEW_FEATURE") {
+            if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;
+            const float angle = a[2].n * 0.001f, scale = a[3].n * 0.001f;
+            return a[4].n ? Make(ENTITY_CAT_FEATURE, cmd, x, z, angle, scale, std::atoi(a[1].s.c_str()))
+                          : Make(ENTITY_CAT_FEATURE, cmd, x, z, angle, scale, -1, a[1].s);
+        }
+        // case 25: (pos, type, flock, town, age)
+        if (cmd == "CREATE_NEW_ANIMAL") {
+            if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;
+            Object* o = Make(ENTITY_CAT_ANIMAL, cmd, x, z, 0.0f, 1.0f, a[1].n);
+            if (o) static_cast<Living*>(o)->SetAge(static_cast<uint32_t>(a[4].n));
+            return o != nullptr;
+        }
+        return false;
+    }
+};
+
+} // namespace
+
+Town* FindTown(const World& w, uint32_t id) {
+    for (Town* t : w.towns) if (t->field_0x5b4 == id) return t;
+    return nullptr;
+}
+
+bool Load(const char* path, World& out, std::string* err) {
+    FILE* f = std::fopen(path, "rb");
+    if (!f) { if (err) *err = std::string("cannot open ") + path; return false; }
+    Loader L{out};
+    char line[2048];
+    std::string name;
+    Args args;
+    while (std::fgets(line, sizeof line, f)) {
+        ++out.lines;
+        if (!ParseLine(line, name, args)) continue;
+        ++out.commands;
+        if (L.Dispatch(name, args)) ++out.handled;
+        else ++out.unhandled[name];
+    }
+    std::fclose(f);
+    return true;
+}
+
+void Process(World& w) {
+    for (Town* t : w.towns) t->Process();
+    for (const Spawned& s : w.objects)
+        if (s.obj && s.obj->IsAvailable()) s.obj->Process();
+}
+
+} // namespace level

@@ -6,6 +6,12 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- The game's own level loader (`LevelLoader`): land scripts build a bw_core world of towns
+  with their abodes, housed villagers, fields and fish farms, plus trees, animals,
+  features and mobile objects, each with its `info.dat` record. Play mode draws that
+  world, and the turn runs towns and then objects (`level::Process`). Land 1: 1,966 of
+  2,342 commands handled. See `docs/level-loader.md`. `test_level`.
+- `test_chl`: the shipped challenge script loads and runs 100 ticks, timed.
 - `info.dat` loader (`InfoDat`): all 102 sections of v1.0's balance data, rebuilt in the
   original in-memory shape, plus a generated layout (`InfoDatLayout.gen.h`). See
   `docs/info-dat.md`.
@@ -16,6 +22,11 @@ history before this file lives in the README's batch log and `git log`.
 - `tools/run_tests.cmd`: runs every test exe and fails on any failure (netlab's QA for bw).
 
 ### Fixed
+- The CHL loader hung forever on the shipped `Challenge.chl`, misreading each script's
+  `var_offset` as its variable count, so the viewer never opened a window and no story
+  script ever ran. It now parses version 7 to the last byte, refuses anything else, and
+  addresses variables the way the code does (one id space; `docs/chl-format.md`).
+- `Field` read its town from +0x118 but set it at +0x98, so fields never knew their town.
 - Entities were `calloc`'d, so they had no vtable, and the first virtual call
   (`SetPos`) crashed. That took the viewer down on the first spawned abode, before
   this change too. Entities and flocks are now constructed with `new`.
