@@ -42,23 +42,24 @@ struct TownDesire : public Base {
 
     // === Fields ===
     // TOWN_DESIRE_INFO_LAST = 17
+    // Names from v1.0's own desire dump (sub_6D7630), which labels each array.
     TownDesire_FieldEntry field_0x8[17];     // 0x08
-    float       field_0x90[17];              // 0x90
-    float       field_0xd4[17];              // 0xD4
-    float       field_0x118[17];             // 0x118
+    float       cheat[17];                   // 0x90  "DesireCheat"
+    float       boost[17];                   // 0xD4  "DesireBoost"
+    float       desire[17];                  // 0x118 "Desire": raw x multiplier, in [-1, 1]
     uint32_t    field_0x15c;                 // 0x15C
     Town*       town;                        // 0x160
-    float       field_0x164;                 // 0x164
-    float       field_0x168[17];             // 0x168
-    uint32_t    field_0x1ac[17];             // 0x1AC
-    uint32_t    field_0x1f0[17];             // 0x1F0
+    float       free_villagers;              // 0x164 adults + children - (+0x5CC) - worshippers
+    float       raw[17];                     // 0x168 "RawDesire": function x tribe weight
+    float       count_a[17];                 // 0x1AC have (table +32), stored as float
+    float       count_b[17];                 // 0x1F0 want (table +48), stored as float
     uint32_t    field_0x234[17];             // 0x234
-    DesireSort  sorts[17];                   // 0x278
-    DesireSort  sorts2[17];                  // 0x344
+    DesireSort  sorts[17];                   // 0x278 by desire + boost + cheat, descending
+    DesireSort  sorts2[17];                  // 0x344 by raw + boost + cheat, descending
     uint32_t    field_0x410[17];             // 0x410
-    float       field_0x454[17];             // 0x454
-    uint32_t    field_0x498[17];             // 0x498
-    float       field_0x4dc[17];             // 0x4DC
-    uint32_t    field_0x520[17];             // 0x520
+    float       prev_state_amount[17];       // 0x454
+    uint32_t    prev_state_count[17];        // 0x498
+    float       state_amount[17];            // 0x4DC "VillagerStateAmount": villagers on it
+    uint32_t    state_count[17];             // 0x520 "VillagerStateCount"
 };
 static_assert(sizeof(TownDesire) == 0x564, "TownDesire size mismatch");

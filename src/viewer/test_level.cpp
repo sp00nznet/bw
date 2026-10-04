@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <string>
 
 static int g_fail = 0;
@@ -100,7 +101,30 @@ int main() {
     for (Abode* a = reinterpret_cast<Abode*>(village->abode_list.head); a; a = a->next) sum += a->GetInfluence();
     std::snprintf(msg, sizeof msg, "village influence: TownInfo %.1f, abodes add %.1f, now %.1f",
                   base, sum, village->influence);
-    CHECK(sum > 0 && (village->influence == base || std::fabs(village->influence - (base + sum)) < 0.01f * (base + sum)), msg);
+    {
+        static const char* kNames[17] = {"Food", "Wood", "Playtime", "Protection", "Mercy", "Abodes",
+            "Civic_Buildings", "Supply_Worship", "For_Children", "To_Build", "For_Rain", "For_Sun",
+            "Repair_Town", "Suppy_Workshop", "For_Wonder", "Relaxation", "Sleep"};
+        bool in_range = true, sorted = true;
+        for (int k = 0; k < 17; ++k) {
+            const float d = village->desire.desire[k];
+            in_range &= d >= -1.0f && d <= 1.0f;
+            printf("      desire %-16s raw %6.3f -> %6.3f\n", kNames[k], village->desire.raw[k], d);
+        }
+        for (int k = 1; k < 17; ++k) sorted &= village->desire.sorts[k - 1].field_0x4 >= village->desire.sorts[k].field_0x4;
+        Object* pit = reinterpret_cast<Object*>(village->storage_pit_list);
+        float per_villager = 0, need_k = 0;
+        std::memcpy(&per_villager, reinterpret_cast<const char*>(village) + 0x6EC, 4);
+        if (village->info) std::memcpy(&need_k, reinterpret_cast<const char*>(village->info) + 220, 4);
+        printf("      store: %s, food %u, wood %u; food needed %.1f (TownInfo +220 %.2f x %.1f); adults %d room %u\n",
+               pit ? "yes" : "none", pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0,
+               pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(1)) : 0, need_k * per_villager, need_k, per_villager,
+               village->stats.num_adults, village->stats.field_0x34);
+        CHECK(pit != nullptr, "the village's storage pit is its store (Town::SetStoragePit, sub_6D16B0)");
+        CHECK(in_range, "the village's 17 desires are in [-1, 1] (TownDesire::Process, sub_6D7950)");
+        CHECK(sorted, "the desire ranking is sorted, highest first (sub_6D7E80)");
+    }
+    CHECK(sum > 0 &&(village->influence == base || std::fabs(village->influence - (base + sum)) < 0.01f * (base + sum)), msg);
     CHECK(true, "100 simulation turns over towns and objects");
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

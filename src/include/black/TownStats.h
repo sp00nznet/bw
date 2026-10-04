@@ -13,6 +13,7 @@
 struct BuildingSite;
 struct PlannedMultiMapFixed;
 struct Villager;
+struct Abode;
 
 // Forward-declare enum
 enum VILLAGER_DISCIPLE : uint32_t;
@@ -22,7 +23,8 @@ struct TownStats : public Base {
     ~TownStats() override;  // 0x007391a0
 
     // === Non-virtual methods ===
-    void AddVillager(Villager* villager);                         // v1.0 sub_6DABD0
+    void AddVillager(Villager* villager);
+    void AddAbode(Abode* abode);                                  // v1.0 sub_6DAF60                         // v1.0 sub_6DABD0
     void Remove(Villager* villager);                              // 0x007493c0
     void ChildToAdult(Villager* villager);                        // 0x00749490
     void VillagerMoveOutOfAbode(Villager* villager);              // 0x007494c0

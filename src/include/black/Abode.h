@@ -124,6 +124,10 @@ struct Abode : public MultiMapFixed {
     // The town half of v1.0 sub_401220: join the town, take the abode index,
     // look for drinking water within 200 m (sub_405680). docs/constructors.md.
     void JoinTown(Town* town);
+    // The counting half of v1.0 vslot 581 (sub_4034C0): once (bit 1 of +0x7C),
+    // into the town's stats. A storage pit also becomes the town's store
+    // (StoragePit's override, sub_6C9170 -> Town sub_6D16B0).
+    void Activate();
     void RemoveDeletedVillagerFromAbode(Villager* villager);
     void RemoveAliveVillagerFromAbode(Villager* villager);
     uint8_t GetNumAdultsInAbode();

@@ -2,6 +2,7 @@
 // Method stubs from bw1-decomp
 #include "../include/black/TownStats.h"
 #include "../include/black/Villager.h"
+#include "../include/black/Abode.h"
 #include <cstring>
 
 // === Override of Base virtuals ===
@@ -76,4 +77,31 @@ void TownStats::AddVillager(Villager* v) {
     total_food += v->resource_held[0];
     total_wood += v->resource_held[1];
     if (v->field_0xe0 & 0x200) ++num_disciples[v->disciple_type & 15];
+}
+
+void TownStats::AddAbode(Abode* a) {
+    // v1.0 sub_6DAF60. Capacity from the abode info (maxAdults +0x174,
+    // maxChildren +0x178) into the room totals; homes (abodes with room) into
+    // +0x10 and the adult/child room the desires read (+0x34/+0x40); civic
+    // buildings into +0x1C; and a byte per abode number at +0x108, which is how
+    // the Civic_Buildings desire knows what the town already has.
+    if (!a || !a->info) return;
+    const char* ai = reinterpret_cast<const char*>(a->info);
+    uint32_t max_a, max_c, number;
+    std::memcpy(&max_a, ai + 0x174, 4);
+    std::memcpy(&max_c, ai + 0x178, 4);
+    std::memcpy(&number, ai + 0x124, 4);
+    int32_t type; std::memcpy(&type, ai + 0x120, 4);
+    field_0x4c += max_a;
+    field_0x50 += max_c;
+    field_0x44 += 1;
+    field_0x30 += max_a + max_c;
+    if (type == 256) field_0x48 += 1;  // a Wonder
+    if (max_a + max_c) {
+        field_0x10 += 1;
+        field_0x34 += max_a;
+        field_0x40 += max_c;
+    }
+    if (a->IsCivic()) field_0x1c += 1;
+    if (number < 16) reinterpret_cast<uint8_t*>(this)[0x108 + number] += 1;
 }

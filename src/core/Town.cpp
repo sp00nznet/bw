@@ -510,14 +510,14 @@ float Town::GetDesire(TOWN_DESIRE_INFO desire_type) {
     // Original at 0x0073e400 — reads processed desire from TownDesire
     uint32_t idx = static_cast<uint32_t>(desire_type);
     if (idx >= 17) return 0.0f;
-    return desire.field_0xd4[idx];
+    return desire.desire[idx] + desire.boost[idx] + desire.cheat[idx];  // v1.0 sub_6D1080
 }
 
 float Town::GetRawDesire(TOWN_DESIRE_INFO desire_type) {
     // Original at 0x0073e420 — reads raw unprocessed desire
     uint32_t idx = static_cast<uint32_t>(desire_type);
     if (idx >= 17) return 0.0f;
-    return desire.field_0x90[idx];
+    return desire.raw[idx] + desire.boost[idx] + desire.cheat[idx];  // v1.0 sub_6D10A0
 }
 
 void* Town::GetTemporaryResourceStorePotOrPos(const MapCoords& /*p1*/, MapCoords& /*p2*/,
@@ -561,7 +561,7 @@ uint32_t Town::Process() {
     influence = TownInfoInfluence();         // sub_6D2810
     ProcessAbodes(g_game_turn, info_u(76));  // sub_6D9120
     // not yet: x game influence multiplier (+2408752) when the town has a player
-    // not yet: TownDesire::Process (sub_6D7950)
+    desire.Process();                        // sub_6D7950
     // not yet: sub_6D92A0 (list +0x98C), every 10 turns sub_6DA400,
     //          sub_6D9180 (drop dead villagers from +0x768), the object at +0xE9C,
     //          sub_6D9270 (process list +0x770), sub_6D0630 (desire flags),
@@ -677,4 +677,10 @@ void Town::Construct(const MapCoords& pos, const void* town_info, GPlayer* playe
     // this[374] = TownInfo +184 (the belief sub_430AF0 reads back), this[375] = 1.0.
     belief_in_neutral_player = info_f(184);
     field_0x5dc = 1.0f;
+}
+
+void Town::SetStoragePit(StoragePit* pit) {
+    // v1.0 sub_6D16B0: the town's store (+0x30). The original then empties the
+    // two temporary stores at +0x5F8/+0x5FC into it; we never create those.
+    storage_pit_list = pit;
 }

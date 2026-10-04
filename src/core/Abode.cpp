@@ -720,3 +720,17 @@ void Abode::JoinTown(Town* t) {
     const bool found = FindDrinkingWater(coords, 200.0f, &drinking_water);
     field_0x7c = (field_0x7c & ~1u) | (found ? 1u : 0u);
 }
+
+void Abode::Activate() {
+    Town* t = GetTown();
+    if (!t) return;
+    if (!(field_0x7c & 2)) {
+        field_0x7c |= 2;
+        t->stats.AddAbode(this);  // sub_6CD730 -> sub_6DAF60
+    }
+    // ponytail: sub_4034C0 also lays a footpath to the storage pit and drops a
+    // finished building site (sub_6CEC00); neither exists here yet.
+    int32_t type = 0;
+    if (info) std::memcpy(&type, reinterpret_cast<const char*>(info) + 0x120, 4);
+    if (type == 36) t->SetStoragePit(reinterpret_cast<StoragePit*>(this));
+}

@@ -140,7 +140,8 @@ struct Town : public Container {
 
     // === Non-virtual methods ===
     void AddStructureToTown(MultiMapFixed* structure);
-    void RecalculateBounds();                                                      // v1.0 sub_6CE1E0 (first half)
+    void RecalculateBounds();
+    void SetStoragePit(StoragePit* pit);                                           // v1.0 sub_6D16B0                                                      // v1.0 sub_6CE1E0 (first half)
     void AddAbodeToTownStats(Abode* abode);                                        // 0x00739a20
     bool AddVillagerToTown(Villager* villager);                                    // 0x0073a090
     PlannedMultiMapFixed* GetBestPlanned(float& score, ABODE_TYPE type);           // 0x0073a140
