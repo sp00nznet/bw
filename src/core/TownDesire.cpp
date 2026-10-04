@@ -10,6 +10,7 @@
 #include "../include/black/InfoDat.h"
 #include "../include/black/MultiMapFixed.h"
 #include "../include/black/Town.h"
+#include "../include/black/Villager.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -235,4 +236,41 @@ void TownDesire::Process() {
     std::stable_sort(sorts, sorts + 17, desc);
     std::stable_sort(sorts2, sorts2 + 17, desc);
     // not yet: every 50 turns the player's advisor commentary (needs a player).
+}
+
+// The villager handler for each desire (table +64): the villager-side answer.
+// ponytail: only Sleep is translated; Relaxation's (sub_6EFF60) asks the town
+// for a place to relax (Town vslot 20), which needs objects we do not create;
+// the job handlers (food, wood, building, ...) come next.
+bool VillagerSleepHandler(Villager* v);  // VillagerStates.cpp, sub_6EFF90
+namespace {
+using Handler = bool (*)(Villager*);
+const Handler kHandler[17] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                              nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                              VillagerSleepHandler};
+// Table +96: desires a child may be given (from the table at 0xCC3F60).
+const bool kChildOk[17] = {false};
+}  // namespace
+
+bool TownDesire::FindWorkForVillager(Villager* v, float busy) {
+    // sub_6D7D30. Walk the ranking (sorts); a desire is offered when its total,
+    // scaled by how few villagers already work it (sub_6D81A0), beats the
+    // desire's threshold (info +24) plus how busy the villager already is.
+    if (busy == 0.0f) busy = 0.001f;
+    const bool child = v->IsChild();
+    for (int rank = 0; rank < 17; ++rank) {
+        const int k = static_cast<int>(sorts[rank].field_0x8);
+        const char* info = static_cast<const char*>(infodat::Element(infodat::DETAIL_TOWN_DESIRE_INFO, k));
+        const float threshold = std::min(1.0f, busy + (info ? At<float>(info, 24) : 0.0f));
+        if ((!child || kChildOk[k]) && kHandler[k]) {
+            // sub_6D81A0: 1 - (villagers newly on it this turn) / everyone
+            float added = state_amount[rank] - prev_state_amount[rank];
+            if (added < 0) added = 0;
+            const float everyone = static_cast<float>(Adults(town) + Children(town)) + 0.00001f;
+            const float rank_factor = 1.0f - std::min(1.0f, added / everyone);
+            if (rank_factor * sorts[rank].field_0x4 <= threshold) return false;
+            if (kHandler[k](v)) return true;
+        }
+    }
+    return false;
 }

@@ -11,6 +11,8 @@
 
 #include <cmath>
 #include <cstdio>
+#include <map>
+#include <vector>
 #include <cstring>
 #include <string>
 
@@ -126,6 +128,40 @@ int main() {
     }
     CHECK(sum > 0 &&(village->influence == base || std::fabs(village->influence - (base + sum)) < 0.01f * (base + sum)), msg);
     CHECK(true, "100 simulation turns over towns and objects");
+
+    // The villager state machine (VillagerStates.cpp): from Created, villagers
+    // decide, walk home and go inside, or idle around town.
+    {
+        std::vector<std::pair<Villager*, MapCoords>> start;
+        for (auto& s : w.objects)
+            if (s.command == "CREATE_VILLAGER_POS") start.push_back({static_cast<Villager*>(s.obj), s.obj->coords});
+        std::map<int, int> visited;
+        std::map<Villager*, bool> got_home;
+        for (int turn = 0; turn < 2000; ++turn) {
+            level::Process(w);
+            for (auto& p : start) {
+                ++visited[p.first->action.top_state];
+                if (p.first->field_0xe0 & 4) got_home[p.first] = true;
+            }
+        }
+        std::map<int, int> states;
+        int moved = 0, inside = 0, created = 0;
+        for (auto& p : start) {
+            Villager* v = p.first;
+            ++states[v->action.top_state];
+            moved += v->coords.x != p.second.x || v->coords.z != p.second.z;
+            inside += (v->field_0xe0 & 4) != 0;
+            created += v->action.top_state == VILLAGER_STATE_CREATED;
+        }
+        printf("      after 2000 more turns: %d of %zu moved, %d inside their home; states:", moved, start.size(), inside);
+        for (auto& kv : states) printf(" %d x%d", kv.first, kv.second);
+        printf("\n      states visited (villager-turns):");
+        for (auto& kv : visited) printf(" %d:%d", kv.first, kv.second);
+        printf("\n      %zu villagers got home at least once\n", got_home.size());
+        inside = static_cast<int>(got_home.size());
+        CHECK(created == 0, "no villager is still in Created (85) after its timer");
+        CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
+    }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;

@@ -14,6 +14,7 @@
 // Forward declarations
 struct GTownDesireInfo;
 struct Town;
+struct Villager;
 
 // Forward-declare enum
 enum TOWN_DESIRE_INFO : uint32_t;
@@ -39,6 +40,8 @@ struct TownDesire : public Base {
     // === Non-virtual methods ===
     void Process();                                       // 0x00745ae0
     GTownDesireInfo* GetInfo(uint32_t index) const;       // 0x00745f80
+    // v1.0 sub_6D7D30: offer the villager the town's desires in rank order.
+    bool FindWorkForVillager(Villager* villager, float busy);
 
     // === Fields ===
     // TOWN_DESIRE_INFO_LAST = 17

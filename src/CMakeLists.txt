@@ -28,6 +28,7 @@ add_library(bw_core STATIC
     core/SaveLoadTable.gen.cpp
     core/InfoDat.cpp
     core/LevelLoader.cpp
+    core/VillagerStates.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp

@@ -20,6 +20,7 @@
 #include <functional>
 
 uint32_t g_game_turn = 0;  // the turn counter (game +2104060); level::Process advances it
+namespace lh { uint32_t g_random_seed = 0; }  // game +2104056; ponytail: the start value is set by the game at runtime, not recovered
 
 namespace level {
 namespace {
@@ -296,6 +297,13 @@ void Process(World& w) {
     for (const Spawned& s : w.objects) {
         if (!s.obj || !s.obj->IsAvailable()) continue;
         if (Abode* a = s.obj->CastAbode()) if (a->GetTown()) continue;
+        // Living::ProcessAll (sub_5AB2E0): the previous position, then the
+        // living's own tick (vslot 392; Villager::ProcessState).
+        if (Villager* v = dynamic_cast<Villager*>(s.obj)) {
+            v->obj_coords = v->coords;
+            v->ProcessState();
+            continue;
+        }
         s.obj->Process();
     }
     ++g_game_turn;
