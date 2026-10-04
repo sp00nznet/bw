@@ -10,6 +10,7 @@
 // Contains embedded TownDesire (0x564), TownStats (0x118), and GBelief (0x1D0).
 
 #include "LHNodeList.h"
+#include <vector>
 #include <cstddef>
 #include "Container.h"
 #include "TownDesire.h"
@@ -25,6 +26,7 @@ struct Citadel;
 struct Creature;
 struct Creche;
 struct Field;
+struct Forest;
 struct FishFarm;
 struct GMultiMapFixedInfo;
 struct GTownInfo;
@@ -186,6 +188,11 @@ struct Town : public Container {
 
     // v1.0 sub_6CD070: the state the constructor leaves on a zeroed Town.
     // See docs/constructors.md for what is translated and what is not yet.
+    // v1.0 sub_6D1750: the forests within TownInfo +356 of the store (or the
+    // town) that hold wood, from the global list.
+    void CollectForests(const std::vector<Forest*>& all);
+    // v1.0 sub_6D1860: the nearest of them to pos, within TownInfo +356.
+    Forest* NearestForest(const MapCoords& pos);
     void Construct(const MapCoords& pos, const void* town_info, GPlayer* player,
                    uint8_t player_number, TRIBE_TYPE tribe, const char* name, uint32_t id);
     void ProcessTownEmergency();                                                    // 0x007477a0
@@ -219,8 +226,7 @@ struct Town : public Container {
     uint32_t                       field_0x5f4;             // 0x5F4
     uint32_t                       field_0x5f8;             // 0x5F8
     uint32_t                       field_0x5fc;             // 0x5FC
-    uint32_t                       field_0x600;             // 0x600
-    uint32_t                       field_0x604;             // 0x604
+    LHNodeList                     forests;                 // 0x600 — sub_6D1750 / sub_6D4400
     TownStats                      stats;                   // 0x608  (0x118 bytes)
     MapCoords                      field_0x728;             // 0x720
     MapCoords                      field_0x734;             // 0x72C

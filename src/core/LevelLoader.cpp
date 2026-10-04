@@ -5,7 +5,9 @@
 
 #include <black/Abode.h>
 #include <black/EntityFactory.h>
+#include <black/BigForest.h>
 #include <black/Field.h>
+#include <black/Forest.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
@@ -285,6 +287,13 @@ struct Loader {
             return a[4].n ? Make(ENTITY_CAT_FEATURE, cmd, x, z, angle, scale, std::atoi(a[1].s.c_str()))
                           : Make(ENTITY_CAT_FEATURE, cmd, x, z, angle, scale, -1, a[1].s);
         }
+        // case 58: (pos, type, ?, angle, scale) -> sub_431AA0
+        if (cmd == "CREATE_NEW_BIG_FOREST") {
+            if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;
+            Object* o = Make(ENTITY_CAT_BIG_FOREST, cmd, x, z, a[3].f, a[4].f, a[1].n);
+            if (o) w.forests.push_back(static_cast<BigForest*>(o)->forest);
+            return o != nullptr;
+        }
         // case 25: (pos, type, flock, town, age)
         if (cmd == "CREATE_NEW_ANIMAL") {
             if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;
@@ -318,6 +327,9 @@ bool Load(const char* path, World& out, std::string* err) {
         else ++out.unhandled[name];
     }
     std::fclose(f);
+    // sub_6B0490 -> sub_6D1710: once the land is built, every town collects
+    // its forests.
+    for (Town* t : out.towns) t->CollectForests(out.forests);
     return true;
 }
 

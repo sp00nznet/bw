@@ -8,6 +8,8 @@
 #include <black/Villager.h>
 
 #include <black/Abode.h>
+#include <black/BigForest.h>
+#include <black/Forest.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
@@ -552,6 +554,36 @@ bool GoFarming(Villager& v, Field* field) {
 // vslot 535 (sub_6F...): standing on the spot. ponytail: within a metre.
 bool AtSpot(const Villager& v, const MapCoords& p) { return DistanceM(v.coords, p) < 1.0f; }
 
+int WoodCapacity(const Villager& v) { return static_cast<int>(InfoU(v, 616)); }
+int RoomForWood(const Villager& v) { return WoodCapacity(v) - v.resource_held[1]; }  // sub_6E11E0
+
+// sub_431F20: where a villager stands to take from a big forest -- half its
+// radius out from the centre, towards the villager.
+MapCoords BigForestSpot(BigForest* bf, const Villager& v) {
+    return Around(bf->coords, Heading(bf->coords, v.coords), bf->GetRadius() * 0.5f);
+}
+
+// sub_6EE260 / sub_6EE2D0(0): the Wood desire's handler. The nearest forest
+// of the town's (sub_6D1860), pulled by how empty the villager's hands are,
+// against the store, pulled by how full they are -- both falling off over
+// TownInfo +356 (dword_CC357C, town info record 0).
+// ponytail: forests of trees (sub_50E790's global search, the forester
+// states 47-52) are not translated; Land 1's are all big forests.
+bool WoodJob(Villager& v) {
+    float range = 0;
+    if (const char* ti = static_cast<const char*>(infodat::Element(infodat::DETAIL_TOWN_INFO, 0))) std::memcpy(&range, ti + 356, 4);
+    const float full = 1.0f - (static_cast<float>(RoomForWood(v)) + 0.00001f) / (static_cast<float>(WoodCapacity(v)) + 0.00001f);
+    const float store = Falloff(DistanceM(DropOffSpot(v), v.coords), range) * full;
+    Town* t = v.GetTown();
+    Forest* f = t ? t->NearestForest(v.coords) : nullptr;
+    const float forest = f ? Falloff(DistanceM(f->coords, v.coords), range) * (1.0f - full) : 0.0f;
+    if (store > forest) return GotoStoragePit(v);
+    if (forest == 0.0f || !f || !f->big_forest) return false;
+    BigForest* bf = f->big_forest;
+    MoveToPosThen(v, BigForestSpot(bf, v), VILLAGER_STATE_ARRIVES_AT_BIG_FOREST);  // sub_5AC660
+    return true;
+}
+
 // sub_6EA700: standing in the farm's cell.
 bool AtFarm(const Villager& v, const Object* farm) {
     return (v.coords.x >> 16) == (farm->coords.x >> 16) && (v.coords.z >> 16) == (farm->coords.z >> 16);
@@ -758,6 +790,21 @@ void FarmerDigsUpCrop(Villager& v) {  // 69, sub_6E9010
     SetState(v, VILLAGER_STATE_FARMER_ARRIVES_AT_FARM);
 }
 
+void ArrivesAtBigForest(Villager& v) {  // 53, sub_6EE7A0
+    const int room = RoomForWood(v);
+    Town* t = v.GetTown();
+    Forest* f = t && room ? t->NearestForest(v.coords) : nullptr;
+    BigForest* bf = f ? f->big_forest : nullptr;
+    if (!bf) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    const MapCoords spot = BigForestSpot(bf, v);
+    if (!AtSpot(v, spot)) { MoveToPosThen(v, spot, VILLAGER_STATE_ARRIVES_AT_BIG_FOREST); return; }
+    if (const uint32_t got = bf->RemoveResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(room), nullptr, nullptr))
+        v.resource_held[1] = static_cast<int16_t>(v.resource_held[1] + got);  // sub_6E11A0
+    // sub_6EE9B0 then picks the store or a building site; the state that
+    // follows is DecideWhatToDo either way, which sends full hands home.
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
 void ArrivesAtStoragePitForDropOff(Villager& v) { ArrivesAtStoragePit(v); }  // 32
 
 void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 (sub_6F85B0)
@@ -767,6 +814,7 @@ void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 
 
 bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
 bool VillagerFoodHandler(Villager* v) { return vs::FoodJob(*v); }
+bool VillagerWoodHandler(Villager* v) { return vs::WoodJob(*v); }
 
 // vslot 392 (sub_6E01E0): the state, then the upkeep (sub_6E05D0) unless
 // +0xE0 bit 11 asks for a timed transition instead. ponytail: the second
@@ -791,6 +839,7 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF: vs::ArrivesAtStoragePitForDropOff(*this); break;
     case VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING: vs::FishermanArrivesAtFishing(*this); break;
     case VILLAGER_STATE_FISHING: vs::Fishing(*this); break;
+    case VILLAGER_STATE_ARRIVES_AT_BIG_FOREST: vs::ArrivesAtBigForest(*this); break;
     case VILLAGER_STATE_FARMER_ARRIVES_AT_FARM: vs::ArrivesAtFarm(*this); break;
     case VILLAGER_STATE_FARMER_PLANTS_CROP: vs::FarmerPlantsCrop(*this); break;
     case VILLAGER_STATE_FARMER_DIGS_UP_CROP: vs::FarmerDigsUpCrop(*this); break;

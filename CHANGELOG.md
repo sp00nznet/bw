@@ -6,6 +6,8 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- The wood job (`docs/villager-states.md`): big forests from the land script, each
+  town's forest list, and villagers taking wood from the nearest forest to the store.
 - Farming (`docs/villager-states.md`): fields belong to their town's field list, plant
   up, grow on one turn in ten, and are dug up when full-grown; the food job weighs them
   against fish farms.

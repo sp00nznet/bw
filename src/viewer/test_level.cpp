@@ -2,7 +2,9 @@
 // their abodes and housed villagers come out linked, and the world survives
 // simulation turns. Needs game_data/ (Land1.txt, info.dat); skips without it.
 #include <black/Abode.h>
+#include <black/BigForest.h>
 #include <black/Field.h>
+#include <black/Forest.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LevelLoader.h>
@@ -251,6 +253,25 @@ int main() {
             }
             std::snprintf(msg, sizeof msg, "full-grown crops are dug up (%d villager-turns digging by game turn %u)", dug, g_game_turn);
             CHECK(dug > 0, msg);
+        }
+        // The wood job (sub_6EE260): with the store's wood gone, villagers take
+        // wood from the town's big forests (53) and bring it back (31/32).
+        {
+            float wood0 = 0, wood1 = 0;
+            for (Forest* f : w.forests) wood0 += f->big_forest->GetWoodValue();
+            if (pit) pit->RemoveResource(static_cast<RESOURCE_TYPE>(1), pit->GetResource(static_cast<RESOURCE_TYPE>(1)), nullptr, nullptr);
+            int at_forest = 0;
+            for (int turn = 0; turn < 3000; ++turn) {
+                level::Process(w);
+                for (auto& p : start) at_forest += p.first->action.top_state == VILLAGER_STATE_ARRIVES_AT_BIG_FOREST;
+            }
+            for (Forest* f : w.forests) wood1 += f->big_forest->GetWoodValue();
+            const uint32_t pit_wood = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(1)) : 0;
+            printf("      %zu big forests, the village collects %u; Wood desire %.3f; forests' wood %.0f -> %.0f; store wood %u\n",
+                   w.forests.size(), village->forests.count, village->desire.desire[1], wood0, wood1, pit_wood);
+            CHECK(w.forests.size() == 3 && village->forests.count > 0, "three big forests (CREATE_NEW_BIG_FOREST), the village's in its list (sub_6D1750)");
+            std::snprintf(msg, sizeof msg, "villagers fetch wood from the big forests (%d villager-turns there) into the store (%u)", at_forest, pit_wood);
+            CHECK(at_forest > 0 && wood1 < wood0 && pit_wood > 0, msg);
         }
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");

@@ -15,6 +15,8 @@ struct GFootpath;
 struct GFootpathLink;
 struct Tree;
 
+struct BigForest;
+
 struct Forest : public Container {
     // === Overrides of Base virtuals ===
     void ToBeDeleted(int param) override;
@@ -45,7 +47,10 @@ struct Forest : public Container {
     Tree* GetForestCentreTree();
 
     // === Fields ===
-    uint8_t   field_0x30[0x10];   // 0x30 — opaque data
+    uint32_t  field_0x30;         // 0x30
+    uint32_t  field_0x34;         // 0x34
+    BigForest* big_forest;        // 0x38 — v1.0 this[14] (sub_431940 sets it)
+    uint32_t  field_0x3c;         // 0x3C — v1.0 this[15]: sub_6D1860 ranks these last
     uint32_t  id;                 // 0x40
     Forest*   next;               // 0x44
     uint32_t  trees_0[2];        // 0x48 — LHLinkedList<Tree>

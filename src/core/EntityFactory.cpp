@@ -12,6 +12,8 @@
 #include <black/Graveyard.h>
 #include <black/TownCentre.h>
 #include <black/Field.h>
+#include <black/Forest.h>
+#include <black/BigForest.h>
 #include <black/FishFarm.h>
 #include <black/MobileObject.h>
 #include <black/Villager.h>
@@ -72,6 +74,7 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
     case ENTITY_CAT_MOBILE_OBJECT: obj = CreateMobileObject(params); break;
     case ENTITY_CAT_FIELD:    obj = CreateField(params);        break;
     case ENTITY_CAT_FISH_FARM: obj = CreateFishFarm(params);    break;
+    case ENTITY_CAT_BIG_FOREST: obj = CreateBigForest(params);  break;
     default: {
         // Generic feature fallback — allocate a Feature
         Feature* feat = new Feature();
@@ -185,6 +188,24 @@ Object* CreateField(const EntityCreateParams& params) {
     field->percent_built = 1.0f;
     field->InsertMapObject();
     return field;
+}
+
+Object* CreateBigForest(const EntityCreateParams& params) {
+    // sub_431AA0 / sub_431940: the big forest, its Forest container (+0x80,
+    // whose +0x38 points back), and its wood: scale x info +108.
+    // ponytail: the global big-forest and forest lists live in level::World.
+    BigForest* bf = new BigForest();
+    InitObjectFromParams(bf, params);
+    bf->info = InfoFor(infodat::DETAIL_BIG_FOREST_INFO, params);
+    Forest* f = new Forest();
+    f->coords = bf->coords;
+    f->big_forest = bf;
+    bf->forest = f;
+    int32_t most = 0;
+    if (bf->info) std::memcpy(&most, reinterpret_cast<const char*>(bf->info) + 108, 4);
+    bf->wood = bf->scale * static_cast<float>(most);
+    bf->InsertMapObject();
+    return bf;
 }
 
 Object* CreateFishFarm(const EntityCreateParams& params) {

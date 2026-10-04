@@ -13,6 +13,8 @@
 struct Object;
 struct Town;
 
+struct Forest;
+
 namespace level {
 
 // One object the script made, with what a renderer needs to pick a mesh.
@@ -26,6 +28,7 @@ struct Spawned {
 struct World {
     std::vector<Town*>   towns;
     std::vector<Spawned> objects;
+    std::vector<Forest*> forests;              // the game's forest list (game +0x201C70)
     std::string landscape;                   // LOAD_LANDSCAPE path, as written
     float camera_x = 0, camera_z = 0;        // START_CAMERA_POS
     int   land_number = 0;

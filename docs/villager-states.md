@@ -56,6 +56,7 @@ are the ones the code agrees with.
 | 67 FarmerArrivesAtFarm | `sub_6E8EF0` | walk to a spot in the field; plant, or dig a full-grown crop |
 | 68 FarmerPlantsCrop | `0x6E9090` | one more crop, then the next spot |
 | 69 FarmerDigsUpCrop | `sub_6E9010` | dig food up; a full load goes to the store |
+| 53 ArrivesAtBigForest | `sub_6EE7A0` | at half the forest's radius, take what there is room for; then decide |
 | 14 Dying | vslot 551, `sub_6F85B0` | on to Dead |
 | 15 Dead | vslot 552 | holds (the body's removal is not translated) |
 
@@ -149,6 +150,27 @@ exit slots, like fishermen. On Land 1, with the store emptied, the village's 17 
 get 473 crops planted in 3,000 turns. At k = 2 the first are full-grown and dug up
 by about turn 8,300.
 
+## Wood
+
+The Wood desire's handler (`sub_6EE260` / `sub_6EE2D0`) weighs the town's nearest
+forest, pulled by how empty the villager's hands are, against the store, pulled by how
+full they are. Both fall off over TownInfo +356. The wood job reads that value through
+`dword_CC357C`, which is the same field of town info record 0.
+
+- **Big forests** (`CREATE_NEW_BIG_FOREST`, land-script case 58 -> `sub_431AA0`) are a
+  BigForest object with a Forest container. A forest's wood is scale x info +108, and
+  taking from it (`sub_431C90`) costs `amount / life`.
+- **Each town collects its forests** once the land is built (`sub_6D1710` ->
+  `sub_6D1750`). These are the forests with wood whose nearest point is within
+  TownInfo +356 of the storage pit. The town's nearest forest (`sub_6D1860`) uses the
+  big forest's edge, or the villager's own position when it stands inside.
+- The land-script command table at `0xB44058` (16-byte entries, case = index + 1) maps
+  command names to the executor's cases.
+
+On Land 1 every one of the 1,395 trees is created with forest -1, so the only forests
+are the three big forests; the village collects two. With its store's wood removed,
+villagers take 4,250 wood from them in 3,000 turns, 2,750 of it already in the store.
+
 **The game's random generator** is translated too (`LHRandom.h`, `sub_746D10`:
 `seed = ror32(9377 × seed + 9439, 13)`). Every random choice above draws from it.
 
@@ -168,6 +190,9 @@ vagrants (130).
   influence (none yet, so k = 2), rain, burning, and the town's "fields need work" flag. The fishing cast waits a fixed 20 turns
   where the original waits out the animation, and the season is always spring (the game
   clock's start is set at runtime).
+- **From the wood job**: forests of trees (the global search `sub_50E790` and the
+  forester states 47-52), the building-site delivery in `sub_6EE9B0`, a big forest's
+  shrinking mesh and deletion when empty.
 - **The other work handlers** (food, wood, building, repair,
   worship), Relaxation's handler (it needs the town's relax spots), the disciple and
   child deciders, and `SetState`'s exit/enter slots and pause diversion.

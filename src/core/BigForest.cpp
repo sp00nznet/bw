@@ -6,6 +6,9 @@
 // Complex methods at 0x00438fxx-0x004395xx.
 
 #include <black/BigForest.h>
+#include <black/Terrain.h>
+
+#include <cstring>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -19,10 +22,27 @@ void BigForest::ToBeDeleted(int /*param*/) {
 // Overrides of GameThing virtuals
 // ============================================================================
 
-uint32_t BigForest::RemoveResource(RESOURCE_TYPE /*type*/, uint32_t /*amount*/,
+uint32_t BigForest::RemoveResource(RESOURCE_TYPE type, uint32_t amount,
                                     GInterfaceStatus* /*status*/, bool* /*param4*/) {
-    // Original at 0x004390d0 — complex
-    return 0;
+    // v1.0 sub_431C90: wood only. The amount costs amount / life of the store;
+    // what is left over goes all at once, and the forest goes with it.
+    // ponytail: the mesh is not rescaled as the forest shrinks (vslot 73 +
+    // sub_431DE0), and the emptied forest is not deleted -- it holds 0 wood.
+    if (static_cast<int>(type) != 1) return 0;
+    const float l = GetLife() > 0.0f ? GetLife() : 1.0f;
+    const float cost = static_cast<float>(amount) / l;
+    if (GetWoodValue() > cost) {
+        wood -= cost;
+        return amount;
+    }
+    const uint32_t all = static_cast<uint32_t>(GetWoodValue());
+    wood = 0.0f;
+    return all;
+}
+
+float BigForest::GetRadius() {  // sub_5EA550
+    if (!g_mesh_radius_func) return 0.0f;
+    return g_mesh_radius_func(GetMesh()) * scale;
 }
 
 char* BigForest::GetDebugText() {
@@ -50,9 +70,10 @@ uint32_t BigForest::GetSaveType() {
 // Overrides of Object virtuals
 // ============================================================================
 
-int BigForest::GetMesh() const {
-    // Original at 0x00438df0
-    return 0;
+int BigForest::GetMesh() const {  // v1.0 vslot 520, sub_4319D0: info +292
+    int32_t mesh = -1;
+    if (info) std::memcpy(&mesh, reinterpret_cast<const char*>(info) + 292, 4);
+    return mesh;
 }
 
 void BigForest::Draw() {
@@ -75,9 +96,8 @@ LH3DObject_ObjectType BigForest::Get3DType() {
     return LH3D_OBJECT_TYPE_DEFAULT;
 }
 
-float BigForest::GetWoodValue() {
-    // Original at 0x004390b0 — complex
-    return 0.0f;
+float BigForest::GetWoodValue() {  // v1.0 vslot 409, sub_431C70: life x wood
+    return GetLife() * wood;
 }
 
 bool32_t BigForest::ValidForPlaceInHand(GInterfaceStatus* /*status*/) {

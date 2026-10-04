@@ -40,8 +40,11 @@ struct BigForest : public MultiMapFixed {
     size_t SaveObject(LHOSFile* param1, const MapCoords* param2) override;
 
     // === Fields ===
+    // v1.0 (sub_431940): +0x7C the global big-forest list, +0x80 its Forest
+    // container, +0x84 the wood it holds (scale x info +108 at creation).
+    float GetRadius() override;   // vslot 25, sub_5EA550: mesh bound x scale
     uint32_t field_0x7c;   // 0x7C
     Forest*  forest;       // 0x80
-    uint32_t field_0x84;   // 0x84
+    float    wood;         // 0x84
 };
 static_assert(sizeof(BigForest) == 0x88, "BigForest size mismatch");

@@ -7,6 +7,8 @@
 // resources, and player interaction.
 
 #include <black/Town.h>
+#include <black/BigForest.h>
+#include <black/Forest.h>
 #include <black/Abode.h>
 #include <black/StoragePit.h>
 #include <black/Player.h>
@@ -683,4 +685,55 @@ void Town::SetStoragePit(StoragePit* pit) {
     // v1.0 sub_6D16B0: the town's store (+0x30). The original then empties the
     // two temporary stores at +0x5F8/+0x5FC into it; we never create those.
     storage_pit_list = pit;
+}
+
+namespace {
+float TownInfoF(const Town* t, int off) {
+    float x = 0;
+    if (t->info) std::memcpy(&x, reinterpret_cast<const char*>(t->info) + off, 4);
+    return x;
+}
+float Dist(const MapCoords& a, const MapCoords& b) {
+    const float dx = MetresOf(b.x - a.x), dz = MetresOf(b.z - a.z);
+    return std::sqrt(dx * dx + dz * dz);
+}
+// sub_50EF80 / vslot 527 (sub_5E9230): a forest's nearest point to pos -- on
+// its big forest's edge (or pos itself inside it), else the forest's position.
+MapCoords ForestPoint(const Forest* f, const MapCoords& pos) {
+    BigForest* bf = f->big_forest;
+    if (!bf) return f->coords;
+    const float r = bf->GetRadius(), d = Dist(bf->coords, pos);
+    if (d <= r) return pos;
+    const float k = r / d;
+    return MapCoords(bf->coords.x + static_cast<int32_t>((pos.x - bf->coords.x) * k),
+                     bf->coords.z + static_cast<int32_t>((pos.z - bf->coords.z) * k), bf->coords.altitude);
+}
+// sub_50F450: the wood a forest holds (its big forest's plus its trees').
+float ForestWood(const Forest* f) { return f->big_forest ? f->big_forest->GetWoodValue() : 0.0f; }
+}  // namespace
+
+void Town::CollectForests(const std::vector<Forest*>& all) {
+    // ponytail: no store and no town spot search (sub_6D1550): the town's own
+    // position stands in when there is no storage pit.
+    const MapCoords centre = storage_pit_list ? reinterpret_cast<Object*>(storage_pit_list)->coords : coords;
+    while (forests.head) forests.Remove(forests.head->obj);
+    for (Forest* f : all)
+        if (Dist(ForestPoint(f, centre), centre) < TownInfoF(this, 356) && ForestWood(f) != 0.0f) forests.Add(f);
+}
+
+Forest* Town::NearestForest(const MapCoords& pos) {
+    // Two rankings within TownInfo +356: forests flagged at +0x3C count only
+    // when no other is in range.
+    // ponytail: the original does not skip emptied forests -- it deletes
+    // them; we keep them with no wood, so they are skipped here instead.
+    float best = TownInfoF(this, 356), best_flagged = best;
+    Forest *found = nullptr, *flagged = nullptr;
+    for (LHNode* n = forests.head; n; n = n->next) {
+        auto* f = static_cast<Forest*>(n->obj);
+        if (ForestWood(f) == 0.0f) continue;
+        const float d = Dist(ForestPoint(f, pos), pos);
+        if (f->field_0x3c == 1) { if (d < best_flagged) { best_flagged = d; flagged = f; } }
+        else if (d < best) { best = d; found = f; }
+    }
+    return found ? found : flagged;
 }
