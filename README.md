@@ -159,6 +159,21 @@ Two habits did most of the work. First, whole class families share a vtable shap
 
 ## How to Build & Run
 
+**On the build farm (preferred).** [recomp-netlab](https://github.com/sp00nznet/recomp-netlab)
+builds bw with clang-cl on its Linux builders and runs the tests on a Windows test VM,
+so your own machine isn't loaded. The recipe is netlab's `projects/bw.env`:
+
+```bash
+./netlab check bw                 # build on the farm, then run every test (tools/run_tests.cmd)
+./netlab qa bw --on testbox       # tests only, against the last build
+```
+
+The build comes back to `build-farm/`. The test VM has no game data, so the tests that
+need it print `note: ... skipped` and netlab reports **SKIP**, not PASS. Run
+`tools\run_tests.cmd build-farm` locally to include them.
+
+**Locally:**
+
 ```bash
 # Build (requires Visual Studio 2022, CMake 3.20+)
 cd src
