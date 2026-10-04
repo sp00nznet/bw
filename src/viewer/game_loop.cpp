@@ -440,8 +440,8 @@ void GameState::SpawnEntitiesFromWorld() {
     for (const level::Spawned& sp : world.objects) {
         Object* obj = sp.obj;
         GameEntity e;
-        e.x = static_cast<float>(obj->coords.x) / 65536.0f;
-        e.z = static_cast<float>(obj->coords.z) / 65536.0f;
+        e.x = MetresOf(obj->coords.x);
+        e.z = MetresOf(obj->coords.z);
         e.y = GetTerrainHeight(e.x, e.z);
         if (e.y < 2.0f) continue;
         e.mesh_id = MeshForSpawn(sp.command, sp.type_name, sp.type_index, &e.scale_mul);
@@ -488,8 +488,8 @@ void GameState::ProcessTurn() {
             if (ve.physics_active || ve.selected) continue; // Don't override physics/hand
 
             // Sync position from bw_core MapCoords to viewer world coords
-            ve.x = static_cast<float>(obj->coords.x) / 65536.0f;
-            ve.z = static_cast<float>(obj->coords.z) / 65536.0f;
+            ve.x = MetresOf(obj->coords.x);
+            ve.z = MetresOf(obj->coords.z);
             ve.y = obj->coords.altitude;
 
             // Sync rotation and scale
@@ -553,9 +553,7 @@ void GameState::ProcessTurn() {
                 // Sync landing position back to bw_core
                 if (use_bw_core && thrown_idx < core_entities.size() &&
                     core_entities[thrown_idx]) {
-                    int32_t map_x = static_cast<int32_t>(e.x * 65536.0f);
-                    int32_t map_z = static_cast<int32_t>(e.z * 65536.0f);
-                    MapCoords pos(map_x, map_z, e.y);
+                    MapCoords pos = MapCoordsFromMetres(e.x, e.z, e.y);
                     core_entities[thrown_idx]->SetPos(pos);
                 }
             }

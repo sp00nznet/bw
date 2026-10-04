@@ -171,7 +171,7 @@ void NotifyPositionClicked(float x, float y, float z) {
 // Coordinate conversion helpers
 // ============================================================================
 
-static constexpr float MAP_FIXED_SCALE = 65536.0f;
+static constexpr float MAP_FIXED_SCALE = kMapUnitsPerMetre;
 
 static float WorldX(const Object* obj) { return obj->obj_coords.x.full / MAP_FIXED_SCALE; }
 static float WorldZ(const Object* obj) { return obj->obj_coords.z.full / MAP_FIXED_SCALE; }

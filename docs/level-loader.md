@@ -41,12 +41,12 @@ The handlers index the info arrays directly, and every base and stride matches
   id, else the nearest town (`sub_5256C0`, then `sub_525710`). The class follows the
   record's `abodeType`, as `sub_401BA0` does. Food and wood are added, then the abode
   joins the town. **CREATE_TOWN_CENTRE** also becomes the town's centre if it has none.
-- **CREATE_VILLAGER_POS** `("x,z", "home x,z", type, age)`: the home is the abode whose
-  cell holds the home position (integer parts of x and z), searched across every town.
-  The original refuses when the villager list (+0xA4) has reached `maxAdults`
-  (+0x174), children included. Land 1: 27 villagers name a real abode and 24 get in;
-  the other three are the third occupant of a two-adult hut. 28 name a spot with no
-  abode and stay homeless in the original as well.
+- **CREATE_VILLAGER_POS** `("x,z", "home x,z", type, age)`: the home is the abode in the
+  same map cell as the home position (`coords >> 16`, so a 10 m cell), searched across
+  every town. The original refuses when the villager list (+0xA4) has reached
+  `maxAdults` (+0x174), children included. Land 1: 34 villagers name a cell holding an
+  abode and 29 get in; the other 5 find it full. 21 name a cell with no abode and stay
+  homeless in the original as well.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.
@@ -69,4 +69,4 @@ original:
   so a field never knew its town. It now overrides `SetTown`.
 
 `test_level` loads Land 1, checks the six towns, 57 abodes owned by their towns,
-24 housed villagers and info on all 1,946 objects, then runs 100 turns.
+29 housed villagers and info on all 1,946 objects, then runs 100 turns.

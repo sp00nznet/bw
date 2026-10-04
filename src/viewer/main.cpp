@@ -1201,8 +1201,8 @@ int main(int argc, char* argv[]) {
             if (target != 0) {
                 Object* obj = lhvm::LookupObject(target);
                 if (obj) {
-                    float tx = static_cast<float>(obj->coords.x) / 65536.0f;
-                    float tz = static_cast<float>(obj->coords.z) / 65536.0f;
+                    float tx = MetresOf(obj->coords.x);
+                    float tz = MetresOf(obj->coords.z);
                     float ty = obj->coords.altitude;
                     const float k = 0.08f;   // ease-in factor per frame
                     g_cam_x += (tx - g_cam_x) * k;

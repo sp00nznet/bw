@@ -35,7 +35,7 @@ Two habits did most of the work. First, whole class families share a vtable shap
 ![Land 1 from the native level loader](docs/screenshots/land1-native-loader.png)
 
 **World (native level loader)**
-- Land scripts load through the game's own command table and handlers (`docs/level-loader.md`): Land 1 builds 6 towns, 57 abodes owned by their towns, 24 villagers housed in the homes the script names, fields, fish farms, trees, animals and features, 1,946 objects in all, each with its `info.dat` record (`docs/info-dat.md`)
+- Land scripts load through the game's own command table and handlers (`docs/level-loader.md`): Land 1 builds 6 towns, 57 abodes owned by their towns, 29 villagers housed in the homes the script names, fields, fish farms, trees, animals and features, 1,946 objects in all, each with its `info.dat` record (`docs/info-dat.md`)
 - Play mode draws that world and the turn processes it: towns, then every object
 
 **Rendering**

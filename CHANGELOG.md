@@ -22,6 +22,12 @@ history before this file lives in the README's batch log and `git log`.
 - `tools/run_tests.cmd`: runs every test exe and fails on any failure (netlab's QA for bw).
 
 ### Fixed
+- Map scale: everything outside the translated game code converted metres to map units at
+  65536 per metre. The original uses 6553.6 (10/65536, `0x3727C5AC`, as `GUtils` already
+  had), so a cell is 10 m. At our scale, cell indices ran to about 2,600 on a 512-cell map,
+  and every distance, radius and speed the translated code computes was 10x off. One
+  definition now (`kMapUnitsPerMetre`, `MapCoordsFromMetres`, `MetresOf` in `types.h`).
+  Land 1 now houses 29 villagers at the original's cell granularity, up from 24.
 - The CHL loader hung forever on the shipped `Challenge.chl`, misreading each script's
   `var_offset` as its variable count, so the viewer never opened a window and no story
   script ever ran. It now parses version 7 to the last byte, refuses anything else, and

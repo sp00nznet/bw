@@ -191,8 +191,8 @@ bool Load(int slot, GameState& gs) {
                 e.type = rec[i].type;
                 e.alive = rec[i].alive != 0;
                 if (i < gs.core_entities.size() && gs.core_entities[i]) {
-                    int32_t mx = static_cast<int32_t>(e.x * 65536.0f);
-                    int32_t mz = static_cast<int32_t>(e.z * 65536.0f);
+                    int32_t mx = MapCoordsFromMetres(e.x, e.z).x;
+                    int32_t mz = MapCoordsFromMetres(e.x, e.z).z;
                     gs.core_entities[i]->SetPos(MapCoords(mx, mz, e.y));
                 }
             }

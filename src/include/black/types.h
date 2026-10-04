@@ -66,6 +66,18 @@ struct MapCoords {
 };
 static_assert(sizeof(MapCoords) == 0xC, "MapCoords size mismatch");
 
+// The original's map scale: 6553.6 map units per metre, so a map cell
+// (coords >> 16) is 10 m and Land's 512 cells span 5,120 m. The binary converts
+// with 10/65536 (0x3727C5AC, sub_5C0400). Every world<->map conversion goes
+// through these; a different scale puts cells outside the map and makes every
+// distance, radius and speed the translated code computes 10x wrong.
+constexpr float kMapUnitsPerMetre = 6553.6f;
+inline MapCoords MapCoordsFromMetres(float x, float z, float altitude = 0.0f) {
+    return MapCoords(static_cast<int32_t>(x * kMapUnitsPerMetre),
+                     static_cast<int32_t>(z * kMapUnitsPerMetre), altitude);
+}
+inline float MetresOf(int32_t map_units) { return static_cast<float>(map_units) / kMapUnitsPerMetre; }
+
 // 2D map position (int16 precision, no altitude)
 struct JustMapXZ {
     int16_t x;  // 0x0

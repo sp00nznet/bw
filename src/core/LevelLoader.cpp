@@ -81,10 +81,8 @@ int PlayerIndex(const std::string& s) {
     return 7;
 }
 
-float WorldX(const Object* o) { return static_cast<float>(o->coords.x) / 65536.0f; }
-float WorldZ(const Object* o) { return static_cast<float>(o->coords.z) / 65536.0f; }
-float WorldX(const Town* t) { return static_cast<float>(t->coords.x) / 65536.0f; }
-float WorldZ(const Town* t) { return static_cast<float>(t->coords.z) / 65536.0f; }
+float WorldX(const Town* t) { return MetresOf(t->coords.x); }
+float WorldZ(const Town* t) { return MetresOf(t->coords.z); }
 
 // sub_5256C0, then sub_525710: the town with this id, else the nearest one.
 Town* TownFor(const World& w, int32_t id, float x, float z) {
@@ -117,7 +115,7 @@ struct Loader {
         float x, z;
         if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
         Town* t = new Town();
-        t->SetPos(MapCoords(static_cast<int32_t>(x * 65536.0f), static_cast<int32_t>(z * 65536.0f), 0.0f));
+        t->SetPos(MapCoordsFromMetres(x, z));
         t->info = static_cast<GContainerInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_TOWN_INFO, 0)));
         t->field_0x5b4 = static_cast<uint32_t>(a[0].n);  // this[365]: the script's town id
         const int tribe = TribeIndex(a[4].s);
@@ -174,7 +172,9 @@ struct Loader {
         Villager* v = static_cast<Villager*>(o);
         if (!v) return false;
         v->SetAge(static_cast<uint32_t>(a[3].n));
-        const int32_t cx = static_cast<int32_t>(hx), cz = static_cast<int32_t>(hz);
+        // Cells, as the original compares them: the high words of the map coords.
+        const MapCoords home = MapCoordsFromMetres(hx, hz);
+        const int32_t cx = home.x >> 16, cz = home.z >> 16;
         for (Town* t : w.towns)
             for (Abode* ab = reinterpret_cast<Abode*>(t->abode_list.head); ab; ab = ab->next) {
                 if ((ab->coords.x >> 16) != cx || (ab->coords.z >> 16) != cz) continue;

@@ -32,12 +32,8 @@ extern GMap* g_map;
 
 // Helper: set common Object fields from create params
 static void InitObjectFromParams(Object* obj, const EntityCreateParams& params) {
-    // Convert world coordinates to MapCoords (world * 65536 for fixed-point)
-    int32_t map_x = static_cast<int32_t>(params.world_x * 65536.0f);
-    int32_t map_z = static_cast<int32_t>(params.world_z * 65536.0f);
-    float altitude = GetTerrainHeightAt(params.world_x, params.world_z);
-
-    MapCoords pos(map_x, map_z, altitude);
+    MapCoords pos = MapCoordsFromMetres(params.world_x, params.world_z,
+                                        GetTerrainHeightAt(params.world_x, params.world_z));
     obj->SetPos(pos);
     obj->obj_coords = pos;
     obj->y_angle = params.angle;
@@ -194,10 +190,8 @@ Object* CreateFishFarm(const EntityCreateParams& params) {
 
 Object* CreateCreature(const EntityCreateParams& params) {
     // Allocate using Creature::Create factory
-    MapCoords pos;
-    pos.x = static_cast<int32_t>(params.world_x * 65536.0f);
-    pos.z = static_cast<int32_t>(params.world_z * 65536.0f);
-    pos.altitude = GetTerrainHeightAt(params.world_x, params.world_z);
+    MapCoords pos = MapCoordsFromMetres(params.world_x, params.world_z,
+                                        GetTerrainHeightAt(params.world_x, params.world_z));
 
     Creature* creature = Creature::Create(pos, nullptr, nullptr);
     if (!creature) return nullptr;
