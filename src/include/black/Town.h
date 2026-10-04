@@ -184,7 +184,9 @@ struct Town : public Container {
     MapCoords* GetCongregationPos(MapCoords* out);                                  // 0x007408b0
     void MakeScenicForest();                                                        // 0x00741b40
     void UpdateAttitudeToCreature();                                                // 0x007437f0
-    uint32_t Process();                                                             // 0x00747380
+    uint32_t Process();                                                             // v1.0 sub_6D8EB0
+    float TownInfoInfluence() const;                                                // v1.0 sub_6D2810
+    void ProcessAbodes(uint32_t turn, uint32_t period);                             // v1.0 sub_6D9120
 
     // v1.0 sub_6CD070: the state the constructor leaves on a zeroed Town.
     // See docs/constructors.md for what is translated and what is not yet.

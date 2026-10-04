@@ -246,24 +246,28 @@ uint32_t Abode::DestroyedByEffect(GPlayer* player, float param2) {
 }
 
 uint32_t Abode::Process() {
-    // Original at 0x00404440 — abode per-tick update
-    // Delegates to building site if under construction
-    if (!IsBuilt()) {
-        return MultiMapFixed::Process();
-    }
-
-    // If functional, process normal abode tick
-    if (IsFunctional()) {
-        // Life decay for empty abodes — buildings deteriorate without occupants
-        if (adult_count == 0 && info) {
-            float decay = *reinterpret_cast<const float*>(
-                reinterpret_cast<const char*>(info) + 0x1B0); // emptyAbodeLifeReducer
-            if (decay > 0.0f) {
-                ReduceLife(decay, nullptr);
-            }
+    // v1.0 vslot 383 (sub_4031C0), run by the town every TownInfo +76 turns.
+    // An empty, functional abode in an inhabitable town wears: +0xB0 gains
+    // 0.001 a call, and each whole unit costs emptyAbodeLifeReducer (+0x1B0)
+    // of life. +0xB9 counts calls up to 200.
+    // ponytail: the MultiMapFixed base pass (sub_5058A0) and the vslot 274
+    // check are not translated; emptiness is read as no adults and no children.
+    MultiMapFixed::Process();
+    const bool empty = adult_count == 0 && field_0xb7 == 0;
+    const bool town_ok = !town || !town->field_0x5f4;
+    if (empty && IsFunctional() && town_ok) {
+        float wear;
+        std::memcpy(&wear, &field_0xb0, 4);
+        wear += 0.001f;
+        if (wear >= 1.0f) {
+            float reducer = 0;
+            if (info) std::memcpy(&reducer, reinterpret_cast<const char*>(info) + 0x1B0, 4);
+            ReduceLife(reducer, nullptr);
+            wear = 0;
         }
+        std::memcpy(&field_0xb0, &wear, 4);
     }
-
+    if (field_0xb9 < 200) ++field_0xb9;
     return 1;
 }
 
@@ -360,11 +364,13 @@ bool Abode::ShouldFootpathsGoRound() {
 // ============================================================================
 
 float Abode::GetInfluence() {
-    // Original at 0x004072a0 — influence is based on population fullness and build state
-    float built = GetPercentBuilt();
-    float full = GetPercentAbodeFullWithAdults();
-    float base_inf = MultiMapFixed::GetInfluence();
-    return base_inf * (0.5f + 0.5f * full) * built;
+    // v1.0 vslot 538 (sub_4058B0 / sub_504EF0): (adults + children + 1) x
+    // percent built (+0x5C) x scale x life (+0x48) x GMultiMapFixedInfo::influence
+    // (info +0x11C).
+    float base = 0;
+    if (info) std::memcpy(&base, reinterpret_cast<const char*>(info) + 0x11C, 4);
+    return (static_cast<float>(adult_count) + static_cast<float>(field_0xb7) + 1.0f) *
+           percent_built * scale * life * base;
 }
 
 bool Abode::IsRepaired() {

@@ -9,6 +9,7 @@
 #include <black/Villager.h>
 #include "lnd_loader.h"
 
+#include <cmath>
 #include <cstdio>
 #include <string>
 
@@ -90,6 +91,16 @@ int main() {
     CHECK(radii_ok, "towns with abodes have a radius; the player village's is 50-300 m (town 1's 562 m is real: the script puts one of its huts 1.1 km away)");
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);
+
+    // v1.0 Town::Process: influence restarts from TownInfo (+120) each turn and,
+    // on turns divisible by TownInfo +76, gains each abode's influence
+    // ((occupants + 1) x built x scale x life x info influence).
+    Town* village = level::FindTown(w, 0);
+    float base = village->TownInfoInfluence(), sum = 0;
+    for (Abode* a = reinterpret_cast<Abode*>(village->abode_list.head); a; a = a->next) sum += a->GetInfluence();
+    std::snprintf(msg, sizeof msg, "village influence: TownInfo %.1f, abodes add %.1f, now %.1f",
+                  base, sum, village->influence);
+    CHECK(sum > 0 && (village->influence == base || std::fabs(village->influence - (base + sum)) < 0.01f * (base + sum)), msg);
     CHECK(true, "100 simulation turns over towns and objects");
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

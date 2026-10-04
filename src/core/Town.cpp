@@ -550,47 +550,45 @@ void Town::UpdateAttitudeToCreature() {
 }
 
 uint32_t Town::Process() {
-    // Original at 0x00747380 — town simulation tick
-    // Translated from vendor decompilation — the central town update loop.
+    // v1.0 sub_6D8EB0, called once a turn per town from GPlayer::Process
+    // (sub_5F7440). Steps in the original's order; the ones marked "not yet"
+    // are named so the order stays visible. docs/town-economy.md.
+    extern uint32_t g_game_turn;
+    auto info_u = [this](int off) { uint32_t v = 0; if (info) std::memcpy(&v, reinterpret_cast<const char*>(info) + off, 4); return v; };
 
-    // Phase 1: Update town desires (food, wood, shelter needs)
-    // Desire evaluation — updates desire values based on population needs
-
-    // Phase 2: Population management
-    // Check for new births if population can grow
-    Birthday();
-
-    // Phase 3: Housing check — assign homeless villagers to abodes
-    AllVillagersCheckNeedNewAbode();
-
-    // Phase 4: Construction management
-    // Request new buildings if there are unmet desires
-    if (planned_list.count > 0) {
-        RequestBestPlanned();
-    }
-
-    // Phase 5: Emergency handling (starvation, etc.)
-    ProcessTownEmergency();
-
-    // Phase 6: Worship and belief updates
-    UpdateAttitudeToCreature();
-
-    // Phase 7: Resource accounting — tally total food/wood in town
-    float food_total = 0.0f;
-    float wood_total = 0.0f;
-
-    // Sum resources from storage pits
-    StoragePit* pit = storage_pit_list;
-    if (pit) {
-        food_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(0))); // FOOD
-        wood_total += static_cast<float>(pit->GetResource(static_cast<RESOURCE_TYPE>(1))); // WOOD
-    }
-
-    // Update town stats with resource totals
-    stats.total_food = food_total;
-    // stats.total_wood = wood_total; // field offset needs verification
-
+    field_0x5e4 = 0;                         // +0x5E4
+    // not yet: sub_4344F0 over the list at +0x788 (drops finished entries)
+    influence = TownInfoInfluence();         // sub_6D2810
+    ProcessAbodes(g_game_turn, info_u(76));  // sub_6D9120
+    // not yet: x game influence multiplier (+2408752) when the town has a player
+    // not yet: TownDesire::Process (sub_6D7950)
+    // not yet: sub_6D92A0 (list +0x98C), every 10 turns sub_6DA400,
+    //          sub_6D9180 (drop dead villagers from +0x768), the object at +0xE9C,
+    //          sub_6D9270 (process list +0x770), sub_6D0630 (desire flags),
+    //          sub_6D0BA0 (interaction multipliers), sub_6D9860, sub_6D92C0,
+    //          sub_6D59C0, the two objects at +0x5F8, the list at +0x994,
+    //          sub_4310A0 (belief), the countdown at +0xF18, the influence map
+    // Every TownInfo +360 turns, staggered by id * 20: sub_6D3E70.
+    // not yet translated.
     return 1;
+}
+
+// v1.0 sub_6D2810: TownInfo +120 (mode 0; +188 + 4n in the game's other modes).
+float Town::TownInfoInfluence() const {
+    float v = 0;
+    if (info) std::memcpy(&v, reinterpret_cast<const char*>(info) + 120, 4);
+    return v;
+}
+
+// v1.0 sub_6D9120: every `period` turns each abode runs its Process (vslot 383)
+// and its influence (vslot 538) is added to the town's. Abodes belong to their
+// town's tick, not the global object loop.
+void Town::ProcessAbodes(uint32_t turn, uint32_t period) {
+    if (!period || turn % period) return;
+    for (Abode* a = reinterpret_cast<Abode*>(abode_list.head); a; a = a->next) {
+        a->Process();
+        influence += a->GetInfluence();
+    }
 }
 
 void Town::ProcessTownEmergency() {

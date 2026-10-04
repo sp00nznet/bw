@@ -529,7 +529,7 @@ uint32_t InfoU(const GObjectInfo* info, int off) { uint32_t v = 0; if (info) std
 // conversions use it. ponytail: 1 until recovered -- ages are then counted in
 // turns, which is wrong for aging and right for everything else here.
 int32_t g_turns_per_year = 1;
-uint32_t g_game_turn = 0;
+extern uint32_t g_game_turn;  // LevelLoader.cpp
 
 uint32_t Villager::Sex() const { return InfoU(info, 504); }
 

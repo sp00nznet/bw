@@ -19,6 +19,8 @@
 #include <cstring>
 #include <functional>
 
+uint32_t g_game_turn = 0;  // the turn counter (game +2104060); level::Process advances it
+
 namespace level {
 namespace {
 
@@ -283,10 +285,18 @@ bool Load(const char* path, World& out, std::string* err) {
     return true;
 }
 
+
+
 void Process(World& w) {
+    // Towns first (GPlayer::Process -> Town::Process); a town runs its own
+    // abodes (sub_6D9120), so they are skipped in the object pass.
     for (Town* t : w.towns) t->Process();
-    for (const Spawned& s : w.objects)
-        if (s.obj && s.obj->IsAvailable()) s.obj->Process();
+    for (const Spawned& s : w.objects) {
+        if (!s.obj || !s.obj->IsAvailable()) continue;
+        if (Abode* a = s.obj->CastAbode()) if (a->GetTown()) continue;
+        s.obj->Process();
+    }
+    ++g_game_turn;
 }
 
 } // namespace level
