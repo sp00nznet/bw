@@ -29,6 +29,7 @@ add_library(bw_core STATIC
     core/InfoDat.cpp
     core/LevelLoader.cpp
     core/VillagerStates.cpp
+    core/Gesture.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -460,6 +461,15 @@ add_executable(test_spawn
 )
 target_link_libraries(test_spawn PRIVATE bw_core)
 set_target_properties(test_spawn PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# The gesture recognizer against the shipped templates
+add_executable(test_gesture
+    viewer/test_gesture.cpp
+)
+target_link_libraries(test_gesture PRIVATE bw_core)
+set_target_properties(test_gesture PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

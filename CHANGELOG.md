@@ -10,6 +10,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The gesture recognizer (`docs/gestures.md`): v1.0's stroke trail with corner
+  detection, and turn-by-turn matching against the 81 templates in `Gestures.jty`,
+  mirrored and size-banded where the template allows. `test_gesture`: 76 of 81
+  templates drawn as mouse strokes are recognised as their own gesture.
 - Building (`docs/town-economy.md`): villagers join a town's building sites, bring
   wood from the store or a big forest, and build, until the building is finished and
   counted in its town. To_Build desire comes from the sites' remaining work.
