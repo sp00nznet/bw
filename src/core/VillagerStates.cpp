@@ -8,6 +8,7 @@
 #include <black/Villager.h>
 
 #include <black/Abode.h>
+#include <black/Field.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
@@ -27,19 +28,37 @@ float InfoF(const Villager& v, int off) { float x = 0; if (v.info) std::memcpy(&
 uint32_t InfoU(const Villager& v, int off) { uint32_t x = 0; if (v.info) std::memcpy(&x, reinterpret_cast<const char*>(v.info) + off, 4); return x; }
 uint8_t InfoB(const Villager& v, int off) { return v.info ? reinterpret_cast<const uint8_t*>(v.info)[off] : 0; }
 
-bool IsFishingState(uint8_t s) { return s == VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING || s == VILLAGER_STATE_FISHING; }
-// On the way to fishing counts as fishing (the original's sub_6E2010 test).
-bool Fishing(const Villager& v) { return IsFishingState(v.action.top_state) || IsFishingState(v.action.final_state); }
-// The fishing states' enter (0x6EA8B0: onto the farm's list, sub_503660) and
-// exit (0x6EA910: off it, sub_5036A0, and the target cleared) slots.
-void FishingSlots(Villager& v, bool was) {
-    const bool now = Fishing(v);
-    auto* farm = static_cast<FishFarm*>(v.target);
-    if (now && !was && farm && v.GetTown() && !farm->villagers.Has(&v)) farm->villagers.Add(&v);
-    if (was && !now) {
-        if (farm) farm->villagers.Remove(&v);
+// Work sites: the states that share a site's enter/exit slots.
+enum Site { kNoSite, kFishFarm, kField };
+Site SiteOf(uint8_t s) {
+    if (s == VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING || s == VILLAGER_STATE_FISHING) return kFishFarm;
+    if (s >= VILLAGER_STATE_FARMER_ARRIVES_AT_FARM && s <= VILLAGER_STATE_FARMER_DIGS_UP_CROP) return kField;
+    return kNoSite;
+}
+bool IsFishingState(uint8_t s) { return SiteOf(s) != kNoSite; }
+// On the way to a site counts as being at it (the original's sub_6E2010 test).
+Site SiteOf(const Villager& v) {
+    const Site s = SiteOf(v.action.top_state);
+    return s != kNoSite ? s : SiteOf(v.action.final_state);
+}
+LHNodeList* Workers(Object* target, Site s) {
+    if (!target) return nullptr;
+    if (s == kFishFarm) return &static_cast<FishFarm*>(target)->villagers;
+    if (s == kField) return &static_cast<Field*>(target)->farmers;
+    return nullptr;
+}
+// The site states' enter slots (fishing 0x6EA8B0 -> sub_503660, farming
+// 0x6E9420 -> sub_4FEFB0: onto the site's list) and exit slots (0x6EA910 ->
+// sub_5036A0, 0x6E9470 -> sub_4FEF10: off it, and the target cleared).
+void FishingSlots(Villager& v, Site was) {
+    const Site now = SiteOf(v);
+    if (now == was) return;
+    if (was != kNoSite) {
+        if (LHNodeList* l = Workers(v.target, was)) l->Remove(&v);
         v.target = nullptr;
     }
+    if (now == kFishFarm && !v.GetTown()) return;
+    if (LHNodeList* l = Workers(v.target, now); l && !l->Has(&v)) l->Add(&v);
 }
 
 // vslot 569 (sub_6E1B90), the core: the new state, its turn count from zero.
@@ -47,7 +66,7 @@ void FishingSlots(Villager& v, bool was) {
 // PauseForASecond (239), and runs every state's exit/enter slots; only the
 // fishing states' are translated.
 void SetState(Villager& v, uint8_t s) {
-    const bool was = Fishing(v);
+    const Site was = SiteOf(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = s;
     if (IsFishingState(v.action.final_state) && !IsFishingState(s)) v.action.final_state = s;  // a stale goal must not keep it a fisherman
@@ -59,7 +78,7 @@ void SetState(Villager& v, uint8_t s) {
 void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     uint8_t walk = InfoB(v, 292);
     if (!walk) walk = VILLAGER_STATE_MOVE_TO_POS;
-    const bool was = Fishing(v);
+    const Site was = SiteOf(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = walk;
     v.action.final_state = arrive;
@@ -480,22 +499,58 @@ bool GoFishing(Villager& v, FishFarm* farm) {
 // within 300 m (sub_6D14C0), and a third list at town +0xF00 (sub_6D1440)
 // -- against taking what it already carries to the store (how full its hands
 // are x the store's falloff within 500 m). The best wins.
-// ponytail: fields (their crops and the farming states 67-69) and the third
-// source are not translated, so they never outrank a farm.
+// The ranking is a list sorted highest first in which a later source goes
+// behind earlier ones of equal score, so fish farms win ties.
+// ponytail: the third source is not translated, so it never outranks the others.
+bool GoFarming(Villager& v, Field* field);
 bool FoodJob(Villager& v) {
     Town* t = v.GetTown();
     if (!t) return false;
-    FishFarm* best = nullptr;
-    float best_score = 0.0f;
+    FishFarm* farm = nullptr;
+    float farm_score = 0.0f;
     for (LHNode* n = t->fish_farms.head; n; n = n->next) {
         auto* f = static_cast<FishFarm*>(n->obj);
         const float sc = FishFarmPull(f) * Falloff(DistanceM(f->coords, v.coords), 500.0f);
-        if (sc > best_score) { best_score = sc; best = f; }
+        if (sc > farm_score) { farm_score = sc; farm = f; }
     }
+    Field* field = nullptr;
+    float field_score = 0.0f;
+    for (LHNode* n = t->field_list.head; n; n = n->next) {
+        auto* f = static_cast<Field*>(n->obj);
+        const float sc = f->GetPull() * Falloff(DistanceM(f->coords, v.coords), 300.0f);
+        if (sc > field_score) { field_score = sc; field = f; }
+    }
+    const bool fields_first = field_score > farm_score;
+    const float best = fields_first ? field_score : farm_score;
     const float full = 1.0f - (static_cast<float>(RoomToCarry(v)) + 0.00001f) / (static_cast<float>(CarryCapacity(v)) + 0.00001f);
-    if (Falloff(DistanceM(DropOffSpot(v), v.coords), 500.0f) * full > best_score) return GotoStoragePit(v);
-    return best && GoFishing(v, best);
+    if (Falloff(DistanceM(DropOffSpot(v), v.coords), 500.0f) * full > best) return GotoStoragePit(v);
+    if (fields_first) return GoFarming(v, field);
+    return farm && GoFishing(v, farm);
 }
+
+// sub_4FF540: a random spot in the field, within 5 m of its centre.
+MapCoords FieldSpot(const Field* f) {
+    const float dx = lh::RandomFloat(10.0f) - 5.0f, dz = lh::RandomFloat(10.0f) - 5.0f;
+    return MapCoords(f->coords.x + static_cast<int32_t>(dx * kMapUnitsPerMetre),
+                     f->coords.z + static_cast<int32_t>(dz * kMapUnitsPerMetre), f->coords.altitude);
+}
+// Villager +0x114: the spot in the field it is working (sub_6E8E10 / sub_6E8EF0).
+MapCoords& WorkSpot(Villager& v) { return v.work_spot; }
+
+// sub_6E8DD0 -> sub_6E8E10: off to a field that needs planting or harvesting.
+bool GoFarming(Villager& v, Field* field) {
+    if (!field) return false;
+    const int act = field->GetFieldActivity(0);
+    if (act != 1 && act != 2) return false;
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+    v.target = field;
+    MoveToObjectThen(v, field, VILLAGER_STATE_FARMER_ARRIVES_AT_FARM);
+    WorkSpot(v) = FieldSpot(field);
+    return true;
+}
+
+// vslot 535 (sub_6F...): standing on the spot. ponytail: within a metre.
+bool AtSpot(const Villager& v, const MapCoords& p) { return DistanceM(v.coords, p) < 1.0f; }
 
 // sub_6EA700: standing in the farm's cell.
 bool AtFarm(const Villager& v, const Object* farm) {
@@ -668,6 +723,41 @@ void Fishing(Villager& v) {  // 56, sub_6EA730
     if (static_cast<float>(RoomToCarry(v)) < static_cast<float>(n) || RoomToCarry(v) == 0) GotoStoragePit(v);
 }
 
+void ArrivesAtFarm(Villager& v) {  // 67, sub_6E8EF0
+    auto* field = static_cast<Field*>(v.target);
+    const int act = field ? field->GetFieldActivity(0) : 0;
+    // Planting, or digging up a crop that has finished growing (sub_4FFBD0).
+    const bool dig = act == 2 && field->growth >= [&] { float x = 0; std::memcpy(&x, reinterpret_cast<const char*>(field->type_info) + 292, 4); return x; }();
+    if (act != 1 && !dig) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    MapCoords& spot = WorkSpot(v);
+    if (!AtSpot(v, spot)) { MoveToPosThen(v, spot, VILLAGER_STATE_FARMER_ARRIVES_AT_FARM); return; }
+    spot = FieldSpot(field);  // the next spot
+    SetState(v, act == 1 ? VILLAGER_STATE_FARMER_PLANTS_CROP : VILLAGER_STATE_FARMER_DIGS_UP_CROP);
+}
+
+void FarmerPlantsCrop(Villager& v) {  // 68, 0x6E9090
+    auto* field = static_cast<Field*>(v.target);
+    if (field && field->PlantCrop(v.coords) && field->GetPlantCropPos()) {
+        MoveToPosThen(v, v.coords, VILLAGER_STATE_FARMER_ARRIVES_AT_FARM);  // sub_6F1FF0: on to the next spot
+        return;
+    }
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
+void FarmerDigsUpCrop(Villager& v) {  // 69, sub_6E9010
+    auto* field = static_cast<Field*>(v.target);
+    if (!field) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    if (const int n = field->Harvest(static_cast<float>(RoomToCarry(v)))) {
+        v.resource_held[0] = static_cast<int16_t>(v.resource_held[0] + n);  // sub_6E1180
+        // A full load: less room left than mobile object 15's +104 (dword_C5A3E4).
+        float load = 0;
+        if (const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_MOBILE_OBJECT_INFO, 15)))
+            std::memcpy(&load, e + 104, 4);
+        if (static_cast<float>(RoomToCarry(v)) < load) { GotoStoragePit(v); return; }
+    }
+    SetState(v, VILLAGER_STATE_FARMER_ARRIVES_AT_FARM);
+}
+
 void ArrivesAtStoragePitForDropOff(Villager& v) { ArrivesAtStoragePit(v); }  // 32
 
 void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 (sub_6F85B0)
@@ -701,6 +791,9 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF: vs::ArrivesAtStoragePitForDropOff(*this); break;
     case VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING: vs::FishermanArrivesAtFishing(*this); break;
     case VILLAGER_STATE_FISHING: vs::Fishing(*this); break;
+    case VILLAGER_STATE_FARMER_ARRIVES_AT_FARM: vs::ArrivesAtFarm(*this); break;
+    case VILLAGER_STATE_FARMER_PLANTS_CROP: vs::FarmerPlantsCrop(*this); break;
+    case VILLAGER_STATE_FARMER_DIGS_UP_CROP: vs::FarmerDigsUpCrop(*this); break;
     case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD: vs::GotoStoragePitForFood(*this); break;
     case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD: vs::ArrivesAtStoragePitForFood(*this); break;
     case VILLAGER_STATE_EAT_FOOD: vs::EatFood(*this); break;

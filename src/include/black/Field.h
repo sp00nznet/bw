@@ -10,6 +10,7 @@
 // interactions (eating, stomping, watering, poo fertilizing).
 
 #include "Abode.h"
+#include "LHNodeList.h"
 
 // Forward declarations
 struct ControlHandUpdateInfo;
@@ -92,10 +93,14 @@ struct Field : public Abode {
     MapCoords* GetDoorPos(MapCoords* pos) override;
 
     // === Non-virtual methods ===
-    bool32_t PlantCrop(const MapCoords& pos);
-    bool32_t GetPlantCropPos();
-    int GetFieldActivity(int param);
-    float GetPercentFull();
+    // v1.0 field work, against the field type record at +0x120
+    // (DETAIL_FIELD_TYPE_INFO). Offsets below are into that element.
+    bool32_t PlantCrop(const MapCoords& pos);  // sub_4FFB40: one more crop, up to +296
+    bool32_t GetPlantCropPos();                // sub_4FFB90: room for another crop
+    int GetFieldActivity(int param);           // sub_4FFCC0: 1 plant, 0 growing, 2 harvest
+    float GetPercentFull();                    // sub_4FFE20: crops / +296
+    float GetPull();                           // sub_4FFD10: how much it wants a farmer
+    int Harvest(float room);                   // sub_4FFEC0: food dug up for a villager
     float RemoveFood(float amount);
     float GetFoodValue();
 
@@ -103,10 +108,9 @@ struct Field : public Abode {
     Field*          next;            // 0xC4
     uint32_t        field_0xc8;
     uint8_t         field_0xcc;
-    uint32_t        field_0xd0;
-    uint32_t        field_0xd4;
-    uint32_t        field_0xd8;
-    uint32_t        field_0xdc;
+    float           growth;          // 0xD0 — crop growth, ripe at +288, full at +292
+    LHNodeList      farmers;         // 0xD4 — sub_4FEFB0 / sub_4FEF10
+    float           food;            // 0xDC — food the crop holds
     uint32_t        field_0xe0;
     float           field_0xe4;
     float           field_0xe8;
@@ -122,7 +126,7 @@ struct Field : public Abode {
     uint32_t        field_0x110;
     uint32_t        field_0x114;
     Town*           town;            // 0x118
-    int             field_0x11c;
+    int             stagger;         // 0x11C — rand(10): which turn of ten it grows on
     GFieldTypeInfo* type_info;       // 0x120
 };
 static_assert(sizeof(Field) == 0x124, "Field size mismatch");

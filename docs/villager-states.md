@@ -53,6 +53,9 @@ are the ones the code agrees with.
 | 32 ArrivesAtStoragePitForDropOff | `sub_6F7720` | put one kind of it into the store, then decide |
 | 55 FishermanArrivesAtFishing | `sub_6EA660` | walk into the farm's cell, then fish |
 | 56 Fishing | `sub_6EA730` | cast; a catch is a quarter load; full hands go to the store |
+| 67 FarmerArrivesAtFarm | `sub_6E8EF0` | walk to a spot in the field; plant, or dig a full-grown crop |
+| 68 FarmerPlantsCrop | `0x6E9090` | one more crop, then the next spot |
+| 69 FarmerDigsUpCrop | `sub_6E9010` | dig food up; a full load goes to the store |
 | 14 Dying | vslot 551, `sub_6F85B0` | on to Dead |
 | 15 Dead | vslot 552 | holds (the body's removal is not translated) |
 
@@ -119,6 +122,33 @@ Land 1 starts with 20,000 food in the village's store against a need of 12,025, 
 Food desire is zero and nobody fishes, as in v1.0. With the store emptied, Food desire
 reaches 0.98 and the village's five farms are worked, landing 694 food in 3,000 turns.
 
+## Fields
+
+Fields are not abodes in v1.0's town: the generic creator (`sub_401BA0`) returns
+before the abode-list step for them, and the constructor (`sub_4FEB10`) puts them on
+the town's field list (+0x778) instead. Each tick (`sub_4FF9C0`) is the abode tick, and
+then, on one turn in ten, growth. The ten-turn slot is staggered by a random 0-9 set
+at creation. A field reads its numbers from its type record (`DETAIL_FIELD_TYPE_INFO`,
+held at +0x120):
+
+- It holds 30 crops (+296), planted one at a time by farmers (state 68).
+- A fully planted field below full growth (+292, 1200) grows by k x a rate:
+  - The rate is +312 (0.5) before the crop is ripe (+288, 80) and +316 (1.5) after.
+    Rain on the field uses +320 / +324 instead.
+  - k = 2 x (0.5 x the players' influence there + 1).
+  - Food grows by the same amount x +304 / +292.
+- Its pull in the food job (`sub_4FFD10`) is `(1 - planted) x free³` while it needs
+  planting, or `free` once it is full-grown, where `free = 1 - farmers / +308` (10).
+- **Harvest** (`sub_4FFEC0`, read from the disassembly) digs up as much as the villager
+  has room for. Before full growth, the field loses more than the villager gets
+  (`room x +332` on top). When the food runs out, a full-grown field is cleared for
+  replanting.
+
+Farmers join and leave a field's list (+0xD4) through the farming states' enter and
+exit slots, like fishermen. On Land 1, with the store emptied, the village's 17 fields
+get 473 crops planted in 3,000 turns. At k = 2 the first are full-grown and dug up
+by about turn 8,300.
+
 **The game's random generator** is translated too (`LHRandom.h`, `sub_746D10`:
 `seed = ror32(9377 × seed + 9439, 13)`). Every random choice above draws from it.
 
@@ -134,8 +164,8 @@ vagrants (130).
   yearly growth in size, the disciple tail, and most of what a death notifies (the
   player's and town's statistics, mourning, dropping what it carried). Without a store
   the original forages for food somewhere in town (`sub_6E3900`); not translated.
-- **From the food job**: fields (the crop tick `sub_4FF9C0` and the farming states
-  67-69) and the third source at town +0xF00. The fishing cast waits a fixed 20 turns
+- **From the food job**: the third source at town +0xF00; for fields, the players'
+  influence (none yet, so k = 2), rain, burning, and the town's "fields need work" flag. The fishing cast waits a fixed 20 turns
   where the original waits out the animation, and the season is always spring (the game
   clock's start is set at runtime).
 - **The other work handlers** (food, wood, building, repair,

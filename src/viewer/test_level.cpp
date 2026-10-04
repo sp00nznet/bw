@@ -2,6 +2,7 @@
 // their abodes and housed villagers come out linked, and the world survives
 // simulation turns. Needs game_data/ (Land1.txt, info.dat); skips without it.
 #include <black/Abode.h>
+#include <black/Field.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LevelLoader.h>
@@ -17,6 +18,7 @@
 #include <cstring>
 #include <string>
 
+extern uint32_t g_game_turn;  // LevelLoader.cpp
 static int g_fail = 0;
 #define CHECK(cond, msg) do { if (!(cond)) { printf("FAIL: %s\n", msg); ++g_fail; } \
                               else printf("ok  : %s\n", msg); } while (0)
@@ -209,6 +211,47 @@ int main() {
         std::snprintf(msg, sizeof msg, "with the store empty, villagers fish (%d villager-turns) and land the catch in the store (%u food)",
                       job[VILLAGER_STATE_FISHING], pit_food2);
         CHECK(job[VILLAGER_STATE_FISHING] > 0 && pit_food2 > 0, msg);
+
+        // Farming (67-69, Field sub_4FF9C0): fields get planted, grow, and are
+        // dug up. Their state over the same run:
+        {
+            uint32_t fields = 0, planted = 0, crops = 0;
+            float most_growth = 0, food_in = 0;
+            for (LHNode* n = village->field_list.head; n; n = n->next) {
+                auto* f = static_cast<Field*>(n->obj);
+                ++fields;
+                planted += f->GetPercentFull() >= 1.0f;
+                crops += f->field_0xcc;
+                if (f->growth > most_growth) most_growth = f->growth;
+                food_in += f->food;
+            }
+            const char* ft = reinterpret_cast<const char*>(static_cast<Field*>(village->field_list.head->obj)->type_info);
+            auto F = [&](int off) { float x; std::memcpy(&x, ft + off, 4); return x; };
+            int32_t most_farmers;
+            std::memcpy(&most_farmers, ft + 308, 4);
+            printf("      field type: crops %.0f, ripe %.1f, full %.1f, rates %.3f/%.3f, food %.1f, farmers %d\n",
+                   F(296), F(288), F(292), F(312), F(316), F(304), most_farmers);
+            printf("      village fields %u: %u fully planted, %u crops, most growth %.1f, food in fields %.1f;"
+                   " villager-turns at the farm %d, planting %d, digging %d\n",
+                   fields, planted, crops, most_growth, food_in, job[VILLAGER_STATE_FARMER_ARRIVES_AT_FARM],
+                   job[VILLAGER_STATE_FARMER_PLANTS_CROP], job[VILLAGER_STATE_FARMER_DIGS_UP_CROP]);
+            std::snprintf(msg, sizeof msg, "farmers plant the village's fields (%u crops) and the crops grow (to %.1f)", crops, most_growth);
+            CHECK(job[VILLAGER_STATE_FARMER_PLANTS_CROP] > 0 && crops > 0 && most_growth > 0.0f, msg);
+
+            // A crop is dug up only at full growth (+292, sub_4FFBD0); run on
+            // until the first fields get there.
+            int dug = 0;
+            for (int turn = 0; turn < 6000 && !dug; ++turn) {
+                level::Process(w);
+                for (auto& p : start) dug += p.first->action.top_state == VILLAGER_STATE_FARMER_DIGS_UP_CROP;
+            }
+            for (int turn = 0; turn < 500; ++turn) {
+                level::Process(w);
+                for (auto& p : start) dug += p.first->action.top_state == VILLAGER_STATE_FARMER_DIGS_UP_CROP;
+            }
+            std::snprintf(msg, sizeof msg, "full-grown crops are dug up (%d villager-turns digging by game turn %u)", dug, g_game_turn);
+            CHECK(dug > 0, msg);
+        }
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
     }

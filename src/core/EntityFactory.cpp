@@ -178,6 +178,10 @@ Object* CreateField(const EntityCreateParams& params) {
     Field* field = new Field();
     InitObjectFromParams(field, params);
     field->info = InfoFor(infodat::DETAIL_FIELD_TYPE_INFO, params);
+    // +0x120: the field type record the crop code reads (sub_4FEB10's a3).
+    // ponytail: v1.0's info (+0x28) is the tribe's abode record 15
+    // (sub_4041D0); the type record stands in there too.
+    field->type_info = reinterpret_cast<GFieldTypeInfo*>(const_cast<GObjectInfo*>(field->info));
     field->percent_built = 1.0f;
     field->InsertMapObject();
     return field;

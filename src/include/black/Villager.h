@@ -87,9 +87,7 @@ struct Villager : public Living {
     GPlayer* last_player_to_interact;      // 0x108
     float    field_0x10c;                  // 0x10C
     Object*  target;                       // 0x110 — v1.0 this[68]: the farm or field worked
-    uint32_t field_0x114;                  // 0x114
-    FireEffect* villager_fire_effect;      // 0x118
-    GameThing* target_thing;               // 0x11C
+    MapCoords work_spot;                   // 0x114 — v1.0 this[69..71]: the spot in the field
     Abode*   home;                         // 0x120 — v1.0 sub_6E1CE0 returns this[72]
     Town*    town;                         // 0x124 — v1.0 GetTown (vslot 18) returns this[73]
 };

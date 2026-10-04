@@ -8,6 +8,7 @@
 #include <black/Field.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
+#include <black/LHRandom.h>
 #include <black/Living.h>
 #include <black/MultiMapFixed.h>
 #include <black/Object.h>
@@ -232,8 +233,17 @@ struct Loader {
             best->fish_farms.Add(farm);
             return true;
         }
+        if (cat == ENTITY_CAT_FIELD) {
+            // sub_4FEB10: a field is given its town and goes on the town's
+            // field list -- not the abode list (sub_401BA0 returns before
+            // sub_402B80 for fields) -- and grows on one turn in ten.
+            auto* field = static_cast<Field*>(o);
+            field->town = town;
+            field->stagger = static_cast<int>(lh::Random(10));
+            town->field_list.Add(field);
+            return true;
+        }
         town->AddStructureToTown(static_cast<MultiMapFixed*>(o));
-        if (cat == ENTITY_CAT_FIELD) town->field_list.Add(o);  // sub_4FEB10
         return true;
     }
 
@@ -319,7 +329,7 @@ void Process(World& w) {
     for (Town* t : w.towns) t->Process();
     for (const Spawned& s : w.objects) {
         if (!s.obj || !s.obj->IsAvailable()) continue;
-        if (Abode* a = s.obj->CastAbode()) if (a->GetTown()) continue;
+        if (Abode* a = s.obj->CastAbode()) if (a->GetTown() && !a->IsField_0()) continue;  // fields tick themselves
         // Living::ProcessAll (sub_5AB2E0): the previous position, then the
         // living's own tick (vslot 392; Villager::ProcessState).
         if (Villager* v = dynamic_cast<Villager*>(s.obj)) {

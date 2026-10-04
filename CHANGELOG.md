@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- Farming (`docs/villager-states.md`): fields belong to their town's field list, plant
+  up, grow on one turn in ten, and are dug up when full-grown; the food job weighs them
+  against fish farms.
 - The food job and fishing (`docs/villager-states.md`): the Food desire sends villagers
   to the town's fish farms; they fish and take the catch to the storage pit. Fish
   farms and fields go on their towns' lists as v1.0's constructors put them.

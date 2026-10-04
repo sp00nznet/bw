@@ -6,7 +6,16 @@
 // 0x005280xx are packed 16 bytes apart (trivial returns). Complex
 // methods at 0x005284xx-0x0052a0xx.
 
+#include <cstring>
 #include <black/Field.h>
+
+namespace {
+float TypeF(const Field* f, int off) {
+    float x = 0;
+    if (f->type_info) std::memcpy(&x, reinterpret_cast<const char*>(f->type_info) + off, 4);
+    return x;
+}
+}  // namespace
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -187,10 +196,24 @@ uint32_t Field::DestroyedByEffect(GPlayer* /*player*/, float /*param*/) {
     return 0;
 }
 
+extern uint32_t g_game_turn;  // LevelLoader.cpp
 uint32_t Field::Process() {
-    // Original at 0x00529020 — field per-tick update
-    if (!IsBuilt()) return MultiMapFixed::Process();
-    // Crop growth, food production, and watering mechanics — needs agricultural subsystem
+    // v1.0 sub_4FF9C0, read from the disassembly. The abode tick, then on one
+    // turn in ten: a fully planted field below full growth (+292) grows by
+    // k x a rate -- +312 / +316 dry (before / after ripe at +288), +320 /
+    // +324 when it rains on the field -- and its food by that x +304 / +292.
+    // k = 2 x (0.5 x the players' influence there + 1).
+    // ponytail: no players, so the influence (sub_5C1450) is 0 and k is 2;
+    // no rain (sub_6FE660) and no burning (sub_5EA110) yet.
+    Abode::Process();
+    if ((g_game_turn + static_cast<uint32_t>(stagger)) % 10u) return 1;
+    if (static_cast<float>(field_0xcc) < TypeF(this, 296) || growth > TypeF(this, 292)) return 1;
+    const float k = (0.0f * 0.5f + 1.0f) * 2.0f;
+    const bool rain = false;
+    const float rate = growth < TypeF(this, 288) ? TypeF(this, rain ? 320 : 312) : TypeF(this, rain ? 324 : 316);
+    const float g = k * rate;
+    growth += g;
+    food += g * TypeF(this, 304) / TypeF(this, 292);
     return 1;
 }
 
@@ -318,35 +341,66 @@ MapCoords* Field::GetDoorPos(MapCoords* pos) {
 // Non-virtual methods
 // ============================================================================
 
-bool32_t Field::PlantCrop(const MapCoords& /*pos*/) {
-    // Original at 0x005291a0 — complex
-    return 0;
+bool32_t Field::PlantCrop(const MapCoords& /*pos*/) {  // sub_4FFB40
+    if (static_cast<float>(field_0xcc) >= TypeF(this, 296)) return 0;
+    ++field_0xcc;
+    return 1;
 }
 
-bool32_t Field::GetPlantCropPos() {
-    // Original at 0x00529210 — complex
-    return 0;
+bool32_t Field::GetPlantCropPos() {  // sub_4FFB90
+    return static_cast<float>(field_0xcc) < TypeF(this, 296);
 }
 
-int Field::GetFieldActivity(int /*param*/) {
-    // Original at 0x00529350 — complex
-    return 0;
+int Field::GetFieldActivity(int /*param*/) {  // sub_4FFCC0
+    if (GetPercentFull() < 1.0f) return 1;
+    if (growth < TypeF(this, 288)) return 0;
+    return 2;
 }
 
-float Field::GetPercentFull() {
-    // Original at 0x00529500 — complex
-    return 0.0f;
+float Field::GetPercentFull() {  // sub_4FFE20
+    return static_cast<float>(field_0xcc) / TypeF(this, 296);
 }
 
-float Field::RemoveFood(float amount) {
-    // Original at 0x005295a0 — removes food from the field, clamped to available
-    if (amount > field_0xe4)
-        amount = field_0xe4;
-    field_0xe4 -= amount;
-    return amount;
+float Field::GetPull() {  // sub_4FFD10
+    // Burning (+0x44) or unfinished fields pull nobody.
+    if (fire_effect || !IsFunctional()) return 0.0f;
+    int32_t most = 0;  // +308 is an int: the farmers a field takes
+    if (type_info) std::memcpy(&most, reinterpret_cast<const char*>(type_info) + 308, 4);
+    float busy = static_cast<float>(farmers.count) / static_cast<float>(most);
+    if (busy >= 1.0f) busy = 1.0f;
+    const float free_ = 1.0f - busy;
+    float full = GetPercentFull();
+    if (full >= 1.0f) full = 1.0f;
+    switch (GetFieldActivity(0)) {
+    case 1: return (1.0f - full) * free_ * free_ * free_;
+    case 2: return growth < TypeF(this, 292) ? 0.0f : free_;
+    default: return 0.0f;
+    }
 }
 
-float Field::GetFoodValue() {
-    // Original at 0x00529700 — returns the current food stored in this field
-    return field_0xe4;
+int Field::Harvest(float room) {  // sub_4FFEC0, read from the disassembly
+    if (food == 0.0f) return 0;
+    if (static_cast<float>(field_0xcc) < TypeF(this, 296)) return 0;
+    const int take = static_cast<int>(room);
+    int cost = take;  // unripe crops waste more than the villager gets
+    if (growth < TypeF(this, 292)) cost = static_cast<int>(room * TypeF(this, 332) + static_cast<float>(take));
+    if (static_cast<float>(cost) < food) {
+        food -= static_cast<float>(cost);
+        return take;
+    }
+    // ponytail: sub_5EBD20(this, 0, 0) and the town's +0x5E8 "fields need
+    // work" flag are not translated.
+    if (growth < TypeF(this, 292)) {
+        food = 0.0f;
+        return static_cast<int>(room * TypeF(this, 332));
+    }
+    const int rest = static_cast<int>(food);
+    food = 0.0f;
+    field_0xcc = 0;
+    growth = 0.0f;
+    return rest;
 }
+
+float Field::RemoveFood(float amount) { return static_cast<float>(Harvest(amount)); }
+
+float Field::GetFoodValue() { return food; }
