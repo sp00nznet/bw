@@ -31,6 +31,7 @@ add_library(bw_core STATIC
     core/VillagerStates.cpp
     core/Gesture.cpp
     core/SpellCast.cpp
+    core/Fire.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp

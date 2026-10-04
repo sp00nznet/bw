@@ -10,6 +10,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Fire (`docs/fire.md`): v1.0's heat simulation. Objects catch above their ignition
+  point, burn their life away and heat their neighbours; spell effects carry heat in
+  value [0], so Water's effect puts fires out.
 - The Water miracle (`docs/gestures.md`): a field it falls on is planted full or grown
   (v1.0's `Field::ApplyWaterSpell`).
 - The Heal miracle (`docs/gestures.md`): a spell's effect record, its area, and the

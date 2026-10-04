@@ -3,6 +3,7 @@
 
 #include <black/Abode.h>
 #include <black/Field.h>
+#include <black/Fire.h>
 #include <black/Living.h>
 #include <black/InfoDat.h>
 #include <black/Object.h>
@@ -88,13 +89,15 @@ float ApplyToLiving(const Effect& e, Object* t) {
 int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>& nearby) {
     int n = 0;
     for (Object* o : nearby) {
-        if (!o || !o->IsAvailable()) continue;
+        if (!o || !o->IsAvailable() || !o->info) continue;
         auto* l = dynamic_cast<Living*>(o);
         // vslot 477 (sub_6E1960): a heal reaches only the living not yet dead.
-        if (!l || (e.value[3] > 0.0f && l->GetLife() <= 0.0f)) continue;
+        if (e.value[3] > 0.0f && (!l || l->GetLife() <= 0.0f)) continue;
         const float dx = MetresOf(at.x - o->coords.x), dz = MetresOf(at.z - o->coords.z);
         if (std::sqrt(dx * dx + dz * dz) > o->GetRadius() + e.radius) continue;
-        ApplyToLiving(e, o);
+        // Value [0] is heat (sub_6C6940, from the wound reader sub_5EA150).
+        fire::AddHeat(o, e.value[0], nullptr);
+        if (l) ApplyToLiving(e, o);
         ++n;
     }
     return n;

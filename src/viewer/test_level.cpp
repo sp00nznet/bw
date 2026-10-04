@@ -5,6 +5,7 @@
 #include <black/BigForest.h>
 #include <black/BuildingSite.h>
 #include <black/Field.h>
+#include <black/Fire.h>
 #include <black/Forest.h>
 #include <black/PlannedMultiMapFixed.h>
 #include <black/SpellCast.h>
@@ -233,6 +234,35 @@ int main() {
         std::snprintf(msg, sizeof msg, "the hand draws spiral + Water and casts on a field: %s; crops %d -> %d", rw.c_str(), crops0, bare->field_0xcc);
         CHECK(crops0 == 0 && bare->field_0xcc > 30, msg);
         bare->field_0xcc = 0;  // leave the rest of the test as it was
+
+        // Fire (Fire.cpp, sub_6C52A0): heat a hut past its ignition point; it
+        // burns, losing life, and heats its neighbours; Water's effect
+        // (value [0] = -4000) puts it out.
+        Abode* hut = nullptr;
+        for (Abode* a = reinterpret_cast<Abode*>(v0->abode_list.head); a; a = a->next)
+            if (a != reinterpret_cast<Abode*>(v0->storage_pit_list) && a != reinterpret_cast<Abode*>(v0->town_centre)) { hut = a; break; }
+        const float life0 = hut->GetLife();
+        // One hit of heat 1000 warms a hut (capacity 2000) by only 5 degrees
+        // (10 x 1000 / 2000); a fire spell's particles keep hitting. Here, a
+        // hit a turn for 40 turns.
+        for (int turn = 0; turn < 40; ++turn) { fire::AddHeat(hut, 1000.0f, nullptr); level::Process(w); }
+        const float t0 = fire::Temperature(hut);
+        int most = 0;
+        for (int turn = 0; turn < 100; ++turn) { level::Process(w); most = std::max(most, fire::Count()); }
+        const float t1 = fire::Temperature(hut), life1 = hut->GetLife();
+        draw(1);
+        draw(20);
+        miracles::Cast(w, MetresOf(hut->coords.x), MetresOf(hut->coords.z));
+        // One drop cools a hut by about 21 degrees (-4000 against capacity
+        // 2000); the spell drops every turn while it lasts. Here, 20 more.
+        const spell::Effect water = spell::EffectFor(22);
+        for (int turn = 0; turn < 20; ++turn) { spell::ApplyInArea(water, hut->coords, {hut}); level::Process(w); }
+        for (int turn = 0; turn < 50; ++turn) level::Process(w);
+        std::snprintf(msg, sizeof msg, "a hut set alight burns (%.0f -> %.0f degrees, ignition %.0f; life %.2f -> %.2f; up to %d fires), and Water puts it out (now %.0f degrees, %d fires)",
+                      t0, t1, fire::Ignition(hut), life0, life1, most, fire::Temperature(hut), fire::Count());
+        CHECK(t0 >= fire::Ignition(hut) && life1 < life0 && fire::Temperature(hut) < fire::Ignition(hut), msg);
+        fire::Clear();
+        hut->SetLife(life0);
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);

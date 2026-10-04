@@ -58,7 +58,8 @@ struct Effect {
 Effect EffectFor(int magic_type, float strength = 1.0f);
 
 // sub_4FC660: everything around `at` that takes effects and lies within its
-// own radius plus the effect's gets it (vslot 371). Returns how many did.
+// own radius plus the effect's gets it (vslot 371): its heat ([0], into the
+// fire simulation) and, on the living, wound and heal. Returns how many did.
 // ponytail: the objects are passed in (no map cells), and the height check
 // and the target redirection (vslot 374) are left out.
 int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>& nearby);

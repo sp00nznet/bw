@@ -7,6 +7,7 @@
 #include <black/EntityFactory.h>
 #include <black/BigForest.h>
 #include <black/Field.h>
+#include <black/Fire.h>
 #include <black/Forest.h>
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
@@ -376,6 +377,13 @@ void Process(World& w) {
             continue;
         }
         s.obj->Process();
+    }
+    // The fires (sub_6C6A30), which may spread to anything in the world.
+    if (fire::Count()) {
+        std::vector<Object*> all;
+        all.reserve(w.objects.size());
+        for (const Spawned& s : w.objects) if (s.obj) all.push_back(s.obj);
+        fire::Process(all);
     }
     ++g_game_turn;
 }
