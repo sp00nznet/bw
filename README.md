@@ -164,7 +164,7 @@ builds bw with clang-cl on its Linux builders and runs the tests on a Windows te
 so your own machine isn't loaded. The recipe is netlab's `projects/bw.env`:
 
 ```bash
-./netlab check bw                 # build on the farm, then run every test (tools/run_tests.cmd)
+./netlab check bw --on testbox    # build on the farm, then every test on the test VM (tools/run_tests.cmd)
 ./netlab qa bw --on testbox       # tests only, against the last build
 ```
 

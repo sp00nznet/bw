@@ -30,7 +30,7 @@ history before this file lives in the README's batch log and `git log`.
 
 ### Changed
 - Static CRT: the exes no longer need the VC++ redistributable on the machine.
-- Builds and QA run on recomp-netlab (`netlab check bw`); see README.
+- Builds and QA run on recomp-netlab (`netlab check bw --on testbox`); see README.
 - Raw decompiler output, address lists and RTTI/vtable maps are no longer tracked
   (`work/decomp/`, `work/decompiled/`); the scripts that produce them are.
 - The `info.dat` "later build" theory is refuted: the v1.2 patch expects our exact
