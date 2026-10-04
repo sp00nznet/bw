@@ -39,6 +39,9 @@ static void InitObjectFromParams(Object* obj, const EntityCreateParams& params) 
     obj->y_angle = params.angle;
     obj->scale = params.scale > 0.0f ? params.scale : 1.0f;
     obj->life = 1.0f;
+    // sub_5E8A80: every Object takes the next serial from a game-wide counter (+0x3C).
+    static uint32_t s_next_serial = 0;
+    obj->field_0x3c = s_next_serial++;
 }
 
 // The object's balance record. Level scripts name the type (type_name);

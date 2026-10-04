@@ -97,6 +97,16 @@ struct Landscape {
     void BuildMesh();  // Generate vertices/indices from blocks
 };
 
+// Flags word of map cell (cx, cz), or -1 where there is none: block
+// index_grid[cx >> 4][cz >> 4] (1-based), cell (cz & 15) + 17 * (cx & 15),
+// exactly the original's lookup (sub_5BFBF0).
+inline int32_t LandscapeCellFlags(const Landscape& l, uint32_t cx, uint32_t cz) {
+    if (cx >= 512 || cz >= 512) return -1;
+    const uint8_t idx = l.index_grid[cx >> 4][cz >> 4];
+    if (!idx || idx > l.blocks.size()) return -1;
+    return l.blocks[idx - 1].cells[(cz & 15) + 17 * (cx & 15)].flags;
+}
+
 // Load a .lnd file. Returns true on success.
 bool LoadLND(const std::string& path, Landscape& out);
 

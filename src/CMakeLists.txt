@@ -465,6 +465,7 @@ set_target_properties(test_spawn PROPERTIES
 # Land 1 through the native level loader, then simulation turns
 add_executable(test_level
     viewer/test_level.cpp
+    viewer/lnd_loader.cpp
 )
 target_link_libraries(test_level PRIVATE bw_core)
 set_target_properties(test_level PROPERTIES

@@ -202,6 +202,9 @@ bool GameState::Init(const std::string& script_path) {
     // Register terrain + LHVM host services
     s_current_game_state = this;
     g_terrain_height_func = TerrainHeightCallback;
+    g_cell_flags_func = [](uint32_t cx, uint32_t cz) -> int32_t {
+        return LandscapeCellFlags(s_current_game_state->terrain, cx, cz);
+    };
     lhvm::g_hand_query_func   = HandQueryCallback;
     lhvm::g_entity_spawn_func = EntitySpawnCallback;
     bw::audio::Init(dir);

@@ -9,6 +9,7 @@
 #include <black/Town.h>
 #include <black/Villager.h>
 #include <black/Terrain.h>
+#include <cmath>
 #include <cstring>
 
 // ============================================================================
@@ -644,4 +645,47 @@ float Abode::GetRadius() {
     int32_t mesh;
     std::memcpy(&mesh, reinterpret_cast<const char*>(info) + 0x15C, 4);
     return g_mesh_radius_func(mesh) * scale;
+}
+
+namespace {
+
+// sub_5BFBF0: a map cell holds drinkable water when its flags have 0x20 set
+// and 0x10 clear.
+bool IsWaterCell(uint32_t cx, uint32_t cz) {
+    if (!g_cell_flags_func) return false;
+    const int32_t f = g_cell_flags_func(cx, cz);
+    return f >= 0 && (f & 0x10) == 0 && (f & 0x20) != 0;
+}
+
+// sub_6DED30: walk a square spiral of cells out from `from` (east, north,
+// west, south, each run one longer every second turn: the table at 0xCC6694
+// and sub_6DE790) until a water cell, or until the walk is farther than
+// max_m. Cells keep the start's fraction: only the high words move.
+bool FindDrinkingWater(const MapCoords& from, float max_m, MapCoords* out) {
+    static const int16_t kDir[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    MapCoords cur = from;
+    int dir = 1, run = 1;
+    for (int guard = 999999; guard; --guard) {
+        const float dx = MetresOf(cur.x - from.x), dz = MetresOf(cur.z - from.z);
+        if (std::sqrt(dx * dx + dz * dz) > max_m) return false;
+        const uint32_t cx = static_cast<uint32_t>(cur.x) >> 16, cz = static_cast<uint32_t>(cur.z) >> 16;
+        if (cx < 512 && cz < 512 && IsWaterCell(cx, cz)) { *out = cur; return true; }
+        if (run-- == 1) { ++dir; run = dir / 2; }
+        cur.x = static_cast<int32_t>(static_cast<uint32_t>(cur.x) + (static_cast<uint32_t>(kDir[dir & 3][0]) << 16));
+        cur.z = static_cast<int32_t>(static_cast<uint32_t>(cur.z) + (static_cast<uint32_t>(kDir[dir & 3][1]) << 16));
+    }
+    return false;
+}
+
+}  // namespace
+
+void Abode::JoinTown(Town* t) {
+    if (!t) return;
+    t->AddStructureToTown(this);                                     // sub_6CD6B0
+    index = static_cast<uint8_t>(t->abode_list.count - 1);           // +0xB8 = count byte - 1
+    // sub_405680(200): bit 0 of +0x7C says whether drinking water was found.
+    // The original tries the stream points first (sub_6C9D10); Land 1 creates
+    // every abode before any stream, so the cell search is what decides there.
+    const bool found = FindDrinkingWater(coords, 200.0f, &drinking_water);
+    field_0x7c = (field_0x7c & ~1u) | (found ? 1u : 0u);
 }

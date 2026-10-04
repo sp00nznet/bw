@@ -121,6 +121,9 @@ struct Abode : public MultiMapFixed {
     void DeleteAbodeSurroundingObjects();
     void RemoveAllVillagersFromAbode();
     void AddVillagerToAbode(Villager* villager);
+    // The town half of v1.0 sub_401220: join the town, take the abode index,
+    // look for drinking water within 200 m (sub_405680). docs/constructors.md.
+    void JoinTown(Town* town);
     void RemoveDeletedVillagerFromAbode(Villager* villager);
     void RemoveAliveVillagerFromAbode(Villager* villager);
     uint8_t GetNumAdultsInAbode();

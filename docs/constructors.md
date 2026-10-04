@@ -75,3 +75,40 @@ the other.
 - the map-region flag at +0x5E0 (`sub_6FE660`)
 - the game-mode index that picks influence from TownInfo +188 + 4n
 - the second half of `sub_6CE1E0`, a bounding sphere
+
+## Abode (`sub_401F10` → `sub_401220`)
+
+The layout already matched v1.0 (0xC4). The constructor's `drinking_water` (+0x80) and
+`index` (+0xB8) writes land on the fields of those names.
+
+- **Object (`sub_5E8A80`):** position at +0x14 and +0x2C, info, life 1.0, scale 1.0,
+  then angle and scale from the create's arguments (`sub_5EB580` / `sub_5EB520`). The
+  factory already did these. New: each object takes the next value of a game-wide
+  serial counter (+0x3C).
+- **MultiMapFixed (`sub_5044E0`):** a built (not planned) structure sets
+  `percent_built` = 1.0 and +0x58 bit 3. The factory already did that.
+- **Abode, the town half (`Abode::JoinTown`):**
+  - joins the town (`sub_6CD6B0`, above) and takes `index` = the town's count − 1
+  - `sub_405680(200)`: looks for drinking water within 200 m, and records in bit 0 of
+    +0x7C whether it found any. It tries stream points first (`sub_6C9D10`). Every
+    abode in Land 1 is created before the first `CREATE_STREAM`, so there the cell
+    search decides (`sub_6DED30`).
+  - **The cell search** is a square spiral out from the abode. Each step moves one cell
+    east, north, west or south, the run growing every second turn. The direction table
+    is `.bss` at `0xCC6694`, filled by an inlined initialiser IDA never made a function;
+    it was decoded from the raw bytes at `0x6DDD90`
+    (`mov cx,1; xor ax,ax; mov [CC6694],cx; ...`). The walk stops at the first water
+    cell, or at the first cell farther than 200 m; corners come first, so in practice
+    it stops nearer 140 m. A water cell has flag `0x20` set and `0x10` clear
+    (`sub_5BFBF0`). The host serves the flags from the `.lnd` (`g_cell_flags_func`,
+    `LandscapeCellFlags`), using the same block grid the original indexes.
+
+Land 1: 7 of 57 abodes have water within reach.
+
+**Not yet translated:**
+- slot 406 (`sub_401F80`): the abode's 3D object and transform, which is the viewer's
+  job here
+- the post-create `sub_401EB0`: resources through vslot 39, then two more virtual
+  checks. The loader adds food and wood directly instead.
+- `sub_402B80`, which creates door/footpath objects
+- the +0x24 category bit (`sub_5EC8B0`)

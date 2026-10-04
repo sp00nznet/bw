@@ -154,7 +154,7 @@ struct Loader {
             abode->JustAddResource(static_cast<RESOURCE_TYPE>(0), static_cast<uint32_t>(a[5].n), false);
             abode->JustAddResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(a[6].n), false);
         }
-        town->AddStructureToTown(abode);
+        abode->JoinTown(town);  // sub_401220's town half: list, index, drinking water
         // case 9: the first town centre created becomes the town's (v1.0 town + 0x99C;
         // our header names that slot town_centre at 0x9A4).
         if (town_centre && !town->town_centre)

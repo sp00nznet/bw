@@ -7,6 +7,7 @@
 #include <black/Terrain.h>
 #include <black/Town.h>
 #include <black/Villager.h>
+#include "lnd_loader.h"
 
 #include <cstdio>
 #include <string>
@@ -21,6 +22,11 @@ int main() {
     for (const char* r : roots)
         if (infodat::Load((std::string(r) + "info.dat").c_str())) { root = r; break; }
     if (root.empty()) { printf("note: game_data not reachable; skipped\n"); return 0; }
+
+    // The real landscape, for the drinking-water search (cell flags).
+    static bw::Landscape land;
+    if (bw::LoadLND(root + "Land1.lnd", land))
+        g_cell_flags_func = [](uint32_t cx, uint32_t cz) { return bw::LandscapeCellFlags(land, cx, cz); };
 
     // No meshes headless: a stand-in host that sizes every abode mesh at 6 m.
     g_mesh_radius_func = [](int32_t) { return 6.0f; };
@@ -67,6 +73,20 @@ int main() {
         if (t->field_0x5b4 == 0) radii_ok &= r > 50.0f && r < 300.0f;  // the player's 34-abode village
     }
     CHECK(counts_match, "each town's abode count matches its list");
+
+    // sub_401220 / sub_405680: index = count - 1 at joining; drinking water
+    // within 200 m found on the landscape (bit 0 of +0x7C).
+    int watered = 0, indexed = 0, total = 0;
+    for (Town* t : w.towns) {
+        for (Abode* a = reinterpret_cast<Abode*>(t->abode_list.head); a; a = a->next) {
+            ++total;
+            watered += a->field_0x7c & 1;
+            indexed += a->index < t->abode_list.count;
+        }
+    }
+    std::snprintf(msg, sizeof msg, "abodes with drinking water within 200 m: %d of %d", watered, total);
+    CHECK(g_cell_flags_func == nullptr || watered > 0, msg);
+    CHECK(indexed == total, "every abode's index is below its town's count");
     CHECK(radii_ok, "towns with abodes have a radius; the player village's is 50-300 m (town 1's 562 m is real: the script puts one of its huts 1.1 km away)");
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);
