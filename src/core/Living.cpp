@@ -187,9 +187,10 @@ void Living::Birthday() {}
 // Age and animation state machine (vtable 0x8D0-0x95C)
 // ============================================================================
 
-uint32_t Living::GetAge() {
-    // Age is computed from birth_turn — overridden by Villager with real age tracking
-    return 0;
+extern uint32_t g_game_turn;      // LevelLoader.cpp
+extern int32_t g_turns_per_year;  // Villager.cpp
+uint32_t Living::GetAge() {  // sub_5AB550: whole years since the birth turn
+    return (g_game_turn - static_cast<uint32_t>(birth_turn)) / static_cast<uint32_t>(g_turns_per_year);
 }
 
 void Living::SetAge(uint32_t /*age*/) {

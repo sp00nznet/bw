@@ -6,6 +6,11 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Added
+- Villager upkeep, eating and death (`docs/villager-states.md`): food drains each
+  turn, hunger costs life and sends villagers to their home or the town's storage
+  pit to eat, tired villagers go home, children grow up, and old age or starvation
+  kills. A game year is 1,500 turns, read from `GGameInfo`'s constructor; ages now
+  count in years.
 - Villagers run (`docs/villager-states.md`). This is v1.0's living pass and villager
   tick, with the decision core: town emergencies, homeless villagers moving in, work
   offered from the town's desires, sleep, and idling. The home and sleep states and

@@ -8,6 +8,7 @@
 #include <black/Villager.h>
 
 #include <black/Abode.h>
+#include <black/InfoDat.h>
 #include <black/LHRandom.h>
 #include <black/Terrain.h>
 #include <black/Town.h>
@@ -91,6 +92,7 @@ float BusyFactor(Villager& v) {
 
 void RandomIdle(Villager& v);
 bool SleepHandler(Villager& v);
+bool Eat(Villager& v);
 
 // sub_6EFE70: a homeless villager moves into its town's best abode with space.
 bool HomelessMoveIn(Villager& v) {
@@ -103,15 +105,20 @@ bool HomelessMoveIn(Villager& v) {
     return true;
 }
 
-// sub_6EED70: sleep or eat, whichever presses harder past `threshold`.
-// ponytail: eating (sub_6EAEF0 -> sub_6EA9F0) is not translated yet.
+// sub_6EED70: sleep or eat, whichever presses harder past `threshold`;
+// eating is sub_6EAEF0 (only when hungry, then sub_6EA9F0).
 bool SleepOrEat(Villager& v, float threshold) {
     const float eat = HungerNeed(v.food) - threshold;
     const float sleep = SleepNeed(v) - threshold;
+    auto eat_now = [&] { return Hungry(v) && Eat(v); };
     if (eat <= sleep || eat <= 0.0f) {
-        if (sleep > 0.0f && SleepHandler(v)) return true;
-    } else if (sleep > 0.0f) {
-        return SleepHandler(v);
+        if (sleep > 0.0f) {
+            if (SleepHandler(v)) return true;
+            if (eat > 0.0f) return eat_now();
+        }
+    } else {
+        if (eat_now()) return true;
+        if (sleep > 0.0f) return SleepHandler(v);
     }
     return false;
 }
@@ -164,6 +171,198 @@ bool SleepHandler(Villager& v) {
     // ponytail: sub_6EF830 (the household turning in together) is not translated.
     SetState(v, VILLAGER_STATE_GOTO_BED_AT_HOME);
     return true;
+}
+
+// --- upkeep, eating, death --------------------------------------------------
+
+// DETAIL_VILLAGER_STATE_TABLE_INFO, the element for state s (0xCDAB00 + 276 s).
+const char* StateInfo(uint8_t s) { return static_cast<const char*>(infodat::Element(infodat::DETAIL_VILLAGER_STATE_TABLE_INFO, s)); }
+uint32_t StateU(uint8_t s, int off) { uint32_t x = 0; if (const char* e = StateInfo(s)) std::memcpy(&x, e + off, 4); return x; }
+float StateF(uint8_t s, int off) { float x = 0; if (const char* e = StateInfo(s)) std::memcpy(&x, e + off, 4); return x; }
+float RawF(const void* p, int off) { float x = 0; if (p) std::memcpy(&x, static_cast<const char*>(p) + off, 4); return x; }
+
+// vslot 704 (sub_6E19C0): the top state, unless it is a step on the way
+// (element +0x1C clear, e.g. walking), then the state it leads to.
+uint8_t RealState(const Villager& v) { return StateU(v.action.top_state, 0x1C) ? v.action.top_state : v.action.final_state; }
+
+// dword_8D136C, 7 dwords per disciple type: +0 is 1 for the types that do not
+// stop to eat on their own (types 1-6, 8, 9).
+bool DiscipleWorks(const Villager& v) {
+    static const uint8_t k[16] = {0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0};
+    return v.disciple_type < 16 && k[v.disciple_type] == 1;
+}
+
+uint32_t TurnsSinceCheck(const Villager& v) { return g_game_turn - static_cast<uint32_t>(v.last_check_turn); }  // sub_6E0820
+
+// sub_6E0860 -> vslot 425 (sub_6F8500): dying. ponytail: the death's
+// notifications -- the player's and town's statistics (sub_4122C0,
+// sub_6D0D80, sub_6D10C0), the disciple and mourning messages, dropping a
+// carried object (sub_6E0AA0) -- and the cause byte at +0x110 are not kept.
+void Die(Villager& v, int /*cause*/) {
+    if ((v.field_0x24 & 0x40) || (v.status & 1)) return;
+    v.resource_held[0] = v.resource_held[1] = 0;  // sub_6E0FE0(0) / sub_6E1040(0)
+    v.SetLife(0.0f);
+    SetState(v, VILLAGER_STATE_DYING);
+    v.status |= 0x31;
+    // The time spent dying: villager info +660 when the town has a +0x740
+    // object in use, else +656.
+    Town* t = v.GetTown();
+    Object* o = nullptr;
+    if (t) std::memcpy(&o, reinterpret_cast<const char*>(t) + 1856, sizeof o);
+    v.turns_until_next_state_change = static_cast<int16_t>(InfoU(v, o && o->IsFunctional() ? 660 : 656));
+    v.field_0xe0 |= 0x40;
+}
+
+// sub_6EAC20: how much food the villager wants to eat now -- its hunger (the
+// cube curve) x villager info +728, a little less in a town that is well off
+// (town +332, up to 30%).
+int FoodWanted(Villager& v) {
+    float x = HungerNeed(v.food) * static_cast<float>(static_cast<int32_t>(InfoU(v, 728)));
+    if (Town* t = v.GetTown()) {
+        float k = RawF(t, 332);
+        k = k < 0 ? 0 : (k > 1 ? 1 : k);
+        x *= 1.0f - k * 0.3f;
+    }
+    return static_cast<int>(x);
+}
+// sub_6EAC00: what it wants beyond what it carries.
+// ponytail: the original's result is unsigned, so carrying more than it wants
+// wraps to a huge need; here that is no need at all (it eats what it has).
+int FoodNeeded(Villager& v) {
+    const int n = FoodWanted(v) - v.resource_held[0];
+    return n > 0 ? n : 0;
+}
+
+// sub_6E1AC0: where the villager gets food: its town's storage pit when it
+// has one available, otherwise its home.
+Abode* Store(Villager& v) {
+    if (Town* t = v.GetTown())
+        if (Abode* pit = reinterpret_cast<Abode*>(t->storage_pit_list); pit && pit->IsAvailable()) return pit;
+    return v.GetHome();
+}
+bool Usable(Object* o) { return o && o->IsFunctional(); }
+uint32_t FoodIn(Object* o) { return o->GetResource(static_cast<RESOURCE_TYPE>(0)); }
+// sub_6E2E90: take up to n of a store's food into the villager's hands.
+void TakeFood(Villager& v, Object* from, uint32_t n) {
+    if (n > FoodIn(from)) n = FoodIn(from);
+    if (!n) return;
+    const uint32_t got = from->RemoveResource(static_cast<RESOURCE_TYPE>(0), n, nullptr, nullptr);
+    v.resource_held[0] = static_cast<int16_t>(v.resource_held[0] + got);  // sub_6E10E0
+}
+
+// sub_6EAF10: eat from what is carried. Food rises by the share of the want
+// eaten x villager info +696, capped at 1.
+// ponytail: the town's carried-food statistic (town +1792, sub_6CE890) is not kept.
+void Consume(Villager& v) {
+    const float want = static_cast<float>(FoodWanted(v));
+    const float held = static_cast<float>(v.resource_held[0]);
+    const float eaten = want <= held ? want : held;
+    v.resource_held[0] = static_cast<int16_t>(v.resource_held[0] - static_cast<int>(eaten));  // sub_6E0FE0
+    if (want > 0) v.food += eaten / want * InfoF(v, 696);
+    if (v.food < 0) v.food = 0;
+    else if (v.food > 1) v.food = 1;
+}
+
+// sub_6EA9F0: go and eat -- at home if it has the food, else from the store,
+// else what is carried.
+bool Eat(Villager& v) {
+    const uint32_t need = static_cast<uint32_t>(FoodNeeded(v));
+    const bool inside = (v.field_0xe0 & 4) != 0;
+    const uint8_t eat_here = inside ? VILLAGER_STATE_EAT_FOOD_AT_HOME : VILLAGER_STATE_EAT_FOOD;
+    if (need == 0) { SetState(v, eat_here); return true; }
+    if (Abode* home = v.GetHome(); Usable(home) && static_cast<uint32_t>(v.resource_held[0]) + FoodIn(home) >= need) {
+        SetState(v, inside ? VILLAGER_STATE_EAT_FOOD_AT_HOME : VILLAGER_STATE_GO_HOME);
+        return true;
+    }
+    if (Abode* store = Store(v); Usable(store)) {
+        if (FoodIn(store) >= need) { SetState(v, VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD); return true; }
+    }
+    // ponytail: with no store in use the original walks to a spot in town
+    // (sub_6E3900 -> sub_6D1550) to find food there; not translated.
+    if (v.resource_held[0] == 0) return false;
+    SetState(v, eat_here);
+    return true;
+}
+
+// sub_6EACC0: the food drain, once per check. Hunger costs life; a hungry
+// villager goes to eat; one with no life left dies.
+bool FoodDrain(Villager& v) {
+    const uint32_t since = TurnsSinceCheck(v);
+    if (!since) return false;
+    bool done = false;
+    float drain = static_cast<float>(since) * InfoF(v, 700);
+    const float pace = static_cast<float>(v.speed) / static_cast<float>(static_cast<int32_t>(InfoU(v, 260)));
+    if (GPlayer* p = v.GetPlayer()) drain /= RawF(p, 116);
+    if (pace > 1.0f && (v.coords.x != v.obj_coords.x || v.coords.z != v.obj_coords.z)) drain *= pace;  // vslot 93: moved
+    v.food -= drain;
+    if (v.food < 0) v.food = 0;
+    // vslot 297 (poisoned) also costs life; nothing poisons villagers yet.
+    if (v.food < InfoF(v, 704)) {
+        float k = 1.0f - v.food / InfoF(v, 704);
+        if (k <= 1.0f) k = 1.0f;  // sic: the original's clamp makes this always 1
+        v.ReduceLife(k * InfoF(v, 720), nullptr);
+        const uint8_t real = RealState(v);
+        if (StateU(real, 0xE0) && !DiscipleWorks(v)) done = Eat(v);
+        if (v.food < InfoF(v, 708) && StateU(real, 0xE4) && !done) done = Eat(v);
+        if (v.GetLife() <= 0.0f) {
+            Die(v, (real >= 248 && real <= 250) || (v.field_0xe0 & 2) ? 4 : 1);
+            done = true;
+        }
+    }
+    v.last_check_turn = static_cast<int>(g_game_turn);  // sub_6E0840
+    return done;
+}
+
+// sub_6EF970: old age. Past villager info +316 years, a cubed random share of
+// the years to +320 is added; past +320 the villager dies.
+bool OldAge(Villager& v) {
+    const uint32_t age = v.GetAge();
+    if (age <= InfoU(v, 316)) return false;
+    const float r = lh::RandomFloat(1.0f);
+    const uint32_t extra = static_cast<uint32_t>(static_cast<float>(InfoU(v, 320) - InfoU(v, 316)) * r * r * r);
+    if (age + extra <= InfoU(v, 320)) return false;
+    Die(v, 9);
+    return true;
+}
+
+// sub_6E0EB0: a child grows up at villager info +312 years.
+// ponytail: the quarter-yearly growth step (sub_6E2590, the scale) and the
+// home's adult/child bookkeeping (sub_4037F0, sub_6E7430) are not translated.
+void GrowUp(Villager& v) {
+    const uint32_t adult = InfoU(v, 312);
+    if (v.GetAge() >= adult) v.SetAge(adult < 18 ? 18 : adult);  // clears the child bit
+}
+
+// sub_6E05D0: the per-turn upkeep. The state's own life cost (element +0x108),
+// then -- in states that feel hunger (+0xF4), once every villager info +732
+// turns -- old age, tiredness sending it home, growing up, and the food drain.
+void Upkeep(Villager& v) {
+    if (v.field_0x24 & 0x400) return;
+    uint8_t s = v.action.top_state;
+    if (StateU(s, 0x24)) {
+        v.ReduceLife(StateF(s, 0x108), nullptr);
+        s = v.action.final_state;
+    } else {
+        v.ReduceLife(StateF(RealState(v), 0x108), nullptr);
+    }
+    if (!StateU(s, 0xF4)) return;  // ponytail: the disciple tail (LABEL_38) is not translated
+    if (v.GetLife() == 0.0f) {
+        const uint8_t real = RealState(v);
+        Die(v, (real >= 248 && real <= 250) || (v.field_0xe0 & 2) ? 4 : 8);
+        return;
+    }
+    const uint32_t since = TurnsSinceCheck(v);
+    if (since <= InfoU(v, 732)) return;
+    // sub_430370 numbers each object (its handle); the serial stands in, to
+    // stagger the old-age checks the same way.
+    if ((g_game_turn + v.field_0x3c) % 800u < since && OldAge(v)) return;
+    if (v.GetLife() < InfoF(v, 860) && !(v.field_0xe0 & 4) && StateU(s, 0xF8) &&
+        static_cast<int8_t>(v.status & 0xFF) >= 0 && !StateU(s, 0xE8) &&
+        ((s != 19 && s != 20) || v.food > InfoF(v, 704)))
+        SetState(v, VILLAGER_STATE_GO_HOME);
+    if (v.IsChild()) GrowUp(v);
+    // ponytail: pregnancy and birth (sub_6E1D80 -> sub_6F0C60) are not translated.
+    FoodDrain(v);
 }
 
 // --- states -----------------------------------------------------------------
@@ -274,15 +473,42 @@ void SitAndChillout(Villager& v) {  // 246, sub_6F94F0
     v.turns_until_next_state_change = static_cast<int16_t>(InfoU(v, 918));
 }
 
+void GotoStoragePitForFood(Villager& v) {  // 33, sub_6F7880
+    if (Abode* store = Store(v); Usable(store)) MoveToObjectThen(v, store, VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD);
+    else SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);  // ponytail: the town spot (sub_6E3900)
+}
+
+void ArrivesAtStoragePitForFood(Villager& v) {  // 34, 0x6F7900 -> 0x6F7920(food, need, 163, 163)
+    // ponytail: without a store the original takes food from something in
+    // town (sub_6D1550); and it checks it stands close enough (sub_6F8330).
+    if (Abode* store = Store(v); Usable(store)) TakeFood(v, store, static_cast<uint32_t>(FoodNeeded(v)));
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
+void EatFood(Villager& v) {  // 117, 0x6EAFF0 (poisoned -> 212 instead: never yet)
+    Consume(v);
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
+void EatFoodAtHome(Villager& v) {  // 118, 0x6EB080: top up from home, eat, AtHome
+    const int more = FoodWanted(v) - v.resource_held[0];
+    if (Abode* home = v.GetHome(); home && more > 0) TakeFood(v, home, static_cast<uint32_t>(more));  // sub_6EB030
+    Consume(v);
+    SetState(v, VILLAGER_STATE_AT_HOME);
+}
+
+void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 (sub_6F85B0)
+
 }  // namespace
 }  // namespace vs
 
 bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
 
-// vslot 392 (sub_6E01E0). ponytail: the per-turn upkeep (sub_6E05D0: hunger,
-// life, the state info's effects), the second state slot and timed
-// transitions are not translated yet; untranslated states hold, and after 300
-// turns fall back to deciding so a villager is never stranded.
+// vslot 392 (sub_6E01E0): the state, then the upkeep (sub_6E05D0) unless
+// +0xE0 bit 11 asks for a timed transition instead. ponytail: the second
+// state slot and the timed transitions are not translated; untranslated states
+// hold, and after 300 turns fall back to deciding so a villager is never
+// stranded.
 uint32_t Villager::ProcessState() {
     ++action.turns_since_state_change;
     switch (action.top_state) {
@@ -297,9 +523,16 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_SLEEPING_AT_HOME: vs::SleepingAtHome(*this); break;
     case VILLAGER_STATE_GO_AND_CHILLOUT_OUTSIDE_HOME: vs::GoAndChilloutOutsideHome(*this); break;
     case VILLAGER_STATE_SIT_AND_CHILLOUT: vs::SitAndChillout(*this); break;
+    case VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD: vs::GotoStoragePitForFood(*this); break;
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD: vs::ArrivesAtStoragePitForFood(*this); break;
+    case VILLAGER_STATE_EAT_FOOD: vs::EatFood(*this); break;
+    case VILLAGER_STATE_EAT_FOOD_AT_HOME: vs::EatFoodAtHome(*this); break;
+    case VILLAGER_STATE_DYING: vs::Dying(*this); break;
+    case VILLAGER_STATE_DEAD: break;  // ponytail: the body's removal (vslot 552, sub_6F8620) is not translated
     default:
         if (action.turns_since_state_change > 300) vs::SetState(*this, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
         break;
     }
+    if (!(field_0xe0 & 0x800)) vs::Upkeep(*this);
     return 1;
 }

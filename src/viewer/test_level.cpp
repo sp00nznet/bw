@@ -137,6 +137,10 @@ int main() {
             if (s.command == "CREATE_VILLAGER_POS") start.push_back({static_cast<Villager*>(s.obj), s.obj->coords});
         std::map<int, int> visited;
         std::map<Villager*, bool> got_home;
+        Object* pit = reinterpret_cast<Object*>(level::FindTown(w, 0)->storage_pit_list);
+        const uint32_t pit_food0 = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
+        float food0 = 0, life0 = 0;
+        for (auto& p : start) { food0 += p.first->food; life0 += p.first->life; }
         for (int turn = 0; turn < 2000; ++turn) {
             level::Process(w);
             for (auto& p : start) {
@@ -159,6 +163,24 @@ int main() {
         for (auto& kv : visited) printf(" %d:%d", kv.first, kv.second);
         printf("\n      %zu villagers got home at least once\n", got_home.size());
         inside = static_cast<int>(got_home.size());
+
+        // The upkeep (sub_6E05D0): food drains, hunger sends villagers to the
+        // store (33/34) and to eat (117/118); food comes out of the pit.
+        float food1 = 0, life1 = 0;
+        int dead = 0;
+        for (auto& p : start) {
+            food1 += p.first->food; life1 += p.first->life;
+            dead += p.first->action.top_state == VILLAGER_STATE_DYING || p.first->action.top_state == VILLAGER_STATE_DEAD;
+        }
+        const uint32_t pit_food1 = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
+        const int n = static_cast<int>(start.size());
+        printf("      mean food %.3f -> %.3f, mean life %.3f -> %.3f, %d dead; village store food %u -> %u\n",
+               food0 / n, food1 / n, life0 / n, life1 / n, dead, pit_food0, pit_food1);
+        std::snprintf(msg, sizeof msg, "villagers eat: %d villager-turns at the store, %d eating; store food %u -> %u",
+                      visited[VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_FOOD],
+                      visited[VILLAGER_STATE_EAT_FOOD] + visited[VILLAGER_STATE_EAT_FOOD_AT_HOME], pit_food0, pit_food1);
+        CHECK(visited[VILLAGER_STATE_EAT_FOOD] + visited[VILLAGER_STATE_EAT_FOOD_AT_HOME] > 0 && pit_food1 < pit_food0, msg);
+        CHECK(food1 != food0, "food drains (sub_6EACC0)");
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
     }

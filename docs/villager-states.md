@@ -45,6 +45,12 @@ are the ones the code agrees with.
 | 120 SleepingAtHome | `sub_6EFA40` | wake when rested (life ≥ info +864), else sleep on |
 | 245 GoAndChilloutOutsideHome | `sub_6F9400` | to a spot outside home |
 | 246 SitAndChillout | `sub_6F94F0` | sit for info +918 turns, then look for something, 1 in 10 wander off |
+| 33 GotoStoragePitForFood | `sub_6F7880` | walk to the town's store |
+| 34 ArrivesAtStoragePitForFood | `0x6F7900` | take what it wants to eat from the store, then decide |
+| 117 EatFood | `0x6EAFF0` | eat what it carries, then decide |
+| 118 EatFoodAtHome | `0x6EB080` | top up from home, eat, back to AtHome |
+| 14 Dying | vslot 551, `sub_6F85B0` | on to Dead |
+| 15 Dead | vslot 552 | holds (the body's removal is not translated) |
 
 **DecideWhatToDo, in v1.0's order:**
 
@@ -59,6 +65,34 @@ are the ones the code agrees with.
 5. Carrying too much: go to the storage pit (31).
 6. Otherwise a random way to pass the time (`sub_6E3630`).
 
+## The upkeep
+
+After the state runs, `sub_6E05D0` runs the upkeep unless +0xE0 bit 11 asks for a
+timed transition instead. Each state has a 276-byte element in
+`DETAIL_VILLAGER_STATE_TABLE_INFO` (from `info.dat`), and the upkeep reads it:
+
+- **Every turn**: the state's own life cost (element +0x108). A state that is a step on
+  the way (+0x1C clear, e.g. walking) counts as the state it leads to (vslot 704).
+- **In states that feel hunger** (+0xF4), once every villager info +732 turns:
+  - **Old age** (`sub_6EF970`): staggered to about once every 800 turns. Past info
+    +316 years a cubed random share of the years to +320 is added; past +320 the
+    villager dies.
+  - **Tired**: life below info +860, outside, in a state that allows it, sends it home.
+  - **Growing up** (`sub_6E0EB0`): a child becomes an adult at info +312 years.
+  - **The food drain** (`sub_6EACC0`): food falls by info +700 per turn, more when it
+    hurries. Below info +704 the villager is hungry: it loses info +720 life per check
+    and, where the state lets it, goes to eat (`sub_6EA9F0`). At no life it dies.
+
+**Eating** (`sub_6EA9F0`) wants hunger x info +728 food (less in a well-off town). It
+eats at home when home has enough, else walks to the town's storage pit, else eats
+what it carries. A meal raises food by the share eaten x info +696.
+
+**A year is 1,500 turns.** `dword_C22D44` is `GGameInfo` +0xC, and the constructor
+(`sub_529080`) sets it to 1500 (and +0x10 to 36,000). Ages now count in years.
+
+Land 1, 2,000 turns: mean food falls from 0.77 to 0.69, and 11 meals take 736 food
+out of the village's pit.
+
 **The game's random generator** is translated too (`LHRandom.h`, `sub_746D10`:
 `seed = ror32(9377 × seed + 9439, 13)`). Every random choice above draws from it.
 
@@ -70,9 +104,11 @@ vagrants (130).
 
 - **Movement is a straight line.** v1.0's path code (`sub_5C5BA0`, 625 lines of wall
   hugging over map cells and footpaths) belongs with the landscape work.
-- **The upkeep** (`sub_6E05D0`). Without it hunger and tiredness don't change, so
-  villagers never get hungry or tired on their own.
-- **Eating** (`sub_6EA9F0`), **all the work handlers** (food, wood, building, repair,
+- **From the upkeep**: pregnancy and birth (`sub_6E1D80`, `sub_6F0C60`), a child's
+  yearly growth in size, the disciple tail, and most of what a death notifies (the
+  player's and town's statistics, mourning, dropping what it carried). Without a store
+  the original forages for food somewhere in town (`sub_6E3900`); not translated.
+- **All the work handlers** (food, wood, building, repair,
   worship), Relaxation's handler (it needs the town's relax spots), the disciple and
   child deciders, and `SetState`'s exit/enter slots and pause diversion.
 - **The random seed's starting value**: the game sets it at runtime, and we have not

@@ -261,11 +261,9 @@ float InfoF(const GObjectInfo* info, int off) { float v = 0; if (info) std::memc
 uint32_t InfoU(const GObjectInfo* info, int off) { uint32_t v = 0; if (info) std::memcpy(&v, reinterpret_cast<const char*>(info) + off, 4); return v; }
 }  // namespace
 
-// The length of a game year in turns (dword_C22D44). It is .bss, set at runtime
-// by code we have not found (no immediate writes it); only age<->birth-turn
-// conversions use it. ponytail: 1 until recovered -- ages are then counted in
-// turns, which is wrong for aging and right for everything else here.
-int32_t g_turns_per_year = 1;
+// The length of a game year in turns (GGameInfo +0xC, dword_C22D44): the
+// GGameInfo constructor (sub_529080) sets it to 1500.
+int32_t g_turns_per_year = 1500;
 extern uint32_t g_game_turn;  // LevelLoader.cpp
 
 uint32_t Villager::Sex() const { return InfoU(info, 504); }
