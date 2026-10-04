@@ -405,17 +405,17 @@ Remaining:
    handler pointers at +32 in the action table are now a way in — each names a
    real function, and whatever calls the chooser will reach them. Then
    `Creature::ProcessState`.
-1. **An info.dat reader — blocked on a version mismatch, probably.** The loader
-   is fully understood (`sub_425250`, 65 tables, fixed-size records, direction
-   chosen by the read/write helper; `work/decomp/info_layout.txt`). But the
-   registrations read 276 KB of a 580 KB file, there is provably only one
-   registrar, and strings are spread evenly throughout — so the shipped
-   `info.dat` (5 Mar 2001) most likely belongs to a **later build than
-   v1.0**, like the CreatureMind files that run to version 30 while the loader's
-   gates stop at 0x20. Confirming that needs a v1.0-era `info.dat` or enough
-   record layouts to walk the file until it stops making sense. Writing a reader
-   before then means reading the wrong file and getting numbers instead of an
-   error.
+1. **An info.dat reader — NOT a version mismatch (refuted 2026-10-03).** The
+   loader is fully understood (`sub_425250`, 65 tables, fixed-size records,
+   direction chosen by the read/write helper; `work/decomp/info_layout.txt`),
+   and the registrations read 276 KB of a 580 KB file with only one registrar.
+   The "later build" theory is dead: the v1.2 patch
+   (`work/patch_v120/extracted/BWPatch-V100-V102.rtp`) records the source sizes
+   it expects — `info.dat` 580,754 -> 582,066 and `runblack.exe`
+   8,500,623 -> 9,993,917 — and ours match both. The shipped exe and info.dat
+   are a matched v1.0 pair, so the 304 KB gap is something the loader does that
+   we have not modelled (variable-length records, counts read from the file,
+   a second pass). Find it in the loader, not in another build.
    **`GBaseInfo` is a 16-byte header with the payload after** — this is why
    every info struct sat at 0x10 in our headers *and* the vendor's; twelve are
    now corrected to their real sizes with an opaque payload.

@@ -155,7 +155,7 @@ Two habits did most of the work. First, whole class families share a vtable shap
 
 **Known blocked, with the reason recorded** (so the next pass does not re-run the same searches):
 - **The creature's plan chooser** — the join between a dominant desire and a `CREATURE_ACTION` plus belief target. Five distinct approaches (plan producers, the desire→action table, handler pointers, the tick side, whole-region analysis) each landed adjacent to it and none hit it. Everything found either forces a plan or installs one already chosen.
-- **`info.dat` reader** — the 65 recovered tables account for 276 KB of a 580,710-byte payload. Re-verified after forcing analysis of 482 previously-unanalysed functions that there is genuinely only one registrar, so the gap is not hidden code; the leading explanation is that the shipped `info.dat` (5 Mar 2001) belongs to a later build than the v1.0 exe.
+- **`info.dat` reader** — the 65 recovered tables account for 276 KB of a 580,710-byte payload. Re-verified after forcing analysis of 482 previously-unanalysed functions that there is genuinely only one registrar, so the gap is not hidden code. It is **not** a build mismatch either: the v1.2 patch's header expects exactly our `info.dat` (580,754 bytes) and `runblack.exe` (8,500,623 bytes) as its v1.0 sources, so the gap is unmodelled loader behaviour.
 
 ## How to Build & Run
 
