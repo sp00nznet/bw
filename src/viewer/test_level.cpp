@@ -198,7 +198,9 @@ int main() {
                 }
                 miracles::StrokePoint(100 + d.pts[d.count - 1].x * 200, 100 + d.pts[d.count - 1].y * 200);
                 miracles::StrokeEnd(640.0f / 480.0f);
-                return;
+                // Some curved drawings do not survive this coarse sampling;
+                // try the gesture's next drawing.
+                if (miracles::Status().rfind("not recognised", 0) != 0) return;
             }
         };
         draw(1);
@@ -210,6 +212,17 @@ int main() {
         std::snprintf(msg, sizeof msg, "the hand draws spiral + Food and casts on the pit: %s; food %u -> %u", r.c_str(), food0, food1);
         CHECK(ok && holding && food1 > food0, msg);
         pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), food1 - food0, nullptr, nullptr);
+
+        // Heal (spiral + 13) on a hurt villager: the effect (DETAIL_MAGIC_EFFECT_INFO,
+        // heal [3] = 1 over 2 m) through vslot 371 raises its life.
+        Villager* hurt = nullptr;
+        for (auto& s : w.objects) if (s.command == "CREATE_VILLAGER_POS") { hurt = static_cast<Villager*>(s.obj); break; }
+        hurt->SetLife(0.3f);
+        draw(1);
+        draw(13);
+        const std::string rh = miracles::Cast(w, MetresOf(hurt->coords.x), MetresOf(hurt->coords.z));
+        std::snprintf(msg, sizeof msg, "the hand draws spiral + Heal and casts on a hurt villager: %s; its life 0.30 -> %.2f", rh.c_str(), hurt->GetLife());
+        CHECK(hurt->GetLife() > 0.3f, msg);
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);

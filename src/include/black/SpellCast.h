@@ -46,4 +46,28 @@ Drop ResourceDrop(int magic_type, bool first, float power = 1.0f);
 // leftovers make no pile (our MagicFood/MagicWood layouts are v1.41's).
 uint32_t DropResource(int resource, uint32_t amount, const MapCoords& at, const std::vector<Object*>& nearby);
 
+// A spell's effect on what a landing particle touches (the base Spell's
+// vslot 331, sub_6B7E70). The values are seven floats and a radius from the
+// magic type's DETAIL_MAGIC_EFFECT_INFO record (+16..+40, +44; sub_4FC630),
+// all scaled by the spell's strength (sub_4FCA90). [1] and [2] wound, [3]
+// heals; heal's record is [3] = 1 over 2 m.
+struct Effect {
+    float value[7] = {};
+    float radius = 0.0f;
+};
+Effect EffectFor(int magic_type, float strength = 1.0f);
+
+// sub_4FC660: everything around `at` that takes effects and lies within its
+// own radius plus the effect's gets it (vslot 371). Returns how many did.
+// ponytail: the objects are passed in (no map cells), and the height check
+// and the target redirection (vslot 374) are left out.
+int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>& nearby);
+
+// vslot 371 for Living (sub_5E9DD0), the life part: the wound (sub_5EA150:
+// [1] and [2] against the target's defence multipliers, info +144..+168) and
+// the heal (sub_5EA1D0: [3] x multiplier [2]). Returns the life change.
+// ponytail: burning, the death report and the belief credited to towns
+// are not translated.
+float ApplyToLiving(const Effect& e, Object* target);
+
 }  // namespace spell

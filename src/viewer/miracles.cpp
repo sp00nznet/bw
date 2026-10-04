@@ -8,6 +8,7 @@
 #include <black/SpellCast.h>
 #include <black/Town.h>
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -86,6 +87,18 @@ std::string Cast(level::World& w, float x, float z) {
     if (const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_SPELL_SEEDS, static_cast<uint32_t>(seed))))
         std::memcpy(&magic, e + 292, 4);
     const bool resource = magic == 14 || magic == 15 || magic == 21;  // MAGIC_FOOD / MAGIC_WOOD sections
+    if (magic == 10 || magic == 11) {  // MAGIC_HEAL: the effect where it lands
+        // ponytail: one landing particle at the point (no particle effect yet).
+        std::vector<Object*> near;
+        for (auto& s : w.objects)
+            if (s.obj && std::abs(MetresOf(s.obj->coords.x) - x) < 30.0f && std::abs(MetresOf(s.obj->coords.z) - z) < 30.0f) near.push_back(s.obj);
+        const spell::Effect e = spell::EffectFor(magic);
+        const int n = spell::ApplyInArea(e, MapCoordsFromMetres(x, z), near);
+        char buf[128];
+        std::snprintf(buf, sizeof buf, "%s: healed %d within %.1f m", SeedName(seed), n, e.radius);
+        g_status = buf;
+        return g_status;
+    }
     if (!resource) {
         g_status = std::string(SeedName(seed)) + ": casting not translated yet";
         return g_status;

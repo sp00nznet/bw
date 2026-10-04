@@ -154,6 +154,27 @@ The magic info offsets are read 4 bytes earlier than v1.0's code reads them. Thi
 inferred from the values (it makes the food-or-wood field 0 or 1), and the MAGIC_*
 loader path is not yet walked to prove it.
 
+## Effects: heal
+
+Spells other than the resource ones act through the base Spell's landing handler
+(`sub_6B7E70`), which applies the magic type's effect where each particle lands:
+
+- **The effect record** is the type's entry in `DETAIL_MAGIC_EFFECT_INFO` (284 bytes,
+  indexed by magic type). It holds seven values at +16..+40 and a radius at +44
+  (`sub_4FC630`), all scaled by the spell's strength (`sub_4FCA90`).
+- **Who it reaches** (`sub_4FC660`): everything around the point that takes effects
+  (vslot 477; a heal reaches only the living) and lies within its own radius plus the
+  effect's.
+- **On a living thing** (vslot 371, `sub_5E9DD0`):
+  - Values [1] and [2] wound, each times the target's defence multiplier from its info
+    (+144..+168, vslot 370; `sub_5EA150`).
+  - Value [3] heals, times multiplier [2] (`sub_5EA1D0`, from the disassembly).
+- **Heal's record** is [3] = 1 over 2 m. Water's is [0] = -4000 over 1 m (likely
+  cooling), and fire's direct values are zero: its damage comes another way.
+
+`test_level` draws spiral + Heal and casts on a villager at 0.3 life, which rises to
+1.0.
+
 ## In the viewer
 
 In play mode (`bw_viewer game_data/Land1.txt --play`), the hand works miracles:
@@ -162,7 +183,7 @@ In play mode (`bw_viewer game_data/Land1.txt --play`), the hand works miracles:
 - **Draw the miracle's gesture** the same way (Food 3, Wood 6, and so on; see the table
   above). The HUD's "Miracle:" line says what the hand holds.
 - **Left-click** to cast it under the hand. Food and wood land in a storage pit there;
-  other miracles say they are not translated yet.
+  Heal heals the living within its radius; other miracles say they are not translated yet.
 
 `viewer/miracles.cpp` is the glue. `test_level` drives it headlessly: it draws the
 spiral and Food's gesture as mouse strokes and casts on the village's pit, which gains
