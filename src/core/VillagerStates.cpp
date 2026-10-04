@@ -9,6 +9,7 @@
 
 #include <black/Abode.h>
 #include <black/BigForest.h>
+#include <black/BuildingSite.h>
 #include <black/Forest.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
@@ -63,17 +64,43 @@ void FishingSlots(Villager& v, Site was) {
     if (LHNodeList* l = Workers(v.target, now); l && !l->Has(&v)) l->Add(&v);
 }
 
+// The building states (39, 40, 41, 51, 54, 184) share enter/exit slots
+// (0x6E8A30 / 0x6E8A90): on entering, a villager joins its site's builders
+// (sub_434630) if the site is still its town's (sub_6CFE30); on leaving it
+// is taken off (sub_434680) and its site (+0xFC) cleared.
+bool IsBuildingState(uint8_t s) {
+    return s == VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_BUILDING_MATERIALS || s == VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE ||
+           s == VILLAGER_STATE_BUILDING || s == VILLAGER_STATE_FORESTER_CHOPS_TREE_FOR_BUILDING ||
+           s == VILLAGER_STATE_ARRIVES_AT_BIG_FOREST_FOR_BUILDING || s == VILLAGER_STATE_REENTER_BUILDING_STATE;
+}
+bool Building(const Villager& v) { return IsBuildingState(v.action.top_state) || IsBuildingState(v.action.final_state); }
+// sub_6CFE30: the site is on the town's list and its building is not done.
+bool TownHasSite(Town* t, BuildingSite* s) { return t && s && t->building_site_list.Has(s) && s->Unfinished(); }
+void BuilderSlots(Villager& v, bool was) {
+    const bool now = Building(v);
+    if (now == was) return;
+    BuildingSite* s = v.work_site;
+    if (was) {
+        if (v.GetTown() && TownHasSite(v.GetTown(), s)) s->RemoveBuilder(&v);
+        v.work_site = nullptr;
+    } else if (TownHasSite(v.GetTown(), s)) {
+        s->AddBuilder(&v);
+    }
+}
+
 // vslot 569 (sub_6E1B90), the core: the new state, its turn count from zero.
 // ponytail: the original first may divert a frail villager into
 // PauseForASecond (239), and runs every state's exit/enter slots; only the
 // fishing states' are translated.
 void SetState(Villager& v, uint8_t s) {
     const Site was = SiteOf(v);
+    const bool was_building = Building(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = s;
     if (IsFishingState(v.action.final_state) && !IsFishingState(s)) v.action.final_state = s;  // a stale goal must not keep it a fisherman
     v.action.turns_since_state_change = 0;
     FishingSlots(v, was);
+    BuilderSlots(v, was_building);
 }
 
 // sub_5B0E40: walk (the state at villager info +292) to pos, then enter `arrive`.
@@ -81,6 +108,7 @@ void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     uint8_t walk = InfoB(v, 292);
     if (!walk) walk = VILLAGER_STATE_MOVE_TO_POS;
     const Site was = SiteOf(v);
+    const bool was_building = Building(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = walk;
     v.action.final_state = arrive;
@@ -89,6 +117,7 @@ void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     p.altitude = GetTerrainHeightAt(MetresOf(p.x), MetresOf(p.z));
     v.SetGoalPos(p);
     FishingSlots(v, was);
+    BuilderSlots(v, was_building);
 }
 // sub_5AC660. ponytail: the original asks the object for its own approach
 // (vslot 32, e.g. an abode's door); straight to its position here.
@@ -569,28 +598,145 @@ MapCoords BigForestSpot(BigForest* bf, const Villager& v) {
 // TownInfo +356 (dword_CC357C, town info record 0).
 // ponytail: forests of trees (sub_50E790's global search, the forester
 // states 47-52) are not translated; Land 1's are all big forests.
-bool WoodJob(Villager& v) {
+// sub_6EE2D0: 1 the store, 2 a big forest (*bf), 3 a forest of trees, 0
+// nothing. For the Wood desire (for_site false) the store pulls by how full
+// the villager's hands are and the forest by how empty; fetching for a
+// building site (true), the store pulls only if it holds more wood than the
+// villager can carry, and the forest at half.
+int WoodChoice(Villager& v, bool for_site, BigForest** bf) {
     float range = 0;
     if (const char* ti = static_cast<const char*>(infodat::Element(infodat::DETAIL_TOWN_INFO, 0))) std::memcpy(&range, ti + 356, 4);
-    const float full = 1.0f - (static_cast<float>(RoomForWood(v)) + 0.00001f) / (static_cast<float>(WoodCapacity(v)) + 0.00001f);
-    const float store = Falloff(DistanceM(DropOffSpot(v), v.coords), range) * full;
+    float store_pull, forest_pull;
+    if (for_site) {
+        Abode* st = Store(v);
+        const uint32_t have = Usable(st) ? st->GetResource(static_cast<RESOURCE_TYPE>(1)) : 0;
+        store_pull = have <= static_cast<uint32_t>(RoomForWood(v)) ? 0.0f : 1.0f;
+        forest_pull = 0.5f;
+    } else {
+        store_pull = 1.0f - (static_cast<float>(RoomForWood(v)) + 0.00001f) / (static_cast<float>(WoodCapacity(v)) + 0.00001f);
+        forest_pull = 1.0f - store_pull;
+    }
+    const float store = Falloff(DistanceM(DropOffSpot(v), v.coords), range) * store_pull;
     Town* t = v.GetTown();
     Forest* f = t ? t->NearestForest(v.coords) : nullptr;
-    const float forest = f ? Falloff(DistanceM(f->coords, v.coords), range) * (1.0f - full) : 0.0f;
-    if (store > forest) return GotoStoragePit(v);
-    if (forest == 0.0f || !f || !f->big_forest) return false;
-    BigForest* bf = f->big_forest;
-    MoveToPosThen(v, BigForestSpot(bf, v), VILLAGER_STATE_ARRIVES_AT_BIG_FOREST);  // sub_5AC660
+    const float forest = f ? Falloff(DistanceM(f->coords, v.coords), range) * forest_pull : 0.0f;
+    if (store > forest) return 1;
+    if (forest == 0.0f || !f) return 0;
+    if (f->big_forest) { *bf = f->big_forest; return 2; }
+    return 3;
+}
+
+bool WoodJob(Villager& v) {  // sub_6EE260
+    BigForest* bf = nullptr;
+    switch (WoodChoice(v, false, &bf)) {
+    case 1: return GotoStoragePit(v);
+    case 2: MoveToPosThen(v, BigForestSpot(bf, v), VILLAGER_STATE_ARRIVES_AT_BIG_FOREST); return true;  // sub_5AC660
+    default: return false;  // 3, forests of trees: not translated
+    }
+}
+
+// Villager +0x110 holds the build position's index while building (v1.0
+// reuses the slot it keeps a farm or field in).
+uint32_t BuildIndex(const Villager& v) { return static_cast<uint32_t>(reinterpret_cast<uintptr_t>(v.target)); }
+void SetBuildIndex(Villager& v, uint32_t i) { v.target = reinterpret_cast<Object*>(static_cast<uintptr_t>(i)); }
+bool IsBuilder(const Villager& v) { return v.disciple_type == 4; }  // VILLAGER_DISCIPLE 4: builder
+
+// sub_434D30: should this villager fetch wood for the site, rather than build?
+bool ShouldGetWood(BuildingSite* s, Villager& v) {
+    const float have = static_cast<float>(s->GetResource(static_cast<RESOURCE_TYPE>(1)));
+    MultiMapFixed* b = s->root_building;
+    if (DistanceM(v.coords, b->coords) < 50.0f) return have == 0.0f;
+    float total = have;  // the site's wood and what its builders carry
+    for (LHNode* n = s->building_worker_list.head; n; n = n->next) total += static_cast<float>(static_cast<Villager*>(n->obj)->resource_held[1]);
+    if (!(s->StillRequired() > total)) return false;
+    float a = total / static_cast<float>(InfoU(v, 900) * (s->building_worker_list.count + 1)) +
+              static_cast<float>(v.resource_held[1]) / static_cast<float>(static_cast<int32_t>(InfoU(v, 616)));
+    if (a > 1.0f) a = 1.0f;
+    const float site = Falloff(DistanceM(b->coords, v.coords), 5000.0f) * a;
+    const float store = Falloff(DistanceM(DropOffSpot(v), v.coords), 5000.0f) * (1.0f - a);
+    return store > site;
+}
+
+// sub_6E7E60: go and build -- to one of the site's 128 positions (state 40).
+bool GoBuild(Villager& v, BuildingSite* s) {
+    if (!TownHasSite(v.GetTown(), s)) return false;
+    if (!s->building_worker_list.Has(&v) && s->BuildersWanted() <= 0 && !IsBuilder(v)) return false;
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+    v.work_site = s;
+    uint32_t idx = 0;
+    const MapCoords pos = s->RandomBuildPos(&v, &idx);
+    SetBuildIndex(v, idx);
+    MoveToPosThen(v, pos, VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE);  // within 40 m or not, a walk there
     return true;
 }
 
+// sub_6E7C60: to the store for wood for the site (state 39).
+bool FetchWood(Villager& v, BuildingSite* s) {
+    if (!TownHasSite(v.GetTown(), s)) return false;
+    if (RoomForWood(v) <= 0) return GoBuild(v, s);
+    if (!s->building_worker_list.Has(&v)) {
+        if (s->BuildersWanted() <= 0 && !IsBuilder(v)) return false;
+        v.work_site = s;
+    }
+    if (Abode* st = Store(v); Usable(st)) MoveToObjectThen(v, st, VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_BUILDING_MATERIALS);
+    else MoveToPosThen(v, DropOffSpot(v), VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_BUILDING_MATERIALS);
+    return true;
+}
+
+// sub_6E7B70: fetch wood for the site, or build.
+bool GetWoodOrBuild(Villager& v, BuildingSite* s) {
+    if (!TownHasSite(v.GetTown(), s)) return false;
+    if (!ShouldGetWood(s, v)) return GoBuild(v, s);
+    BigForest* bf = nullptr;
+    switch (WoodChoice(v, true, &bf)) {
+    case 1: return FetchWood(v, s);
+    case 2:
+        v.work_site = s;
+        MoveToPosThen(v, BigForestSpot(bf, v), VILLAGER_STATE_ARRIVES_AT_BIG_FOREST);
+        return true;
+    default: return false;  // 3, trees for building (state 49 via sub_6EE4E0): not translated
+    }
+}
+
+// sub_6CFE90: the town's site to work on -- the nearest, weighted by how
+// much of its building is still to do (x 0.9 + 0.1), among those that still
+// want builders (any, for a builder disciple).
+BuildingSite* FindSite(Villager& v, Town* t) {
+    BuildingSite* best = nullptr;
+    float best_score = 99999.0f;
+    for (LHNode* n = t->building_site_list.head; n; n = n->next) {
+        auto* s = static_cast<BuildingSite*>(n->obj);
+        if (!s->Building() || (s->BuildersWanted() <= 0 && !IsBuilder(v))) continue;
+        const float k = s->Remaining() * 0.9f + 0.1f;
+        const float sc = k * DistanceM(s->root_building->coords, v.coords);  // ponytail: the centre, not the nearest edge
+        if (sc < best_score) { best_score = sc; best = s; }
+    }
+    return best;
+}
+
+// sub_6E7940: work on a site.
+// ponytail: clearing obstacles off the site first (sub_6E84F0 -> state 185)
+// needs the map's object search; not translated.
+bool WorkOnSite(Villager& v, BuildingSite* s) {
+    MultiMapFixed* b = s->Building();
+    if (!b || (b->IsBuilt() && b->IsRepaired())) return false;
+    return GetWoodOrBuild(v, s);
+}
+
 // sub_6E77D0: join one of the town's building sites.
-// ponytail: building work (sub_6CFE90 -> sub_6E7940, states 39-41) is the
-// next step; until then nobody joins a site.
 bool JoinBuildingSite(Villager& v) {
     Town* t = v.GetTown();
     if (!t || !t->building_site_list.count) return false;  // sub_6D0F70
-    return false;
+    BuildingSite* s = FindSite(v, t);
+    return s && WorkOnSite(v, s);
+}
+
+// sub_6E8780: the To_Build desire's handler -- a site to work on, any site
+// for a builder disciple.
+bool ToBuildJob(Villager& v) {
+    Town* t = v.GetTown();
+    BuildingSite* s = t ? FindSite(v, t) : nullptr;
+    return s && WorkOnSite(v, s);
 }
 
 // sub_6E8290: the Abodes desire's handler. Join a site; failing that, once a
@@ -826,6 +972,88 @@ void ArrivesAtBigForest(Villager& v) {  // 53, sub_6EE7A0
     SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
 }
 
+void ArrivesAtStoragePitForMaterial(Villager& v) {  // 39, 0x6E7DF0
+    BuildingSite* s = v.work_site;
+    if (!s || !TownHasSite(v.GetTown(), s)) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    const int room = RoomForWood(v);
+    if (room == 0) {
+        if (!GoBuild(v, s)) SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        return;
+    }
+    // 0x6F7920(wood, room, 184, 163): take it, then back to the site.
+    // ponytail: without a store the original takes it from something in town.
+    Abode* st = Store(v);
+    uint32_t got = 0;
+    if (Usable(st)) {
+        const uint32_t have = st->GetResource(static_cast<RESOURCE_TYPE>(1));
+        const uint32_t want = static_cast<uint32_t>(room) < have ? static_cast<uint32_t>(room) : have;
+        if (want) got = st->RemoveResource(static_cast<RESOURCE_TYPE>(1), want, nullptr, nullptr);
+        v.resource_held[1] = static_cast<int16_t>(v.resource_held[1] + got);
+    }
+    SetState(v, got ? VILLAGER_STATE_REENTER_BUILDING_STATE : VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
+void ReenterBuildingState(Villager& v) {  // 184, sub_6E83B0
+    BuildingSite* s = v.work_site;
+    if (!TownHasSite(v.GetTown(), s)) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    if (ShouldGetWood(s, v)) {
+        if (!GetWoodOrBuild(v, s)) SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+        return;
+    }
+    uint32_t idx = 0;
+    const MapCoords pos = s->RandomBuildPos(&v, &idx);
+    SetBuildIndex(v, idx);
+    // ponytail: the "already touching the building" shortcut (vslot 430) is not translated.
+    MoveToPosThen(v, pos, VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE);
+}
+
+void ArrivesAtBuildingSite(Villager& v) {  // 40, sub_6E7F50
+    BuildingSite* s = v.work_site;
+    if (!TownHasSite(v.GetTown(), s) || BuildIndex(v) >= 0x80) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    const MapCoords p = s->PosAt(BuildIndex(v));
+    if (DistanceM(v.coords, p) > 0.2f) { MoveToPosThen(v, p, VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE); return; }
+    if (v.resource_held[1]) {  // put the wood on the site's pile
+        s->AddResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(v.resource_held[1]), nullptr, false, v.coords, 0);
+        v.resource_held[1] = 0;  // sub_6E1040(0)
+    }
+    const uint16_t t = v.action.turns_since_state_change;  // kept across the change
+    SetState(v, VILLAGER_STATE_BUILDING);
+    v.action.turns_since_state_change = t;
+}
+
+void BuildingWork(Villager& v) {  // 41, sub_6E80A0
+    BuildingSite* s = v.work_site;
+    if (!v.GetTown()) return;
+    if (v.action.turns_since_state_change < kFishingCastTurns) return;  // the animation (sub_5AB3C0)
+    v.action.turns_since_state_change = 0;
+    if (TownHasSite(v.GetTown(), s)) {
+        // villager info +636 of the pile per stroke (x 1.0-1.2 with the
+        // players' influence; none yet), as a share of the building's cost.
+        uint32_t n = static_cast<uint32_t>(InfoF(v, 636));
+        const uint32_t pile = s->GetResource(static_cast<RESOURCE_TYPE>(1));
+        if (pile < n) n = pile;
+        MultiMapFixed* b = s->Building();
+        if (n) {
+            const float progress = static_cast<float>(n) / s->FullCost();
+            s->RemoveResource(static_cast<RESOURCE_TYPE>(1), n, nullptr, nullptr);
+            b->BuildBy(progress);  // sub_435730 -> vslot 576
+        }
+        if (s->Building() && s->Unfinished()) {
+            if (!s->GetResource(static_cast<RESOURCE_TYPE>(1))) {
+                if (!GetWoodOrBuild(v, s)) SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+                return;
+            }
+            uint32_t idx = BuildIndex(v);
+            const MapCoords p = s->NextBuildPos(&idx);
+            SetBuildIndex(v, idx);
+            MoveToPosThen(v, p, VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE);
+            return;
+        }
+    }
+    v.work_site = nullptr;
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+}
+
 void ArrivesAtStoragePitForDropOff(Villager& v) { ArrivesAtStoragePit(v); }  // 32
 
 void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 (sub_6F85B0)
@@ -837,6 +1065,7 @@ bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
 bool VillagerFoodHandler(Villager* v) { return vs::FoodJob(*v); }
 bool VillagerWoodHandler(Villager* v) { return vs::WoodJob(*v); }
 bool VillagerAbodesHandler(Villager* v) { return vs::AbodesJob(*v); }
+bool VillagerToBuildHandler(Villager* v) { return vs::ToBuildJob(*v); }
 
 // vslot 392 (sub_6E01E0): the state, then the upkeep (sub_6E05D0) unless
 // +0xE0 bit 11 asks for a timed transition instead. ponytail: the second
@@ -862,6 +1091,10 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_FISHERMAN_ARRIVES_AT_FISHING: vs::FishermanArrivesAtFishing(*this); break;
     case VILLAGER_STATE_FISHING: vs::Fishing(*this); break;
     case VILLAGER_STATE_ARRIVES_AT_BIG_FOREST: vs::ArrivesAtBigForest(*this); break;
+    case VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_BUILDING_MATERIALS: vs::ArrivesAtStoragePitForMaterial(*this); break;
+    case VILLAGER_STATE_REENTER_BUILDING_STATE: vs::ReenterBuildingState(*this); break;
+    case VILLAGER_STATE_ARRIVES_AT_BUILDING_SITE: vs::ArrivesAtBuildingSite(*this); break;
+    case VILLAGER_STATE_BUILDING: vs::BuildingWork(*this); break;
     case VILLAGER_STATE_FARMER_ARRIVES_AT_FARM: vs::ArrivesAtFarm(*this); break;
     case VILLAGER_STATE_FARMER_PLANTS_CROP: vs::FarmerPlantsCrop(*this); break;
     case VILLAGER_STATE_FARMER_DIGS_UP_CROP: vs::FarmerDigsUpCrop(*this); break;

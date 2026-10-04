@@ -5,7 +5,14 @@ history before this file lives in the README's batch log and `git log`.
 
 ## Unreleased
 
+### Fixed
+- A finished abode was re-added to its town's abode list (`Abode::Built` ->
+  `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
+
 ### Added
+- Building (`docs/town-economy.md`): villagers join a town's building sites, bring
+  wood from the store or a big forest, and build, until the building is finished and
+  counted in its town. To_Build desire comes from the sites' remaining work.
 - Planned buildings and the town planner (`docs/town-economy.md`): `CREATE_PLANNED_ABODE`
   plans go on their towns' lists; the Abodes desire has the town start the abode it
   wants most, which becomes an unbuilt abode with a building site.

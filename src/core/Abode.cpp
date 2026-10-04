@@ -412,10 +412,13 @@ float Abode::GetPercentAbodeFullWithChildren() {
 }
 
 bool Abode::Built() {
-    // Original at 0x00404720 — called when abode finishes construction
-    // Delegates to MultiMapFixed::Built then makes functional
+    // v1.0 vslot 554, sub_403430: MultiMapFixed::Built (sub_504E10), then,
+    // with a town, vslot 581 -- counted in the town's stats. It is already on
+    // the town's abode list (the constructor put it there); re-adding it, as
+    // MakeFunctional does, would make the list a cycle.
+    // ponytail: the town's player notice (sub_539D90) is not translated.
     if (!MultiMapFixed::Built()) return false;
-    MakeFunctional();
+    if (GetTown()) Activate();
     return true;
 }
 

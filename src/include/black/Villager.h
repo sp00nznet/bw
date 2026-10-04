@@ -80,8 +80,7 @@ struct Villager : public Living {
     uint8_t  field_0xf3;                   // 0xF3
     int16_t  resource_held[3];             // 0xF4 — food/wood/ore counts
     int16_t  is_pregnant;                  // 0xFA
-    int16_t  field_0xfc;                   // 0xFC
-    uint16_t pad_0xfe;                     // 0xFE
+    BuildingSite* work_site;               // 0xFC — v1.0 this[63]: the site it builds at
     BuildingSite* building_site;           // 0x100
     Villager* mother;                      // 0x104
     GPlayer* last_player_to_interact;      // 0x108

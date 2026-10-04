@@ -64,11 +64,25 @@ struct BuildingSite : public GameThing {
     // === Fields ===
     // v1.0 sub_433FE0: the site of a building under construction (or repair).
     void Construct(MultiMapFixed* building);
+    // v1.0 non-virtuals, against the building's info (+272 builders wanted,
+    // +108 wood to build).
+    MultiMapFixed* Building();                      // sub_434460: the building, while it is available
+    bool Unfinished();                              // the building not yet built or not yet repaired
+    int  BuildersWanted();                          // sub_4343F0: info +272 less the builders (0 when done)
+    float Remaining();                              // sub_434560: builders wanted / +272 + bias, in [0, 1]
+    float FullCost();                               // sub_434770: info +108 x scale (/ player +124)
+    float StillRequired();                          // sub_434CA0: wood still to be brought
+    void AddBuilder(Villager* v);                   // sub_434630
+    void RemoveBuilder(Villager* v);                // sub_434680
+    MapCoords PosAt(uint32_t index);                // the build position at index (sub_4354F0's tail)
+    MapCoords RandomBuildPos(const Object* who, uint32_t* index);  // vslot 74, sub_435490
+    MapCoords NextBuildPos(uint32_t* index);        // vslot 73, sub_4355F0
     MultiMapFixed*           root_building;          // 0x14
     LHNodeList               building_worker_list;   // 0x18 — its builders
-    uint8_t                  field_0x20[0x14];       // 0x20
-    LHPoint                  building_positions[128]; // 0x34 — sub_435460, around the building
-    uint32_t                 wood_used;              // 0x634 — v1.0 this[397]
+    uint32_t                 pile_wood;              // 0x20 — ponytail: the original keeps the site's wood in a pile Pot (vslot 66/68); the count is held here
+    uint8_t                  field_0x24[0x10];       // 0x24
+    LHPoint                  building_positions[128]; // 0x34 — x, y, z in metres
+    uint32_t                 builders;               // 0x634 — v1.0 this[397]: joins less leaves
     uint32_t                 field_0x638;            // 0x638 — v1.0 this[398]: building +0x58 bit 2
     float                    field_0x63c;            // 0x63C — v1.0 this[399]
     float                    life;                   // 0x640 — v1.0 this[400]

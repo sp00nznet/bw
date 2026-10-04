@@ -121,5 +121,37 @@ planner for an abode (`sub_6CE790(2)`):
 Land 1's towns have room to spare, so nothing is started at first, as in v1.0.
 `test_level` takes town 4's spare room away and the planner starts a hut.
 
-Not yet: villagers building (joining a site, fetching wood, states 39-41); the other
-types' scoring cases; the land check before building; TownStats' planned/site counts.
+## Building
+
+Two desires send villagers to building sites: Abodes (`sub_6E8290`, above) and
+To_Build (`sub_6E8780`). To_Build's raw value (`sub_6DA070`) is the sum, at most 1, of
+each site's remaining work.
+
+- **Choosing a site** (`sub_6CFE90`): the nearest, by distance x (0.9 x remaining +
+  0.1). Remaining work (`sub_434560`) is the builders the site still wants, over info
+  +272. A site that wants no more builders is only open to builder disciples.
+- **Wood or build** (`sub_6E7B70`): a villager within 50 m of the building fetches wood
+  only when the site's pile is empty. Further out it weighs the site against the store
+  (`sub_434D30`, read from the disassembly). Wood comes from the store when the store
+  holds more than the villager can carry (state 39, then 184), else from the nearest
+  big forest.
+- **Building**: the villager walks to one of 128 positions round the building (40). It
+  puts its wood on the site's pile, then works (41). Each stroke takes villager info
+  +636 wood from the pile and adds it to the building as a share of the building's
+  cost (info +108 x scale). Then it moves on 2-3 m round the building, or goes for
+  more wood when the pile is empty.
+- Builders join and leave the site's list through the building states' enter and exit
+  slots (`sub_434630` / `sub_434680`). A second count at site +0x634 moves with that
+  list, and "builders wanted" is info +272 minus that count.
+- At 100% the building is Built (`sub_403430`) and counted in its town's stats.
+
+In `test_level`, town 4's forced hut is finished in 3,187 turns by up to 4 builders.
+
+Fixed: `Abode::Built` called `MakeFunctional`, which re-adds the abode to its town's
+list. The abode is already there, so the list became a cycle and the next walk of it
+never ended. v1.0's `Built` does not do this.
+
+Not yet: clearing obstacles off a site (`sub_6E84F0`, state 185), trees as a wood
+source for building, build positions from the mesh outline (a circle at the building's
+radius stands in), the site's pile as a Pot object, the other types' planner scoring,
+the land check, and TownStats' planned/site counts.

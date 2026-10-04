@@ -28,6 +28,7 @@ static int g_fail = 0;
                               else printf("ok  : %s\n", msg); } while (0)
 
 int main() {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);  // unbuffered, so a hang shows where it is
     const char* roots[] = {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"};
     std::string root;
     for (const char* r : roots)
@@ -132,6 +133,24 @@ int main() {
                       t4->planned_list.count, t4->building_site_list.count);
         CHECK(hut && hut->percent_built == 0.0f && hut->GetTown() == t4 && t4->abode_list.count == abodes4 + 1 &&
               t4->planned_list.count == plans - 1 && t4->building_site_list.Has(site) && hut->building_site == site, msg);
+
+        // Villagers build it (the Abodes / To_Build handlers, states 39-41):
+        // wood from the store to the site's pile, and the pile into the hut.
+        if (hut) {
+            uint32_t most_builders = 0, most_pile = 0, stats_before = t4->stats.field_0x44;
+            int turn = 0;
+            for (; turn < 20000 && !hut->IsBuilt(); ++turn) {
+                level::Process(w);
+                if (site->builders > most_builders) most_builders = site->builders;
+                if (site->pile_wood > most_pile) most_pile = site->pile_wood;
+            }
+            Object* pit4 = reinterpret_cast<Object*>(t4->storage_pit_list);
+            std::snprintf(msg, sizeof msg, "town 4 builds the hut: %.0f%% after %d turns; up to %u builders, %u wood on the pile;"
+                          " Abodes desire %.2f, To_Build %.2f; store wood %u; abodes counted %u -> %u",
+                          hut->percent_built * 100.0f, turn, most_builders, most_pile, t4->desire.desire[5], t4->desire.desire[9],
+                          pit4 ? pit4->GetResource(static_cast<RESOURCE_TYPE>(1)) : 0, stats_before, t4->stats.field_0x44);
+            CHECK(most_builders > 0 && hut->percent_built > 0.0f, msg);
+        }
     }
 
     for (int turn = 0; turn < 100; ++turn) level::Process(w);
@@ -231,9 +250,12 @@ int main() {
         for (Town* t : w.towns) farms += t->fish_farms.count;
         if (pit) pit->RemoveResource(static_cast<RESOURCE_TYPE>(0), pit->GetResource(static_cast<RESOURCE_TYPE>(0)), nullptr, nullptr);
         std::map<int, int> job;
-        uint32_t most_fishers = 0;
+        uint32_t most_fishers = 0, landed = 0;
         for (int turn = 0; turn < 3000; ++turn) {
+            const uint32_t before = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
             level::Process(w);
+            const uint32_t after = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
+            if (after > before) landed += after - before;  // what came in (villagers also eat from it)
             for (auto& p : start) ++job[p.first->action.top_state];
             for (LHNode* n = village->fish_farms.head; n; n = n->next) {
                 const uint32_t c = static_cast<FishFarm*>(n->obj)->villagers.count;
@@ -242,13 +264,13 @@ int main() {
         }
         const uint32_t pit_food2 = pit ? pit->GetResource(static_cast<RESOURCE_TYPE>(0)) : 0;
         printf("      %u fish farms (village %u); store emptied: Food desire %.3f; villager-turns fishing %d, at the store %d;"
-               " most fishermen at one farm %u; store food now %u\n",
+               " most fishermen at one farm %u; food landed %u, store now %u\n",
                farms, village->fish_farms.count, village->desire.desire[0],
-               job[VILLAGER_STATE_FISHING], job[VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF], most_fishers, pit_food2);
+               job[VILLAGER_STATE_FISHING], job[VILLAGER_STATE_ARRIVES_AT_STORAGE_PIT_FOR_DROP_OFF], most_fishers, landed, pit_food2);
         CHECK(farms == 13, "13 fish farms on their towns' lists (sub_502970)");
         std::snprintf(msg, sizeof msg, "with the store empty, villagers fish (%d villager-turns) and land the catch in the store (%u food)",
-                      job[VILLAGER_STATE_FISHING], pit_food2);
-        CHECK(job[VILLAGER_STATE_FISHING] > 0 && pit_food2 > 0, msg);
+                      job[VILLAGER_STATE_FISHING], landed);
+        CHECK(job[VILLAGER_STATE_FISHING] > 0 && landed > 0, msg);
 
         // Farming (67-69, Field sub_4FF9C0): fields get planted, grow, and are
         // dug up. Their state over the same run:

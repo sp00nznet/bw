@@ -10,6 +10,7 @@
 #include "../include/black/InfoDat.h"
 #include "../include/black/MultiMapFixed.h"
 #include "../include/black/Town.h"
+#include "../include/black/BuildingSite.h"
 #include "../include/black/Villager.h"
 
 #include <algorithm>
@@ -134,8 +135,10 @@ float ForChildren(Town* t) {  // sub_6D9EA0
     if (!t->creche || !reinterpret_cast<Abode*>(t->creche)->IsFunctional()) v *= 0.5f;
     return Clamp01(v);
 }
-float ToBuild(Town*) {  // sub_6DA070: sum of building-site progress (sub_434560)
-    return 0.0f;  // ponytail: building sites (+0x788) are not created yet
+float ToBuild(Town* t) {  // sub_6DA070: the sites' remaining work (sub_434560), summed, at most 1
+    float v = 0.0f;
+    for (LHNode* n = t->building_site_list.head; n; n = n->next) v += static_cast<BuildingSite*>(n->obj)->Remaining();
+    return v > 1.0f ? 1.0f : v;
 }
 float RepairTown(Town* t) {  // sub_6DA0D0: abodes' and planned buildings' repair desire
     float v = 0;
@@ -239,17 +242,18 @@ void TownDesire::Process() {
 }
 
 // The villager handler for each desire (table +64): the villager-side answer.
-// ponytail: only Food, Wood, Abodes and Sleep are translated; Relaxation's (sub_6EFF60) asks the town
+// ponytail: only Food, Wood, Abodes, To_Build and Sleep are translated; Relaxation's (sub_6EFF60) asks the town
 // for a place to relax (Town vslot 20), which needs objects we do not create;
 // the job handlers (food, wood, building, ...) come next.
 bool VillagerSleepHandler(Villager* v);  // VillagerStates.cpp, sub_6EFF90
 bool VillagerFoodHandler(Villager* v);   // VillagerStates.cpp, sub_6E9100
 bool VillagerWoodHandler(Villager* v);   // VillagerStates.cpp, sub_6EE260
 bool VillagerAbodesHandler(Villager* v); // VillagerStates.cpp, sub_6E8290
+bool VillagerToBuildHandler(Villager* v); // VillagerStates.cpp, sub_6E8780
 namespace {
 using Handler = bool (*)(Villager*);
 const Handler kHandler[17] = {VillagerFoodHandler, VillagerWoodHandler, nullptr, nullptr, nullptr, VillagerAbodesHandler, nullptr, nullptr,
-                              nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                              nullptr, VillagerToBuildHandler, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
                               VillagerSleepHandler};
 // Table +96: desires a child may be given -- Playtime, Protection, Mercy and
 // Relaxation (0xCC3F60 + 104 k + 96, from work/decomp/town_desire_functions.txt).
