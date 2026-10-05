@@ -55,12 +55,31 @@ The 132 files hold 1,630 objects of 135 classes. The commonest are:
 (`SF_FireBallThrow`) is 49 objects, including the `AttatchFireBallToAtom` that makes
 its fireballs.
 
+## How Food's grains are made (read from the binary)
+
+The three rules Food depends on are translated as far as reading them goes:
+
+- **`UR_HandSprinkle`** (vtable 0x872374, Apply `sub_6469D0`) does not make the grains.
+  It keeps a source atom on the hand and sets its velocity from the hand's height
+  (plus `InitSpeedYHumanPlayerCasting` for a human caster). It also starts the hand's
+  raise animation (`sub_576C80`: `HeightToRaise`, `AngleToRaise`, `TotalTime`).
+- **`UR_WillowWisp`** in group 1 makes the grains. It emits one each time its parent
+  atom (the hand's) moves `EmitDueToMovingDist` (2.5), at most `MaxAtoms` (36) at a
+  time. So the food a miracle gives depends on how the hand moves while casting:
+  the in-game "shake to sprinkle".
+- **`UpdateRuleGravity`** (ApplyToAtom `sub_647AE0`) damps the velocity by
+  `1 - dt x Damping`, pulls it down by `clamp(vy + Gravity... ) x MaxSpeed x mass x dt`,
+  and moves the atom by it.
+- **`LandscapeCollide`** (ApplyToAtom `sub_626480`) fires a type-3 event at an atom
+  below the land, if `SendEvent` is set, then removes the atom. That event is the
+  landing a resource spell answers with a drop.
+
+Faithful delivery therefore needs the hand's path during the cast and its raise
+animation, not only the graph runtime.
+
 ## Next
 
-Running a graph means:
-- the effect's 25 groups and their rules;
-- the classes a spell uses, translated from their vtables (`UR_HandSprinkle` 0x872374,
-  `LandscapeCollide` 0x873BA8, `UpdateRuleGravity` 0x8724E0, ...);
+To run a graph:
+- the effect's 25 groups and their rules, and the classes the spells use;
+- the hand's casting motion as the source of the Food and Wood grains;
 - landing events routed to the spell.
-
-Then a Food miracle drops food where its grains land, as v1.0 does.
