@@ -10,6 +10,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The creature's plan chooser (`docs/creature-chooser.md`): v1.0's desire pickers,
+  candidate actions, scores and completeness test, on info.dat's action and desire
+  tables. Both runtime predicate tables were recovered by emulating their initialisers
+  (`work/gen_chooser_dispatch.py`). Action record +168 is the action's desire.
 - The spell particle files (`docs/psys-files.md`): all 132 `ZSpellFiles/SF_*_txt.zzz`
   graphs load (our own inflate, then the property text). Earlier notes said these
   were not in the data; they are.

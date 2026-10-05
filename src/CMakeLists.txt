@@ -235,6 +235,7 @@ add_library(bw_core STATIC
     core/CreatureLearner.cpp
     core/CreatureMindFile.cpp
     core/CreatureDesire.cpp
+    core/CreaturePlanChooser.cpp
     core/CreatureActionNames.cpp
     # Hand state system
     core/HandState.cpp
@@ -401,6 +402,15 @@ add_executable(test_mind
 )
 target_link_libraries(test_mind PRIVATE bw_core)
 set_target_properties(test_mind PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Creature plan chooser
+add_executable(test_chooser
+    viewer/test_chooser.cpp
+)
+target_link_libraries(test_chooser PRIVATE bw_core)
+set_target_properties(test_chooser PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

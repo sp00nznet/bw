@@ -117,11 +117,18 @@ struct DesireModel {
 // this is the working model beside it, not a replacement.
 // ---------------------------------------------------------------------------
 
+// The chooser (CreaturePlanChooser.h) shows what the fields hold.
 struct ActionPlan {
     uint32_t desire = 0;         // +0x08
-    uint32_t target[3] = {0, 0, 0};   // +0x0C, +0x10, +0x14 -- belief handles
+    uint32_t target = 0;         // +0x0C -- what a targeted desire is about (a town to help)
+    uint32_t belief = 0;         // +0x10 -- what the action is done to
+    uint32_t object = 0;         // +0x14 -- what it is done with, for actions that need one
     uint32_t action = 0;         // +0x18 -- a CREATURE_ACTION, 0..327
-    float    params[5] = {0, 0, 0, 0, 0};  // +0x1C .. +0x2C
+    float    desire_score = 0;   // +0x1C
+    float    belief_score = 0;   // +0x20
+    float    object_score = 0;   // +0x24
+    float    action_score = 0;   // +0x28
+    float    unknown_2c = 0;     // +0x2C
 };
 
 // sub_4D1450 gives every one of the 40 slots its own desire up front, so the

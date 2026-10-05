@@ -1,0 +1,127 @@
+// test_chooser — the creature's plan chooser on the shipped tables: a hungry
+// creature at a storage pit eats from it, a curious one looks at a tree, anger at a villager picks a way to
+// hurt it (and an object to hurt it with), leashing rules out what is too far,
+// compassion for a town reads the town's own action table. Needs info.dat.
+#include <black/CreaturePlanChooser.h>
+#include <black/InfoDat.h>
+
+#include <cmath>
+#include <cstdio>
+#include <filesystem>
+#include <set>
+#include <string>
+
+using namespace creature;
+
+static int g_fail = 0;
+#define CHECK(cond, msg) do { if (!(cond)) { printf("FAIL: %s\n", msg); ++g_fail; } \
+                              else printf("ok  : %s\n", msg); } while (0)
+
+enum : uint32_t { kVillager = 1, kTree = 2, kPit = 3, kTown = 5 };
+enum : uint32_t { kHunger = 4, kAnger = 2, kCompassion = 1, kCuriosity = 6 };
+
+int main() {
+    std::string path;
+    for (const char* r : {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"})
+        if (std::filesystem::exists(std::string(r) + "info.dat")) { path = std::string(r) + "info.dat"; break; }
+    if (path.empty() || !infodat::Load(path.c_str())) { printf("note: info.dat not reachable; skipped\n"); return 0; }
+
+    static ChooserTables t;
+    CHECK(t.Load() && t.max_distance == 200.0f && t.count_cap == 36000, "chooser tables load from info.dat (species 0)");
+    CHECK(t.candidates[kHunger][0] == 66 && t.actions[65].desire == kHunger && t.actions[155].ability[0] == 4,
+          "hunger's candidates start at EatFromContainer; EatFromStoragePit serves hunger; FishAndEat needs ability 4");
+
+    static ChooserMind m;
+    m.active[kHunger] = m.active[kAnger] = m.active[kCuriosity] = m.active[kCompassion] = true;
+    m.desire[kHunger] = 0.8f;
+    m.desire[kAnger] = 0.3f;
+    m.desire[kCuriosity] = 0.5f;
+    m.desire[kCompassion] = 0.4f;
+
+    std::vector<BeliefView> beliefs = {
+        {kVillager, 50.0f, 0.6f}, {kTree, 20.0f, 0.3f}, {kPit, 100.0f, 0.8f}, {kTown, 80.0f, 0.6f}};
+
+    // Which action may be done to what; the binary asks per-action predicates.
+    const std::set<std::pair<uint32_t, uint32_t>> fits = {
+        {kPit, 65}, {kVillager, 11}, {kVillager, 18}, {kVillager, 15}, {kTree, 15},
+        {kTree, 79}, {kTree, 10}, {kTree, 20}, {kTown, 48}};
+    ChooserHost h;
+    h.action_fit = [&](uint32_t b, uint32_t a) { return fits.count({b, a}) > 0; };
+    bool knows_food = false;
+    h.action_valid = [](uint32_t a, const ActionPlan&) { return a == 48; };   // no fights
+    h.has = [&](int kind, uint32_t id) { return kind == 1 && id == 14 && knows_food; };
+    h.belief_fit = [](uint32_t b, uint32_t d) {
+        return d == kCuriosity || (d == kAnger && b == kVillager) || (d == kCompassion && b == kTown);
+    };
+    h.targeted_fit = [](uint32_t b, uint32_t d) { return (d == kAnger && b == kVillager) || (d == kCompassion && b == kTown); };
+    h.town_need = [](uint32_t b) { return b == kTown ? 0 : -1; };
+
+    char msg[256];
+    {
+        PlanChooser c(t, m, h, beliefs);
+        const float s = c.ActionScore(65);
+        std::snprintf(msg, sizeof msg, "an untried, neutral action scores 0.5025 (got %.4f)", s);
+        CHECK(std::fabs(s - 0.5025f) < 1e-5f, msg);
+
+        // Hunger is not a reaction desire (no belief fit in the desire table), so
+        // it is planned through the agenda's path: sub_4D0D00, the action chooser
+        // with the plan's own belief.
+        ActionPlan p;
+        p.desire = kHunger;
+        p.belief = kPit;
+        const bool ok = c.ChooseAction(&p, nullptr, kPit, false) && c.Complete(p);
+        std::snprintf(msg, sizeof msg, "hungry at a storage pit: action %u (EatFromStoragePit 65), belief score %.3f",
+                      p.action, p.belief_score);
+        CHECK(ok && p.action == 65 && std::fabs(p.belief_score - 0.8f * (1.0f - 0.05f * 0.5f)) < 1e-5f, msg);
+
+        ActionPlan q;
+        const bool ok2 = c.Choose(0, kTree, &q);
+        std::snprintf(msg, sizeof msg, "at a tree hunger has nothing to do, so curiosity looks: desire %u action %u", q.desire, q.action);
+        CHECK(ok2 && q.desire == kCuriosity && q.action == 20, msg);
+    }
+    {
+        m.action_opinion[10] = 1.0f;  // it liked picking things up
+        PlanChooser c(t, m, h, beliefs);
+        ActionPlan q;
+        c.Choose(0, kTree, &q);
+        std::snprintf(msg, sizeof msg, "an action it likes beats the others: ExamineByPickingUp (10), got %u", q.action);
+        CHECK(q.action == 10, msg);
+        m.action_opinion[10] = 0.0f;
+    }
+    {
+        m.action_opinion[15] = 0.5f;
+        PlanChooser c(t, m, h, beliefs);
+        ActionPlan p;
+        const bool ok = c.Choose(kVillager, kVillager, &p);
+        std::snprintf(msg, sizeof msg, "angry at a villager: desire %u action %u (Hurl 15) with object %u (the tree)", p.desire, p.action, p.object);
+        CHECK(ok && p.desire == kAnger && p.target == kVillager && p.action == 15 && p.object == kTree, msg);
+
+        m.action_opinion[18] = 1.0f;
+        ActionPlan p2;
+        c.Choose(kVillager, kVillager, &p2);
+        std::snprintf(msg, sizeof msg, "liking Stomp more picks it instead: got %u", p2.action);
+        CHECK(p2.action == 18 && p2.object == 0, msg);
+        m.action_opinion[18] = m.action_opinion[15] = 0.0f;
+    }
+    {
+        m.leash = 30.0f;
+        PlanChooser c(t, m, h, beliefs);
+        ActionPlan p;
+        CHECK(!c.Choose(kVillager, kVillager, &p) && c.BeliefScore(kTree, kCuriosity) > 0.0f,
+              "leashed to 30, the villager at 50 is out of reach; the tree at 20 is not");
+        m.leash = 0.0f;
+    }
+    {
+        PlanChooser c(t, m, h, beliefs);
+        ActionPlan p;
+        CHECK(!c.Choose(kTown, kTown, &p), "compassion for a hungry town: nothing to do without the food miracle");
+        knows_food = true;
+        ActionPlan q;
+        const bool ok = c.Choose(kTown, kTown, &q);
+        std::snprintf(msg, sizeof msg, "knowing it, the town's own table gives CastMagicFood: desire %u target %u action %u", q.desire, q.target, q.action);
+        CHECK(ok && q.desire == kCompassion && q.target == kTown && q.action == 48, msg);
+    }
+
+    printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
+    return g_fail ? 1 : 0;
+}

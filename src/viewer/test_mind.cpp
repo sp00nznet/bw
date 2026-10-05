@@ -293,11 +293,11 @@ int main() {
         ActionPlan p;
         p.desire = CREATURE_DESIRE_TO_OBEY_PLAYER;   // 24
         p.action = 89;
-        p.target[0] = 0x1234;
+        p.belief = 0x1234;
         ps.SetCurrent(p);
         CHECK(ps.current_desire == 24 && ps.current_action == 89,
               "installing a plan makes its desire and action current");
-        CHECK(ps.For(24) && ps.For(24)->target[0] == 0x1234,
+        CHECK(ps.For(24) && ps.For(24)->belief == 0x1234,
               "and the plan is stored in its own desire's slot");
         CHECK(ps.For(kNumCreatureDesires) == nullptr, "an out-of-range desire has no slot");
 
