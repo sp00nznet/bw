@@ -6,6 +6,10 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- Six objects' creature belief types (`GetCreatureBeliefType`), Creature's among them
+  (0x16; v1.0 says 8), and Flock's compassion predicate. They are now checked against
+  the binary with the rest. A creature now spawns where it is created (its `coords`
+  were never set).
 - Seventeen of the creature predicates our classes answered differently from v1.0
   (Field could be stomped, examined and pooed on; villagers could be befriended; five
   creature predicates were missing; Rock and Bonfire faulted). `test_chooser` now checks
@@ -14,6 +18,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- A creature in the world (`docs/creature-chooser.md`): `CreatureBrain` runs the agenda
+  over the objects a creature can see, with the objects' own predicates, the mind's
+  opinion trees and known lists, and walks to its plan. On Land 1, Khazar's shipped
+  mind, made hungry, walks to the nearest fish farm and fishes.
 - The creature's agenda (`docs/creature-chooser.md`): v1.0's per-turn loop. It
   rebuilds each desire's plan, scores it, and switches to a plan that scores twice as
   well. From shipped data, Khazar's innate lesson makes a hungry Khazar choose to eat

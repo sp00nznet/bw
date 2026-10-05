@@ -102,6 +102,8 @@ struct ChooserHost {
     // A target belief's vslot 12: the belief to act on for (desire, action),
     // writing its score. Default: the target itself, score untouched.
     std::function<uint32_t(uint32_t target, uint32_t desire, uint32_t action, float* score)> target_belief;
+    // sub_4B83C0 through the desire's own tree. Default: BeliefView::opinion.
+    std::function<float(uint32_t belief, uint32_t desire)> opinion;
 };
 
 // Fill the host's object predicates (action +52, desire +16/+20/+36) with the

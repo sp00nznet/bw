@@ -240,6 +240,7 @@ void Creature::InitCreature(const MapCoords& pos, const CreatureInfo* creature_i
     owner = player;
 
     // Set initial position
+    coords = pos;  // where it stands (the original places it on creation)
     field_0x1214 = pos;
     field_0x1200 = pos;
     field_0x11cc = pos;

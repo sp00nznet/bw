@@ -20,6 +20,11 @@
 #include <black/Gesture.h>
 
 #include <cmath>
+#include <black/Creature.h>
+#include <black/CreatureBrain.h>
+#include <black/EntityFactory.h>
+#include <black/FishFarm.h>
+#include <black/CreatureMindFile.h>
 #include <cstdio>
 #include <map>
 #include <vector>
@@ -447,6 +452,48 @@ int main() {
         }
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
+    }
+
+    {
+        // A creature in the world. Khazar's shipped mind, hungry and curious,
+        // placed beside a village: the agenda (sub_4D0630) over what it can see,
+        // with the objects' own predicates and his opinion trees. His innate
+        // lesson rates villagers +0.6 for hunger, but whether he can eat one is
+        // CanCreatureEatMe (sub_4C5EA0), which measures his hand span off his
+        // animated skeleton and is not translated -- so the villager is out, and
+        // with a fish farm in reach he goes fishing (FishAndEat, 155).
+        Villager* near = nullptr;
+        for (const level::Spawned& s : w.objects)
+            if (auto* v = dynamic_cast<Villager*>(s.obj); v && !v->IsDead()) { near = v; break; }
+        creature::CreatureMind khazar;
+        const bool mind_ok = creature::LoadCreatureMindFile((root + "CreatureMind/KhazarCreature").c_str(), khazar);
+        EntityCreateParams cp{};
+        cp.world_x = MetresOf(near ? near->coords.x : 0) + 20.0f;
+        cp.world_z = MetresOf(near ? near->coords.z : 0);
+        cp.scale = 5.0f;
+        auto* khazar_body = static_cast<Creature*>(EntityFactory::CreateCreature(cp));
+        creature::CreatureBrain brain;
+        const bool ok = near && mind_ok && khazar_body && brain.Init(khazar_body, khazar);
+        CHECK(ok, "Khazar's mind drives a creature placed 20 m from a villager");
+        if (ok) {
+            brain.mind.active[4] = brain.mind.active[6] = true;  // hunger, curiosity
+            brain.mind.desire[4] = 0.8f;
+            brain.mind.desire[6] = 0.5f;
+            int turn = 0, chose = -1;
+            for (; turn < 600 && !brain.completed; ++turn) {
+                level::Process(w);
+                std::vector<Object*> seen;
+                for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
+                brain.Tick(seen);
+                if (chose < 0 && brain.Action()) chose = turn;
+            }
+            const bool at_farm = dynamic_cast<FishFarm*>(brain.last_target) != nullptr;
+            std::snprintf(msg, sizeof msg,
+                          "hungry, he plans on turn %d, walks %s and fishes on turn %d (action %u, hunger now %.1f)",
+                          chose, at_farm ? "to a fish farm" : "nowhere", turn, brain.last_action, brain.mind.desire[4]);
+            CHECK(brain.completed == 1 && brain.last_action == 155 && at_farm && chose >= 1 && turn > chose + 1 &&
+                      brain.mind.desire[4] < 0.4f, msg);
+        }
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

@@ -109,7 +109,8 @@ float PlanChooser::BeliefScore(uint32_t belief, uint32_t desire) const {
     float special = 1.0f;
     if (desire < kNumCreatureDesires && ((kDesireDispatch[desire] & kDesHasSpecial) || desire == 6) && h_.special)
         special = h_.special(belief, desire);
-    return b->opinion * Falloff(desire, *b) * special;
+    const float opinion = h_.opinion ? h_.opinion(belief, desire) : b->opinion;
+    return opinion * Falloff(desire, *b) * special;
 }
 
 // sub_4D1EB0: the object the creature's beliefs rate best for this desire,

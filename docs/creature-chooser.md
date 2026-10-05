@@ -191,6 +191,46 @@ This is the loop a creature actually lives by. It is in `core/CreatureAgenda.cpp
 
 The early creature that eats villagers is in the data from the start.
 
+## A creature in the world (`CreatureBrain`)
+
+`core/CreatureBrain.cpp` puts the agenda on a live creature. Each turn:
+
+1. **Perception.** Every object within 200 m becomes a belief.
+   - Its belief type comes from `GetCreatureBeliefType` (vslot 67, now checked
+     against the binary: six classes were wrong, Creature among them, with 0x16
+     against 8).
+   - Its attribute vector comes from `DescribeObject`.
+   - Its opinion, per desire, comes from the tree that the mind's episodes build
+     (the second tree, `mental+0x2518`, which `sub_4CA6A0` reads).
+2. **Wiring.** The object predicates are bound to the objects' own virtuals and the
+   known lists to the mind's.
+   - Of the action validity predicates, only `sub_4B6A40` (a fish farm within
+     600 m, `sub_503770`) is translated so far.
+   - Every other validity predicate answers no, so the creature never does
+     anything the binary might have ruled out.
+3. **Carrying it out.** The creature walks to its current plan's belief. A fishing
+   action is planned on the creature itself, so it walks to the nearest fish farm
+   instead.
+
+What happens on arrival is ours:
+- the action completes;
+- an eating action kills the villager;
+- the desire it served drops by 0.5.
+
+The 52 real action handlers are not translated.
+
+`test_level` puts Khazar's shipped mind in a body 20 m from a Land 1 villager, hungry
+(0.8) and curious (0.5):
+- He plans on turn 1.
+- He walks about 160 m to the nearest fish farm and fishes on turn 160.
+
+His innate lesson does rate the villager +0.6 for hunger. But whether a creature can
+eat something is `CanCreatureEatMe` (`sub_4C5EA0`, shared by every class), and that
+goes through `CanBePickedUpByCreature` (`sub_4C4EC0`) to `sub_4C4E00`. That last one
+compares the object with the creature's hand span, which `sub_46E600(14)` measures
+off its animated skeleton. Until that is translated, the villager is not edible, so
+he fishes.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -230,11 +270,13 @@ version and then a species below 17, and in those files the second word is a flo
 - The 81 code-bodied predicate implementations, checked one by one. The action
   validity predicates (+16) and desire gates (+0) are creature methods and are still
   host-supplied.
-- Wiring the agenda into `Creature::ProcessState`. That needs:
-  - beliefs built from the objects around the creature;
-  - opinions classified through its trees;
-  - the desire model ticking;
-  - the chosen action carried out.
+- The rest of the action validity predicates (112 actions, about 20 distinct
+  functions; the 47 spell actions share `sub_4B5FE0`, a charge test).
+- `CanCreatureEatMe`'s chain down to the hand span, so a creature can eat what it
+  likes.
+- Desire values from the body (hunger rising with time and so on). The brain takes
+  them as set.
+- The real action handlers.
 - Compassion's rotation through a town's needs (mental+134428).
 - Classifying a belief through a tree rebuilt from a mind's episodes (the node layout
   is now partly known: +12 parent, +16/+20 the split it hangs from, +128 its own split
