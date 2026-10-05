@@ -68,8 +68,10 @@ The three rules Food depends on are translated as far as reading them goes:
   time. So the food a miracle gives depends on how the hand moves while casting:
   the in-game "shake to sprinkle".
 - **`UpdateRuleGravity`** (ApplyToAtom `sub_647AE0`) damps the velocity by
-  `1 - dt x Damping`, pulls it down by `clamp(vy + Gravity... ) x MaxSpeed x mass x dt`,
-  and moves the atom by it.
+  `1 - dt x` the rule's +40 when +48 is set. It lowers the vertical speed by
+  `clamp(vy + rule +32, 0, 1) x rule +36 x atom +284 x dt`, then moves the atom by its
+  velocity. Which of +32 / +36 / +40 are `Gravity`, `MaxSpeed` and `Damping` comes from
+  the property registration (vslot 3), not yet read.
 - **`LandscapeCollide`** (ApplyToAtom `sub_626480`) fires a type-3 event at an atom
   below the land, if `SendEvent` is set, then removes the atom. That event is the
   landing a resource spell answers with a drop.
