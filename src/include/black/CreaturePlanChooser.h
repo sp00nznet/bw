@@ -100,6 +100,10 @@ struct ChooserHost {
 void BindObjectPredicates(ChooserHost* host, Creature* creature,
                           std::function<GameThingWithPos*(uint32_t belief)> resolve);
 
+// sub_4C3F50 over a mind's CreatureActionKnownAbout lists: kind 0 abilities,
+// kind 1 magic types.
+void BindKnownActions(ChooserHost* host, const CreatureMind& mind);
+
 class PlanChooser {
 public:
     PlanChooser(const ChooserTables& t, const ChooserMind& m, const ChooserHost& h,

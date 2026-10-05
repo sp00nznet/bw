@@ -14,6 +14,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The mind file past the desires (`docs/creature-chooser.md`): learning episodes (two
+  trees per desire), per-action words, and the known abilities and spells that the
+  plan chooser checks. Every shipped mind holds one episode; the story creatures know
+  no spells.
 - The creature's plan chooser (`docs/creature-chooser.md`): v1.0's desire pickers,
   candidate actions, scores and completeness test, on info.dat's action and desire
   tables. Its object predicates call the target's own virtuals, by the slot the

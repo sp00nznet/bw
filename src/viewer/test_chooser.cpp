@@ -176,6 +176,21 @@ int main() {
         m.leash = 0.0f;
     }
     {
+        // The shipped minds' known lists: Khazar knows abilities 0..5 and no
+        // spells, so FishAndEat's ability 4 is there but CastMagicFood is not.
+        CreatureMind khazar;
+        bool loaded = false;
+        for (const char* r : {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"})
+            if (LoadCreatureMindFile((std::string(r) + "CreatureMind/KhazarCreature").c_str(), khazar)) { loaded = true; break; }
+        ChooserHost kh = h;
+        BindKnownActions(&kh, khazar);
+        PlanChooser c(t, m, kh, beliefs);
+        ActionPlan fish;
+        fish.desire = kHunger;
+        CHECK(loaded && kh.has(0, 4) && !kh.has(1, 14) && c.ActionPossible(48, fish) == false,
+              "Khazar's mind: knows ability 4 (fishing), not the food miracle, so CastMagicFood is impossible");
+    }
+    {
         PlanChooser c(t, m, h, beliefs);
         ActionPlan p;
         CHECK(!c.Choose(kTown, kTown, &p), "compassion for a hungry town: nothing to do without the food miracle");

@@ -62,6 +62,28 @@ std::vector<uint8_t> BuildMind(uint32_t version, const char* name,
             b.U32(s);                        // source type
         }
     }
+    // The rest of the grammar, minimal: one learned episode (desire 4's second
+    // tree, about a villager), no action words, the fixed blocks, and known
+    // abilities 0..5 plus one spell.
+    b.U32(kNumCreatureDesires);
+    for (uint32_t i = 0; i < kNumCreatureDesires; ++i)
+        for (int t = 0; t < 2; ++t) {
+            b.U32(1); b.U32(4); b.U32(4);
+            const bool ep = i == 4 && t == 1;
+            b.U32(ep ? 1 : 0);
+            if (ep) {
+                b.U32(2); b.U32(4); b.U32(0); b.U32(6); b.U32(0); b.U32(0);
+                b.U32(3); b.U32(1); b.U32(0); b.U32(6);
+                b.F32(0.8f);
+            }
+        }
+    b.U32(0);                                              // action words
+    for (uint32_t i = 0; i < kNumCreatureDesires; ++i) { b.U32(0); b.U32(0); }
+    b.U32(0); b.U32(0);                                    // two empty lists
+    b.U32(0); b.U32(0);
+    for (int i = 0; i < 57; ++i) b.U32(0);                 // version >= 0x10
+    b.U32(6); for (uint32_t i = 0; i < 6; ++i) b.U32(i);  // known abilities
+    b.U32(1); b.U32(14);                                   // known spell: food
     return b.d;
 }
 
@@ -79,6 +101,9 @@ int main() {
           "the per-desire active flag round trips");
     CHECK(m.desires[3].sources.size() == 2, "each desire keeps its sources");
     CHECK(m.desires[3].sources[1].type == 1, "and their types");
+    CHECK(m.learning[4][1].episodes.size() == 1 && m.learning[4][1].episodes[0].attributes.size() == 3 &&
+              m.known_abilities.size() == 6 && m.known_spells.size() == 1 && m.known_spells[0] == 14,
+          "learning episodes and known abilities/spells round trip");
     CHECK(m.parsed_bytes == good.size(),
           "the parse consumes the file exactly -- the check that catches a "
           "drifting cursor");
@@ -117,12 +142,12 @@ int main() {
           "an implausible source count stops the parse instead of allocating on it");
 
     // --- the minds the game ships -------------------------------------------
-    struct Shipped { const char* file; uint32_t version; const char* name; };
+    struct Shipped { const char* file; uint32_t version; const char* name; size_t actions, spells, parsed, total; };
     const Shipped kShipped[] = {
-        {"KhazarCreature", 25, "Matey"},
-        {"LethysCreature", 25, "Matey"},
-        {"NemesisCreature", 25, "Matey"},
-        {"ComputerControlledCreature", 30, "Richard"},
+        {"KhazarCreature", 25, "Matey", 313, 0, 5174, 5268},
+        {"LethysCreature", 25, "Matey", 313, 0, 5174, 5268},
+        {"NemesisCreature", 25, "Matey", 313, 0, 5174, 5268},
+        {"ComputerControlledCreature", 30, "Richard", 322, 5, 5238, 5748},
     };
 
     // The working directory depends on how the test is launched, so try the
@@ -180,8 +205,18 @@ int main() {
                 if (!(src.strength >= 0.0f && src.strength <= 1.0f)) in_range = false;
         CHECK(in_range, "  every source strength lands on [0, 1]");
 
-        CHECK(real.parsed_bytes > 0 && real.parsed_bytes < real.total_bytes,
-              "  the desire block is a prefix of the file, rest still unread");
+        const MindTree& t = real.learning[4][1];
+        CHECK(t.episodes.size() == 1 && t.episodes[0].belief_type == 6 && t.episodes[0].attributes.size() == 11 &&
+                  t.episodes[0].weight > 0.79f && t.episodes[0].weight < 0.81f,
+              "  its one learned episode: hunger, about a villager (11 attributes), weight 0.8");
+        int episodes = 0;
+        for (const auto& d : real.learning) episodes += int(d[0].episodes.size() + d[1].episodes.size());
+        CHECK(episodes == 1, "  and it is the only one -- the story creature ships almost untrained");
+        char line[160];
+        std::snprintf(line, sizeof line, "  it knows abilities 0..5 and %zu spells; %zu action words", s.spells, s.actions);
+        CHECK(real.known_abilities.size() == 6 && real.known_spells.size() == s.spells && real.action_words.size() == s.actions, line);
+        std::snprintf(line, sizeof line, "  the reader reaches the known lists (%zu of %zu bytes)", s.parsed, s.total);
+        CHECK(real.parsed_bytes == s.parsed && real.total_bytes == s.total, line);
     }
 
     // --- the desire model, fed from a real mind -----------------------------

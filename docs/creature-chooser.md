@@ -154,6 +154,37 @@ Two record fields were misread before and are now known:
   through this field.
 - `DESIRE_TABLE` is the 448-byte table earlier notes called `CreatureInitialDesireInfo`.
 
+## What the shipped minds know
+
+`CreatureMindFile` reads the mind past the desires now:
+- **Learning** (`sub_4CA1E0`): two trees per desire, each kept as at most 16 episodes
+  and rebuilt into a tree when loaded (`sub_4B78E0`). An episode (`sub_4CA390`) has:
+  - a learning context;
+  - the belief it was about. Its type picks the class (`sub_4B8FF0`: 0 town,
+    3 abode, 6 villager, 8 creature, ...), and every class serialises the same way
+    (`sub_4C9ED0`): two words, a count, then one value per attribute;
+  - a weight.
+- **Per-action words** (`sub_4CA260`): 313 at version 25, 322 at 30, all zero.
+- **What it knows** (`sub_4C9D70`): the `CreatureActionKnownAbout` lists that the
+  chooser's `has()` searches. `BindKnownActions` plugs them in.
+
+| Mind | Abilities | Spells |
+|---|---|---|
+| Khazar, Lethys, Nemesis | 0 to 5 | none |
+| The computer creature | 0 to 5 | magic types 10, 14, 21, 22 and 1 (heal, food, wood, water, and one more) |
+
+All four minds hold exactly **one** learned episode: hunger, about a villager, weight
+0.8. The story creatures ship almost untrained. Their opinions of everything else
+are those of an empty tree, at or below neutral.
+- **The belief path** (`sub_4AC5F0`) needs a score above zero, so it stays quiet
+  until the creature learns.
+- **The agenda's path** (`sub_4D0D00`, the action chooser with the plan's own belief)
+  accepts a zero score, so that is where an untrained creature's behaviour comes
+  from.
+
+The version-17 files really are another format. The loader (`sub_4C9170`) reads a
+version and then a species below 17, and in those files the second word is a float.
+
 ## Not yet
 
 - The two shortcuts in the town branch of `sub_4D1870`: action 101 for a big town,
@@ -162,7 +193,9 @@ Two record fields were misread before and are now known:
 - The 81 code-bodied predicate implementations, checked one by one. The action
   validity predicates (+16) and desire gates (+0) are creature methods and are still
   host-supplied.
-- Beliefs' opinions. A creature with an untrained tree rates everything neutral (0),
-  so the belief-driven path chooses nothing until it has learned. The shipped minds'
-  learning data (the rest of the mind file) is what gives it opinions.
+- The agenda: what calls `sub_4D0D00` / `sub_4D0CE0` each turn, and with which
+  belief. That is the untrained creature's actual decision loop.
+- Classifying a belief through a tree rebuilt from a mind's episodes (the node layout
+  is now partly known: +12 parent, +16/+20 the split it hangs from, +128 its own split
+  attribute (23 = leaf), +132 its children, +144 its opinion level).
 - Calling the chooser from `Creature::ProcessState`, and running the chosen action.

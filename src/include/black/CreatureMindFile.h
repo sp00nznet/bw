@@ -2,8 +2,9 @@
 // CreatureMindFile — reader for the minds Black & White ships.
 //
 // `game_data/CreatureMind/` contains pre-trained creatures, dated 21 Feb 2001.
-// This reads them: the creature's name, and for each of the 40 desires whether
-// it is active, its three tuning floats, and the list of sources that feed it.
+// This reads them: the creature's name; for each of the 40 desires whether it
+// is active, its three tuning floats and the sources that feed it; its learning
+// episodes; and the abilities and spells it knows. docs/creature-chooser.md.
 //
 // Recovered from runblack_decrypted.exe (v1.0). The loader is sub_4C7CF0, which
 // reads through a 1024-byte buffered stream with three primitives (1, 2 and 4
@@ -51,14 +52,42 @@ struct MindDesire {
     std::vector<MindDesireSource> sources;
 };
 
+// One remembered experience (sub_4CA390): a CreatureLearningEpisode (20 bytes)
+// holding a CreatureLearningContext (24 bytes) with the belief it was about.
+struct MindEpisode {
+    uint32_t lead = 0;                     // read and dropped by the loader; 2 in every shipped file
+    uint32_t context[2] = {0, 0};          // CreatureLearningContext +12, +16
+    uint32_t belief_type = 0;              // sub_4B8FF0's type: 0 town, 3 abode, 6 villager, 8 creature...
+    uint32_t belief_words[2] = {0, 0};     // the belief's +36, +40 (sub_4C9ED0)
+    std::vector<uint32_t> attributes;      // each attribute's value (+8), in the belief's order
+    float    weight = 0.0f;                // episode +12: how good it was
+};
+
+// One of a desire's two learned trees (sub_4CA2E0). The loader rebuilds the
+// tree from the episodes (sub_4B78E0); at most 16 are kept.
+struct MindTree {
+    uint32_t head[3] = {0, 0, 0};          // +0, then +4 twice (the second read wins)
+    std::vector<MindEpisode> episodes;
+};
+
 struct CreatureMind {
     uint32_t   version = 0;
     std::string name;                 // UTF-8, converted from the file's UTF-16
     MindDesire desires[kNumCreatureDesires];
 
-    // Byte offset the parse finished at, and the file size it was read from --
-    // the gap is the part of the mind (learning episodes, beliefs, attitude)
-    // this reader does not yet cover.
+    // sub_4CA1E0: per desire, two trees (mental slots i and i+40).
+    MindTree learning[kNumCreatureDesires][2];
+    // sub_4CA260 (version 0xC on): one word per action of that build (313 at
+    // version 25, 322 at 30). All zero in the shipped minds.
+    std::vector<uint32_t> action_words;
+    // sub_4C9D70: the CreatureActionKnownAbout lists sub_4C3F50 searches --
+    // abilities (kind 0) and magic types (kind 1).
+    std::vector<uint32_t> known_abilities;
+    std::vector<uint32_t> known_spells;
+
+    // Byte offset the parse finished at, and the file size it was read from.
+    // What follows the known lists (sub_4D5D80, sub_4CA040, sub_5E6A60, ...) is
+    // not yet read.
     size_t parsed_bytes = 0;
     size_t total_bytes = 0;
 };
@@ -69,8 +98,8 @@ struct CreatureMind {
 //
 // Only the creature-mind format is handled (the version-25 and version-30 files
 // in the shipped set). The version-17 files in the same directory are a
-// different format entirely: no name, no desire count, just arrays of floats.
-// They are behaviour profiles, not saved creatures, and need separate work.
+// different format entirely: the mind loader (sub_4C9170) reads a species index
+// below 17 as the second word, and theirs is a float. They need separate work.
 bool LoadCreatureMind(const uint8_t* data, size_t size, CreatureMind& out);
 
 // Convenience wrapper that reads the file first. Returns false if it cannot be

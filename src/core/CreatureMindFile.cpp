@@ -130,6 +130,61 @@ bool LoadCreatureMind(const uint8_t* data, size_t size, CreatureMind& out) {
         if (r.bad) return false;
     }
 
+    // sub_4C95D0 then: five words only for versions 6..9, none shipped.
+    if (out.version >= 6 && out.version < 0xA) for (int i = 0; i < 5; ++i) r.U32();
+
+    // sub_4CA1E0: a count (40), then each desire's two trees.
+    const uint32_t slots = r.U32();
+    if (r.bad || slots > kNumCreatureDesires) return false;
+    for (uint32_t i = 0; i < slots; ++i) {
+        for (MindTree& t : out.learning[i]) {
+            for (uint32_t& h : t.head) h = r.U32();
+            const uint32_t n = r.U32();
+            if (r.bad || n > 64) return false;
+            t.episodes.resize(n);
+            for (MindEpisode& e : t.episodes) {  // sub_4CA390
+                e.lead = r.U32();
+                e.context[0] = r.U32();
+                e.context[1] = r.U32();
+                e.belief_type = r.U32();
+                e.belief_words[0] = r.U32();       // sub_4C9ED0, the same for every belief class
+                e.belief_words[1] = r.U32();
+                const uint32_t na = r.U32();
+                if (r.bad || na > 64) return false;
+                e.attributes.resize(na);
+                for (uint32_t& a : e.attributes) a = r.U32();
+                e.weight = r.F32();
+            }
+            if (t.episodes.size() > 16) t.episodes.resize(16);  // the loader deletes past 16
+        }
+    }
+
+    if (out.version >= 0xC) {  // sub_4CA260
+        const uint32_t n = r.U32();
+        if (r.bad || n > 1024) return false;
+        out.action_words.resize(n);
+        for (uint32_t& w : out.action_words) w = r.U32();
+    }
+    for (uint32_t i = 0; i < desire_count; ++i) { r.U32(); r.U32(); }  // mental+99792
+    for (int list = 0; list < 2; ++list) {
+        const uint32_t n = r.U32();
+        if (r.bad || n > 1024) return false;
+        for (uint32_t i = 0; i < n; ++i) { r.U32(); if (out.version >= 8) r.U32(); }
+    }
+    r.U32(); r.U32();
+    if (out.version >= 0x10) for (int i = 0; i < 40 + 17; ++i) r.U32();
+
+    for (int kind = 0; kind < 2; ++kind) {  // sub_4C9D70
+        const uint32_t n = r.U32();
+        if (r.bad || n > 512) return false;
+        std::vector<uint32_t>& ids = kind ? out.known_spells : out.known_abilities;
+        for (uint32_t i = 0; i < n; ++i) {
+            ids.push_back(r.U32());
+            if (out.version < 0x14) r.U32();
+        }
+    }
+    if (r.bad) return false;
+
     out.parsed_bytes = r.p;
     return true;
 }

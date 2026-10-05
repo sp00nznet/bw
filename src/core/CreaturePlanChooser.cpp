@@ -236,6 +236,14 @@ bool PlanChooser::Choose(uint32_t about, uint32_t at, ActionPlan* plan) const {
     return false;
 }
 
+void BindKnownActions(ChooserHost* host, const CreatureMind& mind) {
+    const std::vector<uint32_t> abilities = mind.known_abilities, spells = mind.known_spells;
+    host->has = [abilities, spells](int kind, uint32_t id) {
+        const std::vector<uint32_t>& v = kind ? spells : abilities;
+        return std::find(v.begin(), v.end(), id) != v.end();
+    };
+}
+
 void BindObjectPredicates(ChooserHost* host, Creature* creature,
                           std::function<GameThingWithPos*(uint32_t belief)> resolve) {
     host->action_fit = [=](uint32_t b, uint32_t a) {
