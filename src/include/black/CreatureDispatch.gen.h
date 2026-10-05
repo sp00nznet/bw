@@ -16,6 +16,7 @@ enum : uint8_t {
     kDesHasTargetedFit = 2,  // desire +16
     kDesHasBeliefFit   = 4,  // desire +20
     kDesHasSpecial     = 8,  // desire +36
+    kDesActsAlone      = 16, // desire +32: sub_4D0B40 picks the action first, then a belief for it
 };
 
 inline constexpr uint8_t kActionDispatch[328] = {
@@ -39,8 +40,8 @@ inline constexpr uint8_t kActionDispatch[328] = {
 };
 
 inline constexpr uint8_t kDesireDispatch[40] = {
-    6, 6, 6, 12, 0, 4, 12, 4, 4, 0, 1, 0, 0, 4, 0, 0, 6, 1, 0, 1,
-    1, 0, 1, 5, 0, 0, 2, 0, 0, 0, 0, 6, 6, 1, 4, 1, 0, 6, 0, 0,
+    6, 6, 22, 28, 16, 20, 28, 20, 20, 16, 17, 16, 16, 20, 16, 16, 6, 17, 16, 17,
+    17, 16, 17, 21, 16, 16, 2, 16, 16, 16, 16, 6, 6, 17, 20, 17, 16, 6, 16, 16,
 };
 
 // The object vtable slot each predicate calls, or -1.

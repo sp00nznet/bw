@@ -154,6 +154,43 @@ Two record fields were misread before and are now known:
   through this field.
 - `DESIRE_TABLE` is the 448-byte table earlier notes called `CreatureInitialDesireInfo`.
 
+## The agenda (`sub_4D0630`, every turn)
+
+This is the loop a creature actually lives by. It is in `core/CreatureAgenda.cpp`.
+
+1. **The queue.** Active, unsuppressed desires are queued (`sub_4D1550`), and desire 0
+   comes off first. Each turn two of them (`dword_B0E2EC`) have their plan slot
+   rebuilt (`sub_4D06F0`).
+2. **Rebuilding a slot.**
+   - The desire's gate must pass.
+   - A desire that needs a target picks the best one: falloff x how it rates as a
+     target (`sub_4D09A0`).
+   - The slot is filled (`sub_4D0B40`). How depends on the desire table's +32 flag:
+
+| Desires | +32 flag | Fill |
+|---|---|---|
+| All but seven | set | Choose the action first, by its own score (`sub_4D0E30`). Then find a belief for it: the best-scoring belief above zero that suits the desire and the action (`sub_4D1170`). An action that takes no belief is done to the creature itself. Then an object if the action needs one (`sub_4D1280`). A failure strikes the action off and tries again, up to 30 times. |
+| To impress, compassion, to be friends, to obey a creature, 31, to educate a friend, miss friend | clear | The target names the belief (its vslot 12, `sub_4D0D20`) for each action the chooser offers. |
+
+3. **The plan's score** (`sub_4D1DD0`) is:
+
+   desire x target x min(action, 0.01) x belief x 10^5 x object
+
+   0.1 stands in for a missing target or object. Because of the clamp, the action's
+   own score never separates plans.
+4. **Switching.** When the queue is empty, the best plan (`sub_4D14E0`) becomes
+   current if it is complete and scores more than twice the current plan
+   (`sub_4D05D0`). Otherwise the queue refills.
+
+`test_chooser` runs the agenda from shipped data:
+- Khazar's one innate lesson is rebuilt into his hunger tree, which rates a villager
+  +0.6.
+- Hungry (0.8) and curious (0.5), he settles on turn 2 on **EatAlive** against the
+  villager, scoring 4.74.
+- Curiosity finds nothing it rates above neutral.
+
+The early creature that eats villagers is in the data from the start.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -193,8 +230,12 @@ version and then a species below 17, and in those files the second word is a flo
 - The 81 code-bodied predicate implementations, checked one by one. The action
   validity predicates (+16) and desire gates (+0) are creature methods and are still
   host-supplied.
-- The agenda: what calls `sub_4D0D00` / `sub_4D0CE0` each turn, and with which
-  belief. That is the untrained creature's actual decision loop.
+- Wiring the agenda into `Creature::ProcessState`. That needs:
+  - beliefs built from the objects around the creature;
+  - opinions classified through its trees;
+  - the desire model ticking;
+  - the chosen action carried out.
+- Compassion's rotation through a town's needs (mental+134428).
 - Classifying a belief through a tree rebuilt from a mind's episodes (the node layout
   is now partly known: +12 parent, +16/+20 the split it hangs from, +128 its own split
   attribute (23 = leaf), +132 its children, +144 its opinion level).

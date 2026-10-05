@@ -9,6 +9,7 @@
 #include <black/Bonfire.h>
 #include <black/Creature.h>
 #include <black/CreatureDispatch.gen.h>
+#include <black/CreatureLearner.h>
 #include <black/Feature.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
@@ -199,6 +200,61 @@ int main() {
         const bool ok = c.Choose(kTown, kTown, &q);
         std::snprintf(msg, sizeof msg, "knowing it, the town's own table gives CastMagicFood: desire %u target %u action %u", q.desire, q.target, q.action);
         CHECK(ok && q.desire == kCompassion && q.target == kTown && q.action == 48, msg);
+    }
+
+    {
+        // The agenda, end to end from shipped data. Khazar's one innate lesson
+        // (hunger, about a villager, weight 0.8) is rebuilt into his hunger
+        // opinion tree; a villager like the one in the lesson classifies through
+        // it, and everything else stays at the empty tree's neutral.
+        CreatureMind khazar;
+        for (const char* r : {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"})
+            if (LoadCreatureMindFile((std::string(r) + "CreatureMind/KhazarCreature").c_str(), khazar)) break;
+        std::vector<LearningEpisode> eps;
+        uint8_t villager[kMaxBeliefAttributes] = {};
+        for (const MindEpisode& e : khazar.learning[kHunger][1].episodes) {
+            LearningEpisode le;
+            for (size_t i = 0; i < e.attributes.size() && i < kMaxBeliefAttributes; ++i)
+                le.features[i] = villager[i] = static_cast<uint8_t>(e.attributes[i]);
+            le.weight = e.weight;
+            eps.push_back(le);
+        }
+        DecisionTreeModel tree;
+        tree.Induce(CREATURE_BELIEF_VILLAGER, eps.data(), static_cast<uint32_t>(eps.size()));
+        const float liking = OpinionValue(tree.Classify(villager, kMaxBeliefAttributes));
+        std::snprintf(msg, sizeof msg, "Khazar's hunger tree, from his innate lesson, rates a villager %.1f", liking);
+        CHECK(eps.size() == 1 && std::fabs(liking - 0.6f) < 1e-6f, msg);
+
+        static ChooserMind km;
+        km.active[kHunger] = km.active[kCuriosity] = true;
+        km.desire[kHunger] = 0.8f;
+        km.desire[kCuriosity] = 0.5f;
+        const std::vector<BeliefView> world = {
+            {kVillager, 50.0f, liking, false, 6}, {kPit, 100.0f, 0.0f, false, 3},
+            {kTree, 20.0f, 0.0f}, {9, 0.0f, 0.0f, false, 8, true}};
+        ChooserHost ah;
+        BindKnownActions(&ah, khazar);
+        const std::set<std::pair<uint32_t, uint32_t>> can = {
+            {kPit, 65}, {kVillager, 11}, {kVillager, 12}, {kTree, 79}, {kTree, 10}, {kTree, 20}};
+        ah.action_fit = [&](uint32_t b, uint32_t a) { return can.count({b, a}) > 0; };
+        ah.belief_fit = [](uint32_t b, uint32_t d) { return d == kCuriosity || (d == kHunger && (b == kPit || b == kVillager)); };
+        PlanChooser c(t, km, ah, world);
+        Agenda agenda;
+        int turn = 0;
+        bool changed = false;
+        while (!changed && turn < 10) { changed = agenda.Tick(c, km, ah); ++turn; }
+        const ActionPlan* cur = agenda.plans.For(agenda.plans.current_desire);
+        std::snprintf(msg, sizeof msg,
+                      "the agenda settles on turn %d: desire %u, action %u (EatAlive 11) on belief %u, score %.2f; curiosity scores %.2f",
+                      turn, agenda.plans.current_desire, agenda.plans.current_action, cur ? cur->belief : 0, agenda.current_total,
+                      agenda.plans.For(kCuriosity)->total);
+        CHECK(changed && turn == 2 && agenda.plans.current_desire == kHunger && agenda.plans.current_action == 11 &&
+                  cur->belief == kVillager &&
+                  std::fabs(agenda.current_total - 0.8f * 0.1f * 0.01f * 0.6f * 0.9875f * 1e5f * 0.1f) < 1e-3f &&
+                  agenda.plans.For(kCuriosity)->total == 0.0f,
+              msg);
+        CHECK(!agenda.Tick(c, km, ah) && agenda.count == 2,
+              "with nothing scoring twice as well, the next turn refills the queue (both desires)");
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

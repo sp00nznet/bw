@@ -64,6 +64,9 @@ struct BeliefView {
     float    distance = 0.0f; // from the creature
     float    opinion = 0.0f;  // OpinionValue of what its tree says (sub_4B83C0)
     bool     own = false;     // the creature's own object (creature+352 +40)
+    uint32_t type = 0;        // sub_4B8FF0's belief type: 6 villager, 8 creature...
+    bool     self = false;    // the creature itself: never a target, but the
+                              // belief an action without one is done "to"
 };
 
 // What the creature's mind holds that the chooser reads.
@@ -92,6 +95,13 @@ struct ChooserHost {
     std::function<bool(uint32_t belief)> leash_exempt;   // desire 35's vslot 860 test
     std::function<int(uint32_t belief)> town_need;       // desire 1: the town desire 0..16, or -1
     std::function<std::vector<uint32_t>(uint32_t belief)> related;  // sub_4BB170
+    // sub_4C4B60: may a targeted desire be about this? Default: anything but
+    // the creature itself (the binary also asks the object's vslot 119,
+    // IsSuitableForCreatureActivity, and spares its own player from anger).
+    std::function<bool(uint32_t belief, uint32_t desire)> target_ok;
+    // A target belief's vslot 12: the belief to act on for (desire, action),
+    // writing its score. Default: the target itself, score untouched.
+    std::function<uint32_t(uint32_t target, uint32_t desire, uint32_t action, float* score)> target_belief;
 };
 
 // Fill the host's object predicates (action +52, desire +16/+20/+36) with the
@@ -125,6 +135,15 @@ public:
     float BeliefScore(uint32_t belief, uint32_t desire) const;
     uint32_t BestObject(uint32_t desire, uint32_t action, uint32_t exclude) const;
     bool Complete(const ActionPlan& plan) const;
+    bool needs_target(uint32_t desire) const { return desire < kNumCreatureDesires && t_.needs_target[desire]; }
+
+    // The agenda's half (see Agenda below).
+    void  PickTarget(ActionPlan* plan) const;                                    // sub_4D09A0
+    void  Fill(ActionPlan* plan) const;                                          // sub_4D0B40
+    bool  ScoreActions(ActionPlan* plan, const std::vector<uint32_t>& tried) const;  // sub_4D0E30
+    bool  FindBelief(ActionPlan* plan) const;                                    // sub_4D1170
+    bool  FindObject(ActionPlan* plan) const;                                    // sub_4D1280
+    float Total(const ActionPlan& plan) const;                                   // sub_4D1DD0
 
 private:
     bool Leashed() const { return m_.leash > 0.0f; }
@@ -136,6 +155,23 @@ private:
     const ChooserMind& m_;
     const ChooserHost& h_;
     const std::vector<BeliefView>& beliefs_;
+};
+
+// The creature's agenda (sub_4D0630, run every turn). Active desires queue up
+// (sub_4D1550, desire 0 first); each turn two of them (dword_B0E2EC) have their
+// plan slot rebuilt (sub_4D06F0). When the queue runs dry the best-scoring
+// plan (sub_4D14E0) replaces the current one if it scores more than twice as
+// much (sub_4D05D0), and otherwise the queue refills.
+struct Agenda {
+    PlanState plans;               // mental+1816: one plan per desire, +3912 current
+    float     current_total = 0;   // mental+3956: the current plan's score
+    uint32_t  queue[kNumCreatureDesires] = {};  // mental+3744
+    uint32_t  count = 0;           // mental+3908
+    uint32_t  best = kNumCreatureDesires;  // mental+3736
+
+    // One turn. Returns true when the current plan changed.
+    bool Tick(const PlanChooser& chooser, const ChooserMind& mind, const ChooserHost& host);
+    void Refresh(const PlanChooser& chooser, const ChooserHost& host, uint32_t desire);  // sub_4D06F0
 };
 
 }  // namespace creature

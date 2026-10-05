@@ -14,6 +14,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The creature's agenda (`docs/creature-chooser.md`): v1.0's per-turn loop. It
+  rebuilds each desire's plan, scores it, and switches to a plan that scores twice as
+  well. From shipped data, Khazar's innate lesson makes a hungry Khazar choose to eat
+  a villager alive.
 - The mind file past the desires (`docs/creature-chooser.md`): learning episodes (two
   trees per desire), per-action words, and the known abilities and spells that the
   plan chooser checks. Every shipped mind holds one episode; the story creatures know

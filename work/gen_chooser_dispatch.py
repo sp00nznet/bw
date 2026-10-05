@@ -101,7 +101,7 @@ used = sorted({x for x in fit_slot + target_slot + belief_slot if x >= 0})
 ours = {"IsCreature_0": "IsCreature"}
 
 act = [(1 if r[4] else 0) | (2 if r[13] else 0) | (4 if r[17] else 0) for r in actions]
-des = [(1 if r[0] else 0) | (2 if r[4] else 0) | (4 if r[5] else 0) | (8 if r[9] else 0) for r in desires]
+des = [(1 if r[0] else 0) | (2 if r[4] else 0) | (4 if r[5] else 0) | (8 if r[9] else 0) | (16 if r[8] else 0) for r in desires]
 
 
 def rows(v):
@@ -126,6 +126,7 @@ enum : uint8_t {{
     kDesHasTargetedFit = 2,  // desire +16
     kDesHasBeliefFit   = 4,  // desire +20
     kDesHasSpecial     = 8,  // desire +36
+    kDesActsAlone      = 16, // desire +32: sub_4D0B40 picks the action first, then a belief for it
 }};
 
 inline constexpr uint8_t kActionDispatch[328] = {{

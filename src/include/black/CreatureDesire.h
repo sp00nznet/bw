@@ -128,7 +128,7 @@ struct ActionPlan {
     float    belief_score = 0;   // +0x20
     float    object_score = 0;   // +0x24
     float    action_score = 0;   // +0x28
-    float    unknown_2c = 0;     // +0x2C
+    float    total = 0;          // +0x2C -- the plan's score (sub_4D1DD0)
 };
 
 // sub_4D1450 gives every one of the 40 slots its own desire up front, so the
