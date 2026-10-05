@@ -19,14 +19,17 @@ import ida_name
 import idc
 
 CLASSES = ["Villager", "Abode", "StoragePit", "TownCentre", "Tree", "Field", "FishFarm",
-           "Rock", "BigForest", "Creature", "Bonfire", "Feature"]
+           "Rock", "BigForest", "Creature", "Bonfire", "Feature", "Forest", "Citadel", "Flock", "Animal"]
+# Slots read beyond the chooser's predicates: 67 GetCreatureBeliefType, the
+# type a creature's belief about the object takes (sub_4B8FF0's switch).
+EXTRA_SLOTS = [67]
 
 idapro.open_database(sys.argv[1] if len(sys.argv) > 1 else "E:/ida/work/bw.exe.i64", True)
 ida_auto.auto_wait()
 ida_hexrays.init_hexrays_plugin()
 
 gen = open("src/core/CreatureDispatch.gen.cpp").read()
-slots = sorted(int(x) for x in re.findall(r"case (\d+):", gen))
+slots = sorted(int(x) for x in re.findall(r"case (\d+):", gen)) + EXTRA_SLOTS
 kinds = {}
 
 

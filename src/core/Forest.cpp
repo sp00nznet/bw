@@ -78,8 +78,8 @@ uint32_t Forest::GetSaveType() {
 // ============================================================================
 
 uint32_t Forest::GetCreatureBeliefType() {
-    // Original at 0x00539a80
-    return 0;
+    // v1.0 vslot 67: return 1 (checked by test_chooser)
+    return 1;
 }
 
 uint32_t Forest::GetCreatureBeliefListType() {

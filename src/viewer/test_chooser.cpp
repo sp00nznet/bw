@@ -7,6 +7,10 @@
 #include <black/Abode.h>
 #include <black/BigForest.h>
 #include <black/Bonfire.h>
+#include <black/Animal.h>
+#include <black/Citadel.h>
+#include <black/Flock.h>
+#include <black/Forest.h>
 #include <black/Creature.h>
 #include <black/CreatureDispatch.gen.h>
 #include <black/CreatureLearner.h>
@@ -40,9 +44,11 @@ static int g_fail = 0;
 enum : uint32_t { kVillager = 1, kTree = 2, kPit = 3, kTown = 5 };
 enum : uint32_t { kHunger = 4, kAnger = 2, kCompassion = 1, kCuriosity = 6 };
 
+// Slot 67 is GetCreatureBeliefType (a number, not a predicate).
 // -1 if the predicate faulted (our body reads something an empty object lacks).
 static int Ask(GameThingWithPos* o, Creature* c, int slot) {
     __try {
+        if (slot == 67) return static_cast<int>(o->GetCreatureBeliefType());
         return CallObjectPredicate(o, c, slot) ? 1 : 0;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return -1;
@@ -59,7 +65,9 @@ static void CheckPredicateTable() {
         {"Tree", [] { return new Tree(); }},           {"Field", [] { return new Field(); }},
         {"FishFarm", [] { return new FishFarm(); }},   {"Rock", [] { return new Rock(); }},
         {"BigForest", [] { return new BigForest(); }}, {"Creature", [] { return new Creature(); }},
-        {"Bonfire", [] { return new Bonfire(); }},     {"Feature", [] { return new Feature(); }}};
+        {"Bonfire", [] { return new Bonfire(); }},     {"Feature", [] { return new Feature(); }},
+        {"Forest", [] { return new Forest(); }},       {"Citadel", [] { return new Citadel(); }},
+        {"Flock", [] { return new Flock(); }},         {"Animal", [] { return new Animal(); }}};
     std::map<std::string, GameThingWithPos*> objs;
     int checked = 0, wrong = 0, code = 0;
     std::string bad;

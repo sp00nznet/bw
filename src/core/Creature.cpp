@@ -46,8 +46,8 @@ uint32_t Creature::GetScriptObjectType() {
 }
 
 uint32_t Creature::GetCreatureBeliefType() {
-    // Original at 0x00460c40 — creature belief type is 0x16
-    return 0x16;
+    // v1.0 vslot 67: return 8 (checked by test_chooser)
+    return 8;
 }
 
 bool Creature::IsCreature(Creature* /*creature*/) {

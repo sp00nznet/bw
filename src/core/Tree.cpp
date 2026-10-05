@@ -16,8 +16,8 @@
 // ============================================================================
 
 uint32_t Tree::GetCreatureBeliefType() {
-    // Original at 0x0055d950
-    return 3;
+    // v1.0 vslot 67: return 5 (checked by test_chooser)
+    return 5;
 }
 
 bool32_t Tree::IsCastShadowAtNight() {

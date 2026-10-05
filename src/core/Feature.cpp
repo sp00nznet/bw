@@ -15,8 +15,8 @@ uint32_t Feature::GetSaveType() {
 }
 
 uint32_t Feature::GetCreatureBeliefType() {
-    // Original at 0x00422140
-    return 0;
+    // v1.0 vslot 67: return 15 (checked by test_chooser)
+    return 15;
 }
 
 bool32_t Feature::CanBePickedUpByCreature(Creature* /*creature*/) {

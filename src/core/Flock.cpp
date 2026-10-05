@@ -64,8 +64,8 @@ bool Flock::IsActivityObjectWhichAngerAppliesTo(Creature* /*creature*/) {
 }
 
 bool Flock::IsActivityObjectWhichCompassionAppliesTo(Creature* /*creature*/) {
-    // Original at 0x0052f8e0: returns true
-    return true;
+    // v1.0 vslot 113: return 0 (checked by test_chooser)
+    return false;
 }
 
 bool Flock::IsActivityObjectWhichPlayfulnessAppliesTo(Creature* /*creature*/) {

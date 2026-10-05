@@ -75,8 +75,8 @@ MapCoords* Field::GetArrivePos(MapCoords* out) {
 }
 
 uint32_t Field::GetCreatureBeliefType() {
-    // Original at 0x00527f20: returns field creature belief type
-    return 0;
+    // v1.0 vslot 67: return 11 (checked by test_chooser)
+    return 11;
 }
 
 uint32_t Field::GetOverwriteInteractableToolTip() {

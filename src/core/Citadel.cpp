@@ -44,8 +44,8 @@ uint32_t Citadel::GetSaveType() {
 // ============================================================================
 
 uint32_t Citadel::GetCreatureBeliefType() {
-    // Original at 0x00462a60
-    return 0;
+    // v1.0 vslot 67: return 2 (checked by test_chooser)
+    return 2;
 }
 
 uint32_t Citadel::GetCreatureBeliefListType() {
