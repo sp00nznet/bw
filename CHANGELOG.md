@@ -10,6 +10,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The spell particle files (`docs/psys-files.md`): all 132 `ZSpellFiles/SF_*_txt.zzz`
+  graphs load (our own inflate, then the property text). Earlier notes said these
+  were not in the data; they are.
 - Spells that last (`docs/gestures.md`): a spell ages and stops past its duration, and
   Water rains for it, a drop a turn, enough to put out a burning hut.
 - Fire (`docs/fire.md`): v1.0's heat simulation. Objects catch above their ignition

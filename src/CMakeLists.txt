@@ -32,6 +32,7 @@ add_library(bw_core STATIC
     core/Gesture.cpp
     core/SpellCast.cpp
     core/Fire.cpp
+    core/SpellFile.cpp
     core/GameThing.cpp
     core/GameThingWithPos.cpp
     core/Object.cpp
@@ -464,6 +465,15 @@ add_executable(test_spawn
 )
 target_link_libraries(test_spawn PRIVATE bw_core)
 set_target_properties(test_spawn PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# The particle graphs in game_data/ZSpellFiles load
+add_executable(test_psysfile
+    viewer/test_psysfile.cpp
+)
+target_link_libraries(test_psysfile PRIVATE bw_core)
+set_target_properties(test_psysfile PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
