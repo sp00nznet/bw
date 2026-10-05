@@ -31,6 +31,9 @@
 #include <functional>
 #include <vector>
 
+struct Creature;
+struct GameThingWithPos;
+
 namespace creature {
 
 // The candidate lists, action records and tuning the chooser reads, from
@@ -90,6 +93,12 @@ struct ChooserHost {
     std::function<int(uint32_t belief)> town_need;       // desire 1: the town desire 0..16, or -1
     std::function<std::vector<uint32_t>(uint32_t belief)> related;  // sub_4BB170
 };
+
+// Fill the host's object predicates (action +52, desire +16/+20/+36) with the
+// virtuals the binary calls on the object a belief is about -- the slots in
+// CreatureDispatch.gen.h. `resolve` maps a belief id to its object.
+void BindObjectPredicates(ChooserHost* host, Creature* creature,
+                          std::function<GameThingWithPos*(uint32_t belief)> resolve);
 
 class PlanChooser {
 public:

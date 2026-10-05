@@ -74,8 +74,8 @@ bool FishFarm::IsObjectInMap_0() {
 }
 
 bool32_t FishFarm::CanBeEatenByCreature(Creature* /*creature*/) {
-    // Original at 0x0052c550: returns 0
-    return 0;
+    // v1.0 vslot 139: return 1 (checked by test_chooser)
+    return 1;
 }
 
 bool32_t FishFarm::CanBeSleptNextToByCreature(Creature* /*creature*/) {

@@ -141,8 +141,8 @@ bool32_t Villager::CanBeEatenByCreature(Creature* /*creature*/) {
 }
 
 bool32_t Villager::CanBeBefriendedByCreature(Creature* /*creature*/) {
-    // Original at 0x0055c9a0 — villagers can be befriended
-    return 1;
+    // v1.0 vslot 148: return 0 (checked by test_chooser)
+    return 0;
 }
 
 bool32_t Villager::CanBeStrokedByCreature(Creature* /*creature*/) {

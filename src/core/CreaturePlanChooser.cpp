@@ -1,6 +1,7 @@
 // CreaturePlanChooser — see black/CreaturePlanChooser.h.
 #include <black/CreaturePlanChooser.h>
 #include <black/CreatureDispatch.gen.h>
+#include <black/GameThingWithPos.h>
 #include <black/InfoDat.h>
 
 #include <algorithm>
@@ -233,6 +234,30 @@ bool PlanChooser::Choose(uint32_t about, uint32_t at, ActionPlan* plan) const {
         tried.push_back(plan->desire);
     }
     return false;
+}
+
+void BindObjectPredicates(ChooserHost* host, Creature* creature,
+                          std::function<GameThingWithPos*(uint32_t belief)> resolve) {
+    host->action_fit = [=](uint32_t b, uint32_t a) {
+        return a < 328 && CallObjectPredicate(resolve(b), creature, kActionFitSlot[a]);
+    };
+    host->targeted_fit = [=](uint32_t b, uint32_t d) {
+        return d < kNumCreatureDesires && CallObjectPredicate(resolve(b), creature, kDesireTargetedFitSlot[d]);
+    };
+    host->belief_fit = [=](uint32_t b, uint32_t d) {
+        return d < kNumCreatureDesires && CallObjectPredicate(resolve(b), creature, kDesireBeliefFitSlot[d]);
+    };
+    // Desire +36. Play (sub_4C4AC0): 5 for a football game, 3 for a toy.
+    // Curiosity (sub_4C4A90): 5 for something doing something interesting.
+    // ponytail: sub_4CA6A0 also cuts curiosity to 0.01 for objects whose type the
+    // mind has marked (mental+119840); the mind's per-type flags are not modelled.
+    host->special = [=](uint32_t b, uint32_t d) {
+        GameThingWithPos* o = resolve(b);
+        if (!o) return 1.0f;
+        if (d == 3) return o->IsPlayingFootball(creature) ? 5.0f : o->IsToy(nullptr) ? 3.0f : 1.0f;
+        if (d == 6) return o->IsDoingSomethingInteresting(creature) ? 5.0f : 1.0f;
+        return 1.0f;
+    };
 }
 
 }  // namespace creature

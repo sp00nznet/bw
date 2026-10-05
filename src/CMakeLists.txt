@@ -236,6 +236,7 @@ add_library(bw_core STATIC
     core/CreatureMindFile.cpp
     core/CreatureDesire.cpp
     core/CreaturePlanChooser.cpp
+    core/CreatureDispatch.gen.cpp
     core/CreatureActionNames.cpp
     # Hand state system
     core/HandState.cpp

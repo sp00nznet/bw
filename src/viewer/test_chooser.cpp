@@ -4,6 +4,25 @@
 // compassion for a town reads the town's own action table. Needs info.dat.
 #include <black/CreaturePlanChooser.h>
 #include <black/InfoDat.h>
+#include <black/Abode.h>
+#include <black/BigForest.h>
+#include <black/Bonfire.h>
+#include <black/Creature.h>
+#include <black/CreatureDispatch.gen.h>
+#include <black/Feature.h>
+#include <black/Field.h>
+#include <black/FishFarm.h>
+#include <black/Rock.h>
+#include <black/StoragePit.h>
+#include <black/TownCentre.h>
+#include <black/Tree.h>
+#include <black/Villager.h>
+
+#include "PredicateTable.gen.h"
+
+#include <excpt.h>
+#include <functional>
+#include <map>
 
 #include <cmath>
 #include <cstdio>
@@ -20,7 +39,52 @@ static int g_fail = 0;
 enum : uint32_t { kVillager = 1, kTree = 2, kPit = 3, kTown = 5 };
 enum : uint32_t { kHunger = 4, kAnger = 2, kCompassion = 1, kCuriosity = 6 };
 
+// -1 if the predicate faulted (our body reads something an empty object lacks).
+static int Ask(GameThingWithPos* o, Creature* c, int slot) {
+    __try {
+        return CallObjectPredicate(o, c, slot) ? 1 : 0;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return -1;
+    }
+}
+
+// Every constant answer the binary gives for these classes' chooser predicates,
+// checked against ours. Code-bodied predicates are counted, not checked.
+static void CheckPredicateTable() {
+    static Creature creature;
+    const std::map<std::string, std::function<GameThingWithPos*()>> make = {
+        {"Villager", [] { return new Villager(); }},   {"Abode", [] { return new Abode(); }},
+        {"StoragePit", [] { return new StoragePit(); }}, {"TownCentre", [] { return new TownCentre(); }},
+        {"Tree", [] { return new Tree(); }},           {"Field", [] { return new Field(); }},
+        {"FishFarm", [] { return new FishFarm(); }},   {"Rock", [] { return new Rock(); }},
+        {"BigForest", [] { return new BigForest(); }}, {"Creature", [] { return new Creature(); }},
+        {"Bonfire", [] { return new Bonfire(); }},     {"Feature", [] { return new Feature(); }}};
+    std::map<std::string, GameThingWithPos*> objs;
+    int checked = 0, wrong = 0, code = 0;
+    std::string bad;
+    for (const PredicateRow& r : kPredicateTable) {
+        if (r.value < 0) { ++code; continue; }
+        GameThingWithPos*& o = objs[r.cls];
+        if (!o) o = make.at(r.cls)();
+        ++checked;
+        const int got = Ask(o, &creature, r.slot);
+        if (got != r.value) {
+            ++wrong;
+            char b[96];
+            std::snprintf(b, sizeof b, "\n      %s slot %d: binary %d, ours %d", r.cls, r.slot, r.value, got);
+            bad += b;
+        }
+    }
+    char msg[160];
+    std::snprintf(msg, sizeof msg, "predicates: %d constant answers across %zu classes match the binary (%d code-bodied not checked)",
+                  checked - wrong, make.size(), code);
+    if (wrong) printf("%s\n", bad.c_str());
+    CHECK(wrong == 0, msg);
+}
+
 int main() {
+    CheckPredicateTable();
+
     std::string path;
     for (const char* r : {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"})
         if (std::filesystem::exists(std::string(r) + "info.dat")) { path = std::string(r) + "info.dat"; break; }

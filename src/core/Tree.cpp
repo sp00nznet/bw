@@ -46,9 +46,8 @@ bool32_t Tree::CanBePickedUpByCreature(Creature*) {
 }
 
 bool32_t Tree::CanBeDestroyedByStoning(Creature*) {
-    // Trees can be destroyed by stoning
-    // Original at 0x0055d990
-    return 1;
+    // v1.0 vslot 158: return 0 (checked by test_chooser)
+    return 0;
 }
 
 bool32_t Tree::CanBeUsedForBuilding(Creature*) {

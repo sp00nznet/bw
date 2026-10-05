@@ -110,8 +110,8 @@ bool32_t Field::CanBePickedUpByCreature(Creature* /*creature*/) {
 }
 
 bool32_t Field::CanBeStompedOnByCreature(Creature* /*creature*/) {
-    // Original at 0x00527f80: returns 1
-    return 1;
+    // v1.0 vslot 154: return 0 (checked by test_chooser)
+    return 0;
 }
 
 bool32_t Field::CanBeGivenToVillager(Creature* /*creature*/) {
@@ -130,8 +130,8 @@ bool32_t Field::CanBeDestroyedByStoning(Creature* /*creature*/) {
 }
 
 bool32_t Field::CanBeExaminedByCreature(Creature* /*creature*/) {
-    // Original at 0x00527fc0: returns 1
-    return 1;
+    // v1.0 vslot 160: return 0 (checked by test_chooser)
+    return 0;
 }
 
 bool32_t Field::IsBeingBuilt(Creature* /*creature*/) {
@@ -145,8 +145,8 @@ bool32_t Field::NeedsRepair(Creature* /*creature*/) {
 }
 
 bool32_t Field::CanBePoodOn(Creature* /*creature*/) {
-    // Original at 0x00527f60: returns 1
-    return 1;
+    // v1.0 vslot 184: return 0 (checked by test_chooser)
+    return 0;
 }
 
 bool32_t Field::IsFieldWhichNeedsWatering(Creature* /*creature*/) {

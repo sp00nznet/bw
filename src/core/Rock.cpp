@@ -191,3 +191,8 @@ bool Rock::IsMovable() {
     // Original at 0x00439740: returns true
     return true;
 }
+
+bool32_t Rock::CanBePlayedWithByCreature(Creature*) {
+    // v1.0 vslot 144: return 1
+    return 1;
+}

@@ -50,6 +50,11 @@ uint32_t Creature::GetCreatureBeliefType() {
     return 0x16;
 }
 
+bool Creature::IsCreature(Creature* /*creature*/) {
+    // Original vslot 12 (0x00401820): return 1
+    return true;
+}
+
 bool Creature::IsCreature() {
     // Original at 0x00461200
     return true;
@@ -61,9 +66,18 @@ bool Creature::CanBePickedUp() {
 }
 
 bool32_t Creature::CanBePickedUpByCreature(Creature* /*other*/) {
-    // Creatures can fight/interact with each other
-    return 1;
+    // v1.0 vslot 150: return 0 (checked by test_chooser)
+    return 0;
 }
+
+// The v1.0 Creature's constant answers to the chooser's predicates (vslots
+// 113, 142, 144, 148, 149, 160), checked by test_chooser.
+bool Creature::IsActivityObjectWhichCompassionAppliesTo(Creature*) { return true; }
+bool32_t Creature::CanBeFrighteningToCreature(Creature*) { return 1; }
+bool32_t Creature::CanBePlayedWithByCreature(Creature*) { return 1; }
+bool32_t Creature::CanBeBefriendedByCreature(Creature*) { return 1; }
+bool32_t Creature::CanBeSleptNextToByCreature(Creature*) { return 1; }
+bool32_t Creature::CanBeExaminedByCreature(Creature*) { return 0; }
 
 bool32_t Creature::CanBeThrownByPlayer() {
     return 1;

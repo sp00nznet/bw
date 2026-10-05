@@ -6,13 +6,18 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- Seventeen of the creature predicates our classes answered differently from v1.0
+  (Field could be stomped, examined and pooed on; villagers could be befriended; five
+  creature predicates were missing; Rock and Bonfire faulted). `test_chooser` now checks
+  all 637 constant answers across twelve classes against the binary.
 - A finished abode was re-added to its town's abode list (`Abode::Built` ->
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
 - The creature's plan chooser (`docs/creature-chooser.md`): v1.0's desire pickers,
   candidate actions, scores and completeness test, on info.dat's action and desire
-  tables. Both runtime predicate tables were recovered by emulating their initialisers
+  tables. Its object predicates call the target's own virtuals, by the slot the
+  binary uses. Both runtime predicate tables were recovered by emulating their initialisers
   (`work/gen_chooser_dispatch.py`). Action record +168 is the action's desire.
 - The spell particle files (`docs/psys-files.md`): all 132 `ZSpellFiles/SF_*_txt.zzz`
   graphs load (our own inflate, then the property text). Earlier notes said these

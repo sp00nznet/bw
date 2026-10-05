@@ -102,6 +102,52 @@ virtual on the target object, with the creature as the argument.
 `CreatureDispatch.gen.h` records which entries are filled, and the host is asked only
 where the binary has a predicate.
 
+## The predicates are the object's virtuals
+
+Every target and belief predicate (action +52, desire +16 and +20) is a vcall thunk:
+a virtual on the object being considered, called with the creature. The generator
+decodes each thunk's slot and names it from the vendor vtable structs.
+
+| Desire | Its belief fit |
+|---|---|
+| anger | `CanBeAttackedByCreature` (slot 141) |
+| fear | `CanBeFrighteningToCreature` |
+| compassion | `CanBeHelpedByCreature` |
+| curiosity | `CanBeInspectedByCreature` |
+| to get high | `IsMushroom` (169) |
+
+The targeted fits are:
+- impress: `IsTownBelongingToAnotherPlayer`
+- compassion: `IsActivityObjectWhichCompassionAppliesTo`
+- anger: `IsActivityObjectWhichAngerAppliesTo`
+- the creature-directed desires: `IsCreature`
+
+The special scores are:
+- play: 5 when the object `IsPlayingFootball`, 3 when it `IsToy`
+- curiosity: 5 when it `IsDoingSomethingInteresting`
+
+`CreatureDispatch.gen.cpp` switches from slot to our virtual of that name (75
+predicates), and `BindObjectPredicates` plugs them into the chooser.
+
+The naming was checked against the binary. Field's slot 201 (`IsFieldWithFoodInIt`)
+reads +0xD0 and +0xDC, its growth and food. Slot 178 returns 1 only for villagers.
+
+`work/gen_predicate_table.py` reads the 75 slots for twelve classes:
+
+| Implementation | Count |
+|---|---|
+| Constant | 637 |
+| Code | 263 |
+
+`test_chooser` builds our objects and checks every constant. That found 17 wrong
+answers, now fixed. Most came from comments that cited v1.41 addresses:
+- Field said it could be stomped, examined and pooed on (all 0 in v1.0).
+- A villager could be befriended (only a creature can).
+- Five creature predicates were missing.
+- Rock and Bonfire faulted instead of answering 1 for play.
+
+The 263 code-bodied implementations (81 distinct functions) are not yet checked.
+
 Two record fields were misread before and are now known:
 - Action +168 is the desire the action serves (4 for the Eat actions, 2 for Fight and
   the attack spells). `AttributeCreatureDominantDesire` maps the current action back
@@ -113,6 +159,10 @@ Two record fields were misread before and are now known:
 - The two shortcuts in the town branch of `sub_4D1870`: action 101 for a big town,
   and the rotation through town needs at mental+134428.
 - The fight shortcut in `sub_4AC530`: a nearby enemy creature means anger, Fight.
-- The predicates themselves. Each one reads the world (is it edible, is it a creature,
-  how far is home), so the creature's host supplies them.
+- The 81 code-bodied predicate implementations, checked one by one. The action
+  validity predicates (+16) and desire gates (+0) are creature methods and are still
+  host-supplied.
+- Beliefs' opinions. A creature with an untrained tree rates everything neutral (0),
+  so the belief-driven path chooses nothing until it has learned. The shipped minds'
+  learning data (the rest of the mind file) is what gives it opinions.
 - Calling the chooser from `Creature::ProcessState`, and running the chosen action.

@@ -21,6 +21,7 @@ struct Rock : public MobileStatic {
     uint32_t AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool param4, const MapCoords& coords, int param6) override;
     uint32_t RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool* param4) override;
     char* GetDebugText() override;
+    bool32_t CanBePlayedWithByCreature(Creature* creature) override;
     uint32_t GetSampleForAttack() override;
     uint32_t Load(GameOSFile* file) override;
     uint32_t Save(GameOSFile* file) override;

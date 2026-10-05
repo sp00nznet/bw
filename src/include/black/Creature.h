@@ -58,9 +58,16 @@ struct Creature : public Living {
     char* GetDebugText() override;
     uint32_t GetSaveType() override;
     uint32_t GetCreatureBeliefType() override;
+    bool IsCreature(Creature* creature) override;
     bool IsCreature() override;
     bool CanBePickedUp() override;
     bool32_t CanBePickedUpByCreature(Creature*) override;
+    bool IsActivityObjectWhichCompassionAppliesTo(Creature* creature) override;
+    bool32_t CanBeFrighteningToCreature(Creature* creature) override;
+    bool32_t CanBePlayedWithByCreature(Creature* creature) override;
+    bool32_t CanBeBefriendedByCreature(Creature* creature) override;
+    bool32_t CanBeSleptNextToByCreature(Creature* creature) override;
+    bool32_t CanBeExaminedByCreature(Creature* creature) override;
     bool32_t CanBeThrownByPlayer() override;
     HOLD_TYPE GetHoldType() override;
     uint32_t GetPhysicsConstantsType() override;

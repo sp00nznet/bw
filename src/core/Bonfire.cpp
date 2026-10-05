@@ -91,3 +91,8 @@ IMMERSION_EFFECT_TYPE Bonfire::GetInHandImmersionTexture() {
     // Original at 0x004397d0
     return IMMERSION_EFFECT_TYPE_NONE;
 }
+
+bool32_t Bonfire::CanBePlayedWithByCreature(Creature*) {
+    // v1.0 vslot 144: return 1
+    return 1;
+}

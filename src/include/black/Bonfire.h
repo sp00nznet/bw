@@ -11,6 +11,7 @@
 struct Bonfire : public Rock {
     // === Overrides of GameThing virtuals ===
     char* GetDebugText() override;
+    bool32_t CanBePlayedWithByCreature(Creature* creature) override;
     uint32_t Load(GameOSFile* file) override;
     uint32_t Save(GameOSFile* file) override;
     uint32_t GetSaveType() override;
