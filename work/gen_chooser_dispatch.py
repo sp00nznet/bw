@@ -104,6 +104,10 @@ act = [(1 if r[4] else 0) | (2 if r[13] else 0) | (4 if r[17] else 0) for r in a
 des = [(1 if r[0] else 0) | (2 if r[4] else 0) | (4 if r[5] else 0) | (8 if r[9] else 0) | (16 if r[8] else 0) for r in desires]
 
 
+def hexrows(v):
+    return "\n".join("    " + ", ".join(f"0x{x:X}" for x in v[i:i + 10]) + "," for i in range(0, len(v), 10))
+
+
 def rows(v):
     return "\n".join("    " + ", ".join(str(x) for x in v[i:i + 20]) + "," for i in range(0, len(v), 20))
 
@@ -146,6 +150,12 @@ inline constexpr int16_t kDesireTargetedFitSlot[40] = {{
 }};
 inline constexpr int16_t kDesireBeliefFitSlot[40] = {{
 {rows(belief_slot)}
+}};
+
+// The validity predicate (action +16) each action calls, by its v1.0 address,
+// or 0. CreatureActionValidity.cpp translates them.
+inline constexpr uint32_t kActionValidityFn[328] = {{
+{hexrows([r[4] for r in actions])}
 }};
 
 }}  // namespace creature

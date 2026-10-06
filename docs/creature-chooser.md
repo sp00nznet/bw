@@ -204,10 +204,7 @@ The early creature that eats villagers is in the data from the start.
      (the second tree, `mental+0x2518`, which `sub_4CA6A0` reads).
 2. **Wiring.** The object predicates are bound to the objects' own virtuals and the
    known lists to the mind's.
-   - Of the action validity predicates, only `sub_4B6A40` (a fish farm within
-     600 m, `sub_503770`) is translated so far.
-   - Every other validity predicate answers no, so the creature never does
-     anything the binary might have ruled out.
+   - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** The creature walks to its current plan's belief. A fishing
    action is planned on the creature itself, so it walks to the nearest fish farm
    instead.
@@ -230,6 +227,38 @@ goes through `CanBePickedUpByCreature` (`sub_4C4EC0`) to `sub_4C4E00`. That last
 compares the object with the creature's hand span, which `sub_46E600(14)` measures
 off its animated skeleton. Until that is translated, the villager is not edible, so
 he fishes.
+
+## When an action is possible (action +16)
+
+`core/CreatureActionValidity.cpp` translates all 47 validity predicates, covering the
+112 actions that have one. The generator records which predicate each action calls by
+address (`kActionValidityFn`), the translation switches on that address, and
+`test_chooser` checks that every one is covered. They read the creature, its mind,
+its player and the world through `CreatureFacts`, each fact named for where the
+binary keeps it:
+
+| Predicate | Actions | Condition |
+|---|---|---|
+| `sub_4B5FE0` | 47 spells | Charge at least half (`mental+97592` / `sub_4D82D0`), the player allows it, and the cost is affordable (`sub_4D7910`) |
+| `sub_4B6190` | the power-up casts | The same, and stage 8 (`creature+0x1268`) |
+| `sub_4B61C0` | teleports | The same, and over 150 m from home |
+| `sub_4B60C0` | CastImpressiveSpell | Any of magic types 14, 10, 16, 11, 24 known, castable and over half charged |
+| `sub_4B62D0` | Fight | Life above 0.1 |
+| `sub_4B6640` / `sub_4B6650` | GoHome / PooAtHome | Over 20 m from home (`creature+0x1200`) / within it |
+| `sub_4B63B0` | SleepAtHome, PrayAtCitadel | A player with a temple, home within 1 km |
+| `sub_4B6490` | sleeping on the spot | Unless home with a temple is within 140 m |
+| `sub_4B6400`, `sub_4B6430`, `sub_4B6460` | dances, stories | 200 / 300 / 450 turns since the last social act, and not the same kind |
+| `sub_4B66E0` and others | ...WithFriend | That desire above 0.1 (hunger, water, poo, tiredness), or SADNESS below 0.1 |
+| `sub_4B6690`, `sub_4B6670` | Scratch, SitDown | Not while its turn count reads under 2 s (`sub_464BB0`) |
+| `sub_4B6220` | LookOutToSea, SitDownOnBeach | Stage 3 |
+| `sub_4B66B0` / `sub_4B66D0` | LookAtSun / LookAtMoon | Day / night (`sub_528F30`) |
+
+Others look at the player's hand, the town nearest a friend, the one-off spell the
+creature holds, and its home's progress. A fact this world does not supply yet keeps
+the answer of an idle creature with no player. `CreatureBrain` fills what it has:
+- life, home, stage and home fields;
+- desire values and per-action turn counts;
+- known spells and fish farms.
 
 ## What the shipped minds know
 
@@ -270,8 +299,10 @@ version and then a species below 17, and in those files the second word is a flo
 - The 81 code-bodied predicate implementations, checked one by one. The action
   validity predicates (+16) and desire gates (+0) are creature methods and are still
   host-supplied.
-- The rest of the action validity predicates (112 actions, about 20 distinct
-  functions; the 47 spell actions share `sub_4B5FE0`, a charge test).
+- The world facts the validity predicates still default:
+  - the player's hand and temple;
+  - spell charge and cost;
+  - day and night, beaches, friends.
 - `CanCreatureEatMe`'s chain down to the hand span, so a creature can eat what it
   likes.
 - Desire values from the body (hunger rising with time and so on). The brain takes

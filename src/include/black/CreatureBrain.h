@@ -8,6 +8,10 @@
 // (sub_4D0630) runs over them with the object predicates bound to the objects'
 // own virtuals; and the creature walks to whatever its current plan is about.
 //
+// Action validity is CreatureActionValidity's translation of all 47 predicates;
+// the brain fills the facts this world has (life, home, stage, desires, action
+// turns, known spells, fish farms) and the rest keep their idle defaults.
+//
 // What is ours rather than the binary's: what happens on arrival. The 52
 // actions that dispatch through the action table run real behaviour code that
 // is not translated; here an action completes when the creature reaches its
@@ -15,6 +19,7 @@
 // the villager it was about, and the desire it served drops. Desire values are the host's to set (the body that feeds their
 // sources is not modelled).
 
+#include "CreatureActionValidity.h"
 #include "CreatureLearner.h"
 #include "CreaturePlanChooser.h"
 
@@ -38,6 +43,7 @@ public:
     bool Tick(const std::vector<Object*>& objects);
 
     ChooserMind mind;     // desire values and activity: set these
+    CreatureFacts facts;  // what the validity predicates read; the brain fills what it can each turn
     Agenda      agenda;
 
     uint32_t Action() const { return agenda.plans.current_action; }
@@ -53,6 +59,7 @@ private:
     Object*  NearestFishFarm() const;
 
     Creature*     creature_ = nullptr;
+    uint32_t      turn_ = 0;
     ChooserTables tables_;
     ChooserHost   host_;
     std::vector<BeliefView> beliefs_;

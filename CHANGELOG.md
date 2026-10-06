@@ -18,6 +18,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Creature action validity (`docs/creature-chooser.md`): all 47 of v1.0's
+  "can I do this now" predicates for the 112 actions that have one, translated and
+  wired into `CreatureBrain` (life, home, stage, desires, spell charge, recent actions).
 - A creature in the world (`docs/creature-chooser.md`): `CreatureBrain` runs the agenda
   over the objects a creature can see, with the objects' own predicates, the mind's
   opinion trees and known lists, and walks to its plan. On Land 1, Khazar's shipped

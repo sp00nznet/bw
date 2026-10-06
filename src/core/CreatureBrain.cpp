@@ -3,6 +3,7 @@
 
 #include <black/Creature.h>
 #include <black/CreatureBeliefAttributes.h>
+#include <black/CreatureActionValidity.h>
 #include <black/CreatureOpinion.h>
 #include <black/FishFarm.h>
 #include <black/Object.h>
@@ -53,12 +54,9 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
     // Action validity (action +16): creature methods, translated one by one.
     // An untranslated one answers no, so the creature never does what the
     // binary might have ruled out.
-    host_.action_valid = [this](uint32_t action, const ActionPlan&) {
-        switch (action) {
-        case 29: case 155: case 259: case 300:  // sub_4B6A40: a fish farm within 600 m (sub_503770)
-            return NearestFishFarm() != nullptr;
-        default: return false;
-        }
+    for (uint32_t s : m.known_spells) if (s < 42) facts.knows_spell[s] = true;
+    host_.action_valid = [this](uint32_t action, const ActionPlan& plan) {
+        return ActionValid(action, tables_.actions[action].spell, plan, facts);
     };
     host_.opinion = [this](uint32_t id, uint32_t desire) {
         for (const BeliefView& b : beliefs_) if (b.id == id) return Opinion(desire, b);
@@ -147,6 +145,19 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         beliefs_.push_back(b);
     }
 
+    // The facts the validity predicates read, as far as the world here has them.
+    facts.life = creature_->GetLife();
+    facts.has_player = creature_->owner != nullptr;
+    facts.home_distance = MetresOf(1) * creature_->GetDistanceFromObject(creature_->field_0x1200);
+    facts.stage = static_cast<uint32_t>(creature_->field_0x1268);
+    facts.home_built = creature_->field_0x11fc != 0;
+    facts.home_progress = creature_->field_0x1210;
+    facts.fish_farm_near = NearestFishFarm() != nullptr;
+    facts.turn = turn_;
+    std::copy(std::begin(mind.desire), std::end(mind.desire), facts.desire);
+    std::copy(std::begin(mind.action_count), std::end(mind.action_count), facts.action_count);
+    ++turn_;
+
     PlanChooser chooser(tables_, mind, host_, beliefs_);
     agenda.Tick(chooser, mind, host_);
 
@@ -154,6 +165,10 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     Object* target = Target();
     const uint32_t action = Action();
     if (!target || !action) return false;
+    // mental+118432: the turns spent on each action, which the familiarity
+    // bonus (sub_4D0D70) and the recent-action tests (sub_4B6690) read. That it
+    // counts turns of the action under way is inferred from those readers.
+    ++mind.action_count[action];
     if (target != creature_) {
         if (creature_->goal != target->coords) creature_->SetGoalPos(target->coords);
         if (creature_->speed == 0) creature_->SetSpeed(kWalkSpeed);

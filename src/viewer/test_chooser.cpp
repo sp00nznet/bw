@@ -14,6 +14,7 @@
 #include <black/Creature.h>
 #include <black/CreatureDispatch.gen.h>
 #include <black/CreatureLearner.h>
+#include <black/CreatureActionValidity.h>
 #include <black/Feature.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
@@ -263,6 +264,43 @@ int main() {
               msg);
         CHECK(!agenda.Tick(c, km, ah) && agenda.count == 2,
               "with nothing scoring twice as well, the next turn refills the queue (both desires)");
+    }
+
+    {
+        // Action validity (action +16): all 47 predicates translated, and a few
+        // of their thresholds as the binary has them.
+        int with = 0, done = 0;
+        for (uint32_t a = 0; a < 328; ++a)
+            if (kActionValidityFn[a]) { ++with; if (ValidityTranslated(a)) ++done; }
+        std::snprintf(msg, sizeof msg, "validity: %d of %d actions with a predicate have its translation", done, with);
+        CHECK(with == 112 && done == with, msg);
+
+        CreatureFacts f;
+        ActionPlan none;
+        f.life = 0.11f;
+        const bool fight = ActionValid(21, 0, none, f);
+        f.life = 0.1f;
+        const bool fight_weak = ActionValid(21, 0, none, f);
+        f.home_distance = 21.0f;
+        const bool go_home = ActionValid(162, 0, none, f), poo_home = ActionValid(175, 0, none, f);
+        CHECK(fight && !fight_weak && go_home && !poo_home,
+              "Fight needs life above 0.1; GoHome needs to be over 20 m from home, PooAtHome within it");
+        f.spell_charge[14] = 0.49f;
+        f.can_cast[14] = true;
+        const bool low = ActionValid(48, 14, none, f);  // CastMagicFood
+        f.spell_charge[14] = 0.5f;
+        const bool half = ActionValid(48, 14, none, f);
+        f.stage = 7;
+        const bool pu7 = ActionValid(98, 14, none, f);  // CastMagicFoodPU1
+        f.stage = 8;
+        const bool pu8 = ActionValid(98, 14, none, f);
+        CHECK(!low && half && !pu7 && pu8,
+              "a spell needs half its charge; the power-up casts also need stage 8 (creature+0x1268, sub_4B6190)");
+        f.action_count[75] = 19;
+        const bool scratch19 = ActionValid(75, 0, none, f);
+        f.action_count[75] = 20;
+        const bool scratch20 = ActionValid(75, 0, none, f);
+        CHECK(!scratch19 && scratch20, "Scratch is refused while its turn count reads under 2 s (19 turns) and allowed from 20 (whole seconds, sub_464BB0)");
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
