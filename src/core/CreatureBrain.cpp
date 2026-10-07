@@ -76,7 +76,10 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
     // PointAtHand (169) has no validity test in v1.0, where a creature always
     // has a player's hand to point at. Without a player its handler fails
     // every turn (sub_4977F0), so it is ruled out here instead.
-    host_.action_possible = [this](uint32_t action) { return action != 169 || facts.has_player; };
+    // PointAtCamera (168) likewise always has the game's camera in v1.0.
+    host_.action_possible = [this](uint32_t action) {
+        return (action != 169 || facts.has_player) && (action != 168 || camera.has_value());
+    };
     host_.opinion = [this](uint32_t id, uint32_t desire) {
         for (const BeliefView& b : beliefs_) if (b.id == id) return Opinion(desire, b);
         return 0.0f;

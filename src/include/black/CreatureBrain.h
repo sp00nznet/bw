@@ -31,6 +31,7 @@
 #include "CreatureSubActions.h"
 
 #include <cstdint>
+#include <optional>
 #include <random>
 #include <unordered_map>
 #include <vector>
@@ -66,6 +67,10 @@ public:
     uint32_t last_desire = 40; // and the desire it served
     Object*  last_target = nullptr;
     uint32_t stopped = 0;      // actions abandoned (sub_45FA70)
+    // Where the camera is, for the host to set: sub_467190's answer (its
+    // player's nearest camera, or the game's when it has no player); unset
+    // when there is none.
+    std::optional<MapCoords> camera;
 
     // The sub-actions of the action under way (CreatureSubActions.h).
     SubActionAgenda subactions;

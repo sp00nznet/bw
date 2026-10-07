@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Five handlers are translated so far. For any other action,
+   below). Six handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -430,6 +430,7 @@ These are the actions Khazar does before he gets hungry:
 | Action | Handler | Sub-actions |
 |---|---|---|
 | LookAtSun (193) | `sub_499520` | TurnToFacePos toward (−50000, −50000) m; half the time, then PointAtPoint at it for 3 s |
+| PointAtCamera (168) | `sub_4976C0` | TurnToFaceCamera, then PointAtPoint at the camera for 1 s. The camera is `sub_467190`'s: its player's nearest, or the game's when it has no player. Fails with no camera. |
 | PointAtHand (169) | `sub_4977F0` | TurnToFaceCamera, then PointAtPoint at the player's nearest hand for 1 s. Fails with no hand. |
 | CommunicateState (23) | `sub_485610` | TurnToFaceCamera, then CommunicateToPlayer |
 | HangAroundAtHome (165) | `sub_496DC0` | MoveToPos home (within 5 m), Wait 2 to 5 s, then IndividualAction 57 when its player has no temple |
@@ -461,10 +462,11 @@ if it still scores best.
   game's.
 - **PointAtHand** is ruled out when there is no player (`ChooserHost::action_possible`).
   v1.0 has no validity test for it, since its creature always has a player. Here
-  its handler would otherwise fail every turn.
+  its handler would otherwise fail every turn. PointAtCamera is likewise ruled
+  out when the host gives the brain no camera (`CreatureBrain::camera`).
 
 In `test_level` the starved Khazar looks at the sun four times and ends up facing
-its point. He then fishes over 181 turns. His energy rises by exactly one fish
+its point, and points at the camera for 10 turns. He then fishes over 181 turns. His energy rises by exactly one fish
 when the eating clip starts, and his hunger ends at clamp(hunger − that fish, 0, 1)
 × 0.01.
 

@@ -482,6 +482,10 @@ int main() {
             // 0.4 and hunger rises on its own as HUNGER_FROM_ENERGY passes its
             // threshold.
             brain.body.energy = 0.4f;
+            // The game's camera (sub_467190 with no player), 40 m east of him.
+            brain.camera = MapCoords(khazar_body->coords.x + static_cast<int32_t>(40 * kMapUnitsPerMetre), khazar_body->coords.z, 0.0f);
+            int pointed = 0;
+            uint32_t camera_done = 0;
             float energy_before = 0.0f, energy_after = 0.0f, hunger_before = 0.0f;
             int turn = 0, fish_start = -1, fish_turns = 0;
             float sun_heading = 0.0f, sun_want = 0.0f;
@@ -497,7 +501,10 @@ int main() {
                 hunger_before = brain.desires.value[4];
                 if (brain.Action() != 155) fish_start = -1;
                 else if (fish_start < 0) fish_start = turn;
+                const uint32_t before_tick = brain.completed;
                 brain.Tick(seen);
+                if (brain.Action() == 168 && brain.subactions.count && brain.hand.anim == 1000) ++pointed;
+                if (brain.completed != before_tick && brain.last_action == 168) ++camera_done;
                 if (brain.body.meals != meals) energy_before = energy, energy_after = brain.body.energy;
                 if (brain.completed != done && fish_start >= 0) fish_turns = turn - fish_start + 1;
                 if (brain.completed != done && brain.last_action == 193 && !looked) {
@@ -535,6 +542,9 @@ int main() {
             // LookAtSun (sub_499520) turns him toward (-50000, -50000) m (sub_4E0980).
             std::snprintf(msg, sizeof msg, "LookAtSun turns him to face its point: heading %.3f, wanted %.3f", sun_heading, sun_want);
             CHECK(looked && std::fabs(std::remainder(sun_heading - sun_want, 6.2831855f)) <= 0.3927f, msg);
+            // PointAtCamera (sub_4976C0) points at the camera for max(1 s, 10 turns) (sub_4E5520).
+            std::snprintf(msg, sizeof msg, "PointAtCamera points at the camera: %u done, %d turns pointing", camera_done, pointed);
+            CHECK(camera_done > 0 && pointed >= 10 * static_cast<int>(camera_done), msg);
         }
     }
 

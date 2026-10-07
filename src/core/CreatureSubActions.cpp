@@ -70,7 +70,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 193 || action == 169 || action == 23 || action == 165;
+    return action == 155 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -94,6 +94,21 @@ bool CreatureBrain::StartAction(uint32_t action) {
         // ponytail: core has no player hands, so this is the no-hand case.
         Stop();  // "FailedToConstr..."
         return false;
+    case 168:  // PointAtCamera (sub_4976C0): face the camera, then point at it for 1 s
+        if (!camera) {
+            Stop();  // "FailedToConstr..."
+            return false;
+        }
+        a.Add(SubActionEntry{kSubTurnToFaceCamera});
+        {
+            // ponytail: the point is the camera's when the action starts; the
+            // pointing step's periodic callback (sub_4AEFF0) is not translated.
+            SubActionEntry e{kSubPointAtPoint};
+            e.point = *camera;
+            e.value = 1.0f;
+            a.AddMain(e);
+        }
+        return true;
     case 23:  // CommunicateState (sub_485610)
         a.Add(SubActionEntry{kSubTurnToFaceCamera});
         a.AddMain(SubActionEntry{kSubCommunicateToPlayer});
