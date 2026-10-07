@@ -635,6 +635,49 @@ int main() {
             std::snprintf(msg, sizeof msg, "he sits down by the water on turn %d, %.1f m from it (height %.0f), and drinks on turn %d: dehydration %.3f",
                           sat, sat_water, body->GetHeight(), drank, thirst);
             CHECK(sat > 0 && sat_water <= body->GetHeight() + 10.0f && drank > 0 && thirst < 1e-3f, msg);
+
+            // Two handlers his desires do not pick here, run directly: the plan
+            // is set, its handler queues the sub-actions (sub_4B6CA0), and the
+            // runner steps them once a turn (sub_4DE180).
+            auto run = [&](uint32_t action, auto&& each_turn) {
+                brain.agenda.plans.current_action = action;
+                brain.agenda.plans.current_desire = 38;
+                const uint32_t before = brain.completed, stops = brain.stopped;
+                if (!brain.StartAction(action)) return -1;
+                for (int t = 0; t < 3000; ++t) {
+                    level::Process(w);
+                    brain.RunSubActions();
+                    each_turn();
+                    if (brain.completed != before) return t + 1;
+                    if (brain.stopped != stops) return -1;
+                }
+                return -1;
+            };
+            auto metres = [](const MapCoords& a, const MapCoords& b) {
+                const float dx = MetresOf(a.x) - MetresOf(b.x), dz = MetresOf(a.z) - MetresOf(b.z);
+                return std::sqrt(dx * dx + dz * dz);
+            };
+            // GoToHillAndWalkAlongRidge (sub_485B50): to the nearest hill's top,
+            // then eight points 15 m round it.
+            MapCoords top;
+            const bool hill = land::Features().Find(land::kHill, body->coords, &top, false, true);
+            float nearest_top = 1e9f;
+            const int ridge = run(27, [&] { nearest_top = std::min(nearest_top, metres(body->coords, top)); });
+            const MapCoords last = MapCoordsFromMetres(MetresOf(top.x) + 15.0f * std::cos(7 * 0.785398163f),
+                                                       MetresOf(top.z) + 15.0f * std::sin(7 * 0.785398163f));
+            std::snprintf(msg, sizeof msg, "GoToHillAndWalkAlongRidge climbs the nearest hill (cell %u, %u) to %.1f m of its top and walks round it in %d turns, ending %.1f m from the last point",
+                          top.x.split.map, top.z.split.map, nearest_top, ridge, metres(body->coords, last));
+            CHECK(hill && ridge > 0 && nearest_top <= 3.0f * body->GetHeight() + 1.0f &&
+                      metres(body->coords, last) <= 2.0f * body->GetHeight() + 1.0f, msg);
+            // TakeFishFromSeaToHome (sub_4A23B0): fish at the nearest farm, carry
+            // it home, and put it down there (Discard, clip 97).
+            body->field_0x1200 = MapCoordsFromMetres(MetresOf(body->coords.x) + 30.0f, MetresOf(body->coords.z));
+            bool carried = false;
+            const int home = run(259, [&] { carried |= brain.hand.holding && brain.hand.held.value == 20.0f; });
+            std::snprintf(msg, sizeof msg, "TakeFishFromSeaToHome fishes, carries the fish home and puts it down in %d turns, %.1f m from home",
+                          home, metres(body->coords, body->field_0x1200));
+            CHECK(home > 0 && carried && !brain.hand.holding && brain.discarded.value == 20.0f &&
+                      metres(body->coords, body->field_0x1200) <= body->GetHeight() + 1.0f, msg);
         }
     }
 

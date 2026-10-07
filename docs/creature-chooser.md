@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Eleven handlers are translated so far. For any other action,
+   below). Thirteen handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -558,6 +558,8 @@ The handlers that use it:
 | SitDownOnBeach (218) | `sub_494450` | MoveToPos near the nearest water; TurnToFacePos to it; StaticAction 38 (resting) for 10–25 s |
 | DrinkFromTheSea (55) | `sub_4895E0` | MoveToPos to the nearest coast, unless already in water; TurnToFacePos to the water beyond; IndividualAction 71; then Drink (51, `sub_4E4110`: dehydration 0, desire 14 held back 20 s) |
 | WaveAtPlayer (90) | `sub_48DDB0` | TurnToFaceCamera; IndividualAction 72 |
+| GoToHillAndWalkAlongRidge (27) | `sub_485B50` | MoveToPos to the nearest hill's top (else the nearest land), within 3 × height. This is the main sub-action, though it is queued first. Then eight MoveToPos 15 m round the top, 45° apart, each within 2 × height. |
+| TakeFishFromSeaToHome (259) | `sub_4A23B0` | Unless it already holds something edible: MoveToPos to the nearest fish farm, CreateFishFromSea, PickupCreatedObject. Then MoveToPos home and Discard (1, `sub_4DF500` / `sub_4DF570`) with clip 97. |
 
 A creature's height (slot 267, `sub_461EE0`) is 15 × size_1, which these use as the
 walk radius.
@@ -581,6 +583,16 @@ On Land 1:
 - 166 blocks have coast, 3854 water, 20 hills and 376 land.
 - In `test_level` the fed Khazar sits by the water on turn 548, 14.7 m from it, and
   drinks on turn 1144.
+- His desires never choose 27 or 259 there, so the test sets the plan and runs each
+  handler directly (`StartAction`, then `RunSubActions` each turn):
+  - **GoToHillAndWalkAlongRidge:** he climbs to 15.2 m of the nearest hilltop and
+    walks round it in 212 turns.
+  - **TakeFishFromSeaToHome:** he fishes, carries the fish 30 m home and puts it down
+    in 280 turns.
+- **Ours:**
+  - A fish put down is only remembered (`CreatureBrain::discarded`, creature +4552),
+    since the fish is not a world object here.
+  - When there is neither hill nor land, 27 stops. The original walks to (0, 0).
 
 ## What the shipped minds know
 
@@ -625,8 +637,7 @@ version and then a species below 17, and in those files the second word is a flo
   - the player's hand and temple;
   - spell charge and cost;
   - day and night, beaches, friends.
-- GoToHillAndWalkAlongRidge (27) and TakeFishFromSeaToHome (259), which also
-  go to places. EatFromStoragePit (65), which needs the storage pit's pots.
+- EatFromStoragePit (65), which needs the storage pit's pots.
 - The hand span itself: `sub_4CE650`'s measure off the creature's morph meshes in
   the pickup clip. Until core loads those, a creature without a host-filled 3D
   object can pick up nothing.

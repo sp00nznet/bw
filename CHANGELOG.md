@@ -21,6 +21,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Two more creature actions run as v1.0's sub-actions: GoToHillAndWalkAlongRidge and
+  TakeFishFromSeaToHome, with the Discard sub-action. `CreatureBrain::StartAction`
+  and `RunSubActions` are public, so a host can run an action it chose itself.
 - The creature's feature map (`black/LandFeatures.h`, v1.0's `CreatureGlobalExplorationMap`):
   - per 8 × 8-cell block, its highest cell and its coast, water, hill and land bits;
   - the spiral search for the nearest block of a kind.

@@ -71,6 +71,9 @@ public:
     // player's nearest camera, or the game's when it has no player); unset
     // when there is none.
     std::optional<MapCoords> camera;
+    // What it last put down (creature +4552). ponytail: a put-down fish is
+    // not a world object here, so it is only remembered.
+    Food discarded;
 
     // The sub-actions of the action under way (CreatureSubActions.h).
     SubActionAgenda subactions;
@@ -85,6 +88,11 @@ public:
         bool Busy() const { return anim_left != 0; }  // sub_46CB50
     } hand;
 
+    // The handler of the current plan's action, and the runner of what it
+    // queued; Tick calls them, and so may a host that sets the plan itself.
+    bool StartAction(uint32_t action);  // sub_4B6CA0: the action's handler
+    void RunSubActions();               // sub_4DE180, once a turn
+
 private:
     uint32_t IdOf(Object* o);
     float    Opinion(uint32_t desire, const BeliefView& b) const;
@@ -92,8 +100,6 @@ private:
     void     ActionDone(uint32_t action, uint32_t served_desire);
     Object*  NearestFishFarm() const;
     // CreatureSubActions.cpp
-    bool StartAction(uint32_t action);  // sub_4B6CA0: the action's handler
-    void RunSubActions();               // sub_4DE180
     int  Step(uint32_t id, uint32_t step);
     bool Advance();                     // sub_4DE940
     int  WalkTo(const MapCoords& p, float radius);

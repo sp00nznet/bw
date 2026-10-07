@@ -54,6 +54,7 @@ struct Record { uint32_t id, kind; bool step[4]; };
 // From the table at 0xB0EAF8 (work/decomp/subaction_table.json).
 constexpr Record kRecords[] = {
     {kSubPickup, 2, {true, true, false, false}},               // sub_4DECD0 -> sub_4DED00, sub_4DF0B0 -> sub_4DF0E0
+    {kSubDiscard, 0, {true, true, true, false}},               // sub_4DF500, sub_4DF570, sub_4E77D0
     {kSubEat, 0, {true, true, true, false}},                   // sub_4DF5A0, sub_4DF7A0, sub_4DFB90; abort sub_4E7810
     {kSubHeldObjectAction, 0, {true, true, false, false}},     // sub_4DFC00, sub_4E77D0
     {kSubDrink, 1, {false, true, false, false}},               // -, sub_4E4110
@@ -80,7 +81,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
+    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -151,6 +152,55 @@ bool CreatureBrain::StartAction(uint32_t action) {
         SubActionEntry e{kSubEat};
         e.object = t;
         a.AddMain(e);
+        return true;
+    }
+    case 27: {  // GoToHillAndWalkAlongRidge (sub_485B50): up the nearest hill, then round its top
+        land::FeatureMap& fm = land::Features();
+        MapCoords top;
+        if (!fm.Find(land::kHill, creature_->coords, &top, false, true) &&
+            !fm.Find(land::kLand, creature_->coords, &top, false, true)) {
+            // ponytail: the original then calls vslot 6 of mental +109184 and
+            // walks to (0, 0) anyway; here it stops.
+            Stop();
+            return false;
+        }
+        // ponytail: the place is not remembered (mental +7288).
+        SubActionEntry m{kSubMoveToPos};
+        m.point = top;
+        m.value = creature_->GetHeight() * 3.0f;
+        a.AddMain(m);
+        // Eight points 15 m round the top, 45 degrees apart (the 2048-step
+        // tables at 0xB54278 / 0xB53A78: cos, sin), each within 2 x height.
+        for (int i = 0; i < 8; ++i) {
+            const float t = i * 0.785398163f;
+            SubActionEntry r{kSubMoveToPos};
+            r.point = MapCoordsFromMetres(MetresOf(top.x) + 15.0f * std::cos(t), MetresOf(top.z) + 15.0f * std::sin(t));
+            r.value = creature_->GetHeight() * 2.0f;
+            a.Add(r);
+        }
+        return true;
+    }
+    case 259: {  // TakeFishFromSeaToHome (sub_4A23B0): fish, carry it home, put it down there
+        if (!(hand.holding && hand.held.object && hand.held.object->CanBeEatenByCreature(creature_))) {
+            Object* farm = NearestFishFarm();  // sub_503770, within 600 m
+            if (!farm) {
+                Stop();
+                return false;
+            }
+            SubActionEntry m{kSubMoveToPos};  // as FishAndEat: the farm itself, not its coast
+            m.point = farm->coords;
+            m.value = std::max(15.0f, creature_->GetHeight());
+            a.Add(m);
+            a.Add(SubActionEntry{kSubCreateFishFromSea});
+            a.Add(SubActionEntry{kSubPickupCreatedObject});
+        }
+        SubActionEntry h{kSubMoveToPos};
+        h.point = creature_->field_0x1200;  // creature+4608: home
+        h.value = creature_->GetHeight();
+        a.Add(h);
+        SubActionEntry d{kSubDiscard};
+        d.integer = kClipDrop;
+        a.AddMain(d);
         return true;
     }
     case 90: {  // WaveAtPlayer (sub_48DDB0): face the camera and wave (clip 72)
@@ -393,6 +443,15 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
         creature_->SetYAngle(heading);
         return kStepDone;
     }
+    case kSubDiscard * 4 + 0:  // sub_4DF500: put down what is held, with its clip
+        if (!hand.holding) return kStepFailed;
+        if (!PlayAnim(static_cast<uint32_t>(e.integer))) return hand.Busy() ? kStepWait : kStepFailed;
+        discarded = hand.held;  // creature +4552
+        return kStepDone;
+    case kSubDiscard * 4 + 1:  // sub_4DF570: until the hand lets go
+        return hand.holding ? kStepWait : kStepDone;
+    case kSubDiscard * 4 + 2:  // sub_4E77D0
+        return hand.Busy() ? kStepWait : kStepDone;
     case kSubDrink * 4 + 1:  // sub_4E4110: thirst slaked, the desire held back 20 s
         body.dehydration = 0.0f;  // physical +0x34
         desires.Countdown(CREATURE_DESIRE_FOR_WATER, 20.0f);
