@@ -30,6 +30,8 @@
 #include "CreatureMindFile.h"
 
 #include <cstdint>
+#include <functional>
+#include <vector>
 
 namespace creature {
 
@@ -155,6 +157,56 @@ struct PlanState {
     // The plan slot belonging to a desire, or nullptr if out of range.
     ActionPlan* For(uint32_t desire);
     const ActionPlan* For(uint32_t desire) const;
+};
+
+// ---------------------------------------------------------------------------
+// The per-turn desire system -- what actually moves a creature's desires.
+//
+// Translated from v1.0: sub_4BE280 (init), sub_4C0220 / sub_4C0100 (each
+// desire's sources), sub_4BE5B0 (the turn, called from Creature vslot 392),
+// sub_4C05B0 (refreshing the sources), sub_4C04E0 (what they add).
+//
+// Each source has a value and a threshold. Every turn a source with a value
+// function (sub_4C0840 for HUNGER_FROM_ENERGY: 1 - energy, ...) is recomputed,
+// and every source is then scaled by its type's factor (1, or 0.998 for
+// SADNESS, which fades). A desire gains the sigmoid of each source's distance
+// past its threshold, over 10 x its cycle time; with nothing pushing (or while
+// its countdown runs) it decays by its own factor instead. It stays between
+// the species' minimum and its own maximum.
+//
+// The offsets are CreatureDesires' (mental+8). They correct DesireState
+// above, which came from sub_4BEB30 -- the player-feedback path, called only
+// through sub_4C2F60 -- and labelled +0x1E8 as the value: +0x1E8 is the cycle
+// time, the value is at +0x148.
+// ---------------------------------------------------------------------------
+
+struct DesireSourceSlot {        // CreatureDesireSource (0x10)
+    float    value = 0.0f;       // +0x00
+    float    threshold = 0.0f;   // +0x04
+    float    accumulated = 0.0f; // +0x08: what it has added, all told
+    uint32_t type = 61;          // +0x0C
+};
+
+struct DesireSystem {
+    bool     active[kNumCreatureDesires] = {};     // +0x008
+    uint32_t countdown[kNumCreatureDesires] = {};  // +0x0A8: turns it may not grow
+    float    value[kNumCreatureDesires] = {};      // +0x148
+    float    cycle[kNumCreatureDesires] = {};      // +0x1E8: seconds
+    float    decay[kNumCreatureDesires] = {};      // +0x288: per-turn factor
+    float    max_value[kNumCreatureDesires] = {};  // +0x468
+    std::vector<DesireSourceSlot> sources[kNumCreatureDesires];  // +0x328
+    float    total = 0.0f;                         // +0x654
+    float    min_value = 0.0f;                     // creature info +628
+    float    factor[61] = {};                      // DESIRE_SOURCE_TABLE +8 per type
+
+    // From info.dat for `species`, then the mind's own values where it has
+    // them (active, value, maximum, cycle, sources). The decay factor is
+    // drawn between DESIRE_TABLE +80 and +84 as the original does.
+    bool Init(uint32_t species, const CreatureMind* mind = nullptr);
+
+    // One turn. `compute(type, &value)` is a source's value function; false
+    // when the type has none (its value then only fades by its factor).
+    void Tick(const std::function<bool(uint32_t type, float* value)>& compute, uint32_t turn_ms = 100);
 };
 
 }  // namespace creature

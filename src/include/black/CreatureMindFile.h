@@ -37,7 +37,7 @@ enum : uint32_t { kNumCreatureDesires = 40 };
 // CreatureDesireSource (0x10): two floats, then the source type.
 struct MindDesireSource {
     float                  value = 0.0f;     // +0x00
-    float                  strength = 0.0f;  // +0x04
+    float                  strength = 0.0f;  // +0x04: the threshold sub_4C04E0's sigmoid measures past
     CREATURE_DESIRE_SOURCE type = static_cast<CREATURE_DESIRE_SOURCE>(0);  // +0x0C
 };
 
@@ -45,9 +45,10 @@ struct MindDesire {
     // The first field per desire is 0 or 1 across every shipped mind and gates
     // whether the creature has the desire at all.
     bool  active = false;
-    // Three floats whose roles are not established. Their ranges across the
-    // shipped files are roughly [0, 0.3], [0.3, 2.0] and [1, 24]; naming them
-    // beyond that would be invention, so they are left as read.
+    // The desire's value, its maximum and its cycle time in seconds -- the
+    // CreatureDesires fields at +0x148, +0x468 and +0x1E8. Identified by
+    // matching info.dat: hunger's maximum is 2 and its cycle 20 there, 2.0 and
+    // 23.6 in Khazar's mind; curiosity's cycle is 5 there, 5.3 in his.
     float params[3] = {0.0f, 0.0f, 0.0f};
     std::vector<MindDesireSource> sources;
 };
@@ -85,9 +86,17 @@ struct CreatureMind {
     std::vector<uint32_t> known_abilities;
     std::vector<uint32_t> known_spells;
 
+    // Then the creature's development stage (creature+0x1268, 0..13) and its
+    // saved body (sub_4CA040, CreaturePhysical): see CreatureBody.
+    uint32_t stage = 0;
+    bool     has_body = false;
+    struct Body {
+        uint32_t turn = 0, age = 0;
+        float reserve = 0, reserve_max = 0, energy = 0, poo = 0, exhaustion = 0, dehydration = 0;
+    } body;
+
     // Byte offset the parse finished at, and the file size it was read from.
-    // What follows the known lists (sub_4D5D80, sub_4CA040, sub_5E6A60, ...) is
-    // not yet read.
+    // What follows the body (sub_4D0310, sub_5E6A60, ...) is not yet read.
     size_t parsed_bytes = 0;
     size_t total_bytes = 0;
 };

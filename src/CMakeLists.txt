@@ -239,6 +239,7 @@ add_library(bw_core STATIC
     core/CreatureAgenda.cpp
     core/CreatureBrain.cpp
     core/CreatureActionValidity.cpp
+    core/CreatureBody.cpp
     core/CreatureDispatch.gen.cpp
     core/CreatureActionNames.cpp
     # Hand state system

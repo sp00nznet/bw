@@ -260,6 +260,80 @@ the answer of an idle creature with no player. `CreatureBrain` fills what it has
 - desire values and per-action turn counts;
 - known spells and fish farms.
 
+## The body and the desires it drives
+
+Each turn Creature's vslot 392 ticks the body and then the desires.
+
+### The body (`CreatureBody`, `sub_4CF980`)
+
+The body is the CreaturePhysical object at creature+352. Its constants come from the
+creature info record.
+
+| Field | Each turn |
+|---|---|
+| Energy (+0x1C) | Drains by `info+560` (0.000116) over 1 to 2 by growth, and 3 more while asleep or resting. From stage 1. |
+| Reserve (+0x14) | Drains by `info+564` while energy is under 0.5. |
+| Exhaustion (+0x30) | Builds while moving: faster when young, and faster still under `info+540` energy. |
+| Dehydration (+0x34) | Builds over `info+548` seconds. From stage 3. |
+| Temperature (+0x10) | Drifts toward `info+524` (15 degrees) through a sigmoid. |
+| Growth (+0x6C) | Grows while still, from stage 3. |
+| Strength (+0x0C) | Decays slowly. Carrying trains it. |
+
+Each action also costs strength, energy and exhaustion from its record (`sub_4CFEB0`).
+
+### The desires (`DesireSystem`, `sub_4BE5B0`)
+
+Each desire has up to eight sources, each a value and a threshold.
+
+1. **Sources refresh** (`sub_4C05B0`). A source with a value function is recomputed;
+   every source is then scaled by its type's factor (`DESIRE_SOURCE_TABLE +8`).
+   SADNESS fades at 0.998.
+   - The functions are the first column of a per-source table at 0xBAE7D8, recovered
+     by emulating its initialiser. HUNGER_FROM_ENERGY is 1 - energy (`sub_4C0840`);
+     thirst, poo, tiredness, health and warmth read the body the same way.
+   - Three desires take SADNESS's own value.
+2. **A source pushes** (`sub_4C04E0`) by `Sigmoid(threshold, value)` (`sub_6DF550`,
+   now shared with the villagers' falloff).
+3. **The desire moves.** It gains the pushes over 10 x its cycle time (in seconds,
+   `DESIRE_INITIAL_CYCLE_TIME` by species). With no push, or while its countdown
+   runs, it decays by its own factor. It is clamped to the species' minimum and its
+   own maximum.
+
+### Where the starting values come from
+
+| What | From |
+|---|---|
+| Sources | `INITIAL_DESIRE_SOURCE_VALUE` / `_THRESHOLD` (`sub_4C0100`) |
+| A mind file | Its own values instead |
+
+A mind file's three floats per desire are value, maximum and cycle. They were matched
+against info.dat: Khazar's hunger is 0, 2.0 and 23.6, against the table's maximum of 2
+and cycle of 20.
+
+The mind also carries the stage and the saved body (`sub_4CA040`). Khazar, Lethys and
+Nemesis are stage 13 with energy 0.997.
+
+These corrections came out of it:
+- `sub_4BEB30`, which `DesireModel` translates, is the player-feedback path (its only
+  caller is `sub_4C2F60`), not the per-turn update.
+- `CreatureDesires +0x1E8` is the cycle time, not the value (the value is at +0x148).
+- The cycle-time table holds floats.
+
+### On Land 1
+
+`test_level` starves Khazar to 0.4 energy beside a village and lets his mind run all 40
+desires:
+1. Hunger climbs as HUNGER_FROM_ENERGY passes its threshold.
+2. On the way he looks at the sun, points at the hand, communicates his state and
+   hangs around at home.
+3. On turn 180 he walks to a fish farm and eats.
+
+`test_chooser` checks one turn of each exactly: the energy drain, and one turn of
+hunger at Sigmoid(0.4, 0.5) / 200.
+
+Ours, because actions complete on arrival: a completed plan's slot scores nothing until
+the queue rebuilds it, and a meal restores half the energy.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -305,8 +379,8 @@ version and then a species below 17, and in those files the second word is a flo
   - day and night, beaches, friends.
 - `CanCreatureEatMe`'s chain down to the hand span, so a creature can eat what it
   likes.
-- Desire values from the body (hunger rising with time and so on). The brain takes
-  them as set.
+- Sources whose inputs this world lacks (watching the player or villagers, home,
+  loneliness, ...). They keep their saved value and fade by their factor.
 - The real action handlers.
 - Compassion's rotation through a town's needs (mental+134428).
 - Classifying a belief through a tree rebuilt from a mind's episodes (the node layout

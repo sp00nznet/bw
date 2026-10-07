@@ -15,6 +15,8 @@
 #include <black/CreatureDispatch.gen.h>
 #include <black/CreatureLearner.h>
 #include <black/CreatureActionValidity.h>
+#include <black/CreatureBody.h>
+#include <black/Sigmoid.h>
 #include <black/Feature.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
@@ -301,6 +303,30 @@ int main() {
         f.action_count[75] = 20;
         const bool scratch20 = ActionValid(75, 0, none, f);
         CHECK(!scratch19 && scratch20, "Scratch is refused while its turn count reads under 2 s (19 turns) and allowed from 20 (whole seconds, sub_464BB0)");
+    }
+
+    {
+        // The body and the per-turn desires, exactly. An adult at rest drains
+        // info+560 of energy a turn (sub_4CF980); one turn of a hunger source
+        // half a step past its threshold adds Sigmoid(0.4, 0.5) over 10 x the
+        // cycle time (sub_4C04E0, sub_4BE5B0).
+        BodyInfo bi;
+        CreatureBody body;
+        const bool body_ok = bi.Load(0);
+        body.Init(bi);
+        CreatureBody::Context bc;
+        bc.stage = 13;
+        for (int i = 0; i < 100; ++i) body.Tick(bi, bc);
+        std::snprintf(msg, sizeof msg, "100 turns at rest drain energy 1 -> %.5f (info+560 = %.6f a turn)", body.energy, bi.energy_drain);
+        CHECK(body_ok && std::fabs(body.energy - (1.0f - 100 * bi.energy_drain)) < 2e-5f, msg);
+
+        DesireSystem ds;
+        const bool ds_ok = ds.Init(0);
+        ds.Tick([](uint32_t type, float* v) { if (type != 14) return false; *v = 0.5f; return true; });
+        const float expect = Sigmoid(0.4f, 0.5f) / (10.0f * ds.cycle[4]);
+        std::snprintf(msg, sizeof msg, "a hunger source 0.1 past its 0.4 threshold adds %.6f in a turn (Sigmoid %.4f / 10 x cycle %.0f)",
+                      ds.value[4], Sigmoid(0.4f, 0.5f), ds.cycle[4]);
+        CHECK(ds_ok && ds.cycle[4] == 20.0f && std::fabs(ds.value[4] - expect) < 1e-7f && Sigmoid(0.4f, 0.5f) > 0.885f, msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

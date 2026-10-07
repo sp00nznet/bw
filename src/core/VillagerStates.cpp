@@ -5,6 +5,7 @@
 // function from a 255-entry table at 0xC2A2C8 (rebuilt in work/decomp by
 // emulating its initialiser). This file is that tick plus the states
 // translated so far; docs/villager-states.md lists them and what is missing.
+#include <black/Sigmoid.h>
 #include <black/Villager.h>
 
 #include <black/Abode.h>
@@ -442,22 +443,7 @@ void Upkeep(Villager& v) {
 // sub_6DF670 -> sub_6DF550(0.5, x): how much a distance d within `range`
 // still counts -- a sigmoid read from the 41-entry table at 0xB461D4.
 float Falloff(float d, float range) {
-    static const uint32_t kTable[41] = {
-        0x00000000, 0x317763df, 0x322bcc77, 0x32f084a7, 0x33a71301, 0x34684017, 0x35218b62,
-        0x35e0ae34, 0x369c419b, 0x375955de, 0x38172465, 0x38d235bd, 0x39922a17, 0x3a4b32f9,
-        0x3b0d1eb3, 0x3bc38892, 0x3c868d9b, 0x3d35d41d, 0x3dea5e18, 0x3e8762a1, 0x3f000000,
-        0x3f3c4eb0, 0x3f62b43d, 0x3f74a2be, 0x3f7bcb93, 0x3f7e78ef, 0x3f7f72e1, 0x3f7fcd33,
-        0x3f7fedbb, 0x3f7ff96e, 0x3f7ffda3, 0x3f7fff27, 0x3f7fffb2, 0x3f7fffe4, 0x3f7ffff6,
-        0x3f7ffffc, 0x3f7fffff, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000};
-    float x = 1.0f - (d < range ? d : range) / range;
-    x = x < -1.0f ? -1.0f : (x > 1.0f ? 1.0f : x);
-    float y = x - 0.5f;
-    y = y < -1.0f ? -1.0f : (y > 1.0f ? 1.0f : y);
-    int i = static_cast<int>((y + 1.0f) * 20.5f);  // _ftol: truncation
-    if (i > 40) i = 40;
-    float r;
-    std::memcpy(&r, &kTable[i], 4);
-    return r;
+    return Sigmoid(0.5f, 1.0f - (d < range ? d : range) / range);
 }
 
 int CarryCapacity(const Villager& v) { return static_cast<int>(InfoU(v, 612)); }

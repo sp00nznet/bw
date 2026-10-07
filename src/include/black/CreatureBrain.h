@@ -16,10 +16,15 @@
 // actions that dispatch through the action table run real behaviour code that
 // is not translated; here an action completes when the creature reaches its
 // belief (a fishing action, at the nearest fish farm), an eating action kills
-// the villager it was about, and the desire it served drops. Desire values are the host's to set (the body that feeds their
-// sources is not modelled).
+// the villager it was about, and the desire it served drops (a hunger action
+// also restores half the energy). Desires come from the per-turn desire
+// system fed by the body (CreatureBody): hunger rises as energy drains.
+// Sources whose inputs this world lacks keep their saved value, fading by
+// their factor.
 
 #include "CreatureActionValidity.h"
+#include "CreatureBody.h"
+#include "CreatureDesire.h"
 #include "CreatureLearner.h"
 #include "CreaturePlanChooser.h"
 
@@ -42,7 +47,11 @@ public:
     // completed this turn.
     bool Tick(const std::vector<Object*>& objects);
 
-    ChooserMind mind;     // desire values and activity: set these
+    ChooserMind mind;     // the agenda's view of the mind; desire values come from `desires`
+    DesireSystem desires; // the per-turn desire system (sub_4BE5B0)
+    CreatureBody body;    // CreaturePhysical, ticked every turn (sub_4CF980)
+    BodyInfo     body_info;
+    bool         drive_desires = true;  // false: the host sets mind.desire itself
     CreatureFacts facts;  // what the validity predicates read; the brain fills what it can each turn
     Agenda      agenda;
 
@@ -51,11 +60,13 @@ public:
     Object*  Target() const;   // what the current plan is done to, or nullptr
     uint32_t completed = 0;    // actions finished so far
     uint32_t last_action = 0;  // the most recent one
+    uint32_t last_desire = 40; // and the desire it served
     Object*  last_target = nullptr;
 
 private:
     uint32_t IdOf(Object* o);
     float    Opinion(uint32_t desire, const BeliefView& b) const;
+    bool     SourceValue(uint32_t type, float* out) const;
     Object*  NearestFishFarm() const;
 
     Creature*     creature_ = nullptr;

@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- The desire model labelled `sub_4BEB30` the per-turn update. It is the player-feedback
+  path; the per-turn update is `sub_4BE5B0`, now translated. The mind file's
+  "unidentified" floats per desire are value, maximum and cycle time.
 - Six objects' creature belief types (`GetCreatureBeliefType`), Creature's among them
   (0x16; v1.0 says 8), and Flock's compassion predicate. They are now checked against
   the binary with the rest. A creature now spawns where it is created (its `coords`
@@ -18,6 +21,13 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- A creature's body and the desires it drives (`docs/creature-chooser.md`):
+  - v1.0's body tick: energy, reserve, exhaustion, dehydration, temperature, growth.
+  - The per-turn desire system, with sources computed from the body and pushed
+    through the sigmoid.
+  - The mind file's stage and saved body.
+
+  A starved Khazar's hunger rises by itself on Land 1 until he goes and eats.
 - Creature action validity (`docs/creature-chooser.md`): all 47 of v1.0's
   "can I do this now" predicates for the 112 actions that have one, translated and
   wired into `CreatureBrain` (life, home, stage, desires, spell charge, recent actions).

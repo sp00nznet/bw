@@ -185,6 +185,36 @@ bool LoadCreatureMind(const uint8_t* data, size_t size, CreatureMind& out) {
     }
     if (r.bad) return false;
 
+    // sub_4C95D0 again: a flag (mental+119944) and a value for sub_4D5D80
+    // (older files: a count and a list), then creature+0x126C and the stage.
+    if (out.version >= 0x17) r.U32();
+    if (out.version < 0xB) {
+        const uint32_t n = r.U32();
+        if (r.bad || n > 1024) return false;
+        for (uint32_t i = 0; i < n; ++i) r.U32();
+    } else {
+        r.U32();
+    }
+    r.U32();
+    out.stage = r.U32();
+
+    // sub_4CA040: the body.
+    CreatureMind::Body& b = out.body;
+    b.turn = r.U32();          // +0x70
+    b.age = r.U32();           // +0x08
+    r.F32();                   // passed to sub_4D5CE0
+    b.reserve = r.F32();       // +0x14
+    b.reserve_max = r.F32();   // +0x18
+    if (out.version < 0xE) r.U32();
+    b.energy = r.F32();        // +0x1C
+    if (out.version >= 6) r.U32();  // +0x20
+    r.U16();                   // +0x24
+    b.poo = r.F32();           // +0x2C
+    b.exhaustion = r.F32();    // +0x30
+    b.dehydration = r.F32();   // +0x34
+    if (r.bad) return false;
+    out.has_body = true;
+
     out.parsed_bytes = r.p;
     return true;
 }

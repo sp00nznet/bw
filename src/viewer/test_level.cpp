@@ -26,6 +26,7 @@
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
 #include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <vector>
 #include <cstring>
@@ -476,23 +477,32 @@ int main() {
         const bool ok = near && mind_ok && khazar_body && brain.Init(khazar_body, khazar);
         CHECK(ok, "Khazar's mind drives a creature placed 20 m from a villager");
         if (ok) {
-            brain.mind.active[4] = brain.mind.active[6] = true;  // hunger, curiosity
-            brain.mind.desire[4] = 0.8f;
-            brain.mind.desire[6] = 0.5f;
-            int turn = 0, chose = -1;
-            for (; turn < 600 && !brain.completed; ++turn) {
+            // His mind drives all forty desires now (sub_4BE5B0), fed by his body
+            // (sub_4CF980). He is fed (energy 0.997 in the mind); starve him to
+            // 0.4 and hunger rises on its own as HUNGER_FROM_ENERGY passes its
+            // threshold.
+            brain.body.energy = 0.4f;
+            int turn = 0;
+            std::string log;
+            uint32_t done = 0;
+            for (; turn < 4000 && brain.last_desire != 4; ++turn) {
                 level::Process(w);
                 std::vector<Object*> seen;
                 for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
                 brain.Tick(seen);
-                if (chose < 0 && brain.Action()) chose = turn;
+                if (brain.completed != done) {
+                    done = brain.completed;
+                    if (log.size() < 120) log += " " + std::to_string(brain.last_action) + "/" + std::to_string(brain.last_desire);
+                }
+                if (std::getenv("BRAIN_TRACE") && turn % 200 == 0)
+                    printf("      t%4d energy %.3f hunger %.3f action %u desire %u done %u\n", turn, brain.body.energy,
+                           brain.desires.value[4], brain.Action(), brain.Desire(), brain.completed);
             }
             const bool at_farm = dynamic_cast<FishFarm*>(brain.last_target) != nullptr;
             std::snprintf(msg, sizeof msg,
-                          "hungry, he plans on turn %d, walks %s and fishes on turn %d (action %u, hunger now %.1f)",
-                          chose, at_farm ? "to a fish farm" : "nowhere", turn, brain.last_action, brain.mind.desire[4]);
-            CHECK(brain.completed == 1 && brain.last_action == 155 && at_farm && chose >= 1 && turn > chose + 1 &&
-                      brain.mind.desire[4] < 0.4f, msg);
+                          "starved, he lives by his desires (action/desire:%s) and on turn %d eats: action %u at %s, energy now %.2f",
+                          log.c_str(), turn, brain.last_action, at_farm ? "a fish farm" : "?", brain.body.energy);
+            CHECK(brain.last_desire == 4 && brain.last_action == 155 && at_farm && brain.body.energy > 0.8f, msg);
         }
     }
 

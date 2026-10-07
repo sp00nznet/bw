@@ -84,6 +84,12 @@ std::vector<uint8_t> BuildMind(uint32_t version, const char* name,
     for (int i = 0; i < 57; ++i) b.U32(0);                 // version >= 0x10
     b.U32(6); for (uint32_t i = 0; i < 6; ++i) b.U32(i);  // known abilities
     b.U32(1); b.U32(14);                                   // known spell: food
+    if (version >= 0x17) b.U32(0);                         // mental+119944
+    b.U32(0);                                              // sub_4D5D80's value
+    b.U32(0); b.U32(13);                                   // creature+0x126C, the stage
+    b.U32(51); b.U32(0); b.F32(0.5f); b.F32(0.497f); b.F32(0.5f);  // body: turn, age, -, reserve, max
+    b.F32(0.997f); b.U32(0); b.U16(0);                     // energy, +0x20, +0x24
+    b.F32(0.0f); b.F32(0.0f); b.F32(0.0f);                 // poo, exhaustion, dehydration
     return b.d;
 }
 
@@ -144,10 +150,10 @@ int main() {
     // --- the minds the game ships -------------------------------------------
     struct Shipped { const char* file; uint32_t version; const char* name; size_t actions, spells, parsed, total; };
     const Shipped kShipped[] = {
-        {"KhazarCreature", 25, "Matey", 313, 0, 5174, 5268},
-        {"LethysCreature", 25, "Matey", 313, 0, 5174, 5268},
-        {"NemesisCreature", 25, "Matey", 313, 0, 5174, 5268},
-        {"ComputerControlledCreature", 30, "Richard", 322, 5, 5238, 5748},
+        {"KhazarCreature", 25, "Matey", 313, 0, 5232, 5268},
+        {"LethysCreature", 25, "Matey", 313, 0, 5232, 5268},
+        {"NemesisCreature", 25, "Matey", 313, 0, 5232, 5268},
+        {"ComputerControlledCreature", 30, "Richard", 322, 5, 5296, 5748},
     };
 
     // The working directory depends on how the test is launched, so try the
@@ -215,8 +221,11 @@ int main() {
         char line[160];
         std::snprintf(line, sizeof line, "  it knows abilities 0..5 and %zu spells; %zu action words", s.spells, s.actions);
         CHECK(real.known_abilities.size() == 6 && real.known_spells.size() == s.spells && real.action_words.size() == s.actions, line);
-        std::snprintf(line, sizeof line, "  the reader reaches the known lists (%zu of %zu bytes)", s.parsed, s.total);
+        std::snprintf(line, sizeof line, "  the reader reaches the end of the body (%zu of %zu bytes)", s.parsed, s.total);
         CHECK(real.parsed_bytes == s.parsed && real.total_bytes == s.total, line);
+        std::snprintf(line, sizeof line, "  stage %u (of 0..13), energy %.3f, reserve %.3f", real.stage, real.body.energy, real.body.reserve);
+        CHECK(real.has_body && real.stage == 13 && real.body.energy > 0.97f && real.body.energy <= 1.0f &&
+                  real.body.reserve > 0.4f && real.body.reserve < 0.6f, line);
     }
 
     // --- the desire model, fed from a real mind -----------------------------

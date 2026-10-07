@@ -46,7 +46,19 @@ namespace {
 
 bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t species) {
     creature_ = creature;
-    if (!tables_.Load(species)) return false;
+    if (!tables_.Load(species) || !body_info.Load(species) || !desires.Init(species, &m)) return false;
+    body.Init(body_info);
+    if (m.has_body) {  // the saved body (sub_4CA040)
+        body.turn = m.body.turn;
+        body.age = m.body.age;
+        body.reserve = m.body.reserve;
+        body.reserve_max = m.body.reserve_max;
+        body.energy = m.body.energy;
+        body.poo = m.body.poo;
+        body.exhaustion = m.body.exhaustion;
+        body.dehydration = m.body.dehydration;
+    }
+    creature->field_0x1268 = static_cast<int>(m.stage);
     BindKnownActions(&host_, m);
     BindObjectPredicates(&host_, creature, [this](uint32_t id) -> GameThingWithPos* {
         return id < objects_.size() ? objects_[id] : nullptr;
@@ -101,6 +113,29 @@ Object* CreatureBrain::Target() const {
     return t;
 }
 
+// The source value functions this world can answer (the first column of the
+// per-source table at 0xBAE7D8, recovered by emulating its initialiser).
+bool CreatureBrain::SourceValue(uint32_t type, float* out) const {
+    auto clamp01 = [](float v) { return std::clamp(v, 0.0f, 1.0f); };
+    switch (type) {
+    case 14: *out = 1.0f - body.energy; return true;                   // HUNGER_FROM_ENERGY, sub_4C0840
+    case 21: *out = body.poo; return true;                             // TO_POO, sub_4C08A0
+    case 22: *out = body.exhaustion; return true;                      // TIREDNESS_FROM_EXHAUSTION, sub_4C08C0
+    case 32: *out = body.dehydration; return true;                     // FOR_WATER, sub_4C0900
+    case 33: *out = 1.0f - creature_->GetLife(); return true;          // TO_RESTORE_HEALTH, sub_4C0920
+    case 40: *out = clamp01(-body.temperature); return true;           // TO_GET_WARMER, sub_4C0B30
+    case 41: *out = clamp01(body.temperature); return true;            // TO_GET_COLDER, sub_4C0B70
+    case 17: case 24: *out = facts.night ? 1.0f : 0.0f; return true;   // darkness, night (sub_4C08D0)
+    case 10: case 16: case 25:                                         // ...FROM_SADNESS, sub_4C0930
+        for (const auto& list : desires.sources)
+            for (const DesireSourceSlot& s : list)
+                if (s.type == 48) { *out = s.value; return true; }
+        *out = 0.0f;
+        return true;
+    default: return false;  // event-driven, or inputs not modelled here
+    }
+}
+
 Object* CreatureBrain::NearestFishFarm() const {
     Object* best = nullptr;
     float best_d = 600.0f;
@@ -145,6 +180,21 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         beliefs_.push_back(b);
     }
 
+    // The body, then the desires it feeds (Creature vslot 392: sub_4CF980,
+    // then sub_4BE5B0).
+    CreatureBody::Context bc;
+    bc.stage = static_cast<uint32_t>(creature_->field_0x1268);
+    bc.moving = creature_->speed != 0 && creature_->move_state != MOVE_TO_STATES_ARRIVED;  // stands in for sub_46CB80
+    bc.current_action = Action();
+    body.Tick(body_info, bc);
+    if (drive_desires) {
+        desires.Tick([this](uint32_t type, float* v) { return SourceValue(type, v); });
+        for (uint32_t d = 0; d < kNumCreatureDesires; ++d) {
+            mind.desire[d] = desires.value[d];
+            mind.active[d] = desires.active[d];
+        }
+    }
+
     // The facts the validity predicates read, as far as the world here has them.
     facts.life = creature_->GetLife();
     facts.has_player = creature_->owner != nullptr;
@@ -181,10 +231,19 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         if (Villager* v = dynamic_cast<Villager*>(target)) v->SetTopState(VILLAGER_STATE_DYING);
     }
     const uint32_t served = agenda.plans.current_desire;
-    if (served < kNumCreatureDesires) mind.desire[served] = std::max(0.0f, mind.desire[served] - 0.5f);
+    if (served < kNumCreatureDesires) {
+        mind.desire[served] = std::max(0.0f, mind.desire[served] - 0.5f);
+        if (drive_desires) desires.value[served] = mind.desire[served];
+        if (served == 4) body.energy = std::min(1.0f, body.energy + 0.5f);  // ours: a meal
+    }
     last_action = action;
+    last_desire = served;
     last_target = target;
     ++completed;
+    // The plan is spent: its slot scores nothing until the queue rebuilds it,
+    // so the agenda moves on (ours -- the original's actions take time, so a
+    // finished plan's slot has long been rebuilt by then).
+    if (served < kNumCreatureDesires) agenda.plans.plans[served].total = 0.0f;
     agenda.plans.current_desire = kNumCreatureDesires;  // nothing current: the next plan takes over
     agenda.plans.current_action = 0;
     agenda.current_total = 0.0f;
