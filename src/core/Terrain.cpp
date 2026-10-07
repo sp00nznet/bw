@@ -6,3 +6,4 @@
 TerrainHeightFunc g_terrain_height_func = nullptr;
 MeshRadiusFunc g_mesh_radius_func = nullptr;
 CellFlagsFunc g_cell_flags_func = nullptr;
+CellAltitudeFunc g_cell_altitude_func = nullptr;

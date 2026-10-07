@@ -107,6 +107,14 @@ inline int32_t LandscapeCellFlags(const Landscape& l, uint32_t cx, uint32_t cz) 
     return l.blocks[idx - 1].cells[(cz & 15) + 17 * (cx & 15)].flags;
 }
 
+// Altitude byte of map cell (cx, cz) (LND cell +4), or -1 where there is none.
+inline int32_t LandscapeCellAltitude(const Landscape& l, uint32_t cx, uint32_t cz) {
+    if (cx >= 512 || cz >= 512) return -1;
+    const uint8_t idx = l.index_grid[cx >> 4][cz >> 4];
+    if (!idx || idx > l.blocks.size()) return -1;
+    return l.blocks[idx - 1].cells[(cz & 15) + 17 * (cx & 15)].altitude;
+}
+
 // Load a .lnd file. Returns true on success.
 bool LoadLND(const std::string& path, Landscape& out);
 

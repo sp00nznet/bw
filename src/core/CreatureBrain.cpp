@@ -35,8 +35,6 @@ namespace {
 // species' real speed lives in its info record and is not mapped yet.
 constexpr int kWalkSpeed = static_cast<int>(kMapUnitsPerMetre);
 
-bool IsEating(uint32_t action) { return action == 11 || action == 12; }  // EatAlive, EatAfterExamining
-
 }  // namespace
 
 bool IsFishing(uint32_t action) { return action == 29 || action == 155 || action == 259 || action == 300; }
@@ -274,16 +272,8 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         if (creature_->move_state != MOVE_TO_STATES_ARRIVED) return false;
     }
 
-    // Arrived. The sub-actions that would play out here are collapsed into
-    // their effects: an Eat (sub_4DF5A0) of the villager -- ours in timing.
-    if (IsEating(action)) {
-        if (Villager* v = dynamic_cast<Villager*>(target)) {
-            float food = 0.0f;
-            if (v->info) std::memcpy(&food, reinterpret_cast<const char*>(v->info) + 104, 4);  // GetFoodValue(3)
-            body.Eat(food, body_info);
-            v->SetTopState(VILLAGER_STATE_DYING);
-        }
-    }
+    // Arrived. ponytail: an action whose handler is not translated is done
+    // on arrival (its sub-actions are not run).
     const uint32_t served = agenda.plans.current_desire;
     ActionDone(action, served);
     last_action = action;

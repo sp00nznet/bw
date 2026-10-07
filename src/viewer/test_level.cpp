@@ -23,6 +23,7 @@
 #include <black/Creature.h>
 #include <black/CreatureBrain.h>
 #include <black/CreaturePhysical.h>
+#include <black/LandFeatures.h>
 #include <black/EntityFactory.h>
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
@@ -48,8 +49,10 @@ int main() {
 
     // The real landscape, for the drinking-water search (cell flags).
     static bw::Landscape land;
-    if (bw::LoadLND(root + "Land1.lnd", land))
+    if (bw::LoadLND(root + "Land1.lnd", land)) {
         g_cell_flags_func = [](uint32_t cx, uint32_t cz) { return bw::LandscapeCellFlags(land, cx, cz); };
+        g_cell_altitude_func = [](uint32_t cx, uint32_t cz) { return bw::LandscapeCellAltitude(land, cx, cz); };
+    }
 
     // No meshes headless: a stand-in host that sizes every abode mesh at 6 m.
     g_mesh_radius_func = [](int32_t) { return 6.0f; };
@@ -581,10 +584,24 @@ int main() {
             brain.body.energy = 0.4f;
             std::string log;
             uint32_t done = 0;
-            int turn = 0, picked = -1, eaten = -1;
+            int turn = 0, picked = -1, eaten = -1, sat = -1, drank = -1;
+            float sat_water = 1e9f, thirst = 1.0f;
+            // Metres from him to the nearest water cell within 60 m.
+            auto to_water = [&] {
+                float best = 1e9f;
+                const int cx = body->coords.x.split.map, cz = body->coords.z.split.map;
+                for (int x = cx - 6; x <= cx + 6; ++x)
+                    for (int z = cz - 6; z <= cz + 6; ++z) {
+                        const int32_t f = x >= 0 && z >= 0 ? g_cell_flags_func(x, z) : -1;
+                        if (f < 0 || !(f & 0x10)) continue;
+                        const float dx = MetresOf(body->coords.x) - x * 10.0f, dz = MetresOf(body->coords.z) - z * 10.0f;
+                        best = std::min(best, std::sqrt(dx * dx + dz * dz));
+                    }
+                return best;
+            };
             float hunger_before = 0.0f, hunger_after = 0.0f, energy_before = 0.0f, energy_after = 0.0f;
             Object* victim = nullptr;
-            for (; turn < 4000 && eaten < 0; ++turn) {
+            for (; turn < 8000 && (eaten < 0 || sat < 0 || drank < 0); ++turn) {
                 level::Process(w);
                 std::vector<Object*> seen;
                 for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
@@ -596,7 +613,9 @@ int main() {
                 if (brain.completed != done) {
                     done = brain.completed;
                     if (log.size() < 120) log += " " + std::to_string(brain.last_action) + "/" + std::to_string(brain.last_desire);
-                    if (brain.last_action == 11) eaten = turn, hunger_before = h, hunger_after = brain.desires.value[4];
+                    if (brain.last_action == 11 && eaten < 0) eaten = turn, hunger_before = h, hunger_after = brain.desires.value[4];
+                    if (brain.last_action == 218 && sat < 0) sat = turn, sat_water = to_water();
+                    if (brain.last_action == 55 && drank < 0) drank = turn, thirst = brain.body.dehydration;
                 }
             }
             auto* v = dynamic_cast<Villager*>(victim);
@@ -610,7 +629,41 @@ int main() {
             std::snprintf(msg, sizeof msg, "the villager is a meal of %.1f (GetFoodValue %.1f): energy %.3f -> %.3f",
                           food, v ? v->GetFoodValue(static_cast<FOOD_TYPE>(3)) : 0.0f, energy_before, energy_after);
             CHECK(v && food > 0.0f && v->GetFoodValue(static_cast<FOOD_TYPE>(3)) == food && energy_after > energy_before, msg);
+            // SitDownOnBeach (sub_494450) rests by the nearest water block's
+            // first water cell; DrinkFromTheSea (sub_4895E0) ends in Drink
+            // (sub_4E4110), which slakes his thirst.
+            std::snprintf(msg, sizeof msg, "he sits down by the water on turn %d, %.1f m from it (height %.0f), and drinks on turn %d: dehydration %.3f",
+                          sat, sat_water, body->GetHeight(), drank, thirst);
+            CHECK(sat > 0 && sat_water <= body->GetHeight() + 10.0f && drank > 0 && thirst < 1e-3f, msg);
         }
+    }
+
+    if (g_cell_flags_func && g_cell_altitude_func) {
+        // The creature's feature map (sub_4C1610) over Land 1: per 8 x 8-cell
+        // block, its highest cell and which of the terrain tests it passes.
+        const land::FeatureMap& fm = land::Features();
+        int count[land::kNumFeatures] = {}, bad_hills = 0;
+        for (int bx = 0; bx < 64; ++bx)
+            for (int bz = 0; bz < 64; ++bz) {
+                for (int f = 0; f < land::kNumFeatures; ++f) count[f] += fm.Has(static_cast<land::Feature>(f), bx, bz);
+                if (!fm.Has(land::kHill, bx, bz)) continue;
+                const float h = fm.regions[bx][bz].height;
+                if (h <= fm.max_height * 0.5f) ++bad_hills;
+                const int nb[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+                for (const auto& d : nb)
+                    if (bx + d[0] >= 0 && bx + d[0] < 64 && bz + d[1] >= 0 && bz + d[1] < 64 && fm.regions[bx + d[0]][bz + d[1]].height > h) ++bad_hills;
+            }
+        std::snprintf(msg, sizeof msg, "the feature map: highest %.1f m; blocks with coast %d, water %d, hill %d, land %d (of 4096)",
+                      fm.max_height, count[land::kCoast], count[land::kWater], count[land::kHill], count[land::kLand]);
+        CHECK(count[land::kCoast] > 0 && count[land::kWater] > 0 && count[land::kHill] > 0 && count[land::kLand] > 0 &&
+                  count[land::kWater] + count[land::kLand] >= 4096 && bad_hills == 0, msg);
+        // The search (sub_4C1480) from the map's centre lands on a water cell.
+        MapCoords from(256 << 16, 256 << 16, 0.0f), out;
+        const bool found = fm.Find(land::kWater, from, &out, true, true);
+        const int32_t f = found ? g_cell_flags_func(out.x.split.map, out.z.split.map) : 0;
+        std::snprintf(msg, sizeof msg, "the nearest water from the map's centre is cell (%u, %u), flags 0x%X",
+                      out.x.split.map, out.z.split.map, f);
+        CHECK(found && (f < 0 || (f & 0x10)), msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

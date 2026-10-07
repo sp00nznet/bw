@@ -25,6 +25,8 @@ namespace creature {
 enum : uint32_t {  // sub-action ids: records of the table at 0xB0EAF8
     kSubPickup = 0,
     kSubEat = 2,
+    kSubHeldObjectAction = 3,
+    kSubDrink = 51,
     kSubStaticAction = 4,
     kSubTurnToFacePos = 7,
     kSubMoveToPos = 8,

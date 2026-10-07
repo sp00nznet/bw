@@ -87,6 +87,12 @@ float Creature::Get2DRadius() {
     return m ? At3D(m, 0x5228) : Living::Get2DRadius();  // 3D +21032
 }
 
+// sub_461EE0: 15 x size_1. ponytail: without a 3D object, as if size_1 were 1.
+float Creature::GetHeight() {
+    const LH3DCreature* m = Body3D(this);
+    return (m ? At3D(m, 0x90) : 1.0f) * 15.0f;
+}
+
 // sub_468430: (size_1 x 8.33)^3 x 100, heavier by 15% per unit of the two
 // morph weights at +0xA4 and +0xAC (the latter is strength, sub_4D0270).
 float Creature::GetWeight() {

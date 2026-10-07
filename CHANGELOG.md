@@ -21,6 +21,14 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The creature's feature map (`black/LandFeatures.h`, v1.0's `CreatureGlobalExplorationMap`):
+  - per 8 × 8-cell block, its highest cell and its coast, water, hill and land bits;
+  - the spiral search for the nearest block of a kind.
+  It is built from a new host hook for cell altitude (`g_cell_altitude_func`).
+- Four more creature actions run as v1.0's sub-actions:
+  - SitDownOnBeach, DrinkFromTheSea and WaveAtPlayer;
+  - EatAfterExamining, with the HeldObjectAction and Drink sub-actions.
+  A creature's height is now 15 × its 3D size.
 - EatAlive (action 11) runs as v1.0's sub-actions: Pickup, then Eat.
   - What fits in a creature's hand is translated: `CanCreatureEatMe`,
     `CanBePickedUpByCreature` and `sub_4C4E00`.

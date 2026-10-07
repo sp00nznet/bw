@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Seven handlers are translated so far. For any other action,
+   below). Eleven handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -523,6 +523,65 @@ In `test_level` a second Khazar has a 3D object whose hand reaches 5 m. Starved,
 picks up a villager after two LookAtSuns. He eats it 22 turns later: a meal of 250
 (info +104), and the villager dies.
 
+EatAfterExamining (12, `sub_4850A0`) is the same without the gesture. Between the
+pickup and the eating it plays HeldObjectAction (3, `sub_4DFC00`): clip 103 on what
+is held. Nothing in `test_level` chooses it yet.
+
+### Places: the feature map
+
+Some actions go to a kind of place: water to sit by, a coast to drink at, a hill. v1.0
+keeps one global `CreatureGlobalExplorationMap` (0xBAEFA0) for this
+(`black/LandFeatures.h`):
+- It has 64 × 64 regions, one per 8 × 8-cell block.
+- `sub_4C1610` builds it once per level.
+- Each region keeps its highest cell (the altitude byte × 0.67) and a byte of feature
+  bits, one per test in the table at 0xB0D7E0.
+
+| Bit | Feature | Test | Where in the block |
+|---|---|---|---|
+| 0, 1, 3 | Citadel, Town, Forest | An object of info type 8, 0 or 6 in its cells | That object's cell |
+| 2 | Field | `sub_5C0740(18)` | Its first coast cell (`0x5C1090`) |
+| 4 | Coast | A cell with the coast flag (0x20) and not water | Its first coast cell |
+| 5 | Water | A cell with the water flag (0x10), or no landscape | Its first water cell |
+| 6 | Hill | Above half the map's highest point, and no neighbour higher (`sub_5BF4B0`) | Its highest cell |
+| 7 | Land | A cell that is not water | Its centre |
+
+`sub_4C1480` finds the nearest block with a feature, spiralling out from a point for
+4096 steps. The four directions are (1, 0), (0, 1), (−1, 0), (0, −1), set by the
+initialiser at 0x6DDD90. It prefers blocks the creature has not explored
+(`sub_4C1440`, a bit grid in its exploration map) unless told to take the first.
+
+The handlers that use it:
+
+| Action | Handler | Sub-actions |
+|---|---|---|
+| SitDownOnBeach (218) | `sub_494450` | MoveToPos near the nearest water; TurnToFacePos to it; StaticAction 38 (resting) for 10–25 s |
+| DrinkFromTheSea (55) | `sub_4895E0` | MoveToPos to the nearest coast, unless already in water; TurnToFacePos to the water beyond; IndividualAction 71; then Drink (51, `sub_4E4110`: dehydration 0, desire 14 held back 20 s) |
+| WaveAtPlayer (90) | `sub_48DDB0` | TurnToFaceCamera; IndividualAction 72 |
+
+A creature's height (slot 267, `sub_461EE0`) is 15 × size_1, which these use as the
+walk radius.
+
+**Ours** in these:
+- **Not built:** the object features (Citadel, Town, Forest) need the map's object
+  lists, which core does not keep, and Field is not translated. Their bits stay
+  clear.
+- **No exploration bits:** core keeps none, so every block counts as unexplored.
+- **SitDownOnBeach** walks toward the water point itself. The original's search for
+  a clear patch of land beside it (`sub_4C1820` → `sub_4C18C0`) is not translated.
+- **DrinkFromTheSea:**
+  - Its first choice, a drinking place within 1 km (`sub_4673B0`), has no list in
+    core.
+  - The shore fix-up (`sub_46C0E0` / `sub_46C260`) is not translated.
+  - The failure path is not translated.
+- **The map is built once,** on first use.
+
+On Land 1:
+- The highest point is 166.2 m.
+- 166 blocks have coast, 3854 water, 20 hills and 376 land.
+- In `test_level` the fed Khazar sits by the water on turn 548, 14.7 m from it, and
+  drinks on turn 1144.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -566,6 +625,8 @@ version and then a species below 17, and in those files the second word is a flo
   - the player's hand and temple;
   - spell charge and cost;
   - day and night, beaches, friends.
+- GoToHillAndWalkAlongRidge (27) and TakeFishFromSeaToHome (259), which also
+  go to places. EatFromStoragePit (65), which needs the storage pit's pots.
 - The hand span itself: `sub_4CE650`'s measure off the creature's morph meshes in
   the pickup clip. Until core loads those, a creature without a host-filled 3D
   object can pick up nothing.

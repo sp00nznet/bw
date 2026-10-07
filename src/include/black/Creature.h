@@ -75,6 +75,7 @@ struct Creature : public Living {
     float GetHowMuchCreatureWantsToLookAtMe() override;
     float Get2DRadius() override;  // vslot 25, sub_461ED0
     float GetWeight() override;    // vslot 398, sub_4668B0
+    float GetHeight() override;    // vslot 267, sub_461EE0
     // How far its hand reaches when it picks something up: sub_46E600 with
     // clip 14, off its 3D object. 0 with no 3D object.
     float HandReach();

@@ -29,3 +29,8 @@ extern MeshRadiusFunc g_mesh_radius_func;
 // it straight from its block grid (sub_5BFBF0).
 using CellFlagsFunc = int32_t (*)(uint32_t cell_x, uint32_t cell_z);
 extern CellFlagsFunc g_cell_flags_func;
+
+// Its altitude byte (LND cell +4; x 0.67 is metres), or -1 where there is no
+// cell -- what the creature's feature map measures heights from (sub_4C1660).
+using CellAltitudeFunc = int32_t (*)(uint32_t cell_x, uint32_t cell_z);
+extern CellAltitudeFunc g_cell_altitude_func;

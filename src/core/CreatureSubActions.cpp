@@ -4,6 +4,8 @@
 
 #include <black/Creature.h>
 #include <black/CreatureDesireEnums.h>
+#include <black/LandFeatures.h>
+#include <black/Terrain.h>
 #include <black/Object.h>
 #include <black/Villager.h>
 
@@ -53,6 +55,8 @@ struct Record { uint32_t id, kind; bool step[4]; };
 constexpr Record kRecords[] = {
     {kSubPickup, 2, {true, true, false, false}},               // sub_4DECD0 -> sub_4DED00, sub_4DF0B0 -> sub_4DF0E0
     {kSubEat, 0, {true, true, true, false}},                   // sub_4DF5A0, sub_4DF7A0, sub_4DFB90; abort sub_4E7810
+    {kSubHeldObjectAction, 0, {true, true, false, false}},     // sub_4DFC00, sub_4E77D0
+    {kSubDrink, 1, {false, true, false, false}},               // -, sub_4E4110
     {kSubStaticAction, 1, {true, true, true, true}},           // sub_4DFD90, sub_4DFE20, sub_4E77D0; abort sub_4E7800
     {kSubTurnToFacePos, 3, {true, true, false, false}},        // sub_4E0980, sub_4E2AF0
     {kSubIndividualAction, 1, {true, true, false, false}},     // sub_4E0F60, sub_4E77D0
@@ -76,7 +80,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 11 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
+    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -130,6 +134,79 @@ bool CreatureBrain::StartAction(uint32_t action) {
         SubActionEntry e{kSubEat};
         e.object = t;
         a.AddMain(e);
+        return true;
+    }
+    case 12: {  // EatAfterExamining (sub_4850A0): pick it up, look it over (clip 103), eat it
+        Object* t = Target();
+        if (!(hand.holding && hand.held.object && hand.held.object->CanBeEatenByCreature(creature_))) {
+            SubActionEntry p{kSubPickup};
+            p.object = t;
+            a.Add(p);
+        }
+        // ponytail: its callbacks (sub_4B4EE0, where to look; sub_4AEE40, the
+        // sounds every few seconds) are not translated.
+        SubActionEntry x{kSubHeldObjectAction};
+        x.integer = 103;
+        a.Add(x);
+        SubActionEntry e{kSubEat};
+        e.object = t;
+        a.AddMain(e);
+        return true;
+    }
+    case 90: {  // WaveAtPlayer (sub_48DDB0): face the camera and wave (clip 72)
+        a.Add(SubActionEntry{kSubTurnToFaceCamera});
+        SubActionEntry w{kSubIndividualAction};
+        w.integer = 72;
+        a.AddMain(w);
+        return true;
+    }
+    case 218: {  // SitDownOnBeach (sub_494450): by the nearest water, facing it, resting 10-25 s
+        MapCoords water;
+        if (!land::Features().Find(land::kWater, creature_->coords, &water, true, true)) {
+            Stop();  // "FailedToConstr..."
+            return false;
+        }
+        // ponytail: sub_4C1820 (-> sub_4C18C0) finds a clear patch of land
+        // within 4 x the creature's radius of the water to sit on; here he
+        // walks toward the water point itself and stops a height short.
+        SubActionEntry m{kSubMoveToPos};
+        m.point = water;
+        m.value = creature_->GetHeight();
+        a.Add(m);
+        SubActionEntry t{kSubTurnToFacePos};
+        t.point = water;
+        a.Add(t);
+        SubActionEntry s{kSubStaticAction};
+        s.integer = 38;
+        s.value = RandomFloat(15.0f) + 10.0f;  // sub_67BCB0(15.0)
+        a.AddMain(s);
+        return true;
+    }
+    case 55: {  // DrinkFromTheSea (sub_4895E0): to the nearest coast, face the water, drink
+        // ponytail: the first choice, the nearest drinking place within 1 km
+        // (sub_4673B0, the game's list at +2104624), has no list in core.
+        land::FeatureMap& fm = land::Features();
+        MapCoords coast, water;
+        fm.Find(land::kCoast, creature_->coords, &coast, true, true);
+        fm.Find(land::kWater, coast, &water, true, true);
+        // Unless it already stands in water (sub_5BFB00), it walks to the coast.
+        // ponytail: the land test and the shore within 30 m (sub_46C0E0 /
+        // sub_46C260) are not translated, nor the failure that holds desires
+        // 14 and 20 back 30 s.
+        const int32_t f = g_cell_flags_func ? g_cell_flags_func(creature_->coords.x.split.map, creature_->coords.z.split.map) : -1;
+        if (f >= 0 && !(f & 0x10)) {
+            SubActionEntry m{kSubMoveToPos};
+            m.point = coast;
+            m.value = creature_->GetHeight();
+            a.Add(m);
+        }
+        SubActionEntry t{kSubTurnToFacePos};
+        t.point = water;
+        a.Add(t);
+        SubActionEntry d{kSubIndividualAction};
+        d.integer = 71;
+        a.AddMain(d);
+        a.Add(SubActionEntry{kSubDrink});
         return true;
     }
     case 23:  // CommunicateState (sub_485610)
@@ -316,6 +393,18 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
         creature_->SetYAngle(heading);
         return kStepDone;
     }
+    case kSubDrink * 4 + 1:  // sub_4E4110: thirst slaked, the desire held back 20 s
+        body.dehydration = 0.0f;  // physical +0x34
+        desires.Countdown(CREATURE_DESIRE_FOR_WATER, 20.0f);
+        creature_->SetSpeed(0);   // sub_5EBD20(0)
+        return kStepDone;
+    case kSubHeldObjectAction * 4 + 0:  // sub_4DFC00 -> sub_46D490: a clip of what is held
+        if (hand.holding && !hand.Busy()) {
+            PlayAnim(static_cast<uint32_t>(e.integer));
+            return kStepDone;
+        }
+        return hand.Busy() ? kStepWait : kStepFailed;
+    case kSubHeldObjectAction * 4 + 1:
     case kSubTurnToFacePos * 4 + 1:   // sub_4E2AF0
     case kSubIndividualAction * 4 + 1:
     case kSubCommunicateToPlayer * 4 + 1:
