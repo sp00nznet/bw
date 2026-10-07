@@ -21,6 +21,13 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- EatAlive (action 11) runs as v1.0's sub-actions: Pickup, then Eat.
+  - What fits in a creature's hand is translated: `CanCreatureEatMe`,
+    `CanBePickedUpByCreature` and `sub_4C4E00`.
+  - The creature's radius, weight and reach are read off its 3D object. Without one,
+    the reach is 0.
+- Villagers, animals and creatures are put in the map when created (`sub_5E8CA0`),
+  so `IsObjectInMap_0` holds for them.
 - PointAtCamera (action 168) runs as v1.0's sub-actions: face the camera, then point
   at it for 1 s. The host gives the brain the camera's position.
 - Four more creature actions run as v1.0's sub-actions: LookAtSun, PointAtHand,

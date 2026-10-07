@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Six handlers are translated so far. For any other action,
+   below). Seven handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -470,6 +470,59 @@ its point, and points at the camera for 10 turns. He then fishes over 181 turns.
 when the eating clip starts, and his hunger ends at clamp(hunger − that fish, 0, 1)
 × 0.01.
 
+### EatAlive, and what fits in a hand
+
+EatAlive (11, `sub_482B30`) queues a Pickup of its target and an Eat of it. Half the
+time it plays IndividualAction 54 first. If the creature already holds something
+edible, it skips the pickup.
+
+| Sub-action | Steps | What it does |
+|---|---|---|
+| Pickup (0, kind 2) | `sub_4DED00`, `sub_4DF0E0` | Walks within 2 × (both radii) unless within 10 m. Then walks into the hand's reach (`sub_46E750`), plays the pickup clip (14) and waits for the hand to close. |
+| Eat (2, kind 0) | `sub_4DF5A0`, `sub_4DF7A0`, `sub_4DFB90` | The first two are EatCreatedObject's: the eating clip (96), and the meal (`GetFoodValue(3)`) taken into the body. The last digests the target (`sub_4DF830`). |
+
+A pickup sub-action (kind 2) drops what the hand holds first (clip 97), unless it holds
+the very thing, in which case the pickup is skipped.
+
+Whether a villager can be eaten:
+- `CanCreatureEatMe` (`sub_4C5EA0`) requires that it is not a toy and that it can be
+  picked up.
+- `CanBePickedUpByCreature` (`sub_4C4EC0`) rules out a town artifact and a villager
+  worshipping at its own player's site. It also requires the villager to be in the map.
+- `sub_4C4E00` requires that it fits in the hand:
+  - its radius plus the creature's is within the hand's reach;
+  - it weighs no more than 0.8 of the creature (`sub_4C51D0`);
+  - it can be picked up at all (vslot 394).
+
+The creature's measures come from its 3D object (`LH3DCreature`, physical +0x58):
+
+| Measure | From |
+|---|---|
+| Radius | +0x5228 |
+| Weight | `sub_468430`: (size_1 × 8.33)³ × 100 × (1 + 0.15 × the morph weights at +0xA4 and +0xAC) |
+| Reach | `sub_46E600` with clip 14: four hand points at +0x49C8, blended −0.4, −0.4, 0.9, 0.9 and scaled by size_2 (+0x94) |
+
+`sub_4CE650` measures the four hand points once, from the pickup clip on the creature's
+morph meshes 84..81. A villager weighs scale³ × its info's +172 (`sub_5EA850`).
+
+**Ours** in these:
+- **No meshes:** core loads none. Without a 3D object the reach is 0 and nothing fits
+  in the hand, and a villager's mesh radius and height are 0.
+- **The held villager** goes into IN_HAND and stays put. When the eating clip ends,
+  it dies.
+- **Not translated:**
+  - the player tests;
+  - the per-type ban (mental +99600);
+  - leading a moving target;
+  - the strength gained from lifting;
+  - Eat's abort handler.
+- **In the map:** mobiles are now put in the map when created (`sub_5E8CA0`). Only
+  the flag is set; core builds no map grid yet.
+
+In `test_level` a second Khazar has a 3D object whose hand reaches 5 m. Starved, he
+picks up a villager after two LookAtSuns. He eats it 22 turns later: a meal of 250
+(info +104), and the villager dies.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -513,8 +566,9 @@ version and then a species below 17, and in those files the second word is a flo
   - the player's hand and temple;
   - spell charge and cost;
   - day and night, beaches, friends.
-- `CanCreatureEatMe`'s chain down to the hand span, so a creature can eat what it
-  likes.
+- The hand span itself: `sub_4CE650`'s measure off the creature's morph meshes in
+  the pickup clip. Until core loads those, a creature without a host-filled 3D
+  object can pick up nothing.
 - Sources whose inputs this world lacks (watching the player or villagers, home,
   loneliness, ...). They keep their saved value and fade by their factor.
 - The real action handlers.

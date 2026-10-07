@@ -22,6 +22,7 @@
 #include <cmath>
 #include <black/Creature.h>
 #include <black/CreatureBrain.h>
+#include <black/CreaturePhysical.h>
 #include <black/EntityFactory.h>
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
@@ -460,9 +461,10 @@ int main() {
         // placed beside a village: the agenda (sub_4D0630) over what it can see,
         // with the objects' own predicates and his opinion trees. His innate
         // lesson rates villagers +0.6 for hunger, but whether he can eat one is
-        // CanCreatureEatMe (sub_4C5EA0), which measures his hand span off his
-        // animated skeleton and is not translated -- so the villager is out, and
-        // with a fish farm in reach he goes fishing (FishAndEat, 155).
+        // CanCreatureEatMe (sub_4C5EA0), which needs it to fit in his hand: his
+        // reach is measured off his 3D object's meshes (sub_4CE650), which core
+        // does not load -- so the villager is out, and with a fish farm in reach
+        // he goes fishing (FishAndEat, 155). The next block gives him a hand.
         Villager* near = nullptr;
         for (const level::Spawned& s : w.objects)
             if (auto* v = dynamic_cast<Villager*>(s.obj); v && !v->IsDead()) { near = v; break; }
@@ -545,6 +547,69 @@ int main() {
             // PointAtCamera (sub_4976C0) points at the camera for max(1 s, 10 turns) (sub_4E5520).
             std::snprintf(msg, sizeof msg, "PointAtCamera points at the camera: %u done, %d turns pointing", camera_done, pointed);
             CHECK(camera_done > 0 && pointed >= 10 * static_cast<int>(camera_done), msg);
+        }
+    }
+
+    {
+        // The same, with a 3D object whose hand reaches 5 m (sub_46E600) and a
+        // 1 m radius. Core does not load the creature's meshes, so these stand
+        // in for what sub_4CE650 measures; with them a villager fits in his
+        // hand (sub_4C4E00), and CanCreatureEatMe (sub_4C5EA0) lets him eat it.
+        Villager* prey = nullptr;
+        for (const level::Spawned& s : w.objects)
+            if (auto* v = dynamic_cast<Villager*>(s.obj); v && !v->IsDead() && v->IsObjectInMap_0()) { prey = v; break; }
+        creature::CreatureMind khazar;
+        const bool mind_ok = creature::LoadCreatureMindFile((root + "CreatureMind/KhazarCreature").c_str(), khazar);
+        EntityCreateParams cp{};
+        cp.world_x = MetresOf(prey ? prey->coords.x : 0) + 20.0f;
+        cp.world_z = MetresOf(prey ? prey->coords.z : 0);
+        cp.scale = 5.0f;
+        auto* body = static_cast<Creature*>(EntityFactory::CreateCreature(cp));
+        char* c3d = static_cast<char*>(std::calloc(1, 0x57B8));  // LH3DCreature
+        auto put = [&](size_t off, float v) { std::memcpy(c3d + off, &v, sizeof v); };
+        put(0x90, 1.0f);    // size_1: weight (8.33)^3 x 100
+        put(0x94, 1.0f);    // size_2
+        put(0x5228, 1.0f);  // radius
+        for (int i = 0; i < 4; ++i) put(0x49C8 + 12 * i, 3.0f), put(0x49C8 + 12 * i + 8, 4.0f);  // the hand at (3, 0, 4)
+        if (body && body->physical) body->physical->creature_3d = reinterpret_cast<LH3DCreature*>(c3d);
+        creature::CreatureBrain brain;
+        const bool ok = prey && mind_ok && body && body->physical && brain.Init(body, khazar);
+        std::snprintf(msg, sizeof msg, "a 3D hand reaching %.2f m (sub_46E600), and a villager of weight %.3f fits in it (CanCreatureEatMe)",
+                      body ? body->HandReach() : 0.0f, prey ? prey->GetWeight() : 0.0f);
+        CHECK(ok && std::fabs(body->HandReach() - 5.0f) < 1e-4f && prey->CanCreatureEatMe(body), msg);
+        if (ok) {
+            brain.body.energy = 0.4f;
+            std::string log;
+            uint32_t done = 0;
+            int turn = 0, picked = -1, eaten = -1;
+            float hunger_before = 0.0f, hunger_after = 0.0f, energy_before = 0.0f, energy_after = 0.0f;
+            Object* victim = nullptr;
+            for (; turn < 4000 && eaten < 0; ++turn) {
+                level::Process(w);
+                std::vector<Object*> seen;
+                for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
+                const float h = brain.desires.value[4], energy = brain.body.energy;
+                const uint32_t meals = brain.body.meals;
+                brain.Tick(seen);
+                if (brain.body.meals != meals) energy_before = energy, energy_after = brain.body.energy;
+                if (brain.Action() == 11 && brain.hand.holding && picked < 0) picked = turn, victim = brain.hand.held.object;
+                if (brain.completed != done) {
+                    done = brain.completed;
+                    if (log.size() < 120) log += " " + std::to_string(brain.last_action) + "/" + std::to_string(brain.last_desire);
+                    if (brain.last_action == 11) eaten = turn, hunger_before = h, hunger_after = brain.desires.value[4];
+                }
+            }
+            auto* v = dynamic_cast<Villager*>(victim);
+            std::snprintf(msg, sizeof msg, "he lives by his desires (%s); EatAlive picks up a villager on turn %d and eats it on turn %d: hunger %.3f -> %.3f",
+                          log.c_str(), picked, eaten, hunger_before, hunger_after);
+            CHECK(eaten > picked && picked > 0 && v && v->IsDead() && hunger_after < hunger_before && !brain.hand.holding, msg);
+            // The meal is the villager's GetFoodValue(3) (sub_401740: info +104),
+            // eaten when the clip starts (sub_4DF5A0), as with the fish.
+            float food = 0.0f;
+            if (v && v->info) std::memcpy(&food, reinterpret_cast<const char*>(v->info) + 104, 4);
+            std::snprintf(msg, sizeof msg, "the villager is a meal of %.1f (GetFoodValue %.1f): energy %.3f -> %.3f",
+                          food, v ? v->GetFoodValue(static_cast<FOOD_TYPE>(3)) : 0.0f, energy_before, energy_after);
+            CHECK(v && food > 0.0f && v->GetFoodValue(static_cast<FOOD_TYPE>(3)) == food && energy_after > energy_before, msg);
         }
     }
 

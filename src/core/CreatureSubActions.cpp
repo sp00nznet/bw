@@ -5,6 +5,7 @@
 #include <black/Creature.h>
 #include <black/CreatureDesireEnums.h>
 #include <black/Object.h>
+#include <black/Villager.h>
 
 #include <algorithm>
 #include <cmath>
@@ -44,9 +45,14 @@ uint32_t ClipTurns(uint32_t clip) {
     }
 }
 
+// GetFoodValue(3), what eating it gives.
+float FoodValue(Object* o) { return o ? o->GetFoodValue(static_cast<FOOD_TYPE>(3)) : 0.0f; }
+
 struct Record { uint32_t id, kind; bool step[4]; };
 // From the table at 0xB0EAF8 (work/decomp/subaction_table.json).
 constexpr Record kRecords[] = {
+    {kSubPickup, 2, {true, true, false, false}},               // sub_4DECD0 -> sub_4DED00, sub_4DF0B0 -> sub_4DF0E0
+    {kSubEat, 0, {true, true, true, false}},                   // sub_4DF5A0, sub_4DF7A0, sub_4DFB90; abort sub_4E7810
     {kSubStaticAction, 1, {true, true, true, true}},           // sub_4DFD90, sub_4DFE20, sub_4E77D0; abort sub_4E7800
     {kSubTurnToFacePos, 3, {true, true, false, false}},        // sub_4E0980, sub_4E2AF0
     {kSubIndividualAction, 1, {true, true, false, false}},     // sub_4E0F60, sub_4E77D0
@@ -70,7 +76,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
+    return action == 155 || action == 11 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -109,6 +115,23 @@ bool CreatureBrain::StartAction(uint32_t action) {
             a.AddMain(e);
         }
         return true;
+    case 11: {  // EatAlive (sub_482B30): pick it up, unless already holding something edible, and eat it
+        Object* t = Target();
+        if (!(hand.holding && hand.held.object && hand.held.object->CanBeEatenByCreature(creature_))) {
+            if (!Random(2)) {  // sub_67BC90(2): half the time, a gesture first
+                SubActionEntry g{kSubIndividualAction};
+                g.integer = 54;
+                a.Add(g);
+            }
+            SubActionEntry p{kSubPickup};
+            p.object = t;
+            a.Add(p);
+        }
+        SubActionEntry e{kSubEat};
+        e.object = t;
+        a.AddMain(e);
+        return true;
+    }
     case 23:  // CommunicateState (sub_485610)
         a.Add(SubActionEntry{kSubTurnToFaceCamera});
         a.AddMain(SubActionEntry{kSubCommunicateToPlayer});
@@ -185,8 +208,19 @@ bool CreatureBrain::PlayAnim(uint32_t clip, uint32_t turns) {
 void CreatureBrain::TickHand() {
     if (!hand.anim_left || --hand.anim_left) return;
     switch (hand.anim) {
-    case kClipPickup: hand.held = hand.grabbing; hand.holding = true; hand.grabbing = Food(); break;
-    case kClipEat: hand.holding = false; break;
+    case kClipPickup:
+        hand.held = hand.grabbing;
+        hand.holding = true;
+        hand.grabbing = Food();
+        // ponytail: a villager in the hand goes into IN_HAND (24) and stays put;
+        // the original carries it at the hand.
+        if (auto* v = dynamic_cast<Villager*>(hand.held.object)) v->SetTopState(VILLAGER_STATE_IN_HAND);
+        break;
+    case kClipEat:
+        hand.holding = false;
+        // ponytail: the original removes what was eaten; a villager dies.
+        if (auto* v = dynamic_cast<Villager*>(hand.held.object)) v->SetTopState(VILLAGER_STATE_DYING);
+        break;
     case kClipPutDown: case kClipDrop: hand.holding = false; hand.held = Food(); break;
     }
     hand.anim = 0;
@@ -222,7 +256,17 @@ void CreatureBrain::RunSubActions() {
                 return;
             }
             break;
-        default: break;  // 2 (pickups) is not used by the actions translated here
+        case 2:  // a pickup: drop what is held first, unless it is the very thing
+            if (hand.holding) {
+                if (hand.held.object && hand.held.object == e.object) {  // sub_4DE910
+                    if (!a.Next()) Finish();
+                    return;
+                }
+                if (!PlayAnim(kClipDrop)) a.starting = true;  // physical+40 = 0 when it starts
+                return;
+            }
+            break;
+        default: break;
         }
     }
     // ponytail: the per-entry callback every +119824 seconds (entry +72) is
@@ -335,12 +379,52 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
     case kSubPickupCreatedObject * 4 + 1:  // sub_4E4380 -> sub_4DF0E0
         if (!created_.any) return kStepFailed;
         return hand.Busy() ? kStepWait : kStepDone;
+    case kSubPickup * 4 + 0: {  // sub_4DED00
+        Object* o = e.object;
+        if (!o) return kStepFailed;
+        // ponytail: objects being deleted (+10 bit 0) are not kept in core, and
+        // the exception for info type 15 off the map is not needed by villagers.
+        if (!o->CanBePickedUpByCreature(creature_) || !o->IsObjectInMap_0()) return kStepFailed;  // "StoppingPickup"
+        const float dist = MetresOf(1) * creature_->GetDistanceFromObject(o->coords);
+        // sub_4614E0: near enough to reach for without walking -- within 10 m
+        // of the hand, or within 50 x its height. ponytail: a villager's height
+        // (vslot 267) is its mesh's, 0 here, and the hand is the creature's
+        // position (3D +0x78).
+        if (dist >= 10.0f) {
+            const int w = WalkTo(o->coords, 2.0f * (o->Get2DRadius() + creature_->Get2DRadius()));
+            if (w == 1) return kStepWait;
+            if (w != 3) return kStepFailed;  // ponytail: the place is not remembered (creature+4640)
+        }
+        // sub_46E750: within the hand's reach (sub_46E600, clip 14), or walk on
+        // until it is. ponytail: no lead on a moving villager, no obstruction
+        // test (sub_46E970), no height check.
+        const float reach = creature_->HandReach();
+        if (dist > reach) {
+            const int w = WalkTo(o->coords, reach);
+            return w == 1 || w == 3 ? kStepWait : kStepFailed;
+        }
+        if (!PlayAnim(kClipPickup)) return kStepWait;  // sub_469760
+        hand.grabbing = Food{o, FoodValue(o), true};
+        // ponytail: lifting it adds flt_B8ECD4 x (its weight / the creature's)
+        // to strength (sub_4D0270); that constant is set at run time and is 0
+        // in the image.
+        return kStepDone;
+    }
+    case kSubPickup * 4 + 1:  // sub_4DF0E0: until the clip is over, then whether it closed on it
+        if (!e.object) return kStepFailed;
+        if (hand.Busy()) return kStepWait;
+        return hand.holding ? kStepDone : kStepStop;
+    case kSubEat * 4 + 2:  // sub_4DFB90
+        if (hand.Busy()) return kStepWait;
+        return e.object ? Digest(Food{e.object, FoodValue(e.object), true}) : kStepStop;
+    case kSubEat * 4 + 0:
     case kSubEatCreatedObject * 4 + 0:  // sub_4DF5A0
         if (hand.Busy()) return kStepWait;
         if (!hand.holding) return kStepFailed;  // "Stopping eating"
         PlayAnim(kClipEat);
         body.Eat(hand.held.value, body_info);
         return kStepDone;
+    case kSubEat * 4 + 1:
     case kSubEatCreatedObject * 4 + 1:  // sub_4DF7A0: until the clip lets go of it
         return hand.holding ? kStepWait : kStepDone;
     case kSubEatCreatedObject * 4 + 2:  // sub_4DF7D0

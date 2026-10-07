@@ -147,6 +147,7 @@ Object* CreateVillager(const EntityCreateParams& params) {
     villager->action.top_state = 0;  // INVALID — will be set by AI
     villager->action.final_state = 0;
     villager->action.previous_state = 0;
+    villager->InsertMapObject();
 
     return villager;
 }
@@ -167,6 +168,7 @@ Object* CreateAnimal(const EntityCreateParams& params) {
     Animal* animal = new Animal();
     InitObjectFromParams(animal, params);
     animal->info = InfoFor(infodat::DETAIL_ANIMAL_INFO, params);
+    animal->InsertMapObject();
     return animal;
 }
 
@@ -227,6 +229,7 @@ Object* CreateCreature(const EntityCreateParams& params) {
     creature->y_angle = params.angle;
     creature->scale = params.scale > 0.0f ? params.scale : 5.0f; // Creatures are big
     creature->life = 1.0f;
+    creature->InsertMapObject();
 
     return creature;
 }

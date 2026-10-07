@@ -10,6 +10,7 @@
 #include <black/Creature.h>
 #include <black/CreatureInfo.h>
 #include <black/CreaturePhysical.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
 
@@ -68,6 +69,47 @@ bool Creature::CanBePickedUp() {
 bool32_t Creature::CanBePickedUpByCreature(Creature* /*other*/) {
     // v1.0 vslot 150: return 0 (checked by test_chooser)
     return 0;
+}
+
+// The creature's 3D object (physical +0x58), as far as these read it: its
+// Morphable sizes and the four hand points sub_4CE650 measures.
+namespace {
+const LH3DCreature* Body3D(const Creature* c) { return c->physical ? c->physical->creature_3d : nullptr; }
+float At3D(const LH3DCreature* m, size_t off) {
+    float v;
+    std::memcpy(&v, reinterpret_cast<const char*>(m) + off, sizeof v);
+    return v;
+}
+}  // namespace
+
+float Creature::Get2DRadius() {
+    const LH3DCreature* m = Body3D(this);
+    return m ? At3D(m, 0x5228) : Living::Get2DRadius();  // 3D +21032
+}
+
+// sub_468430: (size_1 x 8.33)^3 x 100, heavier by 15% per unit of the two
+// morph weights at +0xA4 and +0xAC (the latter is strength, sub_4D0270).
+float Creature::GetWeight() {
+    const LH3DCreature* m = Body3D(this);
+    if (!m) return Living::GetWeight();
+    const float s = At3D(m, 0x90) * 8.333334f;
+    return s * ((At3D(m, 0xAC) + At3D(m, 0xA4)) * 0.15000001f + 1.0f) * 100.0f * s * s;
+}
+
+// sub_46E600(14): the four points at +0x49C8 are where the hand is in the
+// pickup clip (clip 14) on each of the morph meshes 84..81, which sub_4CE650
+// measures once off the skeleton. They are blended -0.4, -0.4, 0.9, 0.9 and
+// scaled by size_2.
+// ponytail: core loads no meshes, so the points are whatever the host put
+// there (zero: no reach).
+float Creature::HandReach() {
+    const LH3DCreature* m = Body3D(this);
+    if (!m) return 0.0f;
+    static constexpr float kWeight[4] = {-0.4f, -0.4f, 0.9f, 0.9f};
+    float p[3] = {};
+    for (int i = 0; i < 4; ++i)
+        for (int k = 0; k < 3; ++k) p[k] += kWeight[i] * At3D(m, 0x94) * At3D(m, 0x49C8 + 12 * i + 4 * k);
+    return std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
 }
 
 // The v1.0 Creature's constant answers to the chooser's predicates (vslots

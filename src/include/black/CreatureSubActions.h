@@ -23,6 +23,8 @@ struct Object;
 namespace creature {
 
 enum : uint32_t {  // sub-action ids: records of the table at 0xB0EAF8
+    kSubPickup = 0,
+    kSubEat = 2,
     kSubStaticAction = 4,
     kSubTurnToFacePos = 7,
     kSubMoveToPos = 8,
@@ -49,6 +51,7 @@ struct Food {
 
 struct SubActionEntry {      // 96 bytes at agenda +48 in the original
     uint32_t id = 0;         // +0
+    Object*  object = nullptr;  // +4: SubArgumentObject
     int32_t  integer = 0;    // +8: SubArgumentInteger (a clip, or turns to wait)
     MapCoords point;         // +12: SubArgumentPoint
     float    value = 0.0f;   // +24: the float of ...AndFloat (a radius, or seconds)

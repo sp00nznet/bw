@@ -33,6 +33,9 @@ struct Villager : public Living {
     bool32_t CanBeGivenToVillager(Creature*) override;
     uint32_t GetScriptObjectType() override;
     bool CanBePickedUp() override;
+    bool32_t CanCreatureEatMe(Creature* creature) override;         // vslot 140, sub_4C5EA0
+    bool32_t CanBePickedUpByCreature(Creature* creature) override;  // vslot 150, sub_4C4EC0
+    float GetWeight() override;                                     // vslot 398, sub_5EA850
     uint32_t GetTastiness() override;
     float GetHowMuchCreatureWantsToLookAtMe() override;
     HOLD_TYPE GetHoldType() override;

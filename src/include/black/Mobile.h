@@ -9,6 +9,7 @@
 
 struct Mobile : public Object {
     // No new virtual methods — vtable same as Object (0x85C bytes)
+    void InsertMapObject() override;  // sub_5E8CA0
 
     // === Fields ===
     uint16_t field_0x54;   // 0x54 — saved/loaded in Mobile::Save/Load

@@ -11,6 +11,7 @@
 #include <black/Abode.h>
 #include <black/BigForest.h>
 #include <black/BuildingSite.h>
+#include <black/Creature.h>
 #include <black/Forest.h>
 #include <black/Field.h>
 #include <black/FishFarm.h>
@@ -1047,6 +1048,47 @@ void Dying(Villager& v) { SetState(v, VILLAGER_STATE_DEAD); }  // 14, vslot 551 
 }  // namespace
 }  // namespace vs
 
+// sub_5EA850: scale cubed times the villager info's density (+172).
+float Villager::GetWeight() {
+    const float s = GetScale();
+    return s * (s * s) * vs::RawF(info, 172);
+}
+
+// sub_4C4E00: whether it fits in the creature's hand -- the two radii within
+// its reach (sub_46E600, clip 14) and no heavier than 0.8 of the creature
+// (sub_4C51D0) -- and is not held fast (vslot 394).
+// ponytail: the first test, that the creature's player is not already
+// holding it (sub_4B29D0 / sub_4B2A50), needs a player; core has none.
+static bool FitsInHand(Villager& v, Creature* c) {
+    const float reach = c->HandReach();
+    if (v.Get2DRadius() + c->Get2DRadius() <= reach && v.GetWeight() <= c->GetWeight() * 0.80000001f)
+        return v.CanBePickedUp();
+    return false;
+}
+
+// sub_4C4EC0. ponytail: the first test (a scripted villager is off limits to
+// a creature whose player is in mode 2, player +248) needs a player.
+bool32_t Villager::CanBePickedUpByCreature(Creature* c) {
+    if (!c) return 0;
+    if (IsTownArtifact()) return 0;
+    // A villager worshipping at its own player's worship site (real state 60).
+    if (IsVillager(nullptr) && vs::RealState(*this) == VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE &&
+        GetPlayer() == c->GetPlayer())
+        return 0;
+    // ponytail: or what it already holds (physical +40); the brain keeps the
+    // hand, and asks this only of what it does not hold.
+    if (IsObjectInMap_0()) return FitsInHand(*this, c);
+    return 0;
+}
+
+// sub_4C5EA0 (the generic slot 140, which Villager keeps).
+// ponytail: the per-type ban (mental +99600, set when the player punishes
+// eating that kind of thing) and the player tests are not kept; nothing is
+// banned.
+bool32_t Villager::CanCreatureEatMe(Creature* c) {
+    return !IsToy(c) && CanBePickedUpByCreature(c);
+}
+
 bool VillagerSleepHandler(Villager* v) { return vs::SleepHandler(*v); }
 bool VillagerFoodHandler(Villager* v) { return vs::FoodJob(*v); }
 bool VillagerWoodHandler(Villager* v) { return vs::WoodJob(*v); }
@@ -1089,6 +1131,7 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_EAT_FOOD: vs::EatFood(*this); break;
     case VILLAGER_STATE_EAT_FOOD_AT_HOME: vs::EatFoodAtHome(*this); break;
     case VILLAGER_STATE_DYING: vs::Dying(*this); break;
+    case VILLAGER_STATE_IN_HAND: break;  // its holder moves it
     case VILLAGER_STATE_DEAD: break;  // ponytail: the body's removal (vslot 552, sub_6F8620) is not translated
     default:
         if (action.turns_since_state_change > 300) vs::SetState(*this, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
