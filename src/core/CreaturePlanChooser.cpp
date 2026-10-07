@@ -41,7 +41,8 @@ bool ChooserTables::Load(uint32_t species) {
     for (uint32_t a = 0; a < 328; ++a) {
         const void* e = Element(DETAIL_CREATURE_ACTION, a);
         actions[a] = {At<uint32_t>(e, 164) != 0, At<uint32_t>(e, 168), {At<uint32_t>(e, 172), At<uint32_t>(e, 176)},
-                      At<uint32_t>(e, 180), At<uint32_t>(e, 184) != 0};
+                      At<uint32_t>(e, 180), At<uint32_t>(e, 184) != 0, {At<float>(e, 16), At<float>(e, 20), At<float>(e, 24)},
+                      At<float>(e, 208), At<uint32_t>(e, 216) != 0};
     }
     const void* info = Element(DETAIL_CREATURE_INFO, species);
     count_cap = At<uint32_t>(info, 680);

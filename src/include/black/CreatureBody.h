@@ -34,6 +34,9 @@ struct BodyInfo {
     float    hold_strength = 6.0f;       // +556
     float    energy_drain = 0.000116f;   // +560 a turn
     float    reserve_drain = 8e-5f;      // +564 a turn, while energy is below 0.5
+    float    spill = 0.06f;              // +568: how much of a meal past full goes to the reserve
+    float    digest = 1000.0f;           // +888: food per unit of energy (times growth)
+    float    poo_per_meal = 0.8f;        // +896
     bool Load(uint32_t species);         // from info.dat; false if it is not loaded
 };
 
@@ -50,6 +53,7 @@ struct CreatureBody {
     float    dehydration = 0.0f; // +0x34
     float    growth = 0.0f;      // +0x6C: 0..2 (sub_4D0000); also the 3D object's +144
     uint32_t turn = 0;           // +0x70
+    uint32_t meals = 0;          // creature+4540
 
     // What the tick needs from the rest of the creature and the world.
     struct Context {
@@ -65,6 +69,11 @@ struct CreatureBody {
     // sub_4CFEB0: doing `action` costs the action record's +16/+20/+24
     // (strength, energy, exhaustion), the last two from stage 1.
     void PayFor(float strength_cost, float energy_cost, float exhaustion_cost, uint32_t stage);
+    // sub_4DF5A0, the Eat sub-action's first step: `food` is the eaten object's
+    // GetFoodValue(3) (its info +104 -- 250 for a villager, 20 for a fish).
+    // Energy rises by food / (min(growth, 0.8) x info+888), up to max(growth, 1);
+    // what would pass full partly fills the reserve, and poo builds.
+    void Eat(float food, const BodyInfo& info);
 };
 
 }  // namespace creature

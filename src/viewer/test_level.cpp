@@ -482,6 +482,7 @@ int main() {
             // 0.4 and hunger rises on its own as HUNGER_FROM_ENERGY passes its
             // threshold.
             brain.body.energy = 0.4f;
+            float energy_before = 0.0f, hunger_before = 0.0f;
             int turn = 0;
             std::string log;
             uint32_t done = 0;
@@ -489,6 +490,8 @@ int main() {
                 level::Process(w);
                 std::vector<Object*> seen;
                 for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
+                energy_before = brain.body.energy;
+                hunger_before = brain.desires.value[4];
                 brain.Tick(seen);
                 if (brain.completed != done) {
                     done = brain.completed;
@@ -500,9 +503,15 @@ int main() {
             }
             const bool at_farm = dynamic_cast<FishFarm*>(brain.last_target) != nullptr;
             std::snprintf(msg, sizeof msg,
-                          "starved, he lives by his desires (action/desire:%s) and on turn %d eats: action %u at %s, energy now %.2f",
-                          log.c_str(), turn, brain.last_action, at_farm ? "a fish farm" : "?", brain.body.energy);
-            CHECK(brain.last_desire == 4 && brain.last_action == 155 && at_farm && brain.body.energy > 0.8f, msg);
+                          "starved, he lives by his desires (%s) and on turn %d fishes at %s: energy %.3f -> %.3f, hunger %.2f -> %.3f",
+                          log.c_str(), turn, at_farm ? "a fish farm" : "?", energy_before, brain.body.energy, hunger_before,
+                          brain.desires.value[4]);
+            // One fish (POT_INFO_FISH, food 20) over min(growth 0.32, 0.8) x 1000
+            // (sub_4DF5A0); FishAndEat's record scales hunger by 0.01 (sub_4BE680).
+            const float fish = 20.0f / (std::min(brain.body.growth, 0.8f) * brain.body_info.digest);
+            CHECK(brain.last_desire == 4 && brain.last_action == 155 && at_farm &&
+                      std::fabs(brain.body.energy - (energy_before + fish)) < 2e-4f &&
+                      brain.desires.value[4] < hunger_before * 0.011f + 1e-4f, msg);
         }
     }
 

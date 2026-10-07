@@ -90,6 +90,8 @@ std::vector<uint8_t> BuildMind(uint32_t version, const char* name,
     b.U32(51); b.U32(0); b.F32(0.5f); b.F32(0.497f); b.F32(0.5f);  // body: turn, age, -, reserve, max
     b.F32(0.997f); b.U32(0); b.U16(0);                     // energy, +0x20, +0x24
     b.F32(0.0f); b.F32(0.0f); b.F32(0.0f);                 // poo, exhaustion, dehydration
+    b.F32(0.5f); b.F32(0.7f); b.F32(0.9f);                 // +0x38, +0x3C, +0x40
+    if (version >= 0x16) { b.U32(0); b.F32(0.32f); }       // sub_4D0310's flag, growth
     return b.d;
 }
 
@@ -150,10 +152,10 @@ int main() {
     // --- the minds the game ships -------------------------------------------
     struct Shipped { const char* file; uint32_t version; const char* name; size_t actions, spells, parsed, total; };
     const Shipped kShipped[] = {
-        {"KhazarCreature", 25, "Matey", 313, 0, 5232, 5268},
-        {"LethysCreature", 25, "Matey", 313, 0, 5232, 5268},
-        {"NemesisCreature", 25, "Matey", 313, 0, 5232, 5268},
-        {"ComputerControlledCreature", 30, "Richard", 322, 5, 5296, 5748},
+        {"KhazarCreature", 25, "Matey", 313, 0, 5252, 5268},
+        {"LethysCreature", 25, "Matey", 313, 0, 5252, 5268},
+        {"NemesisCreature", 25, "Matey", 313, 0, 5252, 5268},
+        {"ComputerControlledCreature", 30, "Richard", 322, 5, 5316, 5748},
     };
 
     // The working directory depends on how the test is launched, so try the
@@ -223,9 +225,9 @@ int main() {
         CHECK(real.known_abilities.size() == 6 && real.known_spells.size() == s.spells && real.action_words.size() == s.actions, line);
         std::snprintf(line, sizeof line, "  the reader reaches the end of the body (%zu of %zu bytes)", s.parsed, s.total);
         CHECK(real.parsed_bytes == s.parsed && real.total_bytes == s.total, line);
-        std::snprintf(line, sizeof line, "  stage %u (of 0..13), energy %.3f, reserve %.3f", real.stage, real.body.energy, real.body.reserve);
+        std::snprintf(line, sizeof line, "  stage %u (of 0..13), energy %.3f, reserve %.3f, growth %.3f", real.stage, real.body.energy, real.body.reserve, real.body.growth);
         CHECK(real.has_body && real.stage == 13 && real.body.energy > 0.97f && real.body.energy <= 1.0f &&
-                  real.body.reserve > 0.4f && real.body.reserve < 0.6f, line);
+                  real.body.reserve > 0.4f && real.body.reserve < 0.6f && real.body.growth > 0.2f && real.body.growth < 0.4f, line);
     }
 
     // --- the desire model, fed from a real mind -----------------------------

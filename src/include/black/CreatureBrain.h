@@ -16,8 +16,9 @@
 // actions that dispatch through the action table run real behaviour code that
 // is not translated; here an action completes when the creature reaches its
 // belief (a fishing action, at the nearest fish farm), an eating action kills
-// the villager it was about, and the desire it served drops (a hunger action
-// also restores half the energy). Desires come from the per-turn desire
+// the villager it was about. The effects are v1.0's: the eat sub-action's
+// energy (sub_4DF5A0), the action-done routine at 0x460020 (costs, the
+// desire's factor, source resets, countdowns). Desires come from the per-turn desire
 // system fed by the body (CreatureBody): hunger rises as energy drains.
 // Sources whose inputs this world lacks keep their saved value, fading by
 // their factor.
@@ -67,6 +68,7 @@ private:
     uint32_t IdOf(Object* o);
     float    Opinion(uint32_t desire, const BeliefView& b) const;
     bool     SourceValue(uint32_t type, float* out) const;
+    void     ActionDone(uint32_t action, uint32_t served_desire);
     Object*  NearestFishFarm() const;
 
     Creature*     creature_ = nullptr;

@@ -49,6 +49,9 @@ bool BodyInfo::Load(uint32_t species) {
     hold_strength = F(e, 556);
     energy_drain = F(e, 560);
     reserve_drain = F(e, 564);
+    spill = F(e, 568);
+    digest = F(e, 888);
+    poo_per_meal = F(e, 896);
     return true;
 }
 
@@ -109,6 +112,20 @@ void CreatureBody::PayFor(float strength_cost, float energy_cost, float exhausti
     const float k = std::clamp(growth + 1.0f, 1.0f, 3.0f);
     energy = std::clamp(energy - energy_cost / k, 0.0f, 1.0f);
     exhaustion = std::min(exhaustion + exhaustion_cost / k, 1.0f);
+}
+
+void CreatureBody::Eat(float food, const BodyInfo& info) {
+    const float size = growth <= 0.8f ? growth : 0.8f;
+    // A growth of 0 divides by zero in the original too; the cap below then holds.
+    const float gain = size > 0.0f ? food / (size * info.digest) : 1e30f;
+    const float over = gain * info.spill + energy - 1.0f;
+    if (over > 0.0f) reserve = std::clamp(reserve + over, 0.0f, 1.0f);
+    energy += gain;
+    const float cap = std::max(growth, 1.0f);  // sub_4CF970: the 3D object's +144, taken as growth
+    if (energy < 0.0f) energy = 0.0f;
+    else if (cap < energy) energy = cap;
+    poo = std::clamp(poo + std::clamp(gain, 0.0f, 1.0f) * info.poo_per_meal, 0.0f, 1.0f);
+    ++meals;
 }
 
 }  // namespace creature

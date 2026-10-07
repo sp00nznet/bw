@@ -11,6 +11,7 @@
 #include <black/types.h>
 
 #include <algorithm>
+#include <cstring>
 
 namespace creature {
 
@@ -57,6 +58,8 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
         body.poo = m.body.poo;
         body.exhaustion = m.body.exhaustion;
         body.dehydration = m.body.dehydration;
+        body.strength = m.body.strength;
+        body.growth = m.body.growth;
     }
     creature->field_0x1268 = static_cast<int>(m.stage);
     BindKnownActions(&host_, m);
@@ -134,6 +137,32 @@ bool CreatureBrain::SourceValue(uint32_t type, float* out) const {
         return true;
     default: return false;  // event-driven, or inputs not modelled here
     }
+}
+
+// The routine at 0x460020, when an action is done.
+void CreatureBrain::ActionDone(uint32_t action, uint32_t served) {
+    const ChooserTables::Action& a = tables_.actions[action];
+    const uint32_t stage = static_cast<uint32_t>(creature_->field_0x1268);
+    body.PayFor(a.cost[0], a.cost[1], a.cost[2], stage);  // sub_4CFEB0
+    if (!drive_desires || served >= kNumCreatureDesires) return;
+    desires.ActionDone(served, a.desire, a.done_scale, a.done_scales);
+    auto hold = [&](uint32_t d, float seconds) {
+        if (desires.Countdown(d, seconds)) agenda.plans.plans[d] = ActionPlan(), agenda.plans.plans[d].desire = d;
+    };
+    switch (served) {  // the jump table at 0x460218
+    case 7: hold(7, 60.0f); break;
+    case 8:  // sub_4BEAC0: tiredness falls to the weakest desire's level over 1.3
+        desires.value[8] = desires.value[desires.Weakest()] / 1.3f;
+        desires.Clamp(8);
+        break;
+    case 9: hold(9, 120.0f); break;
+    case 15: creature_->life = std::min(1.0f, creature_->GetLife() + 0.5f); break;  // vslot 364 (GetLife + 0.5)
+    case 17: hold(17, 60.0f); break;
+    case 19: hold(19, 120.0f); break;
+    case 20: hold(20, 120.0f); break;
+    default: break;
+    }
+    for (uint32_t d = 0; d < kNumCreatureDesires; ++d) mind.desire[d] = desires.value[d];
 }
 
 Object* CreatureBrain::NearestFishFarm() const {
@@ -226,16 +255,21 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         if (creature_->move_state != MOVE_TO_STATES_ARRIVED) return false;
     }
 
-    // Arrived: the action is done (ours -- see the header).
+    // Arrived. The sub-actions that would play out here are collapsed into
+    // their effects: an Eat (sub_4DF5A0) of the villager, or for FishAndEat the
+    // fish CreateFishFromSea makes (POT_INFO_FISH, food 20) -- ours in timing.
     if (IsEating(action)) {
-        if (Villager* v = dynamic_cast<Villager*>(target)) v->SetTopState(VILLAGER_STATE_DYING);
+        if (Villager* v = dynamic_cast<Villager*>(target)) {
+            float food = 0.0f;
+            if (v->info) std::memcpy(&food, reinterpret_cast<const char*>(v->info) + 104, 4);  // GetFoodValue(3)
+            body.Eat(food, body_info);
+            v->SetTopState(VILLAGER_STATE_DYING);
+        }
+    } else if (action == 155) {
+        body.Eat(20.0f, body_info);
     }
     const uint32_t served = agenda.plans.current_desire;
-    if (served < kNumCreatureDesires) {
-        mind.desire[served] = std::max(0.0f, mind.desire[served] - 0.5f);
-        if (drive_desires) desires.value[served] = mind.desire[served];
-        if (served == 4) body.energy = std::min(1.0f, body.energy + 0.5f);  // ours: a meal
-    }
+    ActionDone(action, served);
     last_action = action;
     last_desire = served;
     last_target = target;

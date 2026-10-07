@@ -169,12 +169,16 @@ bool DesireSystem::Init(uint32_t species, const CreatureMind* mind) {
         return false;
     *this = DesireSystem();
     min_value = ElemF(DETAIL_CREATURE_INFO, species, 628);
-    for (uint32_t t = 0; t < 61; ++t) factor[t] = ElemF(DETAIL_CREATURE_DESIRE_SOURCE_TABLE, t, 24);
+    for (uint32_t t = 0; t < 61; ++t) {
+        factor[t] = ElemF(DETAIL_CREATURE_DESIRE_SOURCE_TABLE, t, 24);
+        resets[t] = ElemU(DETAIL_CREATURE_DESIRE_SOURCE_TABLE, t, 20) != 0;
+    }
     for (uint32_t d = 0; d < kNumCreatureDesires; ++d) {
         active[d] = true;  // ponytail: sub_4BE280 asks sub_463140; the mind's flag decides below
         const float lo = ElemF(DETAIL_CREATURE_DESIRE_TABLE, d, 80), hi = ElemF(DETAIL_CREATURE_DESIRE_TABLE, d, 84);
         decay[d] = lo + lh::RandomFloat(hi - lo);
         max_value[d] = ElemF(DETAIL_CREATURE_DESIRE_TABLE, d, 76);
+        done_period[d] = ElemF(DETAIL_CREATURE_DESIRE_TABLE, d, 120);
         cycle[d] = ElemF(DETAIL_CREATURE_DESIRE_INITIAL_CYCLE_TIME, d, 16 + 4 * static_cast<int>(species));  // a float, copied raw
         for (int k = 0; k < 8; ++k) {  // sub_4C0220: up to eight source types, 61 = none
             const uint32_t type = ElemU(DETAIL_CREATURE_DESIRE_TABLE, d, 16 + 4 * k);
@@ -231,6 +235,39 @@ void DesireSystem::Tick(const std::function<bool(uint32_t type, float* value)>& 
         else if (value[d] > max_value[d]) value[d] = max_value[d];
         total += value[d];
     }
+}
+
+void DesireSystem::Clamp(uint32_t d) {
+    if (value[d] < min_value) value[d] = min_value;
+    else if (value[d] > max_value[d]) value[d] = max_value[d];
+}
+
+void DesireSystem::ActionDone(uint32_t plan_desire, uint32_t action_desire, float scale, bool flag) {
+    if (plan_desire >= kNumCreatureDesires) return;
+    if (++done_count[plan_desire] < static_cast<uint32_t>(done_period[plan_desire])) return;  // sub_4BEE20
+    done_count[plan_desire] = 0;
+    for (DesireSourceSlot& s : sources[plan_desire])  // sub_4C0750
+        if (s.type < 61 && resets[s.type]) s.value = 0.0f;
+    if (action_desire < kNumCreatureDesires && active[action_desire] && (flag || scale_always)) {  // sub_4BE680
+        value[action_desire] *= scale;
+        Clamp(action_desire);
+    }
+}
+
+bool DesireSystem::Countdown(uint32_t d, float seconds, uint32_t turn_ms) {
+    if (d >= kNumCreatureDesires) return false;
+    const uint32_t turns = static_cast<uint32_t>(static_cast<float>(turn_ms ? 1000u / turn_ms : 10u) * seconds);  // _ftol
+    if (turns <= countdown[d]) return false;
+    countdown[d] = turns;
+    return true;
+}
+
+uint32_t DesireSystem::Weakest() const {
+    uint32_t w = 0;
+    float least = 2.0f;
+    for (uint32_t d = 0; d < kNumCreatureDesires; ++d)
+        if (active[d] && value[d] < least) { w = d; least = value[d]; }
+    return w;
 }
 
 }  // namespace creature

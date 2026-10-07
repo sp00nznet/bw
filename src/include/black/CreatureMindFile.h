@@ -92,7 +92,8 @@ struct CreatureMind {
     bool     has_body = false;
     struct Body {
         uint32_t turn = 0, age = 0;
-        float reserve = 0, reserve_max = 0, energy = 0, poo = 0, exhaustion = 0, dehydration = 0;
+        float strength = 0, reserve = 0, reserve_max = 0, energy = 0, poo = 0, exhaustion = 0, dehydration = 0;
+        float growth = 0;  // +0x6C (sub_4D5C40), from version 0x16
     } body;
 
     // Byte offset the parse finished at, and the file size it was read from.

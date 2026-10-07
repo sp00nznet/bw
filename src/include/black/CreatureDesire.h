@@ -198,6 +198,10 @@ struct DesireSystem {
     float    total = 0.0f;                         // +0x654
     float    min_value = 0.0f;                     // creature info +628
     float    factor[61] = {};                      // DESIRE_SOURCE_TABLE +8 per type
+    bool     resets[61] = {};                      // DESIRE_SOURCE_TABLE +4: zeroed when its desire is served
+    float    done_period[kNumCreatureDesires] = {};    // +0x508 (DESIRE_TABLE +120)
+    uint32_t done_count[kNumCreatureDesires] = {};     // +0x5A8
+    bool     scale_always = false;                 // +0x650
 
     // From info.dat for `species`, then the mind's own values where it has
     // them (active, value, maximum, cycle, sources). The decay factor is
@@ -207,6 +211,19 @@ struct DesireSystem {
     // One turn. `compute(type, &value)` is a source's value function; false
     // when the type has none (its value then only fades by its factor).
     void Tick(const std::function<bool(uint32_t type, float* value)>& compute, uint32_t turn_ms = 100);
+
+    // When an action is done (the routine at 0x460020): every `done_period`-th
+    // completion for the plan's desire (sub_4BEE20) zeroes that desire's
+    // resetting sources (sub_4C0750) and multiplies the action's own desire by
+    // its record's +208 if its +216 flag is set (sub_4BE680).
+    void ActionDone(uint32_t plan_desire, uint32_t action_desire, float factor, bool flag);
+    // sub_4BE3E0: hold the desire back for `seconds`. True if that lengthened
+    // its countdown (the caller then clears the desire's plan slot).
+    bool Countdown(uint32_t desire, float seconds, uint32_t turn_ms = 100);
+    // sub_4BE8B0: the weakest active desire.
+    uint32_t Weakest() const;
+    // Clamp one desire to [min_value, max_value] as every write does.
+    void Clamp(uint32_t desire);
 };
 
 }  // namespace creature

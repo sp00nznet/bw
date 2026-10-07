@@ -21,6 +21,14 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- What finishing an action does (`docs/creature-chooser.md`):
+  - v1.0's eat step: food over growth into energy, the reserve and poo.
+  - The action-done routine: costs, the desire's factor, source resets and the
+    per-desire countdowns.
+  - The sub-action table (158 named sub-actions with their step handlers), recovered
+    by emulation.
+
+  A hungry Khazar's fish is now worth exactly what v1.0 says.
 - A creature's body and the desires it drives (`docs/creature-chooser.md`):
   - v1.0's body tick: energy, reserve, exhaustion, dehydration, temperature, growth.
   - The per-turn desire system, with sources computed from the body and pushed

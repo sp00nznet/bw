@@ -202,7 +202,7 @@ bool LoadCreatureMind(const uint8_t* data, size_t size, CreatureMind& out) {
     CreatureMind::Body& b = out.body;
     b.turn = r.U32();          // +0x70
     b.age = r.U32();           // +0x08
-    r.F32();                   // passed to sub_4D5CE0
+    b.strength = r.F32();      // +0x0C (sub_4D5CE0 -> sub_4D0200)
     b.reserve = r.F32();       // +0x14
     b.reserve_max = r.F32();   // +0x18
     if (out.version < 0xE) r.U32();
@@ -212,6 +212,11 @@ bool LoadCreatureMind(const uint8_t* data, size_t size, CreatureMind& out) {
     b.poo = r.F32();           // +0x2C
     b.exhaustion = r.F32();    // +0x30
     b.dehydration = r.F32();   // +0x34
+    r.F32(); r.F32(); r.F32(); // +0x38, +0x3C, +0x40
+    if (out.version >= 0x16) {
+        r.U32();               // sub_4D0310's flag (+0x50)
+        b.growth = r.F32();    // +0x6C (sub_4D5C40)
+    }
     if (r.bad) return false;
     out.has_body = true;
 

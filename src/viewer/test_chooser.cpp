@@ -327,6 +327,19 @@ int main() {
         std::snprintf(msg, sizeof msg, "a hunger source 0.1 past its 0.4 threshold adds %.6f in a turn (Sigmoid %.4f / 10 x cycle %.0f)",
                       ds.value[4], Sigmoid(0.4f, 0.5f), ds.cycle[4]);
         CHECK(ds_ok && ds.cycle[4] == 20.0f && std::fabs(ds.value[4] - expect) < 1e-7f && Sigmoid(0.4f, 0.5f) > 0.885f, msg);
+
+        // Eating a villager (food 250, its info +104) at Khazar's growth 0.32:
+        // 250 / (0.32 x 1000) = 0.78 energy, capped at max(growth, 1); past
+        // full, 0.06 of the meal spills into the reserve; poo rises by 0.8 x the gain.
+        CreatureBody eater;
+        eater.Init(bi);
+        eater.growth = 0.32f;
+        eater.energy = 0.1f;
+        eater.Eat(250.0f, bi);
+        const float gain = 250.0f / (0.32f * bi.digest);
+        std::snprintf(msg, sizeof msg, "a villager is %.3f of energy to a creature of growth 0.32 (sub_4DF5A0): 0.1 -> %.3f, poo %.2f",
+                      gain, eater.energy, eater.poo);
+        CHECK(std::fabs(eater.energy - (0.1f + gain)) < 1e-5f && std::fabs(eater.poo - gain * bi.poo_per_meal) < 1e-5f && eater.meals == 1, msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

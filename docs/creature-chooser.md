@@ -209,12 +209,9 @@ The early creature that eats villagers is in the data from the start.
    action is planned on the creature itself, so it walks to the nearest fish farm
    instead.
 
-What happens on arrival is ours:
-- the action completes;
-- an eating action kills the villager;
-- the desire it served drops by 0.5.
-
-The 52 real action handlers are not translated.
+When the creature arrives, the action completes. What follows is v1.0's (see
+"What actions are made of" below): the eat step and the action-done routine. The
+sub-actions' own timing is collapsed into the arrival.
 
 `test_level` puts Khazar's shipped mind in a body 20 m from a Land 1 villager, hungry
 (0.8) and curious (0.5):
@@ -332,7 +329,53 @@ desires:
 hunger at Sigmoid(0.4, 0.5) / 200.
 
 Ours, because actions complete on arrival: a completed plan's slot scores nothing until
-the queue rebuilds it, and a meal restores half the energy.
+the queue rebuilds it.
+
+## What actions are made of: sub-actions
+
+An action's handler (the action table's +32) does nothing itself. It queues
+**sub-actions** on the creature's sub-action agenda: `AddSubAction` (`sub_4DE610`) and
+a closing `AddMainSubAction` (`sub_4DE770`). For example:
+
+| Action | Sub-actions |
+|---|---|
+| EatAlive | Pickup (0), then Eat (2) on the villager |
+| FishAndEat | MoveToPos (8) to a point by the nearest fish farm, CreateFishFromSea (92), PickupCreatedObject (55), EatCreatedObject (128) |
+
+The sub-action table lives at 0xB0EAF8 (`aPickup`): 144-byte records, the name at
++0, a kind at +64, and up to four steps from +80 (a handler and its `this`
+adjustment). It is filled by many small initialisers in 0x4D8300 to 0x4DE100, which
+`emu_sub2` runs one by one. There are 158 named sub-actions, from Pickup through
+WaitForSpellsToWearOff. `sub_4DE180` runs the current one each turn.
+
+**Eating** (Eat's first step, `sub_4DF5A0`):
+- **Energy** rises by `GetFoodValue(3)` (the object's info +104: 250 for a villager,
+  20 for a fish, `POT_INFO_FISH`) over `min(growth, 0.8) x info+888` (1000).
+- **The cap** is max(growth, 1). Any part of the meal past full x `info+568` goes to
+  the reserve.
+- **Poo** rises by the gain x `info+896`, and a meal counter at creature+4540 goes up.
+- **Growth** is in the mind's saved body (`sub_4D5C40`): Khazar's is 0.32, so a
+  villager is 0.78 of energy and a fish 0.062.
+
+**When an action is done** (the routine at 0x460020, which IDA had left as data):
+1. The body pays the action's costs (`sub_4CFEB0`).
+2. Every `DESIRE_TABLE +120`-th completion of the plan's desire (`sub_4BEE20`):
+   - its sources flagged in `DESIRE_SOURCE_TABLE +4` are zeroed (`sub_4C0750`);
+   - the action's own desire (record +168) is multiplied by record +208 when record
+     +216 is set (`sub_4BE680`). FishAndEat cuts hunger to 1%.
+3. A switch on the desire (`0x460218` / `0x460238`):
+
+| Desire | Effect |
+|---|---|
+| to poo, to attract attention | A 60 s countdown (`sub_4BE3E0`) |
+| idle with the player, warmer, colder | A 120 s countdown |
+| restore health | +0.5 life |
+| tiredness | Falls to the weakest desire over 1.3 (`sub_4BE8B0`, `sub_4BEAC0`) |
+
+`CreatureBrain` runs these effects when the creature arrives. The sub-actions' own
+timing (walking to the shore, conjuring the fish, the animations) is still collapsed
+into the arrival. In `test_level` the starved Khazar's fish takes his energy from
+0.382 to 0.444, exactly one fish, and his hunger to 1% of what it was.
 
 ## What the shipped minds know
 

@@ -49,6 +49,9 @@ struct ChooserTables {
         uint32_t ability[2] = {6, 6};  // +172, +176: 6 = none
         uint32_t spell = 0;            // +180: a magic type it needs, 0 = none
         bool     not_own = false;      // +184: never at the creature's own object
+        float    cost[3] = {};         // +16/+20/+24: strength, energy, exhaustion (sub_4CFEB0)
+        float    done_scale = 1.0f;    // +208: its desire is multiplied by this when it is done
+        bool     done_scales = false;  // +216: ...if this is set (sub_4BE680)
     } actions[328];
     // DETAIL_CREATURE_INFO +680, +708, +712 (all seventeen species agree).
     uint32_t count_cap = 36000;
