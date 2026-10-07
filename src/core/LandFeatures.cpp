@@ -1,6 +1,11 @@
 // The global feature map -- see black/LandFeatures.h.
 #include <black/LandFeatures.h>
+#include <black/Map.h>
+#include <black/Object.h>
+#include <black/ObjectInfo.h>
 #include <black/Terrain.h>
+
+#include <initializer_list>
 
 namespace land {
 
@@ -28,6 +33,19 @@ bool IsLand(uint32_t cx, uint32_t cz) {
     return f >= 0 && !(f & kWaterFlag);
 }
 using CellTest = bool (*)(uint32_t, uint32_t);
+
+// sub_5BF2E0's per-cell walk: an object in the cell's lists (mobile, then
+// fixed) whose info type (+0x10) is `type` -- sub_5EA4A0/4C0/4D0 for 8, 0, 6.
+template <uint32_t type>
+bool HasObject(uint32_t cx, uint32_t cz) {
+    if (!g_map || !g_map->InBounds(cx, cz)) return false;
+    const MapCell* c = g_map->ToMap(cx, cz);
+    for (Object* list : {c->first_object_mobile, c->first_object_fixed})
+        for (Object* o = list; o; o = o->map_parent)
+            if (o->info && static_cast<uint32_t>(o->info->type) == type) return true;
+    return false;
+}
+constexpr uint32_t kTypeAbode = 0, kTypeForestTree = 6, kTypeCitadel = 8;  // OBJECT_TYPE
 
 // sub_5BF410: any cell of block (bx, bz) passing `t`.
 bool AnyCell(int bx, int bz, CellTest t) {
@@ -87,10 +105,12 @@ void FeatureMap::Build() {
     for (int bx = 0; bx < kBlocks; ++bx)
         for (int bz = 0; bz < kBlocks; ++bz) {
             uint8_t& b = regions[bx][bz].features;
-            // ponytail: Citadel, Town and Forest (0x5C0EF0..: an object of
-            // info type 8, 0 or 6 in the block's map cells) need the map's
-            // object lists, which core does not keep; Field (sub_5C0740(18))
-            // is not translated. Their bits stay clear.
+            // Citadel, Town, Forest (0x5C0EF0, 0x5C0F20, 0x5C0F60): an object
+            // of that type in the block's map cells. ponytail: Field
+            // (sub_5C0740(18)) is not translated; its bit stays clear.
+            if (AnyCell(bx, bz, HasObject<kTypeCitadel>)) b |= 1u << kCitadel;
+            if (AnyCell(bx, bz, HasObject<kTypeAbode>)) b |= 1u << kTown;
+            if (AnyCell(bx, bz, HasObject<kTypeForestTree>)) b |= 1u << kForest;
             if (AnyCell(bx, bz, IsCoast)) b |= 1u << kCoast;
             if (AnyCell(bx, bz, IsWater)) b |= 1u << kWater;
             if (AnyCell(bx, bz, IsLand)) b |= 1u << kLand;
@@ -117,6 +137,9 @@ bool FeatureMap::Find(Feature f, const MapCoords& from, MapCoords* out, bool fir
             out->x.split.map = static_cast<uint16_t>(8 * bx + 4);
             out->z.split.map = static_cast<uint16_t>(8 * bz + 4);
             switch (f) {  // the refiners (off_B0D7E4)
+            case kCitadel: FirstCell(bx, bz, HasObject<kTypeCitadel>, out); break;   // 0x5C0FC0 (sub_5BF580)
+            case kTown: FirstCell(bx, bz, HasObject<kTypeAbode>, out); break;        // 0x5C1030
+            case kForest: FirstCell(bx, bz, HasObject<kTypeForestTree>, out); break; // 0x5C1060
             case kCoast: FirstCell(bx, bz, IsCoast, out); break;  // 0x5C1090
             case kWater: FirstCell(bx, bz, IsWater, out); break;  // 0x5C10A0
             case kHill: *out = regions[bx][bz].top; break;        // 0x5C0FF0

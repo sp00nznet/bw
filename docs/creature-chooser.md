@@ -565,9 +565,14 @@ A creature's height (slot 267, `sub_461EE0`) is 15 × size_1, which these use as
 walk radius.
 
 **Ours** in these:
-- **Not built:** the object features (Citadel, Town, Forest) need the map's object
-  lists, which core does not keep, and Field is not translated. Their bits stay
-  clear.
+- **The object features** (Citadel, Town, Forest) read the map's cell lists.
+  - The map (`g_map`, v1.0's at game +6772) is now emptied and sized at each level
+    load. Fixed objects link into their cells as the level creates them.
+  - The cells are x-major, `cell + 8 × (z + x × extent)` (`sub_5BFA00`). `GMap::ToMap`
+    had them transposed.
+  - Mobiles only set their in-map flag; they are not linked, which these tests do
+    not need.
+  - Field is not translated; its bit stays clear.
 - **No exploration bits:** core keeps none, so every block counts as unexplored.
 - **SitDownOnBeach** walks toward the water point itself. The original's search for
   a clear patch of land beside it (`sub_4C1820` → `sub_4C18C0`) is not translated.
@@ -581,6 +586,9 @@ walk radius.
 On Land 1:
 - The highest point is 166.2 m.
 - 166 blocks have coast, 3854 water, 20 hills and 376 land.
+- 18 blocks have a town and 96 a forest. None has a citadel, because the level's
+  CREATE_CITADEL is not handled yet. The nearest town cell to the map's centre holds
+  an abode.
 - In `test_level` the fed Khazar sits by the water on turn 548, 14.7 m from it, and
   drinks on turn 1144.
 - His desires never choose 27 or 259 there, so the test sets the plan and runs each

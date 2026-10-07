@@ -42,8 +42,9 @@ struct FeatureMap {           // CreatureGlobalExplorationMap
     bool Find(Feature f, const MapCoords& from, MapCoords* out, bool first, bool own) const;
 };
 
-// The map for the landscape the host has loaded; built on first use.
-// ponytail: built once -- call Features().Build() again after a new landscape.
+// The map for the landscape the host has loaded and the level's objects;
+// built on first use. ponytail: built once -- call Features().Build() again
+// after a new level (v1.0 rebuilds it at each level's load).
 FeatureMap& Features();
 
 }  // namespace land

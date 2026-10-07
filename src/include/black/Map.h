@@ -73,5 +73,8 @@ struct GMap : public Base {
 };
 static_assert(sizeof(GMap) == 0x200050, "GMap size mismatch");
 
+// Empty the global map (g_map), sized 512 x 512 cells, and return it.
+GMap* ResetMap();
+
 // Global map instance (set during GGame initialization)
 extern GMap* g_map;

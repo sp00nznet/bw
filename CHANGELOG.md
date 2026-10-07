@@ -6,6 +6,7 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- `GMap::ToMap` indexed the cells [z][x]; v1.0's are x-major (`sub_5BFA00`).
 - The desire model labelled `sub_4BEB30` the per-turn update. It is the player-feedback
   path; the per-turn update is `sub_4BE5B0`, now translated. The mind file's
   "unidentified" floats per desire are value, maximum and cycle time.
@@ -21,6 +22,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The game's map (`g_map`) is built at each level load, so fixed objects are in its
+  cells.
+- The creature's feature map now has its town, forest and citadel blocks.
 - Two more creature actions run as v1.0's sub-actions: GoToHillAndWalkAlongRidge and
   TakeFishFromSeaToHome, with the Discard sub-action. `CreatureBrain::StartAction`
   and `RunSubActions` are public, so a host can run an action it chose itself.

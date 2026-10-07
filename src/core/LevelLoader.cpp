@@ -13,6 +13,7 @@
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
+#include <black/Map.h>
 #include <black/Living.h>
 #include <black/PlannedAbode.h>
 #include <black/MultiMapFixed.h>
@@ -343,6 +344,7 @@ Town* FindTown(const World& w, uint32_t id) {
 bool Load(const char* path, World& out, std::string* err) {
     FILE* f = std::fopen(path, "rb");
     if (!f) { if (err) *err = std::string("cannot open ") + path; return false; }
+    ResetMap();  // what is created goes into it (InsertMapObject)
     Loader L{out};
     char line[2048];
     std::string name;

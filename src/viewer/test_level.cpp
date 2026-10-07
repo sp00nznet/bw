@@ -24,6 +24,8 @@
 #include <black/CreatureBrain.h>
 #include <black/CreaturePhysical.h>
 #include <black/LandFeatures.h>
+#include <black/Map.h>
+#include <black/ObjectInfo.h>
 #include <black/EntityFactory.h>
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
@@ -700,6 +702,24 @@ int main() {
                       fm.max_height, count[land::kCoast], count[land::kWater], count[land::kHill], count[land::kLand]);
         CHECK(count[land::kCoast] > 0 && count[land::kWater] > 0 && count[land::kHill] > 0 && count[land::kLand] > 0 &&
                   count[land::kWater] + count[land::kLand] >= 4096 && bad_hills == 0, msg);
+        // The object features: a block is a town, forest or citadel when the
+        // map's cell lists (filled as the level creates things) hold an object
+        // of OBJECT_TYPE 0, 6 or 8 (sub_5BF2E0). Land 1 has towns and forests;
+        // its citadels are not created yet (CREATE_CITADEL is unhandled).
+        std::snprintf(msg, sizeof msg, "the map's objects: blocks with a town %d, forest %d, citadel %d",
+                      count[land::kTown], count[land::kForest], count[land::kCitadel]);
+        CHECK(count[land::kTown] > 0 && count[land::kForest] > 0, msg);
+        {
+            MapCoords home = MapCoordsFromMetres(2560.0f, 2560.0f), at;
+            const bool town = fm.Find(land::kTown, home, &at, true, true);
+            bool abode = false;
+            if (town && g_map)
+                for (Object* o = g_map->ToMap(at.x.split.map, at.z.split.map)->first_object_fixed; o; o = o->map_parent)
+                    abode |= o->info && o->info->type == 0 && dynamic_cast<Abode*>(o) != nullptr;
+            std::snprintf(msg, sizeof msg, "the nearest town block from the map's centre: cell (%u, %u), an abode in it: %d",
+                          at.x.split.map, at.z.split.map, abode);
+            CHECK(town && abode, msg);
+        }
         // The search (sub_4C1480) from the map's centre lands on a water cell.
         MapCoords from(256 << 16, 256 << 16, 0.0f), out;
         const bool found = fm.Find(land::kWater, from, &out, true, true);

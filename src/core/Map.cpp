@@ -5,6 +5,8 @@
 // GMap is the 512x512 cell grid that all game objects are placed on.
 // Each MapCell holds linked lists of mobile and fixed objects.
 
+#include <cstdlib>
+#include <cstring>
 #include <black/Map.h>
 
 // Global map pointer (set during GGame initialization)
@@ -35,9 +37,17 @@ void MapCell::SetFirstObjectFixed(Object* obj) {
 // ============================================================================
 
 MapCell* GMap::ToMap(uint32_t cell_x, uint32_t cell_z) {
-    // Original at win1.41 0x00612660
-    // Direct index into the 512x512 cell grid
-    return &cells[cell_z][cell_x];
+    // v1.0 sub_5BFA00: cell + 8 * (z + x * extent) -- x-major.
+    return &cells[cell_x][cell_z];
+}
+
+// The game's map (game +6772): emptied and sized at level load.
+GMap* ResetMap() {
+    static GMap* m = static_cast<GMap*>(std::calloc(1, sizeof(GMap)));  // ponytail: Base's vtable is never called on it
+    std::memset(static_cast<void*>(m), 0, sizeof(GMap));
+    m->cell_extent_zx[0] = m->cell_extent_zx[1] = 0x200;
+    g_map = m;
+    return m;
 }
 
 bool GMap::InBounds(uint32_t x, uint32_t z) const {
