@@ -12,13 +12,13 @@
 // the brain fills the facts this world has (life, home, stage, desires, action
 // turns, known spells, fish farms) and the rest keep their idle defaults.
 //
-// What is ours rather than the binary's: what happens on arrival. The 52
-// actions that dispatch through the action table run real behaviour code that
-// is not translated; here an action completes when the creature reaches its
-// belief (a fishing action, at the nearest fish farm), an eating action kills
-// the villager it was about. The effects are v1.0's: the eat sub-action's
-// energy (sub_4DF5A0), the action-done routine at 0x460020 (costs, the
-// desire's factor, source resets, countdowns). Desires come from the per-turn desire
+// FishAndEat runs as v1.0's sub-actions (CreatureSubActions.h): walk to the
+// fish farm, conjure a fish, pick it up, eat it, each step taking the turns it
+// takes. The other actions' handlers are not translated; one of those
+// completes when the creature reaches its belief, and an eating action kills
+// the villager it was about. Either way the effects are v1.0's: the eat step
+// (sub_4DF5A0) and the action-done routine at 0x460020 (costs, the desire's
+// factor, source resets, countdowns). Desires come from the per-turn desire
 // system fed by the body (CreatureBody): hunger rises as energy drains.
 // Sources whose inputs this world lacks keep their saved value, fading by
 // their factor.
@@ -28,6 +28,7 @@
 #include "CreatureDesire.h"
 #include "CreatureLearner.h"
 #include "CreaturePlanChooser.h"
+#include "CreatureSubActions.h"
 
 #include <cstdint>
 #include <unordered_map>
@@ -63,6 +64,20 @@ public:
     uint32_t last_action = 0;  // the most recent one
     uint32_t last_desire = 40; // and the desire it served
     Object*  last_target = nullptr;
+    uint32_t stopped = 0;      // actions abandoned (sub_45FA70)
+
+    // The sub-actions of the action under way (CreatureSubActions.h).
+    SubActionAgenda subactions;
+    // The 3D object's side, as far as the sub-actions read it: what the hand
+    // holds (+18640) and the animation playing (+18836).
+    struct Hand {
+        Food     held;
+        bool     holding = false;
+        uint32_t anim = 0;       // the clip started by sub_46D670
+        uint32_t anim_left = 0;  // turns until it ends: ours
+        Food     grabbing;       // what a pickup clip (14) will close on
+        bool Busy() const { return anim_left != 0; }  // sub_46CB50
+    } hand;
 
 private:
     uint32_t IdOf(Object* o);
@@ -70,6 +85,21 @@ private:
     bool     SourceValue(uint32_t type, float* out) const;
     void     ActionDone(uint32_t action, uint32_t served_desire);
     Object*  NearestFishFarm() const;
+    // CreatureSubActions.cpp
+    bool StartAction(uint32_t action);  // sub_4B6CA0: the action's handler
+    void RunSubActions();               // sub_4DE180
+    int  Step(uint32_t id, uint32_t step);
+    bool Advance();                     // sub_4DE940
+    int  WalkTo(const MapCoords& p, float radius);
+    bool PlayAnim(uint32_t clip);       // sub_46D670
+    void TickHand();
+    int  Digest(const Food& f);         // sub_4DF830
+    void Stop();                        // sub_45FA70
+    void Finish();                      // sub_45F790
+    void EndAction();
+
+    Food     created_;      // mental+7276: what CreateFishFromSea made
+    uint32_t running_ = 0;  // the action whose handler last ran
 
     Creature*     creature_ = nullptr;
     uint32_t      turn_ = 0;

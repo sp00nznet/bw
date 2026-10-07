@@ -240,14 +240,25 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     PlanChooser chooser(tables_, mind, host_, beliefs_);
     agenda.Tick(chooser, mind, host_);
 
-    // Carry out the current plan: walk to what it is about.
+    // Carry out the current plan. A plan that has just become current runs
+    // its action's handler (sub_4D15E0 -> sub_4B6CA0), which queues the
+    // sub-actions; where that handler is translated, they do the work.
     Object* target = Target();
     const uint32_t action = Action();
+    if (action != running_) {
+        running_ = action;
+        if (HasSubActions(action) && !StartAction(action)) return false;  // it stopped
+    }
     if (!target || !action) return false;
     // mental+118432: the turns spent on each action, which the familiarity
     // bonus (sub_4D0D70) and the recent-action tests (sub_4B6690) read. That it
     // counts turns of the action under way is inferred from those readers.
     ++mind.action_count[action];
+    if (HasSubActions(action)) {
+        const uint32_t before = completed;
+        RunSubActions();
+        return completed != before;
+    }
     if (target != creature_) {
         if (creature_->goal != target->coords) creature_->SetGoalPos(target->coords);
         if (creature_->speed == 0) creature_->SetSpeed(kWalkSpeed);
@@ -256,8 +267,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     }
 
     // Arrived. The sub-actions that would play out here are collapsed into
-    // their effects: an Eat (sub_4DF5A0) of the villager, or for FishAndEat the
-    // fish CreateFishFromSea makes (POT_INFO_FISH, food 20) -- ours in timing.
+    // their effects: an Eat (sub_4DF5A0) of the villager -- ours in timing.
     if (IsEating(action)) {
         if (Villager* v = dynamic_cast<Villager*>(target)) {
             float food = 0.0f;
@@ -265,8 +275,6 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
             body.Eat(food, body_info);
             v->SetTopState(VILLAGER_STATE_DYING);
         }
-    } else if (action == 155) {
-        body.Eat(20.0f, body_info);
     }
     const uint32_t served = agenda.plans.current_desire;
     ActionDone(action, served);

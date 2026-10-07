@@ -21,6 +21,13 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- FishAndEat now runs as v1.0's sub-actions, step by step (`docs/creature-chooser.md`):
+  - The action's handler queues them, and the sub-action runner (`sub_4DE180`) steps
+    through them.
+  - Each takes turns: walking to the farm, conjuring a fish, picking it up, eating it.
+  - Digesting the fish lowers hunger by what it gave in energy.
+
+  Clip lengths are placeholders until core loads the creature's animations.
 - What finishing an action does (`docs/creature-chooser.md`):
   - v1.0's eat step: food over growth into energy, the reserve and poo.
   - The action-done routine: costs, the desire's factor, source resets and the

@@ -205,13 +205,12 @@ The early creature that eats villagers is in the data from the start.
 2. **Wiring.** The object predicates are bound to the objects' own virtuals and the
    known lists to the mind's.
    - Every action's validity predicate is translated (see below).
-3. **Carrying it out.** The creature walks to its current plan's belief. A fishing
-   action is planned on the creature itself, so it walks to the nearest fish farm
-   instead.
-
-When the creature arrives, the action completes. What follows is v1.0's (see
-"What actions are made of" below): the eat step and the action-done routine. The
-sub-actions' own timing is collapsed into the arrival.
+3. **Carrying it out.** When a plan becomes current, its action's handler queues
+   sub-actions, which the runner steps through (see "What actions are made of"
+   below). Only FishAndEat's handler is translated so far. For any other action,
+   the creature walks to its plan's belief and the action completes on arrival,
+   with v1.0's effects (the eat step and the action-done routine) but not its
+   timing.
 
 `test_level` puts Khazar's shipped mind in a body 20 m from a Land 1 villager, hungry
 (0.8) and curious (0.5):
@@ -372,10 +371,61 @@ WaitForSpellsToWearOff. `sub_4DE180` runs the current one each turn.
 | restore health | +0.5 life |
 | tiredness | Falls to the weakest desire over 1.3 (`sub_4BE8B0`, `sub_4BEAC0`) |
 
-`CreatureBrain` runs these effects when the creature arrives. The sub-actions' own
-timing (walking to the shore, conjuring the fish, the animations) is still collapsed
-into the arrival. In `test_level` the starved Khazar's fish takes his energy from
-0.382 to 0.444, exactly one fish, and his hunger to 1% of what it was.
+### The runner
+
+The agenda is at mental+4008 (`CreatureSubActionAgenda`, 0xC50): a starting flag
+(+8), the current sub-action (+12), its step (+16), the count (+20), the main
+sub-action (+28), then 32 entries of 96 bytes from +48 (id, object argument, point,
+radius, two callbacks).
+
+1. **When the plan becomes current**, `sub_4D15E0` calls `sub_4B6CA0`. That clears
+   the agenda and calls the action's handler.
+2. **Each turn**, `sub_4DE180`:
+   - skips the steps the record has no handler for;
+   - when a sub-action begins, checks its kind (record +64):
+
+     | Kind | Check |
+     |---|---|
+     | 0 | Stops the action unless something is in hand |
+     | 1 | Puts down what is held first |
+     | 2 | Skips ahead if the hand already holds the target, else drops what it holds |
+     | 3 | None |
+   - runs the step. It answers 0 (not yet), 1 or 3 (stop the action: `sub_45FA70`)
+     or 2 (next step: `sub_4DE940`).
+3. **After the third step** of the last sub-action, the action-done routine runs
+   (0x460020), then `sub_45F790` closes the action. A record's fourth handler is
+   its abort handler, which `sub_45FBC0` calls when an action is stopped.
+
+### FishAndEat, step by step
+
+The handler is `sub_4932E0`:
+
+| Sub-action | Steps |
+|---|---|
+| MoveToPos | Walks to the farm until within 15 m (`sub_4E0B90`), then waits until it has stopped (`sub_4E1AC0`) |
+| CreateFishFromSea | Makes a fish pot at its feet (`sub_4E5EE0`) |
+| PickupCreatedObject | Starts the pickup clip (`sub_4DED00`), then waits for it (`sub_4DF0E0`) |
+| EatCreatedObject | Starts the eating clip and takes the energy (`sub_4DF5A0`), waits until the fish is out of the hand (`sub_4DF7A0`), then digests it (`sub_4DF830`) |
+
+**Digesting** (`sub_4DF830`):
+- Something counts as food if it is a mushroom, pile food, or has food value ≥ 5
+  and is not poisoned.
+- If it is food, hunger falls by the same amount the meal gave in energy, clamped
+  to [0, 1]. The action-done routine then scales hunger by 0.01.
+- If it is not food, hunger is held back for 20 s and the agenda is emptied.
+
+**What is ours** (`CreatureSubActions.cpp`):
+- **Clip lengths:** pickup takes 12 turns, eating 20 and putting down 10. The real
+  lengths are the clips' frame counts, and core doesn't load the creature's ANM set.
+- **Clip effects:** they happen when a clip ends, not on its frame events.
+- **The walk:** it goes to the farm itself, not to the coast beside it, because core
+  has no land/sea test. The original's radius is max(15, the creature's height).
+- **The fish:** it isn't a world object.
+- **The leash:** it isn't checked.
+
+In `test_level` the starved Khazar fishes over 37 turns. His energy rises by
+exactly one fish when the eating clip starts. His hunger ends at
+(hunger − that fish) × 0.01.
 
 ## What the shipped minds know
 

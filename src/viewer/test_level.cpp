@@ -482,17 +482,22 @@ int main() {
             // 0.4 and hunger rises on its own as HUNGER_FROM_ENERGY passes its
             // threshold.
             brain.body.energy = 0.4f;
-            float energy_before = 0.0f, hunger_before = 0.0f;
-            int turn = 0;
+            float energy_before = 0.0f, energy_after = 0.0f, hunger_before = 0.0f;
+            int turn = 0, fish_start = -1, fish_turns = 0;
             std::string log;
             uint32_t done = 0;
             for (; turn < 4000 && brain.last_desire != 4; ++turn) {
                 level::Process(w);
                 std::vector<Object*> seen;
                 for (const level::Spawned& s : w.objects) seen.push_back(s.obj);
-                energy_before = brain.body.energy;
+                const float energy = brain.body.energy;
+                const uint32_t meals = brain.body.meals;
                 hunger_before = brain.desires.value[4];
+                if (brain.Action() != 155) fish_start = -1;
+                else if (fish_start < 0) fish_start = turn;
                 brain.Tick(seen);
+                if (brain.body.meals != meals) energy_before = energy, energy_after = brain.body.energy;
+                if (brain.completed != done && fish_start >= 0) fish_turns = turn - fish_start + 1;
                 if (brain.completed != done) {
                     done = brain.completed;
                     if (log.size() < 120) log += " " + std::to_string(brain.last_action) + "/" + std::to_string(brain.last_desire);
@@ -504,14 +509,21 @@ int main() {
             const bool at_farm = dynamic_cast<FishFarm*>(brain.last_target) != nullptr;
             std::snprintf(msg, sizeof msg,
                           "starved, he lives by his desires (%s) and on turn %d fishes at %s: energy %.3f -> %.3f, hunger %.2f -> %.3f",
-                          log.c_str(), turn, at_farm ? "a fish farm" : "?", energy_before, brain.body.energy, hunger_before,
+                          log.c_str(), turn, at_farm ? "a fish farm" : "?", energy_before, energy_after, hunger_before,
                           brain.desires.value[4]);
             // One fish (POT_INFO_FISH, food 20) over min(growth 0.32, 0.8) x 1000
-            // (sub_4DF5A0); FishAndEat's record scales hunger by 0.01 (sub_4BE680).
+            // (sub_4DF5A0); its digestion takes as much off hunger (sub_4DF830),
+            // and FishAndEat's record then scales it by 0.01 (sub_4BE680).
             const float fish = 20.0f / (std::min(brain.body.growth, 0.8f) * brain.body_info.digest);
             CHECK(brain.last_desire == 4 && brain.last_action == 155 && at_farm &&
-                      std::fabs(brain.body.energy - (energy_before + fish)) < 2e-4f &&
-                      brain.desires.value[4] < hunger_before * 0.011f + 1e-4f, msg);
+                      std::fabs(energy_after - (energy_before + fish)) < 2e-4f &&
+                      std::fabs(brain.desires.value[4] - std::max(hunger_before - fish, 0.0f) * 0.01f) < 1e-4f, msg);
+            // The action is its four sub-actions (sub_4932E0), run one step at a
+            // time (sub_4DE180): the walk, the fish, the pickup clip, the eating clip.
+            const creature::SubActionAgenda& sa = brain.subactions;
+            std::snprintf(msg, sizeof msg, "FishAndEat runs as sub-actions over %d turns (%u stopped), the hand empty after",
+                          fish_turns, brain.stopped);
+            CHECK(fish_turns > 32 && !brain.hand.holding && !brain.hand.Busy() && sa.count == 0, msg);
         }
     }
 
