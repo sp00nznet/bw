@@ -6,6 +6,10 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- Pot amounts were at +0x6C; v1.0's are at +0x70. A pile's add, remove and get were
+  stubs returning 0, and PileWood reported food as its resource.
+- The level stocked abodes through JustAddResource, where v1.0 calls AddResource,
+  so a storage pit's piles were bypassed.
 - `GMap::ToMap` indexed the cells [z][x]; v1.0's are x-major (`sub_5BFA00`).
 - The desire model labelled `sub_4BEB30` the per-turn update. It is the player-feedback
   path; the per-turn update is `sub_4BE5B0`, now translated. The mind file's
@@ -22,6 +26,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Storage pits keep their stock in pile objects, as v1.0's do: one food pile and five
+  wood piles, with the pot infos' capacities.
+- EatFromStoragePit runs as v1.0's sub-actions: a handful of 1000 × size taken from
+  the pit's food pile and eaten.
 - The game's map (`g_map`) is built at each level load, so fixed objects are in its
   cells.
 - The creature's feature map now has its town, forest and citadel blocks.

@@ -74,9 +74,9 @@ struct Pot : public MobileObject {
     virtual void SetMultiMapFixed(MultiMapFixed* multiMapFixed);
 
     // === Fields ===
-    RESOURCE_TYPE field_0x68;  // 0x68 — resource type this pot holds
-    uint32_t      field_0x6c;  // 0x6C — resource amount?
-    uint32_t      field_0x70;  // 0x70
+    RESOURCE_TYPE field_0x68;  // 0x68 — resource type this pot holds (vslot 420)
+    uint32_t      field_0x6c;  // 0x6C
+    uint32_t      amount;      // 0x70 — how much it holds (v1.0 this[28])
     uint8_t       field_0x74;  // 0x74 — flags (poisoned, etc.)
 };
 static_assert(sizeof(Pot) == 0x78, "Pot size mismatch");

@@ -7,6 +7,8 @@
 #include <black/LandFeatures.h>
 #include <black/Terrain.h>
 #include <black/Object.h>
+#include <black/PileFood.h>
+#include <black/StoragePit.h>
 #include <black/Villager.h>
 
 #include <algorithm>
@@ -58,6 +60,9 @@ constexpr Record kRecords[] = {
     {kSubEat, 0, {true, true, true, false}},                   // sub_4DF5A0, sub_4DF7A0, sub_4DFB90; abort sub_4E7810
     {kSubHeldObjectAction, 0, {true, true, false, false}},     // sub_4DFC00, sub_4E77D0
     {kSubDrink, 1, {false, true, false, false}},               // -, sub_4E4110
+    {kSubTurnToFaceObject, 3, {true, true, true, false}},      // sub_4E05F0, sub_4E06D0, sub_4E0840
+    {kSubClearObjectToActOn, 3, {false, true, false, false}},  // -, sub_4E6910
+    {kSubCreatePickUpThenRemove, 1, {true, true, true, false}},// sub_4DF1E0, sub_4E4360, sub_4DF330
     {kSubStaticAction, 1, {true, true, true, true}},           // sub_4DFD90, sub_4DFE20, sub_4E77D0; abort sub_4E7800
     {kSubTurnToFacePos, 3, {true, true, false, false}},        // sub_4E0980, sub_4E2AF0
     {kSubIndividualAction, 1, {true, true, false, false}},     // sub_4E0F60, sub_4E77D0
@@ -81,7 +86,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
+    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 65 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -201,6 +206,30 @@ bool CreatureBrain::StartAction(uint32_t action) {
         SubActionEntry d{kSubDiscard};
         d.integer = kClipDrop;
         a.AddMain(d);
+        return true;
+    }
+    case 65: {  // EatFromStoragePit (sub_48AE00): a handful from the pit's food pile, eaten
+        auto* pit = dynamic_cast<StoragePit*>(Target());
+        Object* pile = pit ? static_cast<Object*>(pit->pile_food) : nullptr;  // sub_6C98C0(0, 0): +0xC4
+        if (!pile) {
+            Stop();  // "FailedToConstr..."
+            return false;
+        }
+        // ponytail: the belief it makes of the pile (sub_4BA200) is not kept.
+        SubActionEntry m{kSubMoveToPos};
+        m.point = pile->coords;
+        m.value = creature_->GetHeight() * 1.4f;
+        a.Add(m);
+        SubActionEntry t{kSubTurnToFaceObject};
+        t.object = pile;
+        t.value = 0.1f;
+        a.Add(t);
+        a.Add(SubActionEntry{kSubClearObjectToActOn});
+        SubActionEntry c{kSubCreatePickUpThenRemove};
+        c.object = pile;
+        c.integer = 17;  // POT_INFO_WHEAT_IN_HAND
+        a.Add(c);
+        a.AddMain(SubActionEntry{kSubEatCreatedObject});
         return true;
     }
     case 90: {  // WaveAtPlayer (sub_48DDB0): face the camera and wave (clip 72)
@@ -443,6 +472,48 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
         creature_->SetYAngle(heading);
         return kStepDone;
     }
+    case kSubTurnToFaceObject * 4 + 0: {  // sub_4E05F0: turn to it
+        // ponytail: the turn (sub_4D01E0) is instant, as in TurnToFacePos.
+        if (!e.object) return kStepDone;
+        const float dx = MetresOf(e.object->coords.x - creature_->coords.x), dz = MetresOf(e.object->coords.z - creature_->coords.z);
+        if (std::sqrt(dx * dx + dz * dz) >= 0.1f) creature_->SetYAngle(std::atan2(dx, dz));
+        return kStepDone;
+    }
+    case kSubTurnToFaceObject * 4 + 1:  // sub_4E06D0: facing it, look for the entry's seconds
+        if (hand.Busy()) return kStepWait;
+        countdown_ = static_cast<uint16_t>(e.value * kTurnsPerSecond);  // mental+7128
+        return kStepDone;
+    case kSubTurnToFaceObject * 4 + 2:  // sub_4E0840
+        if (hand.Busy() || !countdown_) return hand.Busy() ? kStepWait : kStepDone;
+        --countdown_;
+        return kStepWait;
+    case kSubClearObjectToActOn * 4 + 1:  // sub_4E6910
+        // ponytail: the plan's object (mental+3928) becomes sub_4BA1B0's; the
+        // brain's plan keeps its target here.
+        return kStepDone;
+    case kSubCreatePickUpThenRemove * 4 + 0: {  // sub_4DF1E0: a pot of the pile's food at it
+        // As much as the creature's hand holds, 1000 x size_1 (3D +144), or
+        // what the pile has (vslot 38 for the pot info's resource, food).
+        // ponytail: the pot is not a world object here (as with the fish), and
+        // its scale (3.75 x size_1) is not kept.
+        if (!e.object) return kStepFailed;
+        const uint32_t room = static_cast<uint32_t>(1000.0f * creature_->GetHeight() / 15.0f);
+        const uint32_t n = std::min(room, e.object->GetResource(static_cast<RESOURCE_TYPE>(0)));
+        created_ = Food{nullptr, static_cast<float>(n), true};  // a pot's food value is its amount (vslot 408)
+        taken_ = false;
+        return kStepDone;
+    }
+    case kSubCreatePickUpThenRemove * 4 + 1:  // sub_4E4360 -> sub_4DED00 on the pot, at its feet
+        if (!PlayAnim(kClipPickup)) return kStepWait;
+        hand.grabbing = created_;
+        return kStepDone;
+    case kSubCreatePickUpThenRemove * 4 + 2:  // sub_4DF330: as the hand closes, the pile gives it up
+        if (hand.Busy()) return kStepWait;
+        if (!taken_ && e.object) {
+            e.object->RemoveResource(static_cast<RESOURCE_TYPE>(0), static_cast<uint32_t>(created_.value), nullptr, nullptr);
+            taken_ = true;
+        }
+        return hand.holding ? kStepDone : kStepStop;
     case kSubDiscard * 4 + 0:  // sub_4DF500: put down what is held, with its clip
         if (!hand.holding) return kStepFailed;
         if (!PlayAnim(static_cast<uint32_t>(e.integer))) return hand.Busy() ? kStepWait : kStepFailed;

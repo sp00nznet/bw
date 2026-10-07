@@ -2,19 +2,69 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/StoragePit.h>
+#include <black/InfoDat.h>
+#include <black/ObjectInfo.h>
+#include <black/PileFood.h>
+#include <black/PileWood.h>
+
+#include <cstring>
+
+namespace {
+
+// The pit's piles: one of food (+0xC4, POT_INFO_STORAGE_PIT_FOOD_PILE) and five
+// of wood (+0xC8..+0xD8, pot infos 3..7), filled in order.
+PileResource** Piles(StoragePit* p, RESOURCE_TYPE type) {
+    return type == 0 ? reinterpret_cast<PileResource**>(&p->pile_food) : reinterpret_cast<PileResource**>(&p->pile_wood);
+}
+int PileCount(RESOURCE_TYPE type) { return type == 0 ? 1 : type == 1 ? 5 : 0; }
+
+// sub_616C40 for a pile of the pit (sub_617D30 food, sub_618830 wood).
+// ponytail: it lies at the pit's own position; the original puts each at its
+// resource position (sub_6C9590 -> vslot 510).
+PileResource* MakePile(StoragePit* pit, RESOURCE_TYPE type, int i) {
+    PileResource* p = type == 0 ? static_cast<PileResource*>(new PileFood()) : new PileWood();
+    p->info = infodat::Get<GObjectInfo>(infodat::DETAIL_POT_INFO, static_cast<uint32_t>((type == 0 ? 2 : 3) + i));
+    p->coords = pit->coords;
+    p->field_0x68 = type;
+    p->field_0x78 = pit;  // PotStructure: the structure it belongs to
+    return p;
+}
+
+}  // namespace
 
 void StoragePit::Delete(int param) { Abode::Delete(param); } // 0x00732c10
 void StoragePit::ToBeDeleted(int param) { Abode::ToBeDeleted(param); } // 0x00732c30
 
+// sub_6C91A0: into the piles, making each as it is needed; what they took is
+// then counted by the pit itself (vslot 569 -> its own JustAddResource) and
+// returned. ponytail: the delegation of wood to +0x74 when set, and the town's
+// notice of new food (vslot 18 +1512), are not translated.
 uint32_t StoragePit::AddResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool param4, const MapCoords& coords, int param6) {
-    // Original at 0x00732f60 — adds resource to storage pit
-    // Delegates to base abode resource adding
-    return Abode::AddResource(type, amount, status, param4, coords, param6);
+    uint32_t put = 0;
+    PileResource** piles = Piles(this, type);
+    for (int i = 0; i < PileCount(type) && amount; ++i) {
+        if (!piles[i]) piles[i] = MakePile(this, type, i);
+        const uint32_t n = piles[i]->JustAddResource(type, amount, param4);
+        put += n;
+        amount -= n;
+    }
+    if (put) Abode::AddResource(type, put, status, param4, coords, param6);
+    return put;
 }
 
+// sub_6C94E0: out of the piles, the last wood pile first; then the pit's own
+// count (vslot 570).
 uint32_t StoragePit::RemoveResource(RESOURCE_TYPE type, uint32_t amount, GInterfaceStatus* status, bool* param4) {
-    // Original at 0x007332a0 — removes resource from storage pit
-    return Abode::RemoveResource(type, amount, status, param4);
+    uint32_t took = 0;
+    PileResource** piles = Piles(this, type);
+    for (int i = PileCount(type) - 1; i >= 0 && amount; --i) {
+        if (!piles[i]) continue;
+        const uint32_t n = piles[i]->JustRemoveResource(type, amount, nullptr);
+        took += n;
+        amount -= n;
+    }
+    if (took) Abode::RemoveResource(type, took, status, param4);
+    return took;
 }
 
 char* StoragePit::GetDebugText() { static char t[] = "StoragePit"; return t; } // 0x0055cd40

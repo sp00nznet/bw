@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Thirteen handlers are translated so far. For any other action,
+   below). Fourteen handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -602,6 +602,40 @@ On Land 1:
     since the fish is not a world object here.
   - When there is neither hill nor land, 27 stops. The original walks to (0, 0).
 
+### EatFromStoragePit, and the pit's piles
+
+A storage pit keeps its stock in pile objects:
+- one food pile at +0xC4 (POT_INFO_STORAGE_PIT_FOOD_PILE, 2);
+- five wood piles at +0xC8..+0xD8 (pot infos 3–7).
+
+| Routine | Does |
+|---|---|
+| `AddResource` (`sub_6C91A0`) | Fills the piles in order, making each as it is needed. Then counts what they took into the pit's own total (vslot 569). |
+| `RemoveResource` (`sub_6C94E0`) | Empties them, last wood pile first. |
+| A pot's add (`sub_616FE0`) | Capped at its pot info's +284 unless the info's +292 (the pot info that takes the overflow) is POT_INFO_LAST. So wood piles 3–6 hold 5000 each, and the food pile and the last wood pile have no limit. |
+| A pile's remove (`sub_6189C0`) | Counts off its pit, which makes up any shortfall from its other piles. |
+
+The level's starting stock now goes in through AddResource, as v1.0's does (vtable
++156); it went through JustAddResource, which bypassed the piles.
+
+EatFromStoragePit (65, `sub_48AE00`) goes to the pit's food pile:
+
+| Sub-action | What it does |
+|---|---|
+| MoveToPos | Within 1.4 × height of the pile |
+| TurnToFaceObject (6) | Faces the pile and looks at it for 0.1 s |
+| ClearObjectToActOn (108) | — |
+| CreatePickUpThenRemove (138, `sub_4DF1E0` / `sub_4DF330`) | Makes a pot of POT_INFO_WHEAT_IN_HAND holding min(1000 × size_1, the pile's food). Picks it up, and as the hand closes, the pile gives that much up. |
+| EatCreatedObject (main) | Eats it. A pot's food value is its amount (vslot 408). |
+
+**Ours:**
+- **The handful's pot** is not a world object, as with the fish.
+- **ClearObjectToActOn** leaves the plan's target alone.
+- **Pile position:** piles lie at the pit's own position.
+
+In `test_level`, run directly against a pit, Khazar takes a handful of exactly 1000 and
+eats it. The pit's total and its pile stay equal throughout.
+
 ## What the shipped minds know
 
 `CreatureMindFile` reads the mind past the desires now:
@@ -645,7 +679,6 @@ version and then a species below 17, and in those files the second word is a flo
   - the player's hand and temple;
   - spell charge and cost;
   - day and night, beaches, friends.
-- EatFromStoragePit (65), which needs the storage pit's pots.
 - The hand span itself: `sub_4CE650`'s measure off the creature's morph meshes in
   the pickup clip. Until core loads those, a creature without a host-filled 3D
   object can pick up nothing.

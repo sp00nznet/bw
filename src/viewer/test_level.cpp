@@ -24,6 +24,8 @@
 #include <black/CreatureBrain.h>
 #include <black/CreaturePhysical.h>
 #include <black/LandFeatures.h>
+#include <black/PileFood.h>
+#include <black/StoragePit.h>
 #include <black/Map.h>
 #include <black/ObjectInfo.h>
 #include <black/EntityFactory.h>
@@ -680,6 +682,38 @@ int main() {
                           home, metres(body->coords, body->field_0x1200));
             CHECK(home > 0 && carried && !brain.hand.holding && brain.discarded.value == 20.0f &&
                       metres(body->coords, body->field_0x1200) <= body->GetHeight() + 1.0f, msg);
+            // EatFromStoragePit (sub_48AE00): to the pit's food pile (+0xC4, made
+            // when the level stocked it), a handful of 1000 x size_1 out of it
+            // (CreatePickUpThenRemove, sub_4DF1E0/sub_4DF330), eaten.
+            StoragePit* pit = nullptr;
+            for (const level::Spawned& s : w.objects)
+                if (auto* sp = dynamic_cast<StoragePit*>(s.obj); sp && sp->pile_food && sp->GetResource(static_cast<RESOURCE_TYPE>(0)) >= 1000) { pit = sp; break; }
+            uint32_t pit_before = 0, pile_before = 0, pit_after = 0, pile_after = 0;
+            float meal_energy = 0.0f;
+            int pit_turns = -1;
+            uint32_t biggest_drop = 0, last_food = 0;
+            if (pit) {
+                pit_before = pit->GetResource(static_cast<RESOURCE_TYPE>(0));
+                pile_before = static_cast<Object*>(pit->pile_food)->GetResource(static_cast<RESOURCE_TYPE>(0));
+                brain.agenda.plans.plans[38].belief = brain.IdOf(pit);
+                brain.body.energy = 0.2f;
+                const uint32_t meals = brain.body.meals;
+                last_food = pit_before;
+                pit_turns = run(65, [&] {
+                    if (brain.body.meals != meals && meal_energy == 0.0f) meal_energy = brain.body.energy;
+                    const uint32_t f = pit->GetResource(static_cast<RESOURCE_TYPE>(0));
+                    if (f < last_food) biggest_drop = std::max(biggest_drop, last_food - f);
+                    last_food = f;
+                });
+                pit_after = pit->GetResource(static_cast<RESOURCE_TYPE>(0));
+                pile_after = static_cast<Object*>(pit->pile_food)->GetResource(static_cast<RESOURCE_TYPE>(0));
+            }
+            // The villagers eat from the same store meanwhile, so the handful is
+            // the one turn's drop of 1000 (plus whatever a villager took that turn).
+            std::snprintf(msg, sizeof msg, "EatFromStoragePit takes a handful of %u from the pit's pile in %d turns: pit food %u -> %u, pile %u -> %u; energy 0.200 -> %.3f",
+                          biggest_drop, pit_turns, pit_before, pit_after, pile_before, pile_after, meal_energy);
+            CHECK(pit && pit_turns > 0 && biggest_drop >= 1000 && biggest_drop < 1100 && pile_before == pit_before &&
+                      pile_after == pit_after && meal_energy > 0.2f && !brain.hand.holding, msg);
         }
     }
 

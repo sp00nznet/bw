@@ -92,9 +92,10 @@ public:
     // queued; Tick calls them, and so may a host that sets the plan itself.
     bool StartAction(uint32_t action);  // sub_4B6CA0: the action's handler
     void RunSubActions();               // sub_4DE180, once a turn
+    // The belief index of an object (what a plan's target is), making one.
+    uint32_t IdOf(Object* o);
 
 private:
-    uint32_t IdOf(Object* o);
     float    Opinion(uint32_t desire, const BeliefView& b) const;
     bool     SourceValue(uint32_t type, float* out) const;
     void     ActionDone(uint32_t action, uint32_t served_desire);
@@ -116,6 +117,7 @@ private:
 
     Food     created_;      // mental+7276: what CreateFishFromSea made
     uint32_t running_ = 0;  // the action whose handler last ran
+    bool     taken_ = false;  // mental+7128: CreatePickUpThenRemove has taken its share
     uint16_t countdown_ = 0;  // creature+88: the turns a point or static clip has left
     // ponytail: the handlers' dice come from this, not the game's random stream
     // (sub_67BC90), so a run is repeatable but not the original's sequence.

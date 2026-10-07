@@ -1,6 +1,7 @@
 #include "black/PileResource.h"
 
-uint32_t PileResource::JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool param3) { return 0; }
+// sub_617060: Pot's (sub_616FE0). ponytail: the sound it plays (sub_616ED0) is not.
+uint32_t PileResource::JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool param3) { return Pot::JustAddResource(type, amount, param3); }
 uint32_t PileResource::Load(GameOSFile* file) { return 0; }
 uint32_t PileResource::Save(GameOSFile* file) { return 0; }
 float    PileResource::GetLife() { return 0.0f; }

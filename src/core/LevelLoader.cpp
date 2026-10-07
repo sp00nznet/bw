@@ -163,9 +163,9 @@ struct Loader {
         Object* o = Make(ENTITY_CAT_ABODE, cmd, x, z, a[3].n * 0.001f, a[4].n * 0.001f, -1, a[2].s);
         Abode* abode = o ? o->CastAbode() : nullptr;
         if (!abode) return false;
-        if (!town_centre && a.size() >= 7) {  // sub_401EB0: vslot 156 with food, then wood
-            abode->JustAddResource(static_cast<RESOURCE_TYPE>(0), static_cast<uint32_t>(a[5].n), false);
-            abode->JustAddResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(a[6].n), false);
+        if (!town_centre && a.size() >= 7) {  // sub_401EB0: vtable +156 (AddResource) with food, then wood
+            abode->AddResource(static_cast<RESOURCE_TYPE>(0), static_cast<uint32_t>(a[5].n), nullptr, false, abode->coords, 0);
+            abode->AddResource(static_cast<RESOURCE_TYPE>(1), static_cast<uint32_t>(a[6].n), nullptr, false, abode->coords, 0);
         }
         abode->JoinTown(town);  // sub_401220's town half: list, index, drinking water
         // sub_401EB0 (after the resources below): a built abode is counted in its town.

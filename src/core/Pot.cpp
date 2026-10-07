@@ -7,6 +7,9 @@
 
 #include <black/Pot.h>
 
+#include <algorithm>
+#include <cstring>
+
 // ============================================================================
 // Overrides of Base virtuals
 // ============================================================================
@@ -20,35 +23,41 @@ void Pot::ToBeDeleted(int param) {
 // Overrides of GameThing virtuals
 // ============================================================================
 
-uint32_t Pot::JustAddResource(RESOURCE_TYPE type, uint32_t amount, bool /*param3*/) {
-    // Original at 0x0066d2b0 — add resource to pot
-    if (type == field_0x68) {
-        field_0x6c += amount;
-        return amount;
-    }
-    return 0;
+namespace {
+int32_t InfoI(const void* info, size_t off) {
+    int32_t v = 0;
+    if (info) std::memcpy(&v, static_cast<const char*>(info) + off, sizeof v);
+    return v;
+}
+}  // namespace
+
+// sub_616FE0: up to the pot info's capacity (+284), unless the info is the
+// last of its chain (+292, the pot info that takes the overflow, is
+// POT_INFO_LAST = 19). ponytail: the pot's look (vslots 423, 535) is not
+// translated.
+uint32_t Pot::JustAddResource(RESOURCE_TYPE /*type*/, uint32_t n, bool /*param3*/) {
+    if (info && InfoI(info, 292) < 19) n = std::min(n, static_cast<uint32_t>(InfoI(info, 284)) - std::min(amount, static_cast<uint32_t>(InfoI(info, 284))));
+    amount += n;
+    return n;
 }
 
-uint32_t Pot::JustRemoveResource(RESOURCE_TYPE type, uint32_t amount, bool* /*param3*/) {
-    // Original at 0x0066d410 — remove resource from pot
-    if (type != field_0x68) return 0;
-    uint32_t available = field_0x6c;
-    uint32_t removed = (amount <= available) ? amount : available;
-    field_0x6c -= removed;
-    return removed;
+// sub_617140: an emptied pot loses its flag bit 0. ponytail: and what it
+// carried at +0x44 (this[17]) is released -- not modelled.
+uint32_t Pot::JustRemoveResource(RESOURCE_TYPE /*type*/, uint32_t n, bool* param3) {
+    n = std::min(n, amount);
+    amount -= n;
+    if (!amount) field_0x74 &= ~1u;
+    if (param3) *param3 = (field_0x74 & 1) != 0;
+    return n;
 }
 
+// sub_6170C0: what it holds, of its own resource (vslot 420).
 uint32_t Pot::JustGetResource(RESOURCE_TYPE type, uint32_t /*amount*/, bool* /*param3*/) {
-    // Original at 0x0066d390 — returns current resource count
-    if (type == field_0x68) return field_0x6c;
-    return 0;
+    return type == GetResourceType() ? amount : 0;
 }
 
-uint32_t Pot::GetResource(RESOURCE_TYPE type) {
-    // Original at 0x0066d3d0 — returns resource count if type matches
-    if (type == field_0x68) return field_0x6c;
-    return 0;
-}
+// sub_617100
+uint32_t Pot::GetResource(RESOURCE_TYPE type) { return JustGetResource(type, 0, nullptr); }
 
 uint32_t Pot::AddResource(RESOURCE_TYPE type, uint32_t amount,
                            GInterfaceStatus* /*status*/, bool param4,
@@ -174,8 +183,8 @@ RESOURCE_TYPE Pot::GetResourceType() {
 }
 
 int Pot::GetDefaultResource() {
-    // Original at 0x0055d4d0: returns current amount
-    return static_cast<int>(field_0x6c);
+    // v1.0 vslot 421 (sub_401180): this[28]
+    return static_cast<int>(amount);
 }
 
 void Pot::SetPoisonedResource(RESOURCE_TYPE /*type*/, int param2) {
