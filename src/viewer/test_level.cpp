@@ -74,7 +74,7 @@ int main() {
         with_info += s.obj->info != nullptr;
         if (s.command == "CREATE_VILLAGER_POS" && static_cast<Villager*>(s.obj)->GetHome()) ++housed;
     }
-    char msg[128];
+    char msg[320];
     std::snprintf(msg, sizeof msg, "abodes linked into their towns: %d", abodes);
     CHECK(abodes >= 36 && towns_own_their_abodes, msg);
     std::snprintf(msg, sizeof msg, "villagers housed (their named home, or another in its town when that is full): %d of 55", housed);
@@ -484,6 +484,8 @@ int main() {
             brain.body.energy = 0.4f;
             float energy_before = 0.0f, energy_after = 0.0f, hunger_before = 0.0f;
             int turn = 0, fish_start = -1, fish_turns = 0;
+            float sun_heading = 0.0f, sun_want = 0.0f;
+            bool looked = false;
             std::string log;
             uint32_t done = 0;
             for (; turn < 4000 && brain.last_desire != 4; ++turn) {
@@ -498,6 +500,11 @@ int main() {
                 brain.Tick(seen);
                 if (brain.body.meals != meals) energy_before = energy, energy_after = brain.body.energy;
                 if (brain.completed != done && fish_start >= 0) fish_turns = turn - fish_start + 1;
+                if (brain.completed != done && brain.last_action == 193 && !looked) {
+                    looked = true;
+                    sun_heading = khazar_body->GetYAngle();
+                    sun_want = std::atan2(-50000.0f - MetresOf(khazar_body->coords.x), -50000.0f - MetresOf(khazar_body->coords.z));
+                }
                 if (brain.completed != done) {
                     done = brain.completed;
                     if (log.size() < 120) log += " " + std::to_string(brain.last_action) + "/" + std::to_string(brain.last_desire);
@@ -512,18 +519,22 @@ int main() {
                           log.c_str(), turn, at_farm ? "a fish farm" : "?", energy_before, energy_after, hunger_before,
                           brain.desires.value[4]);
             // One fish (POT_INFO_FISH, food 20) over min(growth 0.32, 0.8) x 1000
-            // (sub_4DF5A0); its digestion takes as much off hunger (sub_4DF830),
+            // (sub_4DF5A0); its digestion takes as much off hunger, clamped to [0, 1]
+            // (sub_4DF830; this desire's maximum is above 1),
             // and FishAndEat's record then scales it by 0.01 (sub_4BE680).
             const float fish = 20.0f / (std::min(brain.body.growth, 0.8f) * brain.body_info.digest);
             CHECK(brain.last_desire == 4 && brain.last_action == 155 && at_farm &&
                       std::fabs(energy_after - (energy_before + fish)) < 2e-4f &&
-                      std::fabs(brain.desires.value[4] - std::max(hunger_before - fish, 0.0f) * 0.01f) < 1e-4f, msg);
+                      std::fabs(brain.desires.value[4] - std::clamp(hunger_before - fish, 0.0f, 1.0f) * 0.01f) < 1e-4f, msg);
             // The action is its four sub-actions (sub_4932E0), run one step at a
             // time (sub_4DE180): the walk, the fish, the pickup clip, the eating clip.
             const creature::SubActionAgenda& sa = brain.subactions;
             std::snprintf(msg, sizeof msg, "FishAndEat runs as sub-actions over %d turns (%u stopped), the hand empty after",
                           fish_turns, brain.stopped);
             CHECK(fish_turns > 32 && !brain.hand.holding && !brain.hand.Busy() && sa.count == 0, msg);
+            // LookAtSun (sub_499520) turns him toward (-50000, -50000) m (sub_4E0980).
+            std::snprintf(msg, sizeof msg, "LookAtSun turns him to face its point: heading %.3f, wanted %.3f", sun_heading, sun_want);
+            CHECK(looked && std::fabs(std::remainder(sun_heading - sun_want, 6.2831855f)) <= 0.3927f, msg);
         }
     }
 

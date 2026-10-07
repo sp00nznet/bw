@@ -35,6 +35,7 @@ struct BodyInfo {
     float    energy_drain = 0.000116f;   // +560 a turn
     float    reserve_drain = 8e-5f;      // +564 a turn, while energy is below 0.5
     float    spill = 0.06f;              // +568: how much of a meal past full goes to the reserve
+    float    rest = 0.0f;                // +576: exhaustion shed per turn x 0.2 resting (StaticAction 38)
     float    digest = 1000.0f;           // +888: food per unit of energy (times growth)
     float    poo_per_meal = 0.8f;        // +896
     bool Load(uint32_t species);         // from info.dat; false if it is not loaded

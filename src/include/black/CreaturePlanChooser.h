@@ -93,6 +93,9 @@ struct ChooserHost {
     std::function<float(uint32_t belief, uint32_t desire)> special;        // desire +36, and desire 6
     std::function<float(uint32_t belief, uint32_t desire)> target_score;   // sub_4CA530
     std::function<bool(uint32_t action, const ActionPlan&)> action_valid;  // action +16
+    // Ours, not v1.0's: whether this world can carry the action out at all
+    // (unset: every action can).
+    std::function<bool(uint32_t action)> action_possible;
     std::function<bool(uint32_t belief, uint32_t action)> action_fit;      // action +52
     std::function<bool(int kind, uint32_t id)> has;  // sub_4C3F50: 0 ability, 1 spell
     std::function<bool(uint32_t belief)> leash_exempt;   // desire 35's vslot 860 test

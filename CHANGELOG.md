@@ -21,6 +21,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Four more creature actions run as v1.0's sub-actions: LookAtSun, PointAtHand,
+  CommunicateState and HangAroundAtHome. Seven more sub-actions: turning to face a
+  point or the camera, pointing, communicating, waiting, and static and individual
+  clips.
 - FishAndEat now runs as v1.0's sub-actions, step by step (`docs/creature-chooser.md`):
   - The action's handler queues them, and the sub-action runner (`sub_4DE180`) steps
     through them.

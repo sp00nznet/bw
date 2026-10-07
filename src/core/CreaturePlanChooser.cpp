@@ -71,6 +71,7 @@ uint32_t PlanChooser::Candidate(const ActionPlan& plan, uint32_t k) const {
 // sub_4D1BE0
 bool PlanChooser::ActionPossible(uint32_t action, const ActionPlan& plan) const {
     if ((kActionDispatch[action] & kActHasValidity) && h_.action_valid && !h_.action_valid(action, plan)) return false;
+    if (h_.action_possible && !h_.action_possible(action)) return false;
     const ChooserTables::Action& a = t_.actions[action];
     for (uint32_t ab : a.ability)
         if (ab != 6 && !(h_.has && h_.has(0, ab))) return false;

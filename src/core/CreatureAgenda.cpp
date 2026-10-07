@@ -34,6 +34,7 @@ bool PlanChooser::ScoreActions(ActionPlan* plan, const std::vector<uint32_t>& tr
         if (!a) break;
         if (a >= 328) continue;
         if ((kActionDispatch[a] & kActHasValidity) && h_.action_valid && !h_.action_valid(a, *plan)) continue;
+        if (h_.action_possible && !h_.action_possible(a)) continue;
         const ChooserTables::Action& r = t_.actions[a];
         if (r.ability[0] != 6 && !(h_.has && h_.has(0, r.ability[0]))) continue;
         if (r.ability[1] != 6 && !(h_.has && h_.has(0, r.ability[1]))) continue;

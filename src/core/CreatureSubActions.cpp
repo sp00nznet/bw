@@ -7,6 +7,7 @@
 #include <black/Object.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace creature {
 
@@ -18,8 +19,19 @@ constexpr int kWalkSpeed = static_cast<int>(kMapUnitsPerMetre);
 // The fish CreateFishFromSea conjures: POT_INFO_FISH, food value 20.
 constexpr float kFishFood = 20.0f;
 
-// Clips the steps start (sub_46D670's argument).
-enum : uint32_t { kClipPickup = 14, kClipPutDown = 95, kClipDrop = 97, kClipEat = 96 };
+// Clips the steps start (sub_46D670's argument). kClipPoint is ours: the
+// pointing pose (sub_46D180) takes a point, not a clip id.
+enum : uint32_t { kClipPickup = 14, kClipPutDown = 95, kClipDrop = 97, kClipEat = 96, kClipPoint = 1000 };
+
+// A clip held until a step ends it (pointing, a static action).
+constexpr uint32_t kHeld = 0xFFFFFFFFu;
+
+constexpr float kTurnsPerSecond = 10.0f;  // 1000 / dword_C22D78 at BW's 10 Hz
+
+// The clip CommunicateToPlayer plays for a desire: DESIRE table +28 where +24
+// is set (0xBA8BC8/0xBA8BCC, recovered with the rest of the table); 0 is none.
+constexpr uint8_t kDesireClip[40] = {52, 64, 70, 67, 54, 61, 63, 66, 57, 67, 0, 0, 0, 0, 58, 0, 55, 72, 0, 59,
+                                     58, 0,  0,  57, 0,  0,  0,  56, 0,  0,  67, 0, 0, 0, 0,  0, 0,  56, 0, 67};
 
 // ponytail: how long a clip plays, in turns. The real lengths are the clips'
 // frame counts in the creature's ANM set, which core does not load; until it
@@ -35,6 +47,13 @@ uint32_t ClipTurns(uint32_t clip) {
 struct Record { uint32_t id, kind; bool step[4]; };
 // From the table at 0xB0EAF8 (work/decomp/subaction_table.json).
 constexpr Record kRecords[] = {
+    {kSubStaticAction, 1, {true, true, true, true}},           // sub_4DFD90, sub_4DFE20, sub_4E77D0; abort sub_4E7800
+    {kSubTurnToFacePos, 3, {true, true, false, false}},        // sub_4E0980, sub_4E2AF0
+    {kSubIndividualAction, 1, {true, true, false, false}},     // sub_4E0F60, sub_4E77D0
+    {kSubWait, 3, {false, true, false, false}},                // -, sub_4E2410
+    {kSubTurnToFaceCamera, 3, {true, true, false, false}},     // sub_4E2CA0, sub_4E2D80
+    {kSubCommunicateToPlayer, 1, {true, true, false, false}},  // sub_4E31C0, sub_4E77D0
+    {kSubPointAtPoint, 3, {true, true, true, false}},          // sub_4E5520, sub_4E5670, sub_4E77D0
     {kSubMoveToPos, 3, {true, false, true, false}},            // sub_4E0B90, -, sub_4E1AC0
     {kSubPickupCreatedObject, 1, {true, true, false, false}},  // sub_4E4360, sub_4E4380
     {kSubCreateFishFromSea, 1, {false, true, false, false}},   // -, sub_4E5EE0
@@ -50,11 +69,53 @@ const Record* Find(uint32_t id) {
 
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
-bool HasSubActions(uint32_t action) { return action == 155; }
+bool HasSubActions(uint32_t action) {
+    return action == 155 || action == 193 || action == 169 || action == 23 || action == 165;
+}
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
 bool CreatureBrain::StartAction(uint32_t action) {
     subactions.Clear();
+    subactions.starting = true;
+    SubActionAgenda& a = subactions;
+    switch (action) {
+    case 193: {  // LookAtSun (sub_499520): face far to the north-west, and half the time point there
+        SubActionEntry e{kSubTurnToFacePos};
+        e.point = MapCoordsFromMetres(-50000.0f, -50000.0f);
+        a.Add(e);
+        if (!Random(2)) {
+            e.id = kSubPointAtPoint;
+            e.value = 3.0f;
+            a.AddMain(e);
+        }
+        return true;
+    }
+    case 169:  // PointAtHand (sub_4977F0): the nearest hand of its player (sub_467290)
+        // ponytail: core has no player hands, so this is the no-hand case.
+        Stop();  // "FailedToConstr..."
+        return false;
+    case 23:  // CommunicateState (sub_485610)
+        a.Add(SubActionEntry{kSubTurnToFaceCamera});
+        a.AddMain(SubActionEntry{kSubCommunicateToPlayer});
+        return true;
+    case 165: {  // HangAroundAtHome (sub_496DC0)
+        SubActionEntry e{kSubMoveToPos};
+        e.point = creature_->field_0x1200;  // creature+4608: home
+        e.value = 5.0f;  // ponytail: min(5, the creature's GetHeight)
+        a.Add(e);
+        SubActionEntry w{kSubWait};
+        w.integer = static_cast<int32_t>((RandomFloat(3.0f) + 2.0f) * kTurnsPerSecond);  // _ftol
+        a.Add(w);
+        // With no temple (its player's +608), it plays individual action 57.
+        // ponytail: the temple branches (walk toward it, point or rest 10-15 s
+        // facing it: StaticAction 38) need a player's temple, which core lacks.
+        SubActionEntry i{kSubIndividualAction};
+        i.integer = 57;
+        a.AddMain(i);
+        return true;
+    }
+    default: break;
+    }
     if (action != 155) return false;
     // FishAndEat (sub_4932E0). Holding something edible already, it fails.
     if (hand.holding && hand.held.object && hand.held.object->CanBeEatenByCreature(creature_)) {
@@ -73,12 +134,11 @@ bool CreatureBrain::StartAction(uint32_t action) {
     SubActionEntry e;
     e.id = kSubMoveToPos;
     e.point = farm->coords;
-    e.radius = 15.0f;
+    e.value = 15.0f;
     subactions.Add(e);
     subactions.Add(SubActionEntry{kSubCreateFishFromSea});
     subactions.Add(SubActionEntry{kSubPickupCreatedObject});
     subactions.AddMain(SubActionEntry{kSubEatCreatedObject});
-    subactions.starting = true;
     return true;
 }
 
@@ -98,10 +158,10 @@ int CreatureBrain::WalkTo(const MapCoords& p, float radius) {
     return 1;
 }
 
-bool CreatureBrain::PlayAnim(uint32_t clip) {
+bool CreatureBrain::PlayAnim(uint32_t clip, uint32_t turns) {
     if (hand.Busy()) return false;
     hand.anim = clip;
-    hand.anim_left = ClipTurns(clip);
+    hand.anim_left = turns ? turns : ClipTurns(clip);
     return true;
 }
 
@@ -184,10 +244,66 @@ int CreatureBrain::Digest(const Food& f) {
 }
 
 int CreatureBrain::Step(uint32_t id, uint32_t step) {
-    const SubActionEntry& e = subactions.entries[subactions.current];
+    SubActionEntry& e = subactions.entries[subactions.current];
     switch (id * 4 + step) {
+    case kSubTurnToFacePos * 4 + 0: {  // sub_4E0980
+        const float dx = MetresOf(e.point.x - creature_->coords.x), dz = MetresOf(e.point.z - creature_->coords.z);
+        if (std::sqrt(dx * dx + dz * dz) < 0.1f) return kStepDone;
+        const float heading = std::atan2(dx, dz);
+        const float diff = std::remainder(heading - creature_->GetYAngle(), 6.2831855f);
+        if (std::fabs(diff) <= 0.39269909f) return kStepDone;  // within pi/8
+        // ponytail: the turn (sub_4D01E0) is instant here; the original
+        // plays a turning clip at the creature's turn speed.
+        creature_->SetYAngle(heading);
+        return kStepDone;
+    }
+    case kSubTurnToFacePos * 4 + 1:   // sub_4E2AF0
+    case kSubIndividualAction * 4 + 1:
+    case kSubCommunicateToPlayer * 4 + 1:
+    case kSubPointAtPoint * 4 + 2:
+    case kSubStaticAction * 4 + 2:    // sub_4E77D0: until the clip is over
+        return hand.Busy() ? kStepWait : kStepDone;
+    case kSubTurnToFaceCamera * 4 + 0:  // sub_4E2CA0 / sub_4E2D80: no player, nothing to face
+    case kSubTurnToFaceCamera * 4 + 1:
+        // ponytail: with a player it turns to the camera, which core lacks.
+        return kStepDone;
+    case kSubCommunicateToPlayer * 4 + 0: {  // sub_4E31C0
+        // Its strongest active desire that has a clip (sub_4BE770). The
+        // original plays the player-feedback clip (55 or 56) instead when
+        // feedback came within 10 s (mental+101472); there is none here.
+        uint32_t best = kNumCreatureDesires;
+        float v = 0.0f;
+        for (uint32_t d = 0; d < kNumCreatureDesires; ++d)
+            if (desires.active[d] && desires.value[d] > v && kDesireClip[d]) best = d, v = desires.value[d];
+        desires.Countdown(18, 60.0f);
+        if (best == kNumCreatureDesires) return kStepFailed;
+        return PlayAnim(kDesireClip[best]) ? kStepDone : kStepWait;  // sub_46D360
+    }
+    case kSubIndividualAction * 4 + 0:  // sub_4E0F60
+        return PlayAnim(static_cast<uint32_t>(e.integer)) ? kStepDone : kStepWait;
+    case kSubPointAtPoint * 4 + 0:  // sub_4E5520: point, for at least 10 turns
+        if (hand.Busy()) return kStepWait;
+        PlayAnim(kClipPoint, kHeld);
+        countdown_ = static_cast<uint16_t>(std::max(static_cast<int>(e.value * kTurnsPerSecond), 10));
+        return kStepDone;
+    case kSubPointAtPoint * 4 + 1:  // sub_4E5670
+    case kSubStaticAction * 4 + 1:  // sub_4DFE20
+        if (id == kSubStaticAction && e.integer == 38)  // resting sheds exhaustion
+            body.exhaustion = std::clamp(body.exhaustion - body_info.rest * 0.2f, 0.0f, 1.0f);
+        if (--countdown_) return kStepWait;
+        EndAnim();
+        return kStepDone;
+    case kSubStaticAction * 4 + 0:  // sub_4DFD90
+        if (!PlayAnim(static_cast<uint32_t>(e.integer), kHeld)) return kStepWait;
+        countdown_ = static_cast<uint16_t>(e.value * kTurnsPerSecond);
+        return kStepDone;
+    case kSubWait * 4 + 1:  // sub_4E2410
+        // ponytail: the original waits out a busy clip unless sub_46D620 lets
+        // it be cut short; here any clip is waited out.
+        if (hand.Busy()) return kStepWait;
+        return --e.integer > 0 ? kStepWait : kStepDone;
     case kSubMoveToPos * 4 + 0:  // sub_4E0B90
-        return WalkTo(e.point, e.radius) == 3 ? kStepDone : kStepWait;
+        return WalkTo(e.point, e.value) == 3 ? kStepDone : kStepWait;
     case kSubMoveToPos * 4 + 2:  // sub_4E1AC0: until it has stopped moving
         return creature_->speed != 0 ? kStepWait : kStepDone;
     case kSubCreateFishFromSea * 4 + 1:  // sub_4E5EE0: a fish pot at its feet
@@ -222,6 +338,9 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
 // The bookkeeping both endings share (sub_45FBC0, as far as it applies):
 // nothing is current, so the agenda's next plan takes over.
 void CreatureBrain::EndAction() {
+    // The current sub-action's abort handler (record +128, from sub_45FBC0):
+    // StaticAction's ends its clip (sub_4E7800).
+    if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
     subactions.Clear();
     created_ = Food();
     if (hand.held.object && !hand.holding) hand.held = Food();
@@ -237,6 +356,16 @@ void CreatureBrain::Stop() {
     if (const uint32_t a = Action()) mind.action_count[a] = 0;
     ++stopped;
     EndAction();
+}
+
+// sub_4D08E0 stops the running action ("Overriding action") before the new
+// plan is made current; here the agenda has already swapped the plan in, so
+// the old action is named.
+void CreatureBrain::Override(uint32_t old_action) {
+    mind.action_count[old_action] = 0;
+    ++stopped;
+    if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
+    subactions.Clear();
 }
 
 // sub_45F790: done (0x460020 has already run, from Advance).

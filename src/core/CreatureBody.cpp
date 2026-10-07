@@ -50,6 +50,7 @@ bool BodyInfo::Load(uint32_t species) {
     energy_drain = F(e, 560);
     reserve_drain = F(e, 564);
     spill = F(e, 568);
+    rest = F(e, 576);
     digest = F(e, 888);
     poo_per_meal = F(e, 896);
     return true;

@@ -31,6 +31,7 @@
 #include "CreatureSubActions.h"
 
 #include <cstdint>
+#include <random>
 #include <unordered_map>
 #include <vector>
 
@@ -91,15 +92,23 @@ private:
     int  Step(uint32_t id, uint32_t step);
     bool Advance();                     // sub_4DE940
     int  WalkTo(const MapCoords& p, float radius);
-    bool PlayAnim(uint32_t clip);       // sub_46D670
+    bool PlayAnim(uint32_t clip, uint32_t turns = 0);  // sub_46D670; 0: the clip's own length
+    void EndAnim() { hand.anim = 0; hand.anim_left = 0; }  // sub_46D340 / sub_46D120
+    uint32_t Random(uint32_t n) { return static_cast<uint32_t>(rng_() % n); }  // sub_67BC90
+    float    RandomFloat(float f) { return std::uniform_real_distribution<float>(0.0f, f)(rng_); }  // sub_67BCB0
     void TickHand();
     int  Digest(const Food& f);         // sub_4DF830
     void Stop();                        // sub_45FA70
+    void Override(uint32_t old_action); // sub_4D08E0's stop of the action it replaces
     void Finish();                      // sub_45F790
     void EndAction();
 
     Food     created_;      // mental+7276: what CreateFishFromSea made
     uint32_t running_ = 0;  // the action whose handler last ran
+    uint16_t countdown_ = 0;  // creature+88: the turns a point or static clip has left
+    // ponytail: the handlers' dice come from this, not the game's random stream
+    // (sub_67BC90), so a run is repeatable but not the original's sequence.
+    std::mt19937 rng_{1};
 
     Creature*     creature_ = nullptr;
     uint32_t      turn_ = 0;

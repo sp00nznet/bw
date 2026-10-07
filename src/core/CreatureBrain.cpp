@@ -73,6 +73,10 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
     host_.action_valid = [this](uint32_t action, const ActionPlan& plan) {
         return ActionValid(action, tables_.actions[action].spell, plan, facts);
     };
+    // PointAtHand (169) has no validity test in v1.0, where a creature always
+    // has a player's hand to point at. Without a player its handler fails
+    // every turn (sub_4977F0), so it is ruled out here instead.
+    host_.action_possible = [this](uint32_t action) { return action != 169 || facts.has_player; };
     host_.opinion = [this](uint32_t id, uint32_t desire) {
         for (const BeliefView& b : beliefs_) if (b.id == id) return Opinion(desire, b);
         return 0.0f;
@@ -246,6 +250,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     Object* target = Target();
     const uint32_t action = Action();
     if (action != running_) {
+        if (running_) Override(running_);
         running_ = action;
         if (HasSubActions(action) && !StartAction(action)) return false;  // it stopped
     }

@@ -207,7 +207,7 @@ The early creature that eats villagers is in the data from the start.
    - Every action's validity predicate is translated (see below).
 3. **Carrying it out.** When a plan becomes current, its action's handler queues
    sub-actions, which the runner steps through (see "What actions are made of"
-   below). Only FishAndEat's handler is translated so far. For any other action,
+   below). Five handlers are translated so far. For any other action,
    the creature walks to its plan's belief and the action completes on arrival,
    with v1.0's effects (the eat step and the action-done routine) but not its
    timing.
@@ -423,9 +423,50 @@ The handler is `sub_4932E0`:
 - **The fish:** it isn't a world object.
 - **The leash:** it isn't checked.
 
-In `test_level` the starved Khazar fishes over 37 turns. His energy rises by
-exactly one fish when the eating clip starts. His hunger ends at
-(hunger − that fish) × 0.01.
+### The idle actions
+
+These are the actions Khazar does before he gets hungry:
+
+| Action | Handler | Sub-actions |
+|---|---|---|
+| LookAtSun (193) | `sub_499520` | TurnToFacePos toward (−50000, −50000) m; half the time, then PointAtPoint at it for 3 s |
+| PointAtHand (169) | `sub_4977F0` | TurnToFaceCamera, then PointAtPoint at the player's nearest hand for 1 s. Fails with no hand. |
+| CommunicateState (23) | `sub_485610` | TurnToFaceCamera, then CommunicateToPlayer |
+| HangAroundAtHome (165) | `sub_496DC0` | MoveToPos home (within 5 m), Wait 2 to 5 s, then IndividualAction 57 when its player has no temple |
+
+How the sub-actions behave:
+- **TurnToFacePos** (`sub_4E0980`) turns only if the point is more than π/8 off the
+  creature's heading.
+- **PointAtPoint** holds the pose for max(10 turns, seconds × 10).
+- **CommunicateToPlayer** (`sub_4E31C0`):
+  - It plays the clip of the strongest active desire that has one. That clip is
+    the desire table's +28, where +24 is set.
+  - If the player gave feedback within the last 10 s, it plays clip 55 or 56
+    instead.
+  - Either way, desire 18 is held back for 60 s.
+- **StaticAction** (`sub_4DFD90`) holds a clip for its seconds. With clip 38
+  (resting), it sheds `CREATURE_INFO +576` × 0.2 of exhaustion every turn. Its
+  abort handler ends the clip.
+
+When the agenda switches plans, `sub_4D08E0` first stops the running action
+("Overriding action"). When no sub-action is running, the per-turn routine
+(0x45D8A0) zeroes the current plan's score, so a failed action is picked again
+if it still scores best.
+
+**Ours** in these:
+- **Turning** is instant.
+- **No player:** core has no player, camera, hands or temple. TurnToFaceCamera is
+  skipped, and HangAroundAtHome always takes the no-temple branch.
+- **Random numbers** come from a seeded generator of the brain's own, not the
+  game's.
+- **PointAtHand** is ruled out when there is no player (`ChooserHost::action_possible`).
+  v1.0 has no validity test for it, since its creature always has a player. Here
+  its handler would otherwise fail every turn.
+
+In `test_level` the starved Khazar looks at the sun four times and ends up facing
+its point. He then fishes over 181 turns. His energy rises by exactly one fish
+when the eating clip starts, and his hunger ends at clamp(hunger − that fish, 0, 1)
+× 0.01.
 
 ## What the shipped minds know
 

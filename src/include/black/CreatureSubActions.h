@@ -9,9 +9,10 @@
 // step answers 0 (not yet), 1 (failed), 2 (done) or 3 (stop). After the third
 // step of the last sub-action the action is done (0x460020).
 //
-// CreatureBrain runs it (CreatureSubActions.cpp). Translated so far: FishAndEat
-// (155) and its four sub-actions. Every other action still completes on
-// arrival.
+// CreatureBrain runs it (CreatureSubActions.cpp). Translated so far: the
+// handlers of FishAndEat (155), LookAtSun (193), PointAtHand (169),
+// CommunicateState (23) and HangAroundAtHome (165), and the eleven sub-actions
+// they queue. Every other action still completes on arrival.
 
 #include "types.h"
 
@@ -22,7 +23,14 @@ struct Object;
 namespace creature {
 
 enum : uint32_t {  // sub-action ids: records of the table at 0xB0EAF8
+    kSubStaticAction = 4,
+    kSubTurnToFacePos = 7,
     kSubMoveToPos = 8,
+    kSubIndividualAction = 10,
+    kSubWait = 24,
+    kSubTurnToFaceCamera = 31,
+    kSubCommunicateToPlayer = 32,
+    kSubPointAtPoint = 80,
     kSubPickupCreatedObject = 55,
     kSubCreateFishFromSea = 92,
     kSubEatCreatedObject = 128,
@@ -41,8 +49,9 @@ struct Food {
 
 struct SubActionEntry {      // 96 bytes at agenda +48 in the original
     uint32_t id = 0;         // +0
-    MapCoords point;         // +12: SubArgumentPointAndFloat
-    float    radius = 0.0f;  // +24
+    int32_t  integer = 0;    // +8: SubArgumentInteger (a clip, or turns to wait)
+    MapCoords point;         // +12: SubArgumentPoint
+    float    value = 0.0f;   // +24: the float of ...AndFloat (a radius, or seconds)
 };
 
 struct SubActionAgenda {
