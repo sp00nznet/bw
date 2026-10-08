@@ -869,8 +869,23 @@ int main() {
             std::snprintf(msg, sizeof msg, "stage 0 desires%s; stage 1 adds to%s; stage 13:%s", at0.c_str(), at1.c_str(), at13.c_str());
             CHECK(at0 == " 5 8 9 17 18 21 23 24 28 35" && at1 == " 3 4 5 6 8 9 17 18 21 23 24 28 29 35 38" &&
                       brain->desires.active[4] && !brain->desires.active[29] && brain->desires.active[39] && body->field_0x1268 == 13, msg);
+            bool knew = false;
+            for (uint32_t k = 0; k < 42; ++k) knew = knew || (k < 6 && brain->Knows(0, k)) || brain->Knows(1, k);
+            // Grown, it learns abilities by watching villagers (sub_4BA660 ->
+            // sub_4C3AD0): the ability a villager's state shows (VILLAGER_STATE_TABLE
+            // +240), once its stage allows and it has seen it a whole second apart.
+            for (int t = 0; t < 600; ++t) level::Process(w);
+            std::string learned;
+            for (uint32_t a = 0; a < 6; ++a) if (brain->Knows(0, a)) learned += " " + std::to_string(a);
+            // A magic type is known about from its first sighting, but not one whose
+            // prerequisite it lacks: FireballPU1 (2) needs Fireball (1).
+            const bool pu_first = brain->Observe(1, 2) || brain->Knows(1, 2);
+            brain->Observe(1, 1);
+            brain->Observe(1, 2);
+            std::snprintf(msg, sizeof msg, "watching villagers for 600 turns it learns abilities%s; Fireball before FireballPU1", learned.c_str());
+            CHECK(!learned.empty() && !pu_first && brain->Knows(1, 1) && brain->Knows(1, 2), msg);
             // It knew nothing; CREATURE_LEARN_EVERYTHING (sub_4635C0) teaches abilities 0..5 and magic types 0..41.
-            const bool knew = brain->Knows(0, 0) || brain->Knows(1, 0);
+            // (knew: before it watched, above)
             brain->LearnEverything();
             CHECK(!knew && brain->Knows(0, 5) && brain->Knows(1, 41) && !brain->Knows(0, 6) && brain->facts.knows_spell[41],
                   "a new creature knows no abilities or spells until it learns everything (sub_4635C0)");

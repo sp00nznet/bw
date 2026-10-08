@@ -62,6 +62,7 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t
     static const CreatureMind kFresh;
     const CreatureMind& m = saved ? *saved : kFresh;
     creature_ = creature;
+    species_ = species;
     if (!tables_.Load(species) || !body_info.Load(species) || !desires.Init(species, saved)) return false;
     body.Init(body_info);
     if (m.has_body) {  // the saved body (sub_4CA040)
@@ -155,6 +156,78 @@ void CreatureBrain::EnterDevelopmentStage(uint32_t stage) {
     creature_->field_0x1268 = static_cast<int>(stage);
     std::fill(std::begin(desires.countdown), std::end(desires.countdown), 0u);
     ApplyStage(stage);
+}
+
+namespace {
+// The prerequisite of each ability (kind 0) and magic type (kind 1), as a
+// (kind, id) pair; kind 2 is none (0xB0DCA0, initialised data). Spells 40 and
+// 41 have no entry written, so they read (0, 0): ability 0, Build.
+struct Prereq { uint8_t kind, id; };
+constexpr Prereq kPrereq[2][42] = {
+    {{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}},
+    {{2, 0}, {2, 0}, {1, 1}, {1, 1}, {2, 0}, {1, 4}, {1, 4}, {2, 0}, {1, 7}, {1, 8}, {2, 0}, {1, 10}, {2, 0}, {2, 0},
+     {2, 0}, {2, 14}, {2, 0}, {1, 16}, {1, 17}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 22}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
+     {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0}, {0, 0}, {0, 0}},
+};
+template <class T> T InfoAt(infodat::Section s, uint32_t i, size_t off) {
+    T v{};
+    if (const auto* e = static_cast<const char*>(infodat::Element(s, i))) std::memcpy(&v, e + off, sizeof v);
+    return v;
+}
+}  // namespace
+
+// sub_4C3AD0. ponytail: its feedback (sub_4B0770) and the creature's
+// interested look (sub_4668F0) are not modelled, nor the frozen-by-spell gate
+// (mental+134372; core has no such spell), nor the +2 a spell sighting gets
+// when the creature's player's +300 record is in mode 2.
+bool CreatureBrain::Observe(int kind, uint32_t id) {
+    if (kind < 0 || kind > 1 || id >= (kind ? 42u : 6u)) return false;
+    const Prereq p = kPrereq[kind][id];
+    if (p.kind != 2 && !Knows(p.kind, p.id)) return false;
+    const uint32_t stage = static_cast<uint32_t>(creature_->field_0x1268);
+    const uint32_t now = turn_ + 1;  // the game turn (never 0 there)
+    if (kind == 0) {  // DETAIL_CREATURE_NORMAL_ACTION_KNOWN_ABOUT_TABLE
+        if (stage < InfoAt<uint32_t>(infodat::DETAIL_CREATURE_NORMAL_ACTION_KNOWN_ABOUT_TABLE, id, 96)) return false;
+        if (!ability_first_[id]) ability_first_[id] = now;
+        // Whole seconds since it was first seen, against +88 read as a float
+        // (fcomp). The shipped table holds small integers there (6, 7), so the
+        // wait is any whole second: it is learned when seen again a second on.
+        const float need = InfoAt<float>(infodat::DETAIL_CREATURE_NORMAL_ACTION_KNOWN_ABOUT_TABLE, id, 88);
+        if (++ability_seen_[id] == 0 || static_cast<float>((now - ability_first_[id]) / 10u) < need) return false;
+        Learn(0, id);
+        return true;
+    }
+    // DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE
+    if (stage < InfoAt<uint32_t>(infodat::DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE, id, 96)) return false;
+    if (now - spell_last_[id] > 50 || !spell_last_[id]) ++spell_seen_[id];
+    spell_last_[id] = now;
+    Learn(1, id);
+    // sub_4D82D0: the sightings it takes, +84 x the species' CREATURE_INFO +892.
+    const float need = static_cast<float>(InfoAt<uint32_t>(infodat::DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE, id, 84)) *
+                       InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 892);
+    return need <= static_cast<float>(spell_seen_[id]);
+}
+
+// sub_4BA660, the part that learns: from stage 3, and not while it serves one
+// of the desires below, a villager's state (its final state while it waits for
+// an animation; GotoStoragePitForFood more than 40 m from its goal counts as
+// DecideWhatToDo) names the ability it shows (VILLAGER_STATE_TABLE +240; 6 is
+// none).
+void CreatureBrain::WatchVillager(const Villager* v) {
+    if (!v || creature_->field_0x1268 < 3 || (creature_->field_0x24 & 0x400)) return;
+    switch (agenda.plans.current_desire) {
+    case 0: case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 11: case 14: case 15: case 16:
+    case 19: case 20: case 21: case 22: case 23: case 25: case 26: case 39:
+        return;
+    default: break;
+    }
+    uint8_t state = v->action.top_state;
+    if (state == VILLAGER_STATE_WAIT_FOR_ANIMATION) state = v->action.final_state;
+    if (state == VILLAGER_STATE_GOTO_STORAGE_PIT_FOR_FOOD && MetresOf(1) * const_cast<Villager*>(v)->GetDistanceFromObject(v->goal) > 40.0f)
+        state = VILLAGER_STATE_DECIDE_WHAT_TO_DO;
+    const uint32_t ability = InfoAt<uint32_t>(infodat::DETAIL_VILLAGER_STATE_TABLE_INFO, state, 240);
+    if (ability != 6 && !Knows(0, ability)) Observe(0, ability);
+    // ponytail: the look it gives (sub_4AB9B0(6, 0, 79)) is not modelled.
 }
 
 // sub_4C3F50: whether the mind's list (kind 0 abilities, 1 magic types) has it.
@@ -286,6 +359,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
         b.distance = d;
         b.type = o->GetCreatureBeliefType();
         beliefs_.push_back(b);
+        if (auto* v = dynamic_cast<Villager*>(o)) WatchVillager(v);  // its belief refreshed (sub_4BA660)
     }
 
     // The body, then the desires it feeds (Creature vslot 392: sub_4CF980,

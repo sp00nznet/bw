@@ -37,6 +37,7 @@
 #include <vector>
 
 struct Creature;
+struct Villager;
 struct Object;
 
 namespace creature {
@@ -110,6 +111,13 @@ public:
     void Learn(int kind, uint32_t id);        // sub_4C3F80
     void LearnEverything(bool abilities = true, bool spells = true);
 
+    // sub_4C3AD0: it has seen an ability (kind 0) or magic type (kind 1) in
+    // use. True when the sighting teaches it (a spell is known about from its
+    // first sighting; true once seen often enough).
+    bool Observe(int kind, uint32_t id);
+    // sub_4BA660's learning half: what a villager it notices is doing.
+    void WatchVillager(const Villager* v);
+
 private:
     float    Opinion(uint32_t desire, const BeliefView& b) const;
     bool     SourceValue(uint32_t type, float* out) const;
@@ -146,6 +154,11 @@ private:
     std::vector<BeliefView> beliefs_;
     std::vector<Object*> seen_;
     std::vector<uint32_t> known_[2];  // abilities, magic types
+    uint32_t species_ = 0;
+    uint32_t ability_first_[6] = {};  // mental+97568: the turn it was first seen
+    uint32_t ability_seen_[6] = {};   // mental+97544: sightings
+    uint32_t spell_seen_[42] = {};    // mental+97592
+    uint32_t spell_last_[42] = {};    // mental+97760: the turn last counted
     std::unordered_map<Object*, uint32_t> ids_;
     std::vector<Object*> objects_ = {nullptr};  // id -> object; 0 is none
     // Per desire, the opinion tree for each belief kind, from the mind's

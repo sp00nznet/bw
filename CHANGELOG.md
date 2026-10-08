@@ -37,6 +37,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Creatures learn by watching, as v1.0's do (sub_4C3AD0, sub_4BA660): abilities from
+  what villagers are doing, gated by stage and prerequisites. A grown ape learns to
+  fish by watching fishermen.
 - HowlAtFriend (315) runs as v1.0's sub-actions. It was the last action creatures
   reached that still finished on arrival.
 - Creature development stages (info.dat DETAIL_CREATURE_DEVELOPMENT) switch desires

@@ -733,6 +733,50 @@ scripts reach them:
 
 Ours had 259's two pops the wrong way round.
 
+### Learning by watching
+
+`sub_4C3AD0` (`CreatureBrain::Observe`): the creature has seen an ability (kind 0) or a
+magic type (kind 1) in use.
+
+**Prerequisites** (0xB0DCA0, initialised data) are a (kind, id) pair each, with kind 2
+for none:
+- No ability has one.
+- Magic types 2 and 3 need 1, 5 and 6 need 4, 8 needs 7, 9 needs 8, 11 needs 10, 17
+  needs 16, and 18 needs 17.
+- Magic types 40 and 41 have no entry written, so they read (0, 0): they need ability 0,
+  Build.
+
+**Abilities** (DETAIL_CREATURE_NORMAL_ACTION_KNOWN_ABOUT_TABLE, 6 × 104 bytes: Build,
+UseField, UseTotem, UseStoragePit, Fish, Dance):
+- The creature's stage must be at least the record's +96 (Build 11, UseField 4,
+  UseTotem 9, UseStoragePit 11, Fish 4, Dance 4).
+- The first sighting is timestamped and every sighting counted. The ability is learned
+  when the whole seconds since the first sighting are no longer below +88.
+- +88 is compared as a float (`fcomp`), but the table holds small integers there (6, 7).
+  As floats those are about 1e-44, so any whole second will do: an ability is learned
+  when seen again a second or more after the first time.
+
+**Magic types** (DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE, 42 × 112 bytes, at
+0xBCAFD0):
+- The stage must be at least the record's +96.
+- Sightings are counted at most once per 50 turns.
+- The magic type goes on the known list at the first sighting.
+- The call answers true once the count reaches +84 × the species' CREATURE_INFO +892
+  (`sub_4D82D0`).
+
+**What it watches** (`sub_4BA660`, as the creature's belief of a villager is refreshed):
+- Only from stage 3, and not while it serves desire 0–5, 7, 8, 11, 14–16, 19–23, 25, 26
+  or 39.
+- The villager's state names the ability it shows, at VILLAGER_STATE_TABLE +240 (6 is
+  none).
+  - While the villager waits for an animation, its final state counts instead.
+  - GotoStoragePitForFood more than 40 m from its goal counts as DecideWhatToDo.
+
+In `test_level`, a grown ape watching the village for 600 turns learns Fish (4).
+
+**Ours:** the feedback (`sub_4B0770`), the interested look (`sub_4668F0`,
+`sub_4AB9B0`) and the frozen-by-spell gate (mental+134372) are not modelled.
+
 ### HowlAtFriend (315)
 
 Every test scenario was measured for actions completed by the untranslated
