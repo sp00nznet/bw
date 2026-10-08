@@ -13,13 +13,101 @@ extern GMap* g_map;
 // Mobile has no new virtual methods — all inherited from Object.
 // The Save/Load methods (not virtual) serialize field_0x54.
 
-// sub_5E8CA0: into the cell under it (sub_5BFA00), and marked as in the map.
-// ponytail: the cell's mobile list (vslot 339, sub_5E8D90) is not kept --
-// nothing in core walks it, and a moving object would have to be relinked
-// (vslot 343) -- so only the flag the predicates read is set. Core builds no
-// GMap yet (g_map stays null); without one, every position counts as on it.
+namespace {
+// sub_5BFA00: the cell under a position, or null off the map.
+MapCell* CellAt(const MapCoords& c) {
+    const uint32_t cx = static_cast<uint32_t>(c.x) >> 16, cz = static_cast<uint32_t>(c.z) >> 16;
+    return g_map && g_map->InBounds(cx, cz) ? g_map->ToMap(cx, cz) : nullptr;
+}
+bool OnFixedList(const Object* o) { return (o->field_0x24 & 0x8000) != 0; }  // this[37] < 0
+}  // namespace
+
+// sub_4140F0 / sub_414120: the next in its cell's list is +0x20.
+Object* Mobile::GetMapChild(const MapCell*) { return map_child; }
+void Mobile::SetMapChild(Object* o, MapCell*) { map_child = o; }
+
+// sub_5E8CA0: into the cell under it (vslot 339), and marked as in the map.
+// Without a GMap (a host that builds none), only the flag is set.
 void Mobile::InsertMapObject() {
-    const uint32_t cx = static_cast<uint32_t>(coords.x) >> 16, cz = static_cast<uint32_t>(coords.z) >> 16;
-    if (g_map && !g_map->InBounds(cx, cz)) return;
-    field_0x24 |= 1;
+    if (!g_map) {
+        field_0x24 |= 1;
+        return;
+    }
+    if (MapCell* cell = CellAt(coords)) {
+        InsertMapObjectToCell(cell);
+        field_0x24 |= 1;
+    }
+}
+
+// sub_5E8D00
+void Mobile::RemoveMapObject() {
+    if (!g_map) {
+        field_0x24 &= ~1u;
+        return;
+    }
+    if (MapCell* cell = CellAt(coords)) {
+        RemoveMapObjectFromCell(cell);
+        field_0x24 &= ~1u;
+    }
+}
+
+// sub_5E8D90: at the head of the cell's mobile list, linked both ways (+0x20
+// next, +0x38 previous); one flagged 0x8000 goes on the end of the fixed list.
+// ponytail: the game block's record of it (sub_59DB30) and the 0x100-info
+// hook (sub_5A2B10) are not translated.
+void Mobile::InsertMapObjectToCell(MapCell* cell) {
+    if (!OnFixedList(this)) {
+        if (Object* head = cell->first_object_mobile) {
+            head->map_parent = this;
+            SetMapChild(head, cell);
+        }
+        cell->SetFirstObjectMobile(this);
+    } else if (Object* o = cell->first_object_fixed) {
+        while (Object* n = o->GetMapChild(cell)) o = n;
+        o->SetMapChild(this, cell);
+    } else {
+        cell->SetFirstObjectFixed(this);
+    }
+}
+
+// sub_5E8E30
+void Mobile::RemoveMapObjectFromCell(MapCell* cell) {
+    Object* next = GetMapChild(cell);
+    if (!OnFixedList(this)) {
+        if (Object* prev = map_parent) {
+            prev->SetMapChild(next, cell);
+            if (next) next->map_parent = prev;
+            map_parent = nullptr;
+        } else {
+            cell->SetFirstObjectMobile(next);
+            if (next) next->map_parent = nullptr;
+        }
+    } else if (cell->first_object_fixed == this) {
+        cell->SetFirstObjectFixed(next);
+    } else {
+        for (Object* o = cell->first_object_fixed; o; o = o->GetMapChild(cell))
+            if (o->GetMapChild(cell) == this) {
+                o->SetMapChild(next, cell);
+                break;
+            }
+    }
+    SetMapChild(nullptr, cell);
+}
+
+// sub_5E8FA0: within its cell it only moves (6); into another it is relinked
+// (vslot 344, sub_5EA470: out, moved, in) (7).
+int Mobile::MoveMapObject(const MapCoords& c) {
+    if ((static_cast<uint32_t>(coords.x) >> 16) == (static_cast<uint32_t>(c.x) >> 16) &&
+        (static_cast<uint32_t>(coords.z) >> 16) == (static_cast<uint32_t>(c.z) >> 16)) {
+        coords = c;
+        return 6;
+    }
+    ActualMoveMapObject(c);
+    return 7;
+}
+
+void Mobile::ActualMoveMapObject(const MapCoords& c) {
+    RemoveMapObject();
+    SetPos(c);
+    InsertMapObject();
 }

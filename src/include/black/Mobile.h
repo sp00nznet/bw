@@ -9,7 +9,14 @@
 
 struct Mobile : public Object {
     // No new virtual methods — vtable same as Object (0x85C bytes)
-    void InsertMapObject() override;  // sub_5E8CA0
+    Object* GetMapChild(const MapCell* cell) override;          // sub_4140F0
+    void SetMapChild(Object* object, MapCell* cell) override;   // sub_414120
+    void InsertMapObject() override;                            // sub_5E8CA0
+    void RemoveMapObject() override;                            // sub_5E8D00
+    void InsertMapObjectToCell(MapCell* cell) override;         // sub_5E8D90
+    void RemoveMapObjectFromCell(MapCell* cell) override;       // sub_5E8E30
+    int MoveMapObject(const MapCoords& coords) override;        // sub_5E8FA0
+    void ActualMoveMapObject(const MapCoords& coords) override; // sub_5EA470
 
     // === Fields ===
     uint16_t field_0x54;   // 0x54 — saved/loaded in Mobile::Save/Load

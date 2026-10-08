@@ -570,8 +570,10 @@ walk radius.
     load. Fixed objects link into their cells as the level creates them.
   - The cells are x-major, `cell + 8 × (z + x × extent)` (`sub_5BFA00`). `GMap::ToMap`
     had them transposed.
-  - Mobiles only set their in-map flag; they are not linked, which these tests do
-    not need.
+  - Mobiles link into their cell's mobile list (`sub_5E8D90`): doubly linked,
+    +0x20 next and +0x38 previous, new ones at the head. A walk relinks them when it
+    crosses into another cell (`MoveMapObject`, `sub_5E8FA0`: 6 for the same cell, 7
+    for a new one).
   - Field is not translated; its bit stays clear.
 - **No exploration bits:** core keeps none, so every block counts as unexplored.
 - **SitDownOnBeach** walks toward the water point itself. The original's search for

@@ -27,6 +27,7 @@
 #include <black/PileFood.h>
 #include <black/StoragePit.h>
 #include <black/Map.h>
+#include <black/Mobile.h>
 #include <black/ObjectInfo.h>
 #include <black/EntityFactory.h>
 #include <black/FishFarm.h>
@@ -461,6 +462,27 @@ int main() {
         }
         CHECK(created == 0, "no villager is still in Created (85) after its timer");
         CHECK(moved > 0 && inside > 0, "villagers walk, and some reach home and go inside");
+        // After all that walking, every mobile in the map is on the mobile list of
+        // the cell under it (sub_5E8D90), once, linked both ways (+0x20 / +0x38).
+        int mobiles = 0, listed = 0, misplaced = 0, broken = 0;
+        for (const level::Spawned& s : w.objects) {
+            auto* m = dynamic_cast<Mobile*>(s.obj);
+            if (!m || !m->IsObjectInMap_0()) continue;
+            ++mobiles;
+            MapCell* cell = g_map->ToMap(static_cast<uint32_t>(m->coords.x) >> 16, static_cast<uint32_t>(m->coords.z) >> 16);
+            int n = 0;
+            for (Object* o = cell->first_object_mobile; o; o = o->map_child) n += o == m;
+            listed += n == 1;
+        }
+        for (uint32_t x = 0; x < 0x200; ++x)
+            for (uint32_t z = 0; z < 0x200; ++z)
+                for (Object* o = g_map->cells[x][z].first_object_mobile, *prev = nullptr; o; prev = o, o = o->map_child) {
+                    misplaced += (static_cast<uint32_t>(o->coords.x) >> 16) != x || (static_cast<uint32_t>(o->coords.z) >> 16) != z;
+                    broken += o->map_parent != prev;
+                }
+        std::snprintf(msg, sizeof msg, "%d mobiles in the map, %d on their own cell's list; %d listed elsewhere, %d broken links",
+                      mobiles, listed, misplaced, broken);
+        CHECK(mobiles > 0 && listed == mobiles && misplaced == 0 && broken == 0, msg);
     }
 
     {

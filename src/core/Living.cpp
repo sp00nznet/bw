@@ -424,9 +424,11 @@ uint32_t Living::IsPosValidForMapCellExistance(const MapCoords* pos) {
 // ============================================================================
 
 void Living::MoveByTeleport(const MapCoords* target) {
-    if (target) {
-        SetPos(*target);
-    }
+    // ponytail: v1.0's teleport is not translated; in the map it moves through
+    // vslot 343 so its cell stays right.
+    if (!target) return;
+    if (IsObjectInMap_0()) MoveMapObject(*target);
+    else SetPos(*target);
 }
 
 bool Living::IsDead() {

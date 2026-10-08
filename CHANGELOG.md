@@ -26,6 +26,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Villagers, animals and creatures link into the map cell under them, as v1.0's do,
+  and are relinked as they walk from cell to cell.
 - Storage pits keep their stock in pile objects, as v1.0's do: one food pile and five
   wood piles, with the pot infos' capacities.
 - EatFromStoragePit runs as v1.0's sub-actions: a handful of 1000 × size taken from

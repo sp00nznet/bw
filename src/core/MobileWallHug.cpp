@@ -57,8 +57,13 @@ void MobileWallHug::MoveTo3D() {
 
     // Horizontal movement: apply step vector to position
     // Original at 0x005c5ba0
-    coords.x = static_cast<int32_t>(static_cast<float>(coords.x) + step.x);
-    coords.z = static_cast<int32_t>(static_cast<float>(coords.z) + step.z);
+    // In the map it moves through vslot 343, which relinks it when it changes
+    // cell (sub_5E8FA0).
+    MapCoords to = coords;
+    to.x = static_cast<int32_t>(static_cast<float>(coords.x) + step.x);
+    to.z = static_cast<int32_t>(static_cast<float>(coords.z) + step.z);
+    if (IsObjectInMap_0()) MoveMapObject(to);
+    else coords = to;
 }
 
 void MobileWallHug::SetNewWander(const MapCoords& target, int /*param2*/, int /*param3*/) {
