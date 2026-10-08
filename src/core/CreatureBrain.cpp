@@ -13,6 +13,7 @@
 #include <black/types.h>
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <cstring>
 
@@ -107,18 +108,17 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t
     // desire over the global attribute ids, so episodes of different kinds
     // share it; the shipped minds have one episode, so the split changes nothing.
     for (uint32_t d = 0; d < kNumCreatureDesires; ++d) {
-        std::vector<LearningEpisode> by_kind[_CREATURE_BELIEF_KIND_COUNT];
+        bool kinds[_CREATURE_BELIEF_KIND_COUNT] = {};
         for (const MindEpisode& e : m.learning[d][1].episodes) {
-            LearningEpisode le;
+            Episode ep{BeliefKindOfType(e.belief_type), {}};
             for (size_t i = 0; i < e.attributes.size() && i < kMaxBeliefAttributes; ++i)
-                le.features[i] = static_cast<uint8_t>(e.attributes[i]);
-            le.weight = e.weight;
-            by_kind[BeliefKindOfType(e.belief_type)].push_back(le);
+                ep.e.features[i] = static_cast<uint8_t>(e.attributes[i]);
+            ep.e.weight = e.weight;
+            episodes_[d].push_back(ep);
+            kinds[ep.kind] = true;
         }
         for (int k = 0; k < _CREATURE_BELIEF_KIND_COUNT; ++k)
-            if (!by_kind[k].empty())
-                trees_[d][k].Induce(static_cast<CREATURE_BELIEF_KIND>(k), by_kind[k].data(),
-                                    static_cast<uint32_t>(by_kind[k].size()));
+            if (kinds[k]) Reinduce(d, static_cast<CREATURE_BELIEF_KIND>(k));
     }
     if (!saved) SetDevelopmentStage(static_cast<uint32_t>(std::max(creature->field_0x1268, 0)));
     return true;
@@ -228,6 +228,187 @@ void CreatureBrain::WatchVillager(const Villager* v) {
     const uint32_t ability = InfoAt<uint32_t>(infodat::DETAIL_VILLAGER_STATE_TABLE_INFO, state, 240);
     if (ability != 6 && !Knows(0, ability)) Observe(0, ability);
     // ponytail: the look it gives (sub_4AB9B0(6, 0, 79)) is not modelled.
+}
+
+void CreatureBrain::Reinduce(uint32_t desire, CREATURE_BELIEF_KIND kind) {
+    std::vector<LearningEpisode> of_kind;
+    for (const Episode& e : episodes_[desire]) if (e.kind == kind) of_kind.push_back(e.e);
+    trees_[desire][kind] = DecisionTreeModel();
+    if (!of_kind.empty()) trees_[desire][kind].Induce(kind, of_kind.data(), static_cast<uint32_t>(of_kind.size()));
+}
+
+const CreatureBrain::Remembered* CreatureBrain::Recent(uint32_t i) const {
+    return i < history_count_ ? &history_[(history_head_ + 5 - 1 - i) % 5] : nullptr;
+}
+
+// sub_4D1680, as a plan becomes current (sub_4D15E0): the plan, the desire's
+// strongest source (sub_4C0560: the most accumulated, else its first) and
+// clones of its beliefs go on the ring.
+void CreatureBrain::Remember() {
+    const uint32_t d = Desire();
+    if (d >= kNumCreatureDesires) return;
+    uint32_t source = 61;
+    float most = 0.0f;
+    for (const DesireSourceSlot& s : desires.sources[d])
+        if (most < s.accumulated) most = s.accumulated, source = s.type;
+    if (source >= 61 && !desires.sources[d].empty()) source = desires.sources[d].front().type;
+    if (source >= 61) return;
+    Remembered r;
+    r.desire = d;
+    r.action = Action();
+    r.source = source;
+    r.object = Target();
+    if (r.object) {
+        r.kind = BeliefKindOfType(r.object->GetCreatureBeliefType());
+        r.feature_count = DescribeObject(r.kind, r.object, creature_, r.features, kMaxBeliefAttributes);
+    }
+    history_[history_head_] = r;
+    history_head_ = (history_head_ + 1) % 5;
+    history_count_ = std::min(history_count_ + 1, 5u);
+}
+
+// sub_45F790: the newest record is done, at this turn, and whether a camera
+// of its player's had the creature in view: the nearest within 400 whose
+// field of view holds it (sub_461720). ponytail: the host gives one camera
+// position and no direction, so in view means within 400 m of it.
+void CreatureBrain::RememberFinished() {
+    if (!history_count_) return;
+    Remembered& r = history_[(history_head_ + 4) % 5];
+    r.finished = true;
+    r.finished_turn = turn_;
+    r.seen = camera && MetresOf(1) * creature_->GetDistanceFromObject(*camera) < 400.0f;
+}
+
+// sub_4C1FF0: how likely feedback now is about this action. Only actions
+// flagged for it (CREATURE_ACTION +256; 318 of 328); one under way always is;
+// a finished one only if the player saw it end, fading to nothing over the
+// action's window in seconds (+224).
+float CreatureBrain::Relevance(const Remembered& r) const {
+    if (!InfoAt<uint32_t>(infodat::DETAIL_CREATURE_ACTION, r.action, 256)) return 0.0f;
+    if (!r.finished) return 1.0f;
+    const float window = InfoAt<float>(infodat::DETAIL_CREATURE_ACTION, r.action, 224);
+    const float since = static_cast<float>((turn_ - r.finished_turn) / 10u);  // whole seconds, as v1.0 divides
+    return r.seen && since < window ? 1.0f - since / window : 0.0f;
+}
+
+// sub_4C0320: a source slot's field (0 value, 1 threshold) by source type.
+float* CreatureBrain::SourceSlot(uint32_t type, size_t field) {
+    for (auto& list : desires.sources)
+        for (DesireSourceSlot& s : list)
+            if (s.type == type) return field ? &s.threshold : &s.value;
+    return nullptr;
+}
+
+// sub_4BEB30: feedback on a desire. Its cycle shortens (praise) or lengthens
+// by DESIRE_TABLE +100, and every desire it depends on with it; the source's
+// threshold moves by its bounds' step; its maximum by CREATURE_INFO +720
+// within 0.2 of the table's; its completions-per-reset by +120/3 when +124 is
+// set; its decay by a thousandth.
+void CreatureBrain::FeedbackDesire(uint32_t d, uint32_t source, float a) {
+    using infodat::DETAIL_CREATURE_DESIRE_TABLE;
+    if (!desires.active[d]) return;
+    const float lo = InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 636);
+    const float hi = InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 640);
+    const float f = (1.0f / InfoAt<float>(DETAIL_CREATURE_DESIRE_TABLE, d, 100) - 1.0f) * a + 1.0f;
+    desires.cycle[d] = std::clamp(f * desires.cycle[d], lo, hi);
+    if (float* t = SourceSlot(source, 1)) {
+        using infodat::DETAIL_CREATURE_DESIRE_SOURCE_THRESHOLD_BOUNDS;
+        *t = std::clamp(*t - InfoAt<float>(DETAIL_CREATURE_DESIRE_SOURCE_THRESHOLD_BOUNDS, source, 24) * a,
+                        InfoAt<float>(DETAIL_CREATURE_DESIRE_SOURCE_THRESHOLD_BOUNDS, source, 16),
+                        InfoAt<float>(DETAIL_CREATURE_DESIRE_SOURCE_THRESHOLD_BOUNDS, source, 20));
+    }
+    const float base = InfoAt<float>(DETAIL_CREATURE_DESIRE_TABLE, d, 0x4C);
+    desires.max_value[d] = std::clamp(desires.max_value[d] + InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 720) * a,
+                                      std::max(base - 0.2f, 0.0f), std::min(base + 0.2f, 2.0f));
+    if (InfoAt<uint32_t>(DETAIL_CREATURE_DESIRE_TABLE, d, 0x7C))
+        desires.done_period[d] = std::clamp(desires.done_period[d] + InfoAt<float>(DETAIL_CREATURE_DESIRE_TABLE, d, 0x78) * 0.33333334f * a, 1.0f, 8.0f);
+    desires.decay[d] = std::clamp(desires.decay[d] + a * 0.001f, InfoAt<float>(DETAIL_CREATURE_DESIRE_TABLE, d, 0x50),
+                                  InfoAt<float>(DETAIL_CREATURE_DESIRE_TABLE, d, 0x54));
+    for (uint32_t j = 0; j < kNumCreatureDesires; ++j) {
+        const float dep = InfoAt<float>(infodat::DETAIL_CREATURE_DESIRE_DEPENDENCIES, d, 16 + 4 * j);
+        if (dep > 0.0f) desires.cycle[j] = std::clamp(desires.cycle[j] * f, lo, hi);
+        else if (dep < 0.0f) desires.cycle[j] = std::clamp(desires.cycle[j] / f, lo, hi);
+    }
+}
+
+// sub_4C2E80: an episode for the desire's kind-2 learning, which is re-induced.
+void CreatureBrain::AddEpisode(uint32_t desire, const Remembered& r, float weight) {
+    auto& list = episodes_[desire];
+    if (list.size() >= 16) list.erase(list.begin());
+    Episode ep{r.kind, {}};
+    std::copy(r.features, r.features + r.feature_count, ep.e.features);
+    ep.e.weight = weight;
+    list.push_back(ep);
+    Reinduce(desire, r.kind);
+}
+
+// sub_4C2BB0, one kind of lesson from a remembered action:
+// 0 the desire itself (sub_4C2F60 -> sub_4BEB30), 1 the plan's target,
+// 2 what it was done to, also taught to every desire coupled to this one
+// (DESIRE_DEPENDENCIES) at the coupling's strength, 3 the action (sub_4C2FA0:
+// its opinion moves 80% of the way to the feedback).
+// ponytail: kind 1 is not kept -- nothing here reads those trees (mental+0x2478);
+// nor are the "I've learnt to..." lines (sub_4C3030) or the feedback icons.
+void CreatureBrain::Teach(const Remembered& r, float a, int kind) {
+    if (r.desire >= kNumCreatureDesires) return;
+    switch (kind) {
+    case 0:
+        if (r.source < 61) FeedbackDesire(r.desire, r.source, a);
+        break;
+    case 2:
+        // v1.0 also skips when record +20 == +24, but those are two fresh
+        // clones (belief vslot 13), never the same; so only the creature itself.
+        if (!r.object || r.object == creature_) return;
+        AddEpisode(r.desire, r, a);
+        for (uint32_t j = 0; j < kNumCreatureDesires; ++j) {
+            const float c = j == r.desire ? 0.0f : InfoAt<float>(infodat::DETAIL_CREATURE_DESIRE_DEPENDENCIES, r.desire, 16 + 4 * j);
+            if (c != 0.0f) AddEpisode(j, r, c * a);
+        }
+        break;
+    case 3: {
+        float& o = mind.action_opinion[r.action];
+        o = std::clamp(o + (a - o) * 0.8f, -1.0f, 1.0f);
+        break;
+    }
+    default: break;
+    }
+}
+
+// sub_4C2090. ponytail: not modelled -- a puzzled look at feedback of 0.01 or
+// less (action 82); positive feedback's special cases (an action flagged
+// +240 while it holds something; running away from the player, desire 22);
+// the sulk after a slap (mental+8656); the mimicry bookkeeping (+7224); and
+// praise making it choose the same plan again.
+void CreatureBrain::Feedback(float a) {
+    Stop();  // sub_45FA70(creature, "PlayerFeedback")
+    if (std::fabs(a) <= 0.01f) return;
+    const float least = InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 676);
+    a = a >= 0.0f ? std::max(a, least) : std::min(a, -least);
+    const Remembered* best = nullptr;  // sub_4C1E00: the most relevant, newest first on ties
+    float rel = 0.0f;
+    for (uint32_t i = 0; const Remembered* r = Recent(i); ++i)
+        if (const float v = Relevance(*r); v > rel) rel = v, best = r;
+    if (!best || best->desire > kNumCreatureDesires) return;
+    if (a > 0.0f && desires.Countdown(27, 90.0f)) agenda.plans.plans[27] = ActionPlan(), agenda.plans.plans[27].desire = 27;  // sadness
+    if (creature_->field_0x1268 >= 2) {
+        if (InfoAt<uint32_t>(infodat::DETAIL_CREATURE_DESIRE_TABLE, best->desire, 56))  // sub_4C29C0
+            for (int kind = 0; kind < 4; ++kind) Teach(*best, a, kind);
+    } else {
+        // Too young to learn: praise feeds sources 12, 38 and 2, a slap 9 and 18.
+        auto add = [this](uint32_t type, float v) { if (float* s = SourceSlot(type, 0)) *s = std::clamp(*s + v, 0.0f, 1.0f); };
+        const float v = std::fabs(a) * 0.5f;
+        if (a >= 0.0f) add(12, v), add(38, v), add(2, v);
+        else add(9, v), add(18, v);
+    }
+    // A slap about what it is doing: that desire falls to the weakest's over
+    // 1.3 (sub_4BEAC0) and every countdown ends (sub_4BE470).
+    const Remembered* newest = Recent(0);
+    if (a <= 0.0f && newest && newest->desire < kNumCreatureDesires) {
+        desires.value[newest->desire] = desires.value[desires.Weakest()] / 1.3f;
+        desires.Clamp(newest->desire);
+        std::fill(std::begin(desires.countdown), std::end(desires.countdown), 0u);
+        mind.desire[newest->desire] = desires.value[newest->desire];
+    }
 }
 
 // sub_4C3F50: whether the mind's list (kind 0 abilities, 1 magic types) has it.
@@ -340,6 +521,14 @@ float CreatureBrain::Opinion(uint32_t desire, const BeliefView& b) const {
     return OpinionValue(tree.Classify(features, n));
 }
 
+float CreatureBrain::OpinionOf(uint32_t desire, Object* o) {
+    if (!o) return 0.0f;
+    BeliefView b;
+    b.id = IdOf(o);
+    b.type = o->GetCreatureBeliefType();
+    return Opinion(desire, b);
+}
+
 bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     // Perception: everything within the chooser's reach, plus the creature itself.
     seen_ = objects;
@@ -401,6 +590,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     if (action != running_) {
         if (running_) Override(running_);
         running_ = action;
+        Remember();
         if (HasSubActions(action) && !StartAction(action)) return false;  // it stopped
     }
     if (!target || !action) return false;
@@ -424,6 +614,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     // on arrival (its sub-actions are not run).
     const uint32_t served = agenda.plans.current_desire;
     ActionDone(action, served);
+    RememberFinished();
     last_action = action;
     last_desire = served;
     last_target = target;

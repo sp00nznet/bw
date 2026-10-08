@@ -777,6 +777,68 @@ In `test_level`, a grown ape watching the village for 600 turns learns Fish (4).
 **Ours:** the feedback (`sub_4B0770`), the interested look (`sub_4668F0`,
 `sub_4AB9B0`) and the frozen-by-spell gate (mental+134372) are not modelled.
 
+### Player feedback
+
+A stroke or a slap is `sub_4C2090` (`CreatureBrain::Feedback`), with an amount from
+−1 to 1.
+- The script paths stroke and slap with exactly ±1 (`sub_5FFD20`, `sub_5FFC80`).
+- The hand sends the amount in a network message (`sub_5EDB70` cases 0x39 and 0x59).
+
+**What it is about: the action history** (mental+0x2AD8):
+- A ring of the last five actions begun (`sub_4D2370`). One is pushed when a plan
+  becomes current (`sub_4D1680` from `sub_4D15E0`), but only if its desire has a source
+  (`sub_4C0560`: the most accumulated, else its first).
+- Each 112-byte record holds a copy of the plan, clones of its beliefs (belief vslot 13),
+  and the source at +88.
+- When the action is done (`sub_45F790`), the record is marked finished (+72) at that
+  turn (+76). It is marked seen (+60) if one of its player's cameras had the creature in
+  view within 400 (`sub_461720`).
+
+**Relevance** (`sub_4C1FF0`; `sub_4C1E00` takes the highest, newest first on ties):
+- 0 unless CREATURE_ACTION +256 is set (318 of 328 actions).
+- 1 while the action is under way.
+- Once finished, only if seen: 1 − seconds since / the window (+224: 1 to 30 s).
+
+**The feedback:**
+1. The action under way stops ("PlayerFeedback").
+2. |amount| ≤ 0.01: v1.0 only looks puzzled (action 82).
+3. Otherwise the amount is raised to at least CREATURE_INFO +676 (0.5) either way.
+4. Nothing relevant: nothing is learned. Praise holds desire 27 (sadness) back 90 s.
+5. From stage 2, if DESIRE_TABLE +56 allows learning for the record's desire
+   (`sub_4C29C0`), four lessons follow (`sub_4C2BB0`):
+
+   | Kind | What is taught |
+   |---|---|
+   | 0 | The desire (`sub_4BEB30`): its cycle ×(1/+100 − 1)·a + 1, and every desire's it depends on; the source's threshold by its bounds' step; its maximum by CREATURE_INFO +720; its decay by a/1000 |
+   | 1 | The plan's target, into the first learning set (mental+0x2478) |
+   | 2 | What it was done to, into the desire's tree (mental+0x2518, which `sub_4CA6A0` reads for opinions). It is also taught to each desire coupled to it (DESIRE_DEPENDENCIES) at the coupling's strength. A learning keeps 16 episodes, dropping the oldest (`sub_4B7860`), and re-induces. |
+   | 3 | The action's opinion (mental+9656) moves 80% of the way to the amount (`sub_4C2FA0`) |
+
+6. Below stage 2, praise instead feeds sources 12, 38 and 2 by |a|/2; a slap, 9 and 18.
+7. After a slap, the newest record's desire falls to the weakest desire's over 1.3
+   (`sub_4BEAC0`), and every countdown ends (`sub_4BE470`).
+
+v1.0 skips kind 2 when record +20 equals +24. Both are fresh clones, though, so that
+test never fires.
+
+In `test_level`, a grown ape is stroked for HowlAtFriend:
+- the action's opinion goes from 0 to 0.80;
+- its tree's opinion of the friend goes from 0 to 0.8.
+
+Two slaps later the action's opinion is −0.93 and the tree's −0.4. In the viewer, G
+strokes and B slaps the creature nearest the hand.
+
+**Ours:** not modelled:
+- the puzzled look;
+- praise's special cases: a +240 action while it holds something, and desire 22;
+- the sulk after a slap (mental+8656);
+- praise re-choosing the same plan;
+- the "I've learnt to..." lines (`sub_4C3030`);
+- kind 1, since nothing here reads those trees.
+
+"In view" is taken as within 400 m of the camera, because the host gives no camera
+direction.
+
 ### HowlAtFriend (315)
 
 Every test scenario was measured for actions completed by the untranslated

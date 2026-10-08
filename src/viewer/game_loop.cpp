@@ -531,6 +531,23 @@ void GameState::SpawnCreatureAt(float x, float z) {
     EntitySpawnCallback(&info);
 }
 
+void GameState::FeedbackCreatureAt(float x, float z, float amount) {
+    if (!use_bw_core) return;
+    const MapCoords at = MapCoordsFromMetres(x, z, 0.0f);
+    creature::CreatureBrain* best = nullptr;
+    float best_d = 30.0f;
+    for (Object* o : core_entities)
+        if (auto* c = dynamic_cast<Creature*>(o))
+            if (creature::CreatureBrain* b = creature::BrainOf(c)) {
+                const float d = MetresOf(1) * c->GetDistanceFromObject(at);
+                if (d < best_d) best_d = d, best = b;
+            }
+    if (!best) return;
+    const auto* r = best->Recent(0);
+    best->Feedback(amount);
+    printf("Creature %s (newest action %u, desire %u)\n", amount > 0 ? "stroked" : "slapped", r ? r->action : 0, r ? r->desire : 40);
+}
+
 void GameState::ProcessTurn() {
     if (paused) return;
     game_turn++;

@@ -118,6 +118,28 @@ public:
     // sub_4BA660's learning half: what a villager it notices is doing.
     void WatchVillager(const Villager* v);
 
+    // The player's feedback, -1..1: a stroke (> 0) or a slap (< 0)
+    // (sub_4C2090). It stops what the creature is doing and teaches it about
+    // whichever recent action it is most likely about.
+    void Feedback(float amount);
+    // mental+0x2AD8: the actions it began (sub_4D1680), the last five kept.
+    struct Remembered {
+        uint32_t desire = 40, action = 0;
+        uint32_t source = 61;     // record +88: the desire's strongest source then (sub_4C0560)
+        Object*  object = nullptr;  // plan +0x10: what it was done to
+        CREATURE_BELIEF_KIND kind = CREATURE_BELIEF_BASE;
+        uint8_t  features[kMaxBeliefAttributes] = {};  // the object as it was then (the belief's clone)
+        uint32_t feature_count = 0;
+        bool     finished = false;  // record +72
+        bool     seen = false;      // +60: a camera of its player's saw it finish (sub_461720)
+        uint32_t finished_turn = 0; // +76
+    };
+    // The i-th most recent (0 newest), or nullptr (sub_4D2570).
+    const Remembered* Recent(uint32_t i) const;
+    float Relevance(const Remembered& r) const;  // sub_4C1FF0
+    // What its tree for the desire says of the object, -1..1 (sub_4B83C0).
+    float OpinionOf(uint32_t desire, Object* o);
+
 private:
     float    Opinion(uint32_t desire, const BeliefView& b) const;
     bool     SourceValue(uint32_t type, float* out) const;
@@ -138,6 +160,20 @@ private:
     void Override(uint32_t old_action); // sub_4D08E0's stop of the action it replaces
     void Finish();                      // sub_45F790
     void EndAction();
+    void Remember();     // sub_4D1680, as a plan becomes current
+    void RememberFinished();  // sub_45F790's part: the newest is done
+    void Teach(const Remembered& r, float amount, int kind);  // sub_4C2BB0
+    void FeedbackDesire(uint32_t desire, uint32_t source, float amount);  // sub_4BEB30
+    void AddEpisode(uint32_t desire, const Remembered& r, float weight);  // sub_4C2E80
+    void Reinduce(uint32_t desire, CREATURE_BELIEF_KIND kind);
+    float* SourceSlot(uint32_t type, size_t field);  // sub_4C0320
+
+    Remembered history_[5];
+    uint32_t   history_head_ = 0, history_count_ = 0;
+    // Each desire's kind-2 learning (mental+0x2518): its episodes, the
+    // oldest dropped past 16 (sub_4B7860), with the kind each was about.
+    struct Episode { CREATURE_BELIEF_KIND kind; LearningEpisode e; };
+    std::vector<Episode> episodes_[kNumCreatureDesires];
 
     Food     created_;      // mental+7276: what CreateFishFromSea made
     uint32_t running_ = 0;  // the action whose handler last ran

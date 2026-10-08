@@ -715,6 +715,7 @@ void CreatureBrain::Override(uint32_t old_action) {
 // sub_45F790: done (0x460020 has already run, from Advance).
 void CreatureBrain::Finish() {
     const uint32_t served = Desire();
+    RememberFinished();
     last_action = Action();
     last_desire = served;
     last_target = Target();

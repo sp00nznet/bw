@@ -157,6 +157,9 @@ struct GameState {
 
     // A creature at (x, z) metres, with a brain (debug key C in play mode).
     void SpawnCreatureAt(float x, float z);
+    // Stroke (> 0) or slap (< 0) the creature nearest (x, z), within 30 m
+    // (debug keys G and B): CreatureBrain::Feedback, sub_4C2090.
+    void FeedbackCreatureAt(float x, float z, float amount);
 
     std::string data_dir;  // the game data root Init was given
 };

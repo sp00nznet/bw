@@ -1038,6 +1038,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case VK_F9:     if (g_game_mode) bw::savestate::Load(0, g_game); break;
         case 'R':       ResetCamera(); break;
         case 'C':       if (g_game_mode && g_game.hand.is_over_land) g_game.SpawnCreatureAt(g_game.hand.x, g_game.hand.z); break;
+        case 'G': case 'B':
+            if (g_game_mode && g_game.hand.is_over_land) g_game.FeedbackCreatureAt(g_game.hand.x, g_game.hand.z, wp == 'G' ? 1.0f : -1.0f);
+            break;
         case 'W': case 'S': case 'A': case 'D': {
             // Camera-relative movement
             float rad = g_cam_yaw * 3.14159265f / 180.0f;

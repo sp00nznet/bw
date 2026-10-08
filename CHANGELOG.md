@@ -37,6 +37,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Player feedback, as v1.0's (sub_4C2090). A stroke or slap teaches the creature about
+  its most relevant recent action: the action's opinion, the desire behind it, and its
+  opinion of what it acted on. Viewer keys G and B stroke and slap the creature nearest
+  the hand.
 - Creatures learn by watching, as v1.0's do (sub_4C3AD0, sub_4BA660): abilities from
   what villagers are doing, gated by stage and prerequisites. A grown ape learns to
   fish by watching fishermen.

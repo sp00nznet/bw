@@ -889,6 +889,42 @@ int main() {
             brain->LearnEverything();
             CHECK(!knew && brain->Knows(0, 5) && brain->Knows(1, 41) && !brain->Knows(0, 6) && brain->facts.knows_spell[41],
                   "a new creature knows no abilities or spells until it learns everything (sub_4635C0)");
+
+            // The player's feedback (sub_4C2090). It is about the most relevant
+            // of the last five actions begun: one under way, or one the player
+            // saw finish within its window (CREATURE_ACTION +224 seconds).
+            brain->camera.reset();
+            const creature::CreatureBrain::Remembered* r = nullptr;
+            for (int t = 0; t < 3000 && !r; ++t) {
+                const uint32_t before = brain->completed;
+                level::Process(w);
+                const auto* n = brain->Recent(0);
+                if (brain->completed != before && n && n->finished && n->object && n->object != body && n->desire < 40) r = n;
+            }
+            CHECK(r && brain->Relevance(*r) == 0.0f, "an action the player did not see finish is not what feedback is about");
+            if (r) {
+                const creature::CreatureBrain::Remembered seen = [&] { auto c = *r; c.seen = true; return c; }();
+                const float rel = brain->Relevance(seen);
+                // Praise for it, as though seen: the action's opinion moves 80% of
+                // the way to +1 (sub_4C2FA0), the desire's cycle by DESIRE_TABLE
+                // +100 (sub_4BEB30), and its tree learns the object (sub_4C2E80).
+                const_cast<creature::CreatureBrain::Remembered*>(r)->seen = true;
+                const uint32_t d = r->desire, a = r->action;
+                Object* obj = r->object;
+                const float op0 = brain->mind.action_opinion[a], cyc0 = brain->desires.cycle[d], tree0 = brain->OpinionOf(d, obj);
+                brain->Feedback(1.0f);
+                const float op1 = brain->mind.action_opinion[a], cyc1 = brain->desires.cycle[d], tree1 = brain->OpinionOf(d, obj);
+                // Then slapped for it twice: the tree turns against the object.
+                brain->Feedback(-1.0f);
+                brain->Feedback(-1.0f);
+                const float op2 = brain->mind.action_opinion[a], tree2 = brain->OpinionOf(d, obj);
+                std::snprintf(msg, sizeof msg,
+                              "feedback on action %u (desire %u, relevance %.2f): stroked, its opinion %.2f -> %.2f, cycle %.1f -> %.1f s, "
+                              "tree %.1f -> %.1f; slapped twice, %.2f, tree %.1f",
+                              a, d, rel, op0, op1, cyc0, cyc1, tree0, tree1, op2, tree2);
+                CHECK(rel > 0.0f && std::fabs(op1 - (op0 + (1.0f - op0) * 0.8f)) < 1e-5f && tree1 > 0.0f && op2 < 0.0f && tree2 < 0.0f &&
+                          brain->stopped > 0, msg);
+            }
             w.objects.pop_back();
         }
     }
