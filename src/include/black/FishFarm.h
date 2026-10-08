@@ -29,7 +29,6 @@ struct FishFarm : public MultiMapFixed {
     // === Overrides of GameThingWithPos virtuals ===
     MapCoords* GetArrivePos(MapCoords* out) override;
     uint32_t GetCreatureBeliefType() override;
-    bool IsObjectInMap_0() override;
     bool32_t CanBeEatenByCreature(Creature* creature) override;
     bool32_t CanBeSleptNextToByCreature(Creature* creature) override;
     bool32_t CanBePickedUpByCreature(Creature* creature) override;
@@ -43,10 +42,9 @@ struct FishFarm : public MultiMapFixed {
     bool32_t CanBePoodOn(Creature* creature) override;
 
     // === Overrides of Object virtuals ===
-    Object* GetMapChild(const MapCell* cell) override;
-    void SetMapChild(Object* object, MapCell* cell) override;
-    void InsertMapObject() override;
-    void RemoveMapObject() override;
+    // The map: v1.0's (sub_502EB0 / sub_502F10, sub_5041E0) link it at the head
+    // of its one cell's fixed list, which is MultiMapFixed's insert for an object
+    // with no other cells, so it keeps those.
     float GetMeshRadius() const override;
     uint32_t Process() override;
     void Draw() override;

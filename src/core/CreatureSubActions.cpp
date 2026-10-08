@@ -658,7 +658,11 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
 void CreatureBrain::EndAction() {
     // The current sub-action's abort handler (record +128, from sub_45FBC0):
     // StaticAction's ends its clip (sub_4E7800).
+    // ponytail: PointAtPoint has no abort handler, and where v1.0 lets go of
+    // an abandoned point (3D state 8) is not found; it is released here as
+    // sub_46D340 does at its end, or it would hold the hand for good.
     if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
+    if (hand.anim == kClipPoint) EndAnim();
     subactions.Clear();
     created_ = Food();
     if (hand.held.object && !hand.holding) hand.held = Food();
@@ -683,6 +687,7 @@ void CreatureBrain::Override(uint32_t old_action) {
     mind.action_count[old_action] = 0;
     ++stopped;
     if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
+    if (hand.anim == kClipPoint) EndAnim();  // as in EndAction
     subactions.Clear();
 }
 

@@ -669,6 +669,33 @@ are those of an empty tree, at or below neutral.
 The version-17 files really are another format. The loader (`sub_4C9170`) reads a
 version and then a species below 17, and in those files the second word is a float.
 
+## In the game loop
+
+A creature with a brain runs from the level's own tick:
+- `creature::AttachBrain(creature, mind)` gives it one. v1.0 keeps the brain in the
+  creature's CreatureMental; core keeps it beside the creature.
+- `level::Process` runs a creature's `ProcessState`, as it does a villager's.
+- Left to itself (no top state), the creature ticks its brain.
+- The brain's world is what the map's cells hold within 600 m (`ObjectsNear`). That is
+  the furthest any predicate looks: `sub_4B6A40`'s fish farms. Nothing hands it a
+  list.
+
+Fish farms were never in the map: their insert was an empty stub. v1.0's
+(`sub_502EB0` → `sub_5041E0`) puts a farm at the head of its one cell's fixed list,
+which MultiMapFixed's insert already does.
+
+In `test_level`, Khazar is added to the level's objects and starved. Run by
+`level::Process` alone, he fishes on turn 373.
+
+**Ours:**
+- **A held point is let go on abort.** PointAtPoint has no abort handler, and where
+  v1.0 releases an abandoned point (3D state 8) was not found. Without the release, an
+  action stopped mid-point held the hand for good, and the next action waited on it.
+- **The cells are scanned as a square** of whole cells, not with v1.0's circle
+  iterator. The brain filters by distance itself.
+- **No viewer brains yet.** The viewer's script-made creatures get no brain until the
+  host attaches one.
+
 ## Not yet
 
 - The two shortcuts in the town branch of `sub_4D1870`: action 101 for a big town,
@@ -691,4 +718,3 @@ version and then a species below 17, and in those files the second word is a flo
 - Classifying a belief through a tree rebuilt from a mind's episodes (the node layout
   is now partly known: +12 parent, +16/+20 the split it hangs from, +128 its own split
   attribute (23 = leaf), +132 its children, +144 its opinion level).
-- Calling the chooser from `Creature::ProcessState`, and running the chosen action.

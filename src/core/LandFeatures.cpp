@@ -40,9 +40,10 @@ template <uint32_t type>
 bool HasObject(uint32_t cx, uint32_t cz) {
     if (!g_map || !g_map->InBounds(cx, cz)) return false;
     const MapCell* c = g_map->ToMap(cx, cz);
-    for (Object* list : {c->first_object_mobile, c->first_object_fixed})
-        for (Object* o = list; o; o = o->map_parent)
-            if (o->info && static_cast<uint32_t>(o->info->type) == type) return true;
+    for (Object* o = c->first_object_mobile; o; o = o->map_child)  // sub_5E8D90's +0x20
+        if (o->info && static_cast<uint32_t>(o->info->type) == type) return true;
+    for (Object* o = c->first_object_fixed; o; o = o->map_parent)
+        if (o->info && static_cast<uint32_t>(o->info->type) == type) return true;
     return false;
 }
 constexpr uint32_t kTypeAbode = 0, kTypeForestTree = 6, kTypeCitadel = 8;  // OBJECT_TYPE

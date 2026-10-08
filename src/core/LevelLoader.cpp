@@ -6,6 +6,7 @@
 #include <black/Abode.h>
 #include <black/EntityFactory.h>
 #include <black/BigForest.h>
+#include <black/Creature.h>
 #include <black/Field.h>
 #include <black/Fire.h>
 #include <black/SpellCast.h>
@@ -377,6 +378,11 @@ void Process(World& w) {
         if (Villager* v = dynamic_cast<Villager*>(s.obj)) {
             v->obj_coords = v->coords;
             v->ProcessState();
+            continue;
+        }
+        if (Creature* c = dynamic_cast<Creature*>(s.obj)) {
+            c->obj_coords = c->coords;
+            c->ProcessState();
             continue;
         }
         s.obj->Process();

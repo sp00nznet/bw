@@ -66,6 +66,7 @@ public:
     uint32_t last_action = 0;  // the most recent one
     uint32_t last_desire = 40; // and the desire it served
     Object*  last_target = nullptr;
+    size_t   objects_seen() const { return seen_.size(); }  // what the last turn was given
     uint32_t stopped = 0;      // actions abandoned (sub_45FA70)
     // Where the camera is, for the host to set: sub_467190's answer (its
     // player's nearest camera, or the game's when it has no player); unset
@@ -135,6 +136,15 @@ private:
     // second tree per desire (mental+0x2518, which sub_4CA6A0 reads).
     DecisionTreeModel trees_[kNumCreatureDesires][_CREATURE_BELIEF_KIND_COUNT];
 };
+
+// The brain of a creature in the game. v1.0 keeps it in the creature's
+// CreatureMental; core keeps it beside the creature, made by AttachBrain.
+CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species = 0);
+CreatureBrain* BrainOf(const Creature* c);
+// One turn of an attached brain, over what the map's cells hold within 600 m
+// (the furthest any predicate looks: sub_4B6A40's fish farms). False when it
+// has none.
+bool TickBrain(Creature* c);
 
 // The four actions whose validity is sub_4B6A40 (a fish farm within 600 m).
 bool IsFishing(uint32_t action);

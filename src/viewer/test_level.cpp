@@ -785,6 +785,47 @@ int main() {
         CHECK(found && (f < 0 || (f & 0x10)), msg);
     }
 
+    {
+        // Khazar as one of the level's objects: level::Process runs his
+        // ProcessState, which ticks his brain over what the map's cells hold
+        // within 600 m (no list handed to him). Starved, he goes fishing as in
+        // the first run, and his walk keeps him on his cell's list.
+        Villager* near = nullptr;
+        for (const level::Spawned& s : w.objects)
+            if (auto* v = dynamic_cast<Villager*>(s.obj); v && !v->IsDead()) { near = v; break; }
+        creature::CreatureMind khazar;
+        const bool mind_ok = creature::LoadCreatureMindFile((root + "CreatureMind/KhazarCreature").c_str(), khazar);
+        EntityCreateParams cp{};
+        cp.world_x = MetresOf(near ? near->coords.x : 0) + 20.0f;
+        cp.world_z = MetresOf(near ? near->coords.z : 0);
+        cp.scale = 5.0f;
+        auto* body = static_cast<Creature*>(EntityFactory::CreateCreature(cp));
+        creature::CreatureBrain* brain = near && mind_ok && body ? creature::AttachBrain(body, khazar) : nullptr;
+        CHECK(brain && creature::BrainOf(body) == brain && body->IsObjectInMap_0(), "Khazar's brain is attached and he is in the map");
+        if (brain) {
+            w.objects.push_back(level::Spawned{body, "CREATE_CREATURE", "", -1});
+            brain->body.energy = 0.4f;
+            const MapCoords start = body->coords;
+            int turn = 0;
+            size_t beliefs = 0;
+            for (; turn < 4000 && !(brain->last_action == 155 && brain->last_desire == 4); ++turn) {
+                level::Process(w);
+                beliefs = std::max(beliefs, brain->objects_seen());
+                if (std::getenv("BRAIN_TRACE") && turn % 100 == 0) printf("      t%d act %u des %u last %u/%u energy %.3f hunger %.3f done %u sub %u/%u step %u to %.1f m speed %d move %d state %d anim %u left %u hold %d\n", turn, brain->Action(), brain->Desire(), brain->last_action, brain->last_desire, brain->body.energy, brain->desires.value[4], brain->completed,
+                    brain->subactions.current, brain->subactions.count, brain->subactions.step,
+                    brain->subactions.count ? MetresOf(1) * body->GetDistanceFromObject(brain->subactions.entries[brain->subactions.current].point) : -1.0f,
+                    (int)body->speed, (int)body->move_state, (int)body->action.top_state, brain->hand.anim, brain->hand.anim_left, (int)brain->hand.holding);
+            }
+            MapCell* cell = g_map->ToMap(static_cast<uint32_t>(body->coords.x) >> 16, static_cast<uint32_t>(body->coords.z) >> 16);
+            bool listed = false;
+            for (Object* o = cell->first_object_mobile; o; o = o->map_child) listed |= o == body;
+            std::snprintf(msg, sizeof msg, "run by level::Process, he sees up to %zu objects from the cells, fishes on turn %d (%u actions done), %.0f m from where he started,%s on his cell's list",
+                          beliefs, turn, brain->completed, MetresOf(1) * body->GetDistanceFromObject(start), listed ? "" : " NOT");
+            CHECK(beliefs > 0 && brain->last_action == 155 && dynamic_cast<FishFarm*>(brain->last_target) && listed, msg);
+            w.objects.pop_back();
+        }
+    }
+
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;
 }

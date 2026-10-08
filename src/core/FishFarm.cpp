@@ -67,12 +67,6 @@ uint32_t FishFarm::GetCreatureBeliefType() {
     return 0x0b;
 }
 
-bool FishFarm::IsObjectInMap_0() {
-    // Original at 0x0052c980 — complex map query
-    // Calls internal map query with zero MapCoords origin, checks occupancy result
-    return false;
-}
-
 bool32_t FishFarm::CanBeEatenByCreature(Creature* /*creature*/) {
     // v1.0 vslot 139: return 1 (checked by test_chooser)
     return 1;
@@ -126,23 +120,6 @@ bool32_t FishFarm::NeedsRepair(Creature* /*creature*/) {
 bool32_t FishFarm::CanBePoodOn(Creature* /*creature*/) {
     // Original at 0x0052c4e0: returns 0
     return 0;
-}
-
-Object* FishFarm::GetMapChild(const MapCell* /*cell*/) {
-    // Original at 0x0052cad0 — complex map traversal
-    return nullptr;
-}
-
-void FishFarm::SetMapChild(Object* /*object*/, MapCell* /*cell*/) {
-    // Original at 0x0052cb70 — complex
-}
-
-void FishFarm::InsertMapObject() {
-    // Original at 0x0052ca10 — complex
-}
-
-void FishFarm::RemoveMapObject() {
-    // Original at 0x0052ca70 — complex
 }
 
 float FishFarm::GetMeshRadius() const {

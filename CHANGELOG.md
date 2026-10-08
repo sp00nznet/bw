@@ -6,6 +6,11 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- Fish farms were never put into the map (an empty stub). They now go on their
+  cell's fixed list, as v1.0's do.
+- An action stopped while the creature pointed left the point clip held for good, so
+  every later action waited on it.
+- The feature map walked a cell's mobile list by the wrong link.
 - Pot amounts were at +0x6C; v1.0's are at +0x70. A pile's add, remove and get were
   stubs returning 0, and PileWood reported food as its resource.
 - The level stocked abodes through JustAddResource, where v1.0 calls AddResource,
@@ -26,6 +31,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- A creature with a brain (`creature::AttachBrain`) runs from `level::Process`: its
+  ProcessState ticks the brain over what the map's cells hold within 600 m.
 - Villagers, animals and creatures link into the map cell under them, as v1.0's do,
   and are relinked as they walk from cell to cell.
 - Storage pits keep their stock in pile objects, as v1.0's do: one food pile and five

@@ -6,11 +6,13 @@
 #include <black/CreatureActionValidity.h>
 #include <black/CreatureOpinion.h>
 #include <black/FishFarm.h>
+#include <black/Map.h>
 #include <black/Object.h>
 #include <black/Villager.h>
 #include <black/types.h>
 
 #include <algorithm>
+#include <memory>
 #include <cstring>
 
 namespace creature {
@@ -288,6 +290,33 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     agenda.plans.current_action = 0;
     agenda.current_total = 0.0f;
     creature_->SetSpeed(0);
+    return true;
+}
+
+namespace {
+std::unordered_map<const Creature*, std::unique_ptr<CreatureBrain>>& Brains() {
+    static std::unordered_map<const Creature*, std::unique_ptr<CreatureBrain>> b;
+    return b;
+}
+}  // namespace
+
+CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species) {
+    auto b = std::make_unique<CreatureBrain>();
+    if (!c || !b->Init(c, mind, species)) return nullptr;
+    return (Brains()[c] = std::move(b)).get();
+}
+
+CreatureBrain* BrainOf(const Creature* c) {
+    auto it = Brains().find(c);
+    return it == Brains().end() ? nullptr : it->second.get();
+}
+
+bool TickBrain(Creature* c) {
+    CreatureBrain* b = BrainOf(c);
+    if (!b) return false;
+    std::vector<Object*> near;
+    ObjectsNear(c->coords, 600.0f, near);
+    b->Tick(near);
     return true;
 }
 

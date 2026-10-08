@@ -8,6 +8,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <black/Map.h>
+#include <black/Object.h>
+
+#include <algorithm>
 
 // Global map pointer (set during GGame initialization)
 GMap* g_map = nullptr;
@@ -48,6 +51,22 @@ GMap* ResetMap() {
     m->cell_extent_zx[0] = m->cell_extent_zx[1] = 0x200;
     g_map = m;
     return m;
+}
+
+void ObjectsNear(const MapCoords& at, float metres, std::vector<Object*>& out) {
+    out.clear();
+    if (!g_map) return;
+    const int r = static_cast<int>(metres / 10.0f) + 1;  // a cell is 10 m
+    const int cx = static_cast<int>(static_cast<uint32_t>(at.x) >> 16), cz = static_cast<int>(static_cast<uint32_t>(at.z) >> 16);
+    for (int x = std::max(cx - r, 0); x <= cx + r; ++x)
+        for (int z = std::max(cz - r, 0); z <= cz + r; ++z) {
+            if (!g_map->InBounds(x, z)) continue;
+            const MapCell* c = g_map->ToMap(x, z);
+            for (Object* o = c->first_object_mobile; o; o = o->map_child) out.push_back(o);
+            for (Object* o = c->first_object_fixed; o; o = o->map_parent) out.push_back(o);
+        }
+    std::sort(out.begin(), out.end());
+    out.erase(std::unique(out.begin(), out.end()), out.end());
 }
 
 bool GMap::InBounds(uint32_t x, uint32_t z) const {

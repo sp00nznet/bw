@@ -6,6 +6,7 @@
 // MapCellIterator: 0xC bytes — traversal state for cell contents
 // GMap: 0x200050 bytes — the map grid (inherits 0x8 from Base)
 
+#include <vector>
 #include "Base.h"
 #include "types.h"
 
@@ -75,6 +76,12 @@ static_assert(sizeof(GMap) == 0x200050, "GMap size mismatch");
 
 // Empty the global map (g_map), sized 512 x 512 cells, and return it.
 GMap* ResetMap();
+
+// The objects linked into the cells within `metres` of `at` (a square of
+// cells), each once: the mobile lists (+0x20 next) and the fixed ones (+0x38).
+// ponytail: a square of whole cells, not v1.0's circle iterator (Collide.h);
+// callers filter by distance.
+void ObjectsNear(const MapCoords& at, float metres, std::vector<Object*>& out);
 
 // Global map instance (set during GGame initialization)
 extern GMap* g_map;

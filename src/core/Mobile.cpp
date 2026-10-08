@@ -19,7 +19,6 @@ MapCell* CellAt(const MapCoords& c) {
     const uint32_t cx = static_cast<uint32_t>(c.x) >> 16, cz = static_cast<uint32_t>(c.z) >> 16;
     return g_map && g_map->InBounds(cx, cz) ? g_map->ToMap(cx, cz) : nullptr;
 }
-bool OnFixedList(const Object* o) { return (o->field_0x24 & 0x8000) != 0; }  // this[37] < 0
 }  // namespace
 
 // sub_4140F0 / sub_414120: the next in its cell's list is +0x20.
@@ -52,44 +51,29 @@ void Mobile::RemoveMapObject() {
 }
 
 // sub_5E8D90: at the head of the cell's mobile list, linked both ways (+0x20
-// next, +0x38 previous); one flagged 0x8000 goes on the end of the fixed list.
-// ponytail: the game block's record of it (sub_59DB30) and the 0x100-info
-// hook (sub_5A2B10) are not translated.
+// next, +0x38 previous).
+// ponytail: one flagged 0x8000 goes on the end of the fixed list in v1.0;
+// nothing in core sets that flag, and core's fixed lists chain through +0x38,
+// so that branch is left out. Nor are the game block's record of it
+// (sub_59DB30) and the 0x100-info hook (sub_5A2B10) translated.
 void Mobile::InsertMapObjectToCell(MapCell* cell) {
-    if (!OnFixedList(this)) {
-        if (Object* head = cell->first_object_mobile) {
-            head->map_parent = this;
-            SetMapChild(head, cell);
-        }
-        cell->SetFirstObjectMobile(this);
-    } else if (Object* o = cell->first_object_fixed) {
-        while (Object* n = o->GetMapChild(cell)) o = n;
-        o->SetMapChild(this, cell);
-    } else {
-        cell->SetFirstObjectFixed(this);
+    if (Object* head = cell->first_object_mobile) {
+        head->map_parent = this;
+        SetMapChild(head, cell);
     }
+    cell->SetFirstObjectMobile(this);
 }
 
 // sub_5E8E30
 void Mobile::RemoveMapObjectFromCell(MapCell* cell) {
     Object* next = GetMapChild(cell);
-    if (!OnFixedList(this)) {
-        if (Object* prev = map_parent) {
-            prev->SetMapChild(next, cell);
-            if (next) next->map_parent = prev;
-            map_parent = nullptr;
-        } else {
-            cell->SetFirstObjectMobile(next);
-            if (next) next->map_parent = nullptr;
-        }
-    } else if (cell->first_object_fixed == this) {
-        cell->SetFirstObjectFixed(next);
+    if (Object* prev = map_parent) {
+        prev->SetMapChild(next, cell);
+        if (next) next->map_parent = prev;
+        map_parent = nullptr;
     } else {
-        for (Object* o = cell->first_object_fixed; o; o = o->GetMapChild(cell))
-            if (o->GetMapChild(cell) == this) {
-                o->SetMapChild(next, cell);
-                break;
-            }
+        cell->SetFirstObjectMobile(next);
+        if (next) next->map_parent = nullptr;
     }
     SetMapChild(nullptr, cell);
 }

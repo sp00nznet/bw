@@ -8,6 +8,7 @@
 // state, alignment, help system, sub-actions, and particle effects.
 
 #include <black/Creature.h>
+#include <black/CreatureBrain.h>
 #include <black/CreatureInfo.h>
 #include <black/CreaturePhysical.h>
 #include <cmath>
@@ -162,8 +163,9 @@ uint32_t Creature::ProcessState() {
 
     switch (state) {
     case VILLAGER_STATE_INVALID_STATE:
-        // Idle — creature should decide what to do based on desires
-        // Query CreatureMental for highest priority desire and select action
+        // Left to itself: its mind decides (Creature vslot 392 -> the mental
+        // tick, the agenda and the sub-actions), when it has one.
+        creature::TickBrain(this);
         break;
 
     case VILLAGER_STATE_MOVE_TO_POS:
