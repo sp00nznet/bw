@@ -8,6 +8,8 @@
 #include <black/LHVM.h>
 #include <black/Object.h>
 #include <black/Living.h>
+#include <black/Creature.h>
+#include <black/CreatureBrain.h>
 #include <black/Terrain.h>
 #include <black/EntityFactory.h>
 #include <black/Flock.h>
@@ -1244,18 +1246,29 @@ inline int64_t ActionKey(int32_t type, int32_t subtype) {
 
 // --- Learning ------------------------------------------------------------
 
-static void N_CREATURE_LEARN_EVERYTHING(LHVM* vm) {
-    uint32_t h = vm->PopObject();
-    if (h) MindFor(h).learn_everything = true;
+// The brain of a script's creature, if it has one.
+static creature::CreatureBrain* BrainFor(uint32_t h) {
+    auto* c = dynamic_cast<Creature*>(LookupObject(h));
+    return c ? creature::BrainOf(c) : nullptr;
 }
 
-static void N_CREATURE_LEARN_EVERYTHING_EXCLUDING(LHVM* vm) {
-    int32_t excluded = vm->PopInt();
+// sub_68DD20 -> sub_4635C0: every ability and magic type.
+static void N_CREATURE_LEARN_EVERYTHING(LHVM* vm) {
     uint32_t h = vm->PopObject();
     if (!h) return;
-    auto& m = MindFor(h);
-    m.learn_everything = true;
-    m.action_knowledge.erase(ActionKey(excluded, 0));
+    MindFor(h).learn_everything = true;
+    if (creature::CreatureBrain* b = BrainFor(h)) b->LearnEverything();
+}
+
+// sub_68F310: the creature (on top), then which half: 1 abilities only,
+// 0 magic types only, anything else both.
+static void N_CREATURE_LEARN_EVERYTHING_EXCLUDING(LHVM* vm) {
+    uint32_t h = vm->PopObject();
+    const VMStackValue v = vm->PopValue();
+    const int32_t which = v.type == VM_TYPE_FLOAT ? static_cast<int32_t>(v.float_val) : v.int_val;
+    if (!h) return;
+    MindFor(h).learn_everything = true;
+    if (creature::CreatureBrain* b = BrainFor(h)) b->LearnEverything(which != 0, which != 1);
 }
 
 static void N_CREATURE_SET_KNOWS_ACTION(LHVM* vm) {

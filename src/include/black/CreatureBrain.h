@@ -99,6 +99,12 @@ public:
     // The belief index of an object (what a plan's target is), making one.
     uint32_t IdOf(Object* o);
 
+    // What it knows about (the mind's CreatureActionKnownAbout lists, mental
+    // +109052): kind 0 abilities, kind 1 magic types.
+    bool Knows(int kind, uint32_t id) const;  // sub_4C3F50
+    void Learn(int kind, uint32_t id);        // sub_4C3F80
+    void LearnEverything(bool abilities = true, bool spells = true);
+
 private:
     float    Opinion(uint32_t desire, const BeliefView& b) const;
     bool     SourceValue(uint32_t type, float* out) const;
@@ -133,6 +139,7 @@ private:
     ChooserHost   host_;
     std::vector<BeliefView> beliefs_;
     std::vector<Object*> seen_;
+    std::vector<uint32_t> known_[2];  // abilities, magic types
     std::unordered_map<Object*, uint32_t> ids_;
     std::vector<Object*> objects_ = {nullptr};  // id -> object; 0 is none
     // Per desire, the opinion tree for each belief kind, from the mind's

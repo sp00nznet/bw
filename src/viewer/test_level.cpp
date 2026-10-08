@@ -856,6 +856,11 @@ int main() {
             }
             std::snprintf(msg, sizeof msg, "over %d turns it acts on its own desires: %u actions done (%s), %u stopped", turn, brain->completed, log.c_str(), brain->stopped);
             CHECK(brain->completed > 0, msg);
+            // It knew nothing; CREATURE_LEARN_EVERYTHING (sub_4635C0) teaches abilities 0..5 and magic types 0..41.
+            const bool knew = brain->Knows(0, 0) || brain->Knows(1, 0);
+            brain->LearnEverything();
+            CHECK(!knew && brain->Knows(0, 5) && brain->Knows(1, 41) && !brain->Knows(0, 6) && brain->facts.knows_spell[41],
+                  "a new creature knows no abilities or spells until it learns everything (sub_4635C0)");
             w.objects.pop_back();
         }
     }

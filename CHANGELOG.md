@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- CREATURE_LEARN_EVERYTHING and CREATURE_LEARN_EVERYTHING_EXCLUDING now teach the
+  creature's brain, as v1.0's do (sub_4635C0, sub_68F310). The second popped its
+  creature and mode in the wrong order.
 - LOAD_CREATURE and LOAD_MY_CREATURE took the wrong arguments and pushed a result
   v1.0's do not (sub_696F00: type, mind file, player, position; sub_696E70: position).
   The creature now gets the mind file the script names and its species.

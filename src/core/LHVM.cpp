@@ -1560,7 +1560,7 @@ static void Native_CREATE_REWARD(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm-
 static void Native_CREATE_REWARD_IN_TOWN(LHVM* vm) { vm->PopObject(); vm->PopInt(); vm->PushObject(0); }
 static void Native_CREATURE_AUTOSCALE(LHVM* vm) { vm->PopBoolean(); vm->PopObject(); }
 static void Native_CREATURE_FIGHT_QUEUE_HITS(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
-static void Native_CREATURE_LEARN_EVERYTHING_EXCLUDING(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
+static void Native_CREATURE_LEARN_EVERYTHING_EXCLUDING(LHVM* vm) { vm->PopObject(); vm->PopValue(); }  // sub_68F310
 static void Native_DETACH_SOUND_TAG(LHVM* vm) { vm->PopObject(); }
 static void Native_ATTACH_SOUND_TAG(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
 static void Native_ENABLE_DISABLE_ALIGNMENT_MUSIC(LHVM* vm) { vm->PopBoolean(); }

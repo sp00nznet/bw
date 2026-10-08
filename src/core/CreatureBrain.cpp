@@ -74,7 +74,9 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t
         body.growth = m.body.growth;
     }
     if (saved) creature->field_0x1268 = static_cast<int>(m.stage);
-    BindKnownActions(&host_, m);
+    known_[0] = m.known_abilities;
+    known_[1] = m.known_spells;
+    host_.has = [this](int kind, uint32_t id) { return Knows(kind, id); };
     BindObjectPredicates(&host_, creature, [this](uint32_t id) -> GameThingWithPos* {
         return id < objects_.size() ? objects_[id] : nullptr;
     });
@@ -115,6 +117,26 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t
                                     static_cast<uint32_t>(by_kind[k].size()));
     }
     return true;
+}
+
+// sub_4C3F50: whether the mind's list (kind 0 abilities, 1 magic types) has it.
+bool CreatureBrain::Knows(int kind, uint32_t id) const {
+    const std::vector<uint32_t>& v = known_[kind ? 1 : 0];
+    return std::find(v.begin(), v.end(), id) != v.end();
+}
+
+// sub_4C3F80: onto the list, once.
+void CreatureBrain::Learn(int kind, uint32_t id) {
+    if (Knows(kind, id)) return;
+    known_[kind ? 1 : 0].push_back(id);
+    if (kind && id < 42) facts.knows_spell[id] = true;
+}
+
+// sub_68F310's two loops: abilities 0..5, magic types 0..41. sub_4635C0
+// (CREATURE_LEARN_EVERYTHING, a fight) is both.
+void CreatureBrain::LearnEverything(bool abilities, bool spells) {
+    if (abilities) for (uint32_t i = 0; i < 6; ++i) Learn(0, i);
+    if (spells) for (uint32_t i = 0; i < 42; ++i) Learn(1, i);
 }
 
 uint32_t CreatureBrain::IdOf(Object* o) {

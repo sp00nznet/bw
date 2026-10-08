@@ -722,6 +722,16 @@ calls grant them all (`sub_4635C0`: abilities 0–5, then all 42 spells): a crea
 fight (`sub_464C10`) and the script native at `sub_68DD20`. That is why every shipped
 mind knows abilities 0–5.
 
+The brain keeps the two lists itself (`Knows`, `sub_4C3F50`; `Learn`, `sub_4C3F80`). The
+scripts reach them:
+
+| Native | v1.0 | What it teaches |
+|---|---|---|
+| CREATURE_LEARN_EVERYTHING (70) | `sub_68DD20` → `sub_4635C0` | Abilities 0–5 and magic types 0–41 |
+| CREATURE_LEARN_EVERYTHING_EXCLUDING (259) | `sub_68F310` | Pops the creature, then a mode. Any mode but 0 teaches the abilities; any mode but 1 teaches the magic types. |
+
+Ours had 259's two pops the wrong way round.
+
 Its development stage stays the creature's own; a new one is at 0. Below stage 1 the
 body does not drain energy (`sub_4CF980`), so in `test_level` a new ape's energy stays
 at 1. Over 3000 turns it does 114 actions of its own and abandons 70.
