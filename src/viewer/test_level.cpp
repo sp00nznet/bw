@@ -826,6 +826,40 @@ int main() {
         }
     }
 
+    {
+        // A new creature, with no mind file: a fresh mind for its species (the
+        // desire tables), knowing no abilities or spells. Run by level::Process.
+        Villager* near = nullptr;
+        for (const level::Spawned& s : w.objects)
+            if (auto* v = dynamic_cast<Villager*>(s.obj); v && !v->IsDead()) { near = v; break; }
+        EntityCreateParams cp{};
+        cp.world_x = MetresOf(near ? near->coords.x : 0) + 30.0f;
+        cp.world_z = MetresOf(near ? near->coords.z : 0);
+        cp.scale = 5.0f;
+        auto* body = static_cast<Creature*>(EntityFactory::CreateCreature(cp));
+        creature::CreatureBrain* brain = body ? creature::AttachBrain(body, nullptr, 0) : nullptr;  // CREATURE_TYPE_APE
+        CHECK(brain != nullptr, "a new ape gets a fresh mind (no mind file)");
+        if (brain) {
+            w.objects.push_back(level::Spawned{body, "CREATE_CREATURE", "", -1});
+            std::string log;
+            uint32_t done = 0;
+            int turn = 0;
+            for (; turn < 3000; ++turn) {
+                level::Process(w);
+                if (brain->completed != done) {
+                    done = brain->completed;
+                    if (log.size() < 100) log += " " + std::to_string(brain->last_action) + "/" + std::to_string(brain->last_desire);
+                }
+                if (std::getenv("BRAIN_TRACE") && turn % 200 == 0)
+                    printf("      t%d act %u des %u energy %.3f hunger %.3f done %u\n", turn, brain->Action(), brain->Desire(),
+                           brain->body.energy, brain->desires.value[4], brain->completed);
+            }
+            std::snprintf(msg, sizeof msg, "over %d turns it acts on its own desires: %u actions done (%s), %u stopped", turn, brain->completed, log.c_str(), brain->stopped);
+            CHECK(brain->completed > 0, msg);
+            w.objects.pop_back();
+        }
+    }
+
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;
 }

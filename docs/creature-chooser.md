@@ -699,13 +699,32 @@ In `test_level`, Khazar is added to the level's objects and starved. Run by
     gives it the mind it names, from `CreatureMind/` (Challenge.chl names
     `KhazarCreature`, `LethysCreature` and `NemesisCreature`, with types 7, 4 and 5).
   - Its species is that CREATURE_TYPE, which is its CREATURE_INFO index.
-  - Creatures made any other way get Khazar's mind. That includes the debug key **C**,
-    which makes one at the hand. v1.0 gives a creature with no mind file a fresh mind,
-    which is not translated.
+  - Creatures made any other way get a fresh mind. That includes the debug key **C**,
+    which makes one at the hand.
   - LOAD_MY_CREATURE (`sub_696E70`) puts the player's own creature at a position; with
     no players in core, it makes one there.
 - **The camera is the viewer's eye.** Each turn the viewer gives every brain the eye it
   draws from. That is `sub_467190`'s answer when there is no player: the game's camera.
+
+### A fresh mind
+
+A creature with no mind file starts fresh, as a new one does in v1.0:
+
+| Part | Fresh state |
+|---|---|
+| Desires | Its species' tables: the initial source values and thresholds, cycle times, decay and maximums |
+| Body | New |
+| Learned trees | None |
+| Known abilities and spells | None |
+
+v1.0's creature learns its abilities one at a time, by watching (`sub_4C3AD0`). Only two
+calls grant them all (`sub_4635C0`: abilities 0–5, then all 42 spells): a creature
+fight (`sub_464C10`) and the script native at `sub_68DD20`. That is why every shipped
+mind knows abilities 0–5.
+
+Its development stage stays the creature's own; a new one is at 0. Below stage 1 the
+body does not drain energy (`sub_4CF980`), so in `test_level` a new ape's energy stays
+at 1. Over 3000 turns it does 114 actions of its own and abandons 70.
 
 ## Not yet
 

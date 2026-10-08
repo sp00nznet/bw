@@ -46,8 +46,20 @@ namespace {
 }  // namespace
 
 bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t species) {
+    return Init(creature, &m, species);
+}
+
+// A fresh mind (no file): the species' desire tables, a new body, nothing
+// learned and nothing known about. v1.0's creature learns its abilities by
+// watching (sub_4C3AD0); only a fight (sub_464C10) or a script (sub_68DD20)
+// grants them all (sub_4635C0).
+bool CreatureBrain::Init(Creature* creature, uint32_t species) { return Init(creature, nullptr, species); }
+
+bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t species) {
+    static const CreatureMind kFresh;
+    const CreatureMind& m = saved ? *saved : kFresh;
     creature_ = creature;
-    if (!tables_.Load(species) || !body_info.Load(species) || !desires.Init(species, &m)) return false;
+    if (!tables_.Load(species) || !body_info.Load(species) || !desires.Init(species, saved)) return false;
     body.Init(body_info);
     if (m.has_body) {  // the saved body (sub_4CA040)
         body.turn = m.body.turn;
@@ -61,7 +73,7 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
         body.strength = m.body.strength;
         body.growth = m.body.growth;
     }
-    creature->field_0x1268 = static_cast<int>(m.stage);
+    if (saved) creature->field_0x1268 = static_cast<int>(m.stage);
     BindKnownActions(&host_, m);
     BindObjectPredicates(&host_, creature, [this](uint32_t id) -> GameThingWithPos* {
         return id < objects_.size() ? objects_[id] : nullptr;
@@ -300,11 +312,13 @@ std::unordered_map<const Creature*, std::unique_ptr<CreatureBrain>>& Brains() {
 }
 }  // namespace
 
-CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species) {
+CreatureBrain* AttachBrain(Creature* c, const CreatureMind* mind, uint32_t species) {
     auto b = std::make_unique<CreatureBrain>();
     if (!c || !b->Init(c, mind, species)) return nullptr;
     return (Brains()[c] = std::move(b)).get();
 }
+
+CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species) { return AttachBrain(c, &mind, species); }
 
 CreatureBrain* BrainOf(const Creature* c) {
     auto it = Brains().find(c);

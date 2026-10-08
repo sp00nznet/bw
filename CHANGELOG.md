@@ -34,6 +34,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- A creature with no mind file gets a fresh mind for its species, as a new creature
+  does: the species' desire tables, nothing learned, no abilities or spells known.
+  Viewer creatures without a named mind get one instead of Khazar's.
 - In play mode, creatures made by scripts get a brain and act on their own. The debug
   key C makes one at the hand. Brains see the viewer's camera.
 - A creature with a brain (`creature::AttachBrain`) runs from `level::Process`: its

@@ -46,6 +46,9 @@ public:
     // Tables for `species`, the mind's known lists and its opinion trees.
     // False if info.dat is not loaded.
     bool Init(Creature* creature, const CreatureMind& mind, uint32_t species = 0);
+    // A fresh mind, as a new creature's: the species' tables, nothing learned.
+    bool Init(Creature* creature, uint32_t species);
+    bool Init(Creature* creature, const CreatureMind* mind, uint32_t species);  // null: fresh
 
     // One turn over the objects around it. Returns true when an action
     // completed this turn.
@@ -140,6 +143,7 @@ private:
 // The brain of a creature in the game. v1.0 keeps it in the creature's
 // CreatureMental; core keeps it beside the creature, made by AttachBrain.
 CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species = 0);
+CreatureBrain* AttachBrain(Creature* c, const CreatureMind* mind, uint32_t species);  // null: a fresh mind
 CreatureBrain* BrainOf(const Creature* c);
 // One turn of an attached brain, over what the map's cells hold within 600 m
 // (the furthest any predicate looks: sub_4B6A40's fish farms). False when it

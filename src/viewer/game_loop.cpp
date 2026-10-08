@@ -106,10 +106,9 @@ static int DefaultMeshForScriptType(int script_type) {
 }
 
 // A creature made in play mode gets a brain (creature::AttachBrain), so the
-// turn's level::Process runs it: the mind LOAD_CREATURE names, else the
-// shipped Khazar mind. Its species is its CREATURE_TYPE, which is its
-// CREATURE_INFO index. ponytail: v1.0 gives a creature without a mind file a
-// fresh mind for its species; that is not translated.
+// turn's level::Process runs it: the mind LOAD_CREATURE names, else a fresh
+// mind for its species, as a new creature has. Its species is its
+// CREATURE_TYPE, which is its CREATURE_INFO index.
 static void AttachCreatureBrain(const GameState* g, Object* obj, const char* mind_name, int32_t species) {
     auto* c = dynamic_cast<Creature*>(obj);
     if (!c || creature::BrainOf(c)) return;
@@ -124,14 +123,11 @@ static void AttachCreatureBrain(const GameState* g, Object* obj, const char* min
         return it->second.get();
     };
     const creature::CreatureMind* mind = mind_name && *mind_name ? mind_for(mind_name) : nullptr;
-    if (!mind) mind = mind_for("KhazarCreature");
-    if (!mind) {
-        fprintf(stderr, "Game: no CreatureMind/KhazarCreature -- creature has no brain\n");
-        return;
-    }
-    if (creature::AttachBrain(c, *mind, species >= 0 ? static_cast<uint32_t>(species) : 0) || creature::AttachBrain(c, *mind))
+    if (mind_name && *mind_name && !mind) fprintf(stderr, "Game: no CreatureMind/%s -- a fresh mind instead\n", mind_name);
+    const uint32_t sp = species >= 0 ? static_cast<uint32_t>(species) : 0;
+    if (creature::AttachBrain(c, mind, sp) || creature::AttachBrain(c, mind, 0))
         printf("Game: creature at (%.0f, %.0f) has a brain (%s)\n", MetresOf(c->coords.x), MetresOf(c->coords.z),
-               mind_name && *mind_name ? mind_name : "KhazarCreature");
+               mind ? mind_name : "fresh");
 }
 
 static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
