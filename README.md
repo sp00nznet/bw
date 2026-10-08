@@ -216,6 +216,7 @@ build/Release/bw_viewer.exe game_data/Land1.txt --play
 - F5 — quicksave (slot 0)
 - F9 — quickload (slot 0)
 - R — reset camera
+- C — make a creature at the hand, with a brain (debug; it acts on its own)
 - Esc — quit
 
 ## Project Structure

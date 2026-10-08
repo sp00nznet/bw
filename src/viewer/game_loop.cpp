@@ -28,6 +28,9 @@
 #include <black/HandMachine.h>
 #include <black/InfoDat.h>
 #include <black/types.h>
+#include <black/Creature.h>
+#include <black/CreatureBrain.h>
+#include <black/CreatureMindFile.h>
 
 namespace bw {
 
@@ -101,9 +104,27 @@ static int DefaultMeshForScriptType(int script_type) {
     }
 }
 
+// A creature made in play mode gets a brain (creature::AttachBrain), so the
+// turn's level::Process runs it. ponytail: every creature gets the shipped
+// Khazar mind; v1.0 gives a new creature a fresh one for its species, and
+// LOAD_CREATURE's named mind file is not read.
+static void AttachCreatureBrain(const GameState* g, Object* obj) {
+    auto* c = dynamic_cast<Creature*>(obj);
+    if (!c || creature::BrainOf(c)) return;
+    static creature::CreatureMind mind;
+    static int loaded = -1;
+    if (loaded < 0) loaded = creature::LoadCreatureMindFile((g->data_dir + "CreatureMind/KhazarCreature").c_str(), mind) ? 1 : 0;
+    if (!loaded) {
+        fprintf(stderr, "Game: no CreatureMind/KhazarCreature -- creature has no brain\n");
+        return;
+    }
+    if (creature::AttachBrain(c, mind)) printf("Game: creature at (%.0f, %.0f) has a brain\n", MetresOf(c->coords.x), MetresOf(c->coords.z));
+}
+
 static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
     if (!info || !s_current_game_state) return;
     auto* g = const_cast<GameState*>(s_current_game_state);
+    AttachCreatureBrain(g, info->obj);
 
     // Re-snap altitude to terrain so the new entity sits on the ground rather
     // than at whatever Y the script supplied (often 0).
@@ -183,6 +204,7 @@ bool GameState::Init(const std::string& script_path) {
     std::string base = script_path.substr(0, script_path.find_last_of('.'));
     std::string lnd_path = base + ".lnd";
     std::string g3d_path = dir + "AllMeshes.g3d";
+    data_dir = dir;
 
     // Load terrain
     printf("Game: Loading terrain...\n"); fflush(stdout);
@@ -478,6 +500,22 @@ void GameState::SpawnEntitiesFromWorld() {
     fflush(stdout);
 }
 
+void GameState::SpawnCreatureAt(float x, float z) {
+    if (!use_bw_core) return;
+    EntityCreateParams p = {};
+    p.world_x = x;
+    p.world_z = z;
+    p.scale = 5.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    if (!obj) return;
+    lhvm::SpawnInfo info = {};
+    info.obj = obj;
+    info.script_type = 12;  // SCRIPT_OBJECT_TYPE CREATURE
+    info.x = x;
+    info.z = z;
+    EntitySpawnCallback(&info);
+}
+
 void GameState::ProcessTurn() {
     if (paused) return;
     game_turn++;
@@ -489,6 +527,17 @@ void GameState::ProcessTurn() {
     }
 
     // === Phase 1: Run bw_core game logic: towns, then every object ===
+    // Creatures' brains see the camera (sub_467190: the game's, there being
+    // no player): the eye the viewer draws from.
+    if (use_bw_core) {
+        const float yaw = cam_yaw * 3.14159265f / 180.0f, pitch = cam_pitch * 3.14159265f / 180.0f;
+        const MapCoords eye = MapCoordsFromMetres(cam_x + cam_dist * cosf(pitch) * sinf(yaw),
+                                                  cam_z + cam_dist * cosf(pitch) * cosf(yaw),
+                                                  cam_y + cam_dist * sinf(pitch));
+        for (Object* o : core_entities)
+            if (auto* c = dynamic_cast<Creature*>(o))
+                if (creature::CreatureBrain* b = creature::BrainOf(c)) b->camera = eye;
+    }
     if (use_bw_core) level::Process(world);
 
     // === Phase 2: Sync bw_core state back to viewer entities ===

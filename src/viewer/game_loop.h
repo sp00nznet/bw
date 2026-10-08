@@ -154,6 +154,11 @@ struct GameState {
 
     // Spawn entities from script data
     void SpawnEntitiesFromWorld();
+
+    // A creature at (x, z) metres, with a brain (debug key C in play mode).
+    void SpawnCreatureAt(float x, float z);
+
+    std::string data_dir;  // the game data root Init was given
 };
 
 } // namespace bw

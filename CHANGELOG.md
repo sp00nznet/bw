@@ -31,6 +31,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- In play mode, creatures made by scripts get a brain and act on their own. The debug
+  key C makes one at the hand. Brains see the viewer's camera.
 - A creature with a brain (`creature::AttachBrain`) runs from `level::Process`: its
   ProcessState ticks the brain over what the map's cells hold within 600 m.
 - Villagers, animals and creatures link into the map cell under them, as v1.0's do,
