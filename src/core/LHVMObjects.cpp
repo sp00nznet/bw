@@ -14,6 +14,7 @@
 #include <black/EntityFactory.h>
 #include <black/Flock.h>
 #include <black/Player.h>
+#include <black/Town.h>
 #include <black/types.h>
 
 #include <algorithm>
@@ -1886,19 +1887,17 @@ static void N_GAME_THING_HIT(LHVM* vm) {
     vm->PushBoolean(true);
 }
 
+// sub_694840: (position, desire). sub_6D11E0: in every town of every
+// player, the planned building nearest the position (sub_6D1140) is started
+// (sub_6CEA80: vslot 321, then its site joins the town), the site's
+// priority (+0x63C) set to desire x 5.
+// ponytail: sub_6D1140 takes the nearest within its radius plus a metre of
+// the plan's edge; here, within 10 m of its centre.
 static void N_BUILD_BUILDING(LHVM* vm) {
-    float amount = vm->PopFloat();
-    uint32_t bld = vm->PopObject();
-    Object* o = LookupObject(bld);
-    if (o) {
-        // Building progress lives on Abode::percent_built — accessing it via
-        // Object* without dynamic_cast keeps the helper general; clamping is
-        // applied by Abode::Process when the script-set value lands.
-        // Layout offset 0x54 is percent_built on Abode.
-        if (amount > 1.0f) amount = 1.0f;
-        if (amount < 0.0f) amount = 0.0f;
-        *reinterpret_cast<float*>(reinterpret_cast<char*>(o) + 0x54) = amount;
-    }
+    const float desire = vm->PopFloat();
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    BuildPlannedAt(MapCoordsFromMetres(x, z), desire * 5.0f);
 }
 
 static void N_LOOK_GAME_THING(LHVM* vm) {

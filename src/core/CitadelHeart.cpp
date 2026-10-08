@@ -2,6 +2,7 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/CitadelHeart.h>
+#include <black/Citadel.h>
 
 // ============================================================================
 // LeashObj
@@ -60,9 +61,10 @@ void CitadelHeart::ToBeDeleted(int param) {
 // CitadelHeart — Overrides of GameThing virtuals
 // ============================================================================
 
+// v1.0 sub_453290: its citadel's player, else its town's (+0x94).
 GPlayer* CitadelHeart::GetPlayer() {
-    // Original at 0x00468020 — complex
-    return nullptr;
+    if (citadel) return citadel->GetPlayer();
+    return field_0x94 ? field_0x94->GetPlayer() : nullptr;
 }
 
 char* CitadelHeart::GetDebugText() {
@@ -99,10 +101,10 @@ bool32_t CitadelHeart::IsCitadelHeart() {
     return 1;
 }
 
-bool32_t CitadelHeart::CreateBuildingSite() {
-    // Original at 0x00468dc0 — complex
-    return 0;
-}
+// v1.0 sub_453FF0 (vslot 309): a CitadelBuildingSite (1628 bytes, sub_435870).
+// ponytail: a standard site stands in; the citadel site's own behaviour is
+// not translated.
+bool32_t CitadelHeart::CreateBuildingSite() { return MultiMapFixed::CreateBuildingSite(); }
 
 uint32_t CitadelHeart::GetScriptObjectType() {
     // Original at 0x004680b0

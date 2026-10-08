@@ -9,6 +9,7 @@
 #include <black/InfoDat.h>
 #include <black/Map.h>
 #include <black/Object.h>
+#include <black/Player.h>
 #include <black/Villager.h>
 #include <black/types.h>
 
@@ -569,6 +570,7 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     // The facts the validity predicates read, as far as the world here has them.
     facts.life = creature_->GetLife();
     facts.has_player = creature_->owner != nullptr;
+    facts.player_has_temple = creature_->owner && creature_->owner->citadel;  // player +608
     facts.home_distance = MetresOf(1) * creature_->GetDistanceFromObject(creature_->field_0x1200);
     facts.stage = static_cast<uint32_t>(creature_->field_0x1268);
     facts.home_built = creature_->field_0x11fc != 0;

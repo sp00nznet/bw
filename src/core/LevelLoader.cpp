@@ -17,6 +17,7 @@
 #include <black/Map.h>
 #include <black/Living.h>
 #include <black/PlannedAbode.h>
+#include <black/PlannedTownCitadelHeart.h>
 #include <black/Player.h>
 #include <black/MultiMapFixed.h>
 #include <black/Object.h>
@@ -203,6 +204,29 @@ struct Loader {
         return true;
     }
 
+    // case 20: (town, pos, heart, player, angle x 1000, scale x 1000). The
+    // town by id only (sub_5256C0) and a player that exists (sub_5F89B0), then
+    // a PlannedTownCitadelHeart (sub_4530C0) on the town's planned list, its
+    // record CITADEL_HEART_INFO[heart]. BUILD_BUILDING starts it.
+    // ponytail: the plan's position kept at 0xB7FAE0 is not read by anything
+    // found, so it is not kept.
+    bool CreatePlannedCitadel(const Args& a) {
+        float x, z;
+        if (a.size() < 6 || !ParsePos(a[1].s, x, z)) return false;
+        Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
+        const void* info = infodat::Element(infodat::DETAIL_CITADEL_HEART_INFO, static_cast<uint32_t>(a[2].n));
+        if (!town || !info || PlayerIndex(a[3].s) < 0) return false;
+        auto* p = new PlannedTownCitadelHeart();
+        p->coords = MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z));
+        p->info = static_cast<GObjectInfo*>(const_cast<void*>(info));
+        p->field_0x28 = a[4].n * 0.001f;
+        p->scale = a[5].n * 0.001f;
+        p->creation_turn = static_cast<int>(g_game_turn);
+        p->town = town;
+        town->AddPlanned(p);
+        return true;
+    }
+
     // case 18: the villager, then its home is the abode whose cell holds the
     // home position (the original walks every town's abode list comparing
     // the integer parts of x and z), unless that abode is already full.
@@ -292,6 +316,7 @@ struct Loader {
         if (cmd == "CREATE_ABODE") return CreateAbode(cmd, a, false);
         if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
         if (cmd == "CREATE_PLANNED_ABODE") return CreatePlannedAbode(a);
+        if (cmd == "CREATE_PLANNED_CITADEL") return CreatePlannedCitadel(a);
         if (cmd == "CREATE_VILLAGER_POS") return CreateVillagerPos(a);
         if (cmd == "CREATE_NEW_TOWN_FIELD")
             return CreateTownStructure(ENTITY_CAT_FIELD, cmd, a, a.size() > 3 ? a[3].f : 0.0f);

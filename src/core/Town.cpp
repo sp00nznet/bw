@@ -10,6 +10,7 @@
 #include <black/BuildingSite.h>
 #include <black/EntityFactory.h>
 #include <black/PlannedAbode.h>
+#include <black/PlannedTownCitadelHeart.h>
 #include <black/BigForest.h>
 #include <black/Forest.h>
 #include <black/Abode.h>
@@ -422,8 +423,10 @@ bool32_t Town::GetBestBuildingSite(const MapCoords& /*pos*/, int /*param*/) {
     return 0;
 }
 
-void Town::RemovePlanned(PlannedMultiMapFixed* /*planned*/) {
-    // Original at 0x0073d0d0 — complex
+void Town::RemovePlanned(PlannedMultiMapFixed* planned) {
+    auto** link = reinterpret_cast<PlannedMultiMapFixed**>(&planned_list.head);
+    while (*link && *link != planned) link = &(*link)->next;
+    if (*link) { *link = planned->next; --planned_list.count; }
 }
 
 void Town::AllVillagersCheckNeedNewAbode() {
@@ -634,6 +637,14 @@ void Town::Construct(const MapCoords& pos, const void* town_info, GPlayer* playe
     info = static_cast<GContainerInfo*>(const_cast<void*>(town_info));
     SetPos(pos);
     owner = player;
+    // sub_6CDFF0 -> sub_5F9230: the tail of its player's town list (+616, next +0x754).
+    if (player) {
+        next = nullptr;
+        Town** tail = &player->towns.first;
+        while (*tail) tail = &(*tail)->next;
+        *tail = this;
+        ++player->towns.count;
+    }
 
     // TownDesire (sub_6D7580 / sub_6D75E0): it knows its town.
     desire.town = this;
@@ -809,7 +820,10 @@ BuildingSite* Town::PlanBuilding(uint32_t mask) {
     PlannedMultiMapFixed* best = nullptr;
     float best_score = 0.0f;
     for (PlannedMultiMapFixed* p = static_cast<PlannedMultiMapFixed*>(planned_list.head); p; p = p->next) {
-        if (!(InfoU32(p->info, 288) & mask)) continue;  // vslot 324 -> info +288
+        // vslot 324 -> info +288. ponytail: a planned citadel heart answers
+        // 0x804 there (sub_44F8F0) and is scored by its own record; it is left
+        // to BUILD_BUILDING.
+        if (dynamic_cast<PlannedTownCitadelHeart*>(p) || !(InfoU32(p->info, 288) & mask)) continue;
         const float s = PlanScore(p->info, 0);
         if (s > best_score) { best_score = s; best = p; }
     }
@@ -833,11 +847,34 @@ BuildingSite* Town::PlanBuilding(uint32_t mask) {
     if (!abode) return nullptr;
     abode->percent_built = 0.0f;
     abode->JoinTown(this);
-    auto** link = reinterpret_cast<PlannedMultiMapFixed**>(&planned_list.head);
-    while (*link && *link != best) link = &(*link)->next;
-    if (*link) { *link = best->next; --planned_list.count; }
+    RemovePlanned(best);
     delete best;
     abode->CreateBuildingSite();  // vslot 309
     AddBuildingSite(abode->building_site);
     return abode->building_site;
+}
+
+BuildingSite* Town::StartPlanned(PlannedMultiMapFixed* planned) {  // sub_6CEA80
+    MultiMapFixed* b = planned ? planned->CreatePlannedNoFixedCheck(0.0f) : nullptr;
+    if (!b || !b->CreateBuildingSite() || !b->building_site) return nullptr;
+    AddBuildingSite(b->building_site);
+    return b->building_site;
+}
+
+BuildingSite* BuildPlannedAt(const MapCoords& at, float priority) {
+    BuildingSite* last = nullptr;
+    for (uint32_t i = 0; i < 8; ++i)
+        for (Town* t = PlayerAt(i)->towns.first; t; t = t->next) {
+            PlannedMultiMapFixed* best = nullptr;
+            float best_d = 10.0f;
+            for (auto* p = static_cast<PlannedMultiMapFixed*>(t->planned_list.head); p; p = p->next) {
+                const float d = std::hypot(MetresOf(p->coords.x) - MetresOf(at.x), MetresOf(p->coords.z) - MetresOf(at.z));
+                if (d <= best_d) best_d = d, best = p;
+            }
+            if (BuildingSite* s = best ? t->StartPlanned(best) : nullptr) {
+                s->field_0x63c = priority;
+                last = s;
+            }
+        }
+    return last;
 }

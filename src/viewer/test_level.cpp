@@ -33,6 +33,9 @@
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
 #include <black/Player.h>
+#include <black/PlannedTownCitadelHeart.h>
+#include <black/Citadel.h>
+#include <black/CitadelHeart.h>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -136,9 +139,8 @@ int main() {
     {
         uint32_t planned = 0;
         for (Town* t : w.towns) {
-            planned += t->planned_list.count;
             for (auto* p = static_cast<PlannedMultiMapFixed*>(t->planned_list.head); p; p = p->next)
-                printf("      town %u plans %s: want %.3f (base %.3f); room %u, homeless %u, people %d\n", t->field_0x5b4,
+                if (!dynamic_cast<PlannedTownCitadelHeart*>(p) && ++planned) printf("      town %u plans %s: want %.3f (base %.3f); room %u, homeless %u, people %d\n", t->field_0x5b4,
                        infodat::DebugName(infodat::DETAIL_ABODE_INFO, static_cast<uint32_t>((reinterpret_cast<const char*>(p->info) -
                            static_cast<const char*>(infodat::Element(infodat::DETAIL_ABODE_INFO, 0))) / 456)),
                        t->PlanScore(p->info, 0), *reinterpret_cast<const float*>(reinterpret_cast<const char*>(p->info) + 276),
@@ -950,6 +952,40 @@ int main() {
                           brain->stopped > 0, msg);
             }
             w.objects.pop_back();
+        }
+    }
+
+    // CREATE_PLANNED_CITADEL: a plan on town 0's list (sub_4530C0). The Land 1
+    // opening (FollowUs) calls BUILD_BUILDING at its place with 1.0
+    // (sub_694840 -> sub_6D11E0): player 0's citadel is made (sub_44E400) with
+    // the heart unbuilt in it (sub_450280), the heart's site on the town's list
+    // with priority 1 x 5.
+    {
+        Town* v0 = level::FindTown(w, 0);
+        int hearts = 0;
+        for (auto* p = static_cast<PlannedMultiMapFixed*>(v0->planned_list.head); p; p = p->next)
+            hearts += dynamic_cast<PlannedTownCitadelHeart*>(p) != nullptr;
+        bool listed = false;
+        for (Town* t = PlayerAt(0)->towns.first; t; t = t->next) listed = listed || t == v0;
+        const bool none = PlayerAt(0)->citadel == nullptr;
+        const uint32_t plans0 = v0->planned_list.count;
+        BuildingSite* s = BuildPlannedAt(MapCoordsFromMetres(1915.05f, 2508.89f), 1.0f * 5.0f);
+        auto* heart = s ? dynamic_cast<CitadelHeart*>(s->root_building) : nullptr;
+        Citadel* c = PlayerAt(0)->citadel;
+        std::snprintf(msg, sizeof msg, "BUILD_BUILDING starts the planned citadel: %d plan(s) on town 0, citadel %s, heart %s at %.0f%%, site priority %.1f",
+                      hearts, c ? "made" : "none", heart ? "made" : "none", heart ? heart->percent_built * 100.0f : -1.0f, s ? s->field_0x63c : -1.0f);
+        CHECK(hearts == 1 && listed && none && heart && c && c->heart == heart && heart->citadel == c && heart->GetPlayer() == PlayerAt(0) &&
+                  !heart->IsBuilt() && v0->building_site_list.Has(s) && s->field_0x63c == 5.0f && v0->planned_list.count == plans0 - 1 &&
+                  heart->IsObjectInMap_0(),
+              msg);
+        if (heart) {
+            uint32_t most = 0;
+            for (int t = 0; t < 3000; ++t) {
+                level::Process(w);
+                most = std::max(most, s->builders);
+            }
+            std::snprintf(msg, sizeof msg, "town 0's villagers build the heart: %.1f%% after 3000 turns, up to %u builders", heart->percent_built * 100.0f, most);
+            CHECK(most > 0 && heart->percent_built > 0.0f, msg);
         }
     }
 

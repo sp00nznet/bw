@@ -6,6 +6,8 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- BUILD_BUILDING popped an object and set its build fraction. v1.0's takes a position and
+  a desire.
 - CREATURE_LEARN_EVERYTHING and CREATURE_LEARN_EVERYTHING_EXCLUDING now teach the
   creature's brain, as v1.0's do (sub_4635C0, sub_68F310). The second popped its
   creature and mode in the wrong order.
@@ -37,6 +39,11 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The player's citadel. CREATE_PLANNED_CITADEL plans it on the village. BUILD_BUILDING,
+  which Land 1's opening calls at that spot, now builds the planned building there, as
+  v1.0's does (sub_6D11E0). For the citadel plan, that makes the player's Citadel and an
+  unbuilt CitadelHeart, which the village's villagers then build. See docs/players.md.
+
 - Players, with v1.0's 632-byte layout (the vendor's v1.41 GPlayer is 0x828 bytes
   larger). Level loads set up player 0 human and 7 neutral. Towns and loaded
   creatures belong to their players. A creature with a player points at its hand

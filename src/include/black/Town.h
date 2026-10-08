@@ -191,6 +191,9 @@ struct Town : public Container {
     // v1.0 sub_6CE790 -> sub_6CD990 / sub_6CEA40: build the best planned
     // building whose type has a bit of `mask`; its site, or null.
     BuildingSite* PlanBuilding(uint32_t mask);
+    // v1.0 sub_6CEA80: start this planned building (vslot 321, then its site,
+    // vslot 309, joins the town). The site, or nullptr.
+    BuildingSite* StartPlanned(PlannedMultiMapFixed* planned);
     // v1.0 sub_6D1750: the forests within TownInfo +356 of the store (or the
     // town) that hold wood, from the global list.
     void CollectForests(const std::vector<Forest*>& all);
@@ -312,6 +315,11 @@ static_assert(offsetof(Town, player_interactions) == 0x9EC, "8 x 128-byte record
 static_assert(offsetof(Town, field_0xeb4) == 0xEAC, "1.0f (this[939])");
 static_assert(offsetof(Town, field_0xec8) == 0xEC0, "16-dword block (this[944])");
 static_assert(offsetof(Town, congregation_pos) == 0xF08, "SET_TOWN_CONGREGATION_POS (+3848)");
+
+// v1.0 sub_6D11E0 (BUILD_BUILDING): in every town of every player, start the
+// planned building nearest `at` (sub_6D1140), its site's priority (+0x63C)
+// set to `priority`. The site, or nullptr when no plan is near.
+BuildingSite* BuildPlannedAt(const MapCoords& at, float priority);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
