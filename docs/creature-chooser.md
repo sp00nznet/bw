@@ -456,13 +456,15 @@ if it still scores best.
 
 **Ours** in these:
 - **Turning** is instant.
-- **No player:** core has no player, camera, hands or temple. TurnToFaceCamera is
-  skipped, and HangAroundAtHome always takes the no-temple branch.
+- **Players** exist (`docs/players.md`). The camera and the player's hand are
+  positions the host gives the brain. There is no temple yet, so HangAroundAtHome
+  always takes the no-temple branch, and TurnToFaceCamera is skipped.
 - **Random numbers** come from a seeded generator of the brain's own, not the
   game's.
-- **PointAtHand** is ruled out when there is no player (`ChooserHost::action_possible`).
-  v1.0 has no validity test for it, since its creature always has a player. Here
-  its handler would otherwise fail every turn. PointAtCamera is likewise ruled
+- **PointAtHand** is ruled out when the creature has no player or the host gives no
+  hand (`CreatureBrain::player_hand`; `ChooserHost::action_possible`). v1.0 has no
+  validity test for it, since its creature always has a player and a hand. Here its
+  handler would otherwise fail every turn. PointAtCamera is likewise ruled
   out when the host gives the brain no camera (`CreatureBrain::camera`).
 
 In `test_level` the starved Khazar looks at the sun four times and ends up facing

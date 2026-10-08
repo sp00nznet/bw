@@ -17,6 +17,7 @@
 #include <black/Map.h>
 #include <black/Living.h>
 #include <black/PlannedAbode.h>
+#include <black/Player.h>
 #include <black/MultiMapFixed.h>
 #include <black/Object.h>
 #include <black/Terrain.h>
@@ -130,9 +131,10 @@ struct Loader {
         if (a.size() < 5 || !ParsePos(a[1].s, x, z)) return false;
         Town* t = new Town();
         const int tribe = TribeIndex(a[4].s);
-        // The loader passes no name (sub_6CD070's a6 is 0 here) and no GPlayer yet.
-        t->Construct(MapCoordsFromMetres(x, z), infodat::Element(infodat::DETAIL_TOWN_INFO, 0), nullptr,
-                     static_cast<uint8_t>(PlayerIndex(a[2].s)),
+        // The loader passes no name (sub_6CD070's a6 is 0 here).
+        const int player = PlayerIndex(a[2].s);
+        t->Construct(MapCoordsFromMetres(x, z), infodat::Element(infodat::DETAIL_TOWN_INFO, 0),
+                     PlayerAt(static_cast<uint32_t>(player)), static_cast<uint8_t>(player),
                      static_cast<TRIBE_TYPE>(tribe < 0 ? 0 : tribe), nullptr,
                      static_cast<uint32_t>(a[0].n));
         w.towns.push_back(t);
@@ -346,6 +348,7 @@ bool Load(const char* path, World& out, std::string* err) {
     FILE* f = std::fopen(path, "rb");
     if (!f) { if (err) *err = std::string("cannot open ") + path; return false; }
     ResetMap();  // what is created goes into it (InsertMapObject)
+    ResetPlayers();
     Loader L{out};
     char line[2048];
     std::string name;

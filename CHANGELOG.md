@@ -37,6 +37,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Players, with v1.0's 632-byte layout (the vendor's v1.41 GPlayer is 0x828 bytes
+  larger). Level loads set up player 0 human and 7 neutral. Towns and loaded
+  creatures belong to their players. A creature with a player points at its hand
+  (PointAtHand, sub_4977F0). See docs/players.md.
 - Player feedback, as v1.0's (sub_4C2090). A stroke or slap teaches the creature about
   its most relevant recent action: the action's opinion, the desire behind it, and its
   opinion of what it acted on. Viewer keys G and B stroke and slap the creature nearest

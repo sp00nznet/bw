@@ -66,7 +66,10 @@ struct GGame : public GameThing {
     // === Fields (fully typed from vendor Game.h) ===
 
     uint32_t          field_0x14;                 // 0x14
-    GPlayer           players[8];                 // 0x18  (8 * 0xA60 = 0x5300)
+    GPlayer           players[8];                 // 0x18  (8 * 0x278, v1.0)
+    // ponytail: the rest of GGame is still the vendor's v1.41 layout (v1.0's
+    // is 2409968 bytes); this keeps its offsets where v1.41 has them.
+    uint8_t           field_v141_players[8 * (0xA60 - 0x278)];
     uint8_t           field_0x5318[0x664];        // 0x5318 — gap to stats DB
     StatsDatabase     stats_database;             // 0x597C (0x10)
     CreatureDatabase  creature_database;          // 0x598C (0x10)

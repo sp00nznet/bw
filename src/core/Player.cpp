@@ -5,6 +5,7 @@
 #include <black/Player.h>
 #include <black/Game.h>
 #include <black/Town.h>
+#include <black/Creature.h>
 
 extern GGame* g_game;
 
@@ -75,10 +76,46 @@ GPlayer* GPlayer::GetPlayerFromText(const char* /*str*/) {
 // Non-virtual methods
 // ============================================================================
 
-void GPlayer::Init(PLAYER_TYPE /*type*/, uint8_t /*number*/,
-                    char16_t* /*name*/, uint8_t /*param4*/) {
-    // Original at 0x00649190 — complex initialization
+// sub_5F71B0: the type (+248), number (+181) and name (+252).
+// ponytail: the 508-byte object at +348, the GameStats at +604 and the
+// interface it makes at interfaces[param4] are not built; nothing in core
+// reads them yet.
+void GPlayer::Init(PLAYER_TYPE t, uint8_t number, char16_t* new_name, uint8_t /*param4*/) {
+    type = t;
+    player_number = number;
+    if (new_name) {
+        size_t i = 0;
+        for (; i + 1 < sizeof(name) / sizeof(name[0]) && new_name[i]; ++i) name[i] = new_name[i];
+        name[i] = 0;
+    }
 }
+
+namespace {
+GPlayer g_players[8];
+}  // namespace
+
+GPlayer* PlayerAt(uint32_t index) { return index < 8 ? &g_players[index] : nullptr; }
+
+void ResetPlayers() {
+    for (uint32_t i = 0; i < 8; ++i) {
+        GPlayer& p = g_players[i];
+        p.creature = nullptr;
+        p.citadel = nullptr;
+        p.towns = {};
+        char16_t name[16] = u"Player[0]";
+        name[7] = static_cast<char16_t>(u'0' + i);
+        p.Init(i == 0 ? PLAYER_TYPE_HUMAN : i == 7 ? PLAYER_TYPE_NEUTRAL : PLAYER_TYPE_NONE, static_cast<uint8_t>(i), name, static_cast<uint8_t>(i));
+    }
+}
+
+void SetPlayerCreature(GPlayer* p, Creature* c) {
+    if (!p || !c) return;
+    p->creature = c;
+    c->SetOwner(p);
+}
+
+// ponytail: v1.0's 0 is the player at GGame+2104087 (the local one); here, player 0.
+GPlayer* ScriptPlayer(int32_t n) { return PlayerAt(n > 0 ? static_cast<uint32_t>(n - 1) : 0u); }
 
 void GPlayer::Process() {
     // Original at 0x006494e0 — per-tick player update

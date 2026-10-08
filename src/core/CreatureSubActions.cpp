@@ -106,10 +106,19 @@ bool CreatureBrain::StartAction(uint32_t action) {
         }
         return true;
     }
-    case 169:  // PointAtHand (sub_4977F0): the nearest hand of its player (sub_467290)
-        // ponytail: core has no player hands, so this is the no-hand case.
-        Stop();  // "FailedToConstr..."
-        return false;
+    case 169:  // PointAtHand (sub_4977F0): face the camera, then point at its player's nearest hand (sub_467290) for 1 s
+        if (!creature_->owner || !player_hand) {
+            Stop();  // "FailedToConstr..."
+            return false;
+        }
+        a.Add(SubActionEntry{kSubTurnToFaceCamera});
+        {
+            SubActionEntry e{kSubPointAtPoint};
+            e.point = *player_hand;  // ponytail: where the hand is as the action starts
+            e.value = 1.0f;
+            a.AddMain(e);
+        }
+        return true;
     case 168:  // PointAtCamera (sub_4976C0): face the camera, then point at it for 1 s
         if (!camera) {
             Stop();  // "FailedToConstr..."

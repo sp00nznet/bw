@@ -13,6 +13,7 @@
 #include <black/Terrain.h>
 #include <black/EntityFactory.h>
 #include <black/Flock.h>
+#include <black/Player.h>
 #include <black/types.h>
 
 #include <algorithm>
@@ -915,24 +916,31 @@ static int32_t PopNumber(LHVM* vm) {
 // always made; the host reads the mind file (SpawnInfo::mind).
 static void N_LOAD_CREATURE(LHVM* vm) {
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    PopNumber(vm);  // the player
+    GPlayer* player = ScriptPlayer(PopNumber(vm));  // sub_6862D0
     const char* mind = vm->GetString(static_cast<uint32_t>(PopNumber(vm)));
     const int32_t ctype = PopNumber(vm);
+    // ponytail: v1.0 loads only when the player's +348 object exists, which
+    // core does not build; and it reloads over a player that has a creature.
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    SetPlayerCreature(player, dynamic_cast<Creature*>(obj));
     // sub_606A50 sets it to stage 13 after reading its mind (sub_4ACB00).
     NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, ctype, x, y, z, mind, 13);
 }
 
-// sub_696E70: three in (the position), nothing out; v1.0 puts the player's own
-// creature there (sub_525210). ponytail: with no player creature in core, a
-// creature is made there instead.
+// sub_696E70: three in (the position), nothing out. sub_525210: if the local
+// player has no creature, it gets one there, with the mind its profile names.
+// ponytail: core has no profiles, so the mind is a fresh one ("Dummy" in v1.0
+// when there is no profile); and v1.0 then calls sub_4647A0 twice.
 static void N_LOAD_MY_CREATURE(LHVM* vm) {
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    GPlayer* me = PlayerAt(0);
+    if (me && me->creature) return;
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    SetPlayerCreature(me, dynamic_cast<Creature*>(obj));
     NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, 0, x, y, z);
 }
 

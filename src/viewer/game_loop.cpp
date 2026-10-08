@@ -32,6 +32,7 @@
 #include <black/Creature.h>
 #include <black/CreatureBrain.h>
 #include <black/CreatureMindFile.h>
+#include <black/Player.h>
 
 namespace bw {
 
@@ -522,6 +523,8 @@ void GameState::SpawnCreatureAt(float x, float z) {
     p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
     if (!obj) return;
+    // The first is player 0's creature; later ones have no player.
+    if (GPlayer* me = PlayerAt(0); me && !me->creature) SetPlayerCreature(me, dynamic_cast<Creature*>(obj));
     lhvm::SpawnInfo info = {};
     info.obj = obj;
     info.script_type = 12;  // SCRIPT_OBJECT_TYPE CREATURE
@@ -566,9 +569,15 @@ void GameState::ProcessTurn() {
         const MapCoords eye = MapCoordsFromMetres(cam_x + cam_dist * cosf(pitch) * sinf(yaw),
                                                   cam_z + cam_dist * cosf(pitch) * cosf(yaw),
                                                   cam_y + cam_dist * sinf(pitch));
+        // The player's hand is where the mouse is on the land (sub_467290).
+        std::optional<MapCoords> hand_at;
+        if (hand.is_over_land) hand_at = MapCoordsFromMetres(hand.x, hand.z, hand.y);
         for (Object* o : core_entities)
             if (auto* c = dynamic_cast<Creature*>(o))
-                if (creature::CreatureBrain* b = creature::BrainOf(c)) b->camera = eye;
+                if (creature::CreatureBrain* b = creature::BrainOf(c)) {
+                    b->camera = eye;
+                    b->player_hand = c->owner ? hand_at : std::nullopt;
+                }
     }
     if (use_bw_core) level::Process(world);
 

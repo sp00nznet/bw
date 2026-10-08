@@ -32,6 +32,7 @@
 #include <black/EntityFactory.h>
 #include <black/FishFarm.h>
 #include <black/CreatureMindFile.h>
+#include <black/Player.h>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -70,6 +71,16 @@ int main() {
     for (auto& u : w.unhandled) printf("      not yet: %-32s x%d\n", u.first.c_str(), u.second);
 
     CHECK(w.towns.size() == 6, "six towns (CREATE_TOWN x6)");
+    {
+        // The players (v1.0's 632-byte GPlayer, sub_523640): a single-player
+        // start, and each town owned by the player its script names.
+        bool owners = true;
+        for (Town* t : w.towns) owners = owners && t->owner == PlayerAt(t->player_number);
+        CHECK(PlayerAt(0)->type == PLAYER_TYPE_HUMAN && PlayerAt(3)->type == PLAYER_TYPE_NONE &&
+                  PlayerAt(7)->type == PLAYER_TYPE_NEUTRAL && PlayerAt(8) == nullptr && PlayerAt(7)->player_number == 7 &&
+                  ScriptPlayer(1) == PlayerAt(0) && owners,
+              "players 0 human, 1-6 unused, 7 neutral; towns owned by their script's player");
+    }
     CHECK(w.landscape.find("Land1.lnd") != std::string::npos, "LOAD_LANDSCAPE recorded");
 
     int abodes = 0, housed = 0, with_info = 0;
@@ -889,6 +900,19 @@ int main() {
             brain->LearnEverything();
             CHECK(!knew && brain->Knows(0, 5) && brain->Knows(1, 41) && !brain->Knows(0, 6) && brain->facts.knows_spell[41],
                   "a new creature knows no abilities or spells until it learns everything (sub_4635C0)");
+
+            // PointAtHand (169, sub_4977F0) needs its player's hand (sub_467290):
+            // without a player it fails; given player 0 and a hand, it faces the
+            // camera and points at the hand for 1 s.
+            brain->player_hand = MapCoordsFromMetres(MetresOf(body->coords.x) + 10.0f, MetresOf(body->coords.z));
+            const bool no_player = !brain->StartAction(169);
+            SetPlayerCreature(PlayerAt(0), body);
+            const bool pointed = brain->StartAction(169) && brain->subactions.count == 2;
+            brain->subactions.Clear();
+            CHECK(no_player && pointed && body->GetPlayer() == PlayerAt(0) && PlayerAt(0)->creature == body,
+                  "PointAtHand fails with no player; player 0's creature points at the hand");
+            PlayerAt(0)->creature = nullptr;
+            body->SetOwner(nullptr);
 
             // The player's feedback (sub_4C2090). It is about the most relevant
             // of the last five actions begun: one under way, or one the player

@@ -76,6 +76,9 @@ public:
     // player's nearest camera, or the game's when it has no player); unset
     // when there is none.
     std::optional<MapCoords> camera;
+    // Where its player's nearest hand is, for the host to set (sub_467290);
+    // unset when it has none. Only a creature with a player has a hand to see.
+    std::optional<MapCoords> player_hand;
     // What it last put down (creature +4552). ponytail: a put-down fish is
     // not a world object here, so it is only remembered.
     Food discarded;
