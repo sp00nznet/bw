@@ -693,11 +693,17 @@ In `test_level`, Khazar is added to the level's objects and starved. Run by
   action stopped mid-point held the hand for good, and the next action waited on it.
 - **The cells are scanned as a square** of whole cells, not with v1.0's circle
   iterator. The brain filters by distance itself.
-- **Every viewer creature gets Khazar's mind.** In play mode, a creature a script makes
-  (LOAD_CREATURE, CREATURE_CREATE_RELATIVE, ...) gets a brain loaded from the shipped
-  `CreatureMind/KhazarCreature`. So does one made with the debug key **C**, which puts it
-  at the hand. v1.0 gives a new creature a fresh mind for its species, and
-  LOAD_CREATURE's named mind file is not read yet.
+- **Viewer creatures and their minds.** In play mode, a creature a script makes gets a
+  brain.
+  - LOAD_CREATURE (`sub_696F00`: type, mind file, player, position; nothing returned)
+    gives it the mind it names, from `CreatureMind/` (Challenge.chl names
+    `KhazarCreature`, `LethysCreature` and `NemesisCreature`, with types 7, 4 and 5).
+  - Its species is that CREATURE_TYPE, which is its CREATURE_INFO index.
+  - Creatures made any other way get Khazar's mind. That includes the debug key **C**,
+    which makes one at the hand. v1.0 gives a creature with no mind file a fresh mind,
+    which is not translated.
+  - LOAD_MY_CREATURE (`sub_696E70`) puts the player's own creature at a position; with
+    no players in core, it makes one there.
 - **The camera is the viewer's eye.** Each turn the viewer gives every brain the eye it
   draws from. That is `sub_467190`'s answer when there is no player: the game's camera.
 

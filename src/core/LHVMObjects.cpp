@@ -122,9 +122,9 @@ SaveSlotFn    g_save_slot_func        = nullptr;
 
 static void NotifySpawn(uint32_t handle, Object* obj,
                         int32_t script_type, int32_t script_subtype,
-                        float x, float y, float z) {
+                        float x, float y, float z, const char* mind = nullptr) {
     if (!g_entity_spawn_func || handle == 0 || !obj) return;
-    SpawnInfo info = { handle, obj, script_type, script_subtype, x, y, z };
+    SpawnInfo info = { handle, obj, script_type, script_subtype, x, y, z, mind };
     g_entity_spawn_func(&info);
 }
 
@@ -899,29 +899,38 @@ static void N_CREATE_MIST(LHVM* vm) {
     vm->PushObject(0);  // Mist allocation deferred until weather subsystem
 }
 
-static void N_LOAD_CREATURE(LHVM* vm) {
-    int32_t  ctype = vm->PopInt();
-    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    vm->PopObject();
-    (void)y;
-    EntityCreateParams p = {};
-    p.world_x = x; p.world_z = z; p.scale = 5.0f;
-    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
-    uint32_t h = HandleFor(obj);
-    NotifySpawn(h, obj, 12 /* CREATURE */, ctype, x, y, z);
-    vm->PushObject(h);
+// A number off the stack, whichever way the script pushed it (v1.0's natives
+// pop every argument as a float, sub_690C00, and convert).
+static int32_t PopNumber(LHVM* vm) {
+    const VMStackValue v = vm->PopValue();
+    return v.type == VM_TYPE_FLOAT ? static_cast<int32_t>(v.float_val) : v.int_val;
 }
 
-static void N_LOAD_MY_CREATURE(LHVM* vm) {
+// sub_696F00: LOAD_CREATURE type "mind" player at pos -- six in (the position,
+// the player, the mind file's string, the CREATURE_TYPE), nothing out. v1.0
+// loads the creature for its player (sub_606A50) only when that player has a
+// creature slot (+348). ponytail: there are no players in core, so it is
+// always made; the host reads the mind file (SpawnInfo::mind).
+static void N_LOAD_CREATURE(LHVM* vm) {
     float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    vm->PopObject();
-    (void)y;
+    PopNumber(vm);  // the player
+    const char* mind = vm->GetString(static_cast<uint32_t>(PopNumber(vm)));
+    const int32_t ctype = PopNumber(vm);
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
-    uint32_t h = HandleFor(obj);
-    NotifySpawn(h, obj, 12 /* CREATURE */, 0, x, y, z);
-    vm->PushObject(h);
+    NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, ctype, x, y, z, mind);
+}
+
+// sub_696E70: three in (the position), nothing out; v1.0 puts the player's own
+// creature there (sub_525210). ponytail: with no player creature in core, a
+// creature is made there instead.
+static void N_LOAD_MY_CREATURE(LHVM* vm) {
+    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    EntityCreateParams p = {};
+    p.world_x = x; p.world_z = z; p.scale = 5.0f;
+    Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
+    NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, 0, x, y, z);
 }
 
 // --- Capacity / state queries -------------------------------------------

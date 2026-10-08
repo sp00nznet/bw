@@ -102,8 +102,9 @@ struct SpawnInfo {
     uint32_t handle;        // LHVM handle for the new Object*
     Object*  obj;           // raw pointer (for direct host pairing)
     int32_t  script_type;   // SCRIPT_OBJECT_TYPE the script asked for
-    int32_t  script_subtype;
+    int32_t  script_subtype;  // for a creature, its CREATURE_TYPE (= its CREATURE_INFO index)
     float    x, y, z;
+    const char* mind = nullptr;  // LOAD_CREATURE's mind file, a name under CreatureMind/
 };
 using EntitySpawnFn = void (*)(const SpawnInfo*);
 extern EntitySpawnFn g_entity_spawn_func;

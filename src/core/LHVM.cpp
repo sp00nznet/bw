@@ -1603,8 +1603,8 @@ static void Native_IS_THAT_SPELL_CHARGING(LHVM* vm) { vm->PopInt(); vm->PopObjec
 static void Native_KILL_STORMS_IN_AREA(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); }
 static void Native_LAST_MUSIC_LINE(LHVM* vm) { vm->PopInt(); vm->PushInt(0); }
 static void Native_LOAD_COMPUTER_PLAYER_PERSONALITY(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
-static void Native_LOAD_CREATURE(LHVM* vm) { vm->PopInt(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopObject(); vm->PushObject(0); }
-static void Native_LOAD_MY_CREATURE(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopObject(); vm->PushObject(0); }
+static void Native_LOAD_CREATURE(LHVM* vm) { for (int i = 0; i < 6; ++i) vm->PopValue(); }  // sub_696F00: 6 in, none out
+static void Native_LOAD_MY_CREATURE(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); }  // sub_696E70: 3 in, none out
 static void Native_MAP_SCRIPT_FUNCTION(LHVM* vm) { vm->PopInt(); vm->PopObject(); }
 static void Native_MOVE_COMPUTER_PLAYER_POSITION(LHVM* vm) { vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopFloat(); vm->PopObject(); }
 static void Native_OBJECT_ADULT_CAPACITY(LHVM* vm) { vm->PopObject(); vm->PushInt(0); }

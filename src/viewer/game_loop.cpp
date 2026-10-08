@@ -11,6 +11,7 @@
 #include "sad_loader.h"
 
 #include <cctype>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -105,26 +106,38 @@ static int DefaultMeshForScriptType(int script_type) {
 }
 
 // A creature made in play mode gets a brain (creature::AttachBrain), so the
-// turn's level::Process runs it. ponytail: every creature gets the shipped
-// Khazar mind; v1.0 gives a new creature a fresh one for its species, and
-// LOAD_CREATURE's named mind file is not read.
-static void AttachCreatureBrain(const GameState* g, Object* obj) {
+// turn's level::Process runs it: the mind LOAD_CREATURE names, else the
+// shipped Khazar mind. Its species is its CREATURE_TYPE, which is its
+// CREATURE_INFO index. ponytail: v1.0 gives a creature without a mind file a
+// fresh mind for its species; that is not translated.
+static void AttachCreatureBrain(const GameState* g, Object* obj, const char* mind_name, int32_t species) {
     auto* c = dynamic_cast<Creature*>(obj);
     if (!c || creature::BrainOf(c)) return;
-    static creature::CreatureMind mind;
-    static int loaded = -1;
-    if (loaded < 0) loaded = creature::LoadCreatureMindFile((g->data_dir + "CreatureMind/KhazarCreature").c_str(), mind) ? 1 : 0;
-    if (!loaded) {
+    static std::unordered_map<std::string, std::unique_ptr<creature::CreatureMind>> minds;  // by name; null: unreadable
+    auto mind_for = [&](const std::string& name) -> const creature::CreatureMind* {
+        auto it = minds.find(name);
+        if (it == minds.end()) {
+            auto m = std::make_unique<creature::CreatureMind>();
+            if (!creature::LoadCreatureMindFile((g->data_dir + "CreatureMind/" + name).c_str(), *m)) m.reset();
+            it = minds.emplace(name, std::move(m)).first;
+        }
+        return it->second.get();
+    };
+    const creature::CreatureMind* mind = mind_name && *mind_name ? mind_for(mind_name) : nullptr;
+    if (!mind) mind = mind_for("KhazarCreature");
+    if (!mind) {
         fprintf(stderr, "Game: no CreatureMind/KhazarCreature -- creature has no brain\n");
         return;
     }
-    if (creature::AttachBrain(c, mind)) printf("Game: creature at (%.0f, %.0f) has a brain\n", MetresOf(c->coords.x), MetresOf(c->coords.z));
+    if (creature::AttachBrain(c, *mind, species >= 0 ? static_cast<uint32_t>(species) : 0) || creature::AttachBrain(c, *mind))
+        printf("Game: creature at (%.0f, %.0f) has a brain (%s)\n", MetresOf(c->coords.x), MetresOf(c->coords.z),
+               mind_name && *mind_name ? mind_name : "KhazarCreature");
 }
 
 static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
     if (!info || !s_current_game_state) return;
     auto* g = const_cast<GameState*>(s_current_game_state);
-    AttachCreatureBrain(g, info->obj);
+    if (info->script_type == 12) AttachCreatureBrain(g, info->obj, info->mind, info->script_subtype);
 
     // Re-snap altitude to terrain so the new entity sits on the ground rather
     // than at whatever Y the script supplied (often 0).

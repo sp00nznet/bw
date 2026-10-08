@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- LOAD_CREATURE and LOAD_MY_CREATURE took the wrong arguments and pushed a result
+  v1.0's do not (sub_696F00: type, mind file, player, position; sub_696E70: position).
+  The creature now gets the mind file the script names and its species.
 - Fish farms were never put into the map (an empty stub). They now go on their
   cell's fixed list, as v1.0's do.
 - An action stopped while the creature pointed left the point clip held for good, so
