@@ -86,7 +86,7 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 65 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165 || action == 161;
+    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 65 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165 || action == 161 || action == 315;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -292,6 +292,17 @@ bool CreatureBrain::StartAction(uint32_t action) {
         a.Add(SubActionEntry{kSubTurnToFaceCamera});
         a.AddMain(SubActionEntry{kSubCommunicateToPlayer});
         return true;
+    case 315: {  // HowlAtFriend (sub_4A9D50): face the friend, look 2 s, then individual action 217
+        // Neither is the main sub-action; the action is done after the last.
+        SubActionEntry t{kSubTurnToFaceObject};
+        t.object = Target();  // the plan's object (+2120)
+        t.value = 2.0f;
+        a.Add(t);
+        SubActionEntry i{kSubIndividualAction};
+        i.integer = 217;
+        a.Add(i);
+        return true;
+    }
     case 161:  // a rest (sub_496860), desire TO_REST: twice, wait 1-2 s, then individual action 57
         for (int k = 0; k < 2; ++k) {
             SubActionEntry w{kSubWait};

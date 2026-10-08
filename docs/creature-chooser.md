@@ -685,7 +685,8 @@ Fish farms were never in the map: their insert was an empty stub. v1.0's
 which MultiMapFixed's insert already does.
 
 In `test_level`, Khazar is added to the level's objects and starved. Run by
-`level::Process` alone, he fishes on turn 373.
+`level::Process` alone, he fishes on turn 826. Before that, HowlAtFriend twice
+overrides a fishing action mid-meal.
 
 **Ours:**
 - **A held point is let go on abort.** PointAtPoint has no abort handler, and where
@@ -731,6 +732,18 @@ scripts reach them:
 | CREATURE_LEARN_EVERYTHING_EXCLUDING (259) | `sub_68F310` | Pops the creature, then a mode. Any mode but 0 teaches the abilities; any mode but 1 teaches the magic types. |
 
 Ours had 259's two pops the wrong way round.
+
+### HowlAtFriend (315)
+
+Every test scenario was measured for actions completed by the untranslated
+done-on-arrival path. HowlAtFriend (315, desire TO_BE_FRIENDS) was the only one still
+reached: 41 times, including in a grown ape's 20,000 turns. It now runs as v1.0's
+`sub_4A9D50`:
+- TurnToFaceObject at the plan's object (the friend), looking for 2 s;
+- then individual action 217.
+
+Neither is marked main, so the action is done after the last. He no longer walks to the
+friend; v1.0 howls from where he stands.
 
 ### Development stages
 

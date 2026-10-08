@@ -37,6 +37,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- HowlAtFriend (315) runs as v1.0's sub-actions. It was the last action creatures
+  reached that still finished on arrival.
 - Creature development stages (info.dat DETAIL_CREATURE_DEVELOPMENT) switch desires
   on and off, as v1.0's do: sub_4ACB00 for a new or loaded creature (LOAD_CREATURE
   sets 13), and SET_CREATURE_DEV_STAGE (sub_68EBD0) for the story's steps.
