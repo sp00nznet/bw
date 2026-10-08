@@ -102,6 +102,11 @@ public:
     // What it knows about (the mind's CreatureActionKnownAbout lists, mental
     // +109052): kind 0 abilities, kind 1 magic types.
     bool Knows(int kind, uint32_t id) const;  // sub_4C3F50
+
+    // The development stage (creature +0x1268) and the desires it switches on
+    // and off (DETAIL_CREATURE_DEVELOPMENT).
+    void SetDevelopmentStage(uint32_t stage);    // sub_4ACB00: all of stages 0..stage
+    void EnterDevelopmentStage(uint32_t stage);  // sub_68EBD0 (SET_CREATURE_DEV_STAGE): that stage's only
     void Learn(int kind, uint32_t id);        // sub_4C3F80
     void LearnEverything(bool abilities = true, bool spells = true);
 
@@ -119,6 +124,7 @@ private:
     uint32_t Random(uint32_t n) { return static_cast<uint32_t>(rng_() % n); }  // sub_67BC90
     float    RandomFloat(float f) { return std::uniform_real_distribution<float>(0.0f, f)(rng_); }  // sub_67BCB0
     void TickHand();
+    void ApplyStage(uint32_t stage);
     int  Digest(const Food& f);         // sub_4DF830
     void Stop();                        // sub_45FA70
     void Override(uint32_t old_action); // sub_4D08E0's stop of the action it replaces

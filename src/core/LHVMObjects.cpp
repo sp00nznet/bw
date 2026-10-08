@@ -124,9 +124,9 @@ SaveSlotFn    g_save_slot_func        = nullptr;
 
 static void NotifySpawn(uint32_t handle, Object* obj,
                         int32_t script_type, int32_t script_subtype,
-                        float x, float y, float z, const char* mind = nullptr) {
+                        float x, float y, float z, const char* mind = nullptr, int32_t dev_stage = -1) {
     if (!g_entity_spawn_func || handle == 0 || !obj) return;
-    SpawnInfo info = { handle, obj, script_type, script_subtype, x, y, z, mind };
+    SpawnInfo info = { handle, obj, script_type, script_subtype, x, y, z, mind, dev_stage };
     g_entity_spawn_func(&info);
 }
 
@@ -921,7 +921,8 @@ static void N_LOAD_CREATURE(LHVM* vm) {
     EntityCreateParams p = {};
     p.world_x = x; p.world_z = z; p.scale = 5.0f;
     Object* obj = EntityFactory::CreateEntity(ENTITY_CAT_CREATURE, p);
-    NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, ctype, x, y, z, mind);
+    // sub_606A50 sets it to stage 13 after reading its mind (sub_4ACB00).
+    NotifySpawn(HandleFor(obj), obj, 12 /* CREATURE */, ctype, x, y, z, mind, 13);
 }
 
 // sub_696E70: three in (the position), nothing out; v1.0 puts the player's own
@@ -1406,10 +1407,16 @@ static void N_SET_CREATURE_HELP(LHVM* vm) {
     if (h) MindFor(h).creature_help_enabled = (level != 0);
 }
 
+static creature::CreatureBrain* BrainFor(uint32_t h);
+
+// sub_68EBD0: the stage (on top), then the creature.
 static void N_SET_CREATURE_DEV_STAGE(LHVM* vm) {
-    int32_t  stage = vm->PopInt();
+    const VMStackValue v = vm->PopValue();
+    const int32_t stage = v.type == VM_TYPE_FLOAT ? static_cast<int32_t>(v.float_val) : v.int_val;
     uint32_t h     = vm->PopObject();
-    if (h) MindFor(h).dev_stage = stage;
+    if (!h) return;
+    MindFor(h).dev_stage = stage;
+    if (creature::CreatureBrain* b = BrainFor(h); b && stage >= 0) b->EnterDevelopmentStage(static_cast<uint32_t>(stage));
 }
 
 static void N_SET_CREATURE_SOUND(LHVM* vm) {

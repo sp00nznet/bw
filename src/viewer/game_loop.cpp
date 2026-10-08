@@ -133,7 +133,12 @@ static void AttachCreatureBrain(const GameState* g, Object* obj, const char* min
 static void EntitySpawnCallback(const lhvm::SpawnInfo* info) {
     if (!info || !s_current_game_state) return;
     auto* g = const_cast<GameState*>(s_current_game_state);
-    if (info->script_type == 12) AttachCreatureBrain(g, info->obj, info->mind, info->script_subtype);
+    if (info->script_type == 12) {
+        AttachCreatureBrain(g, info->obj, info->mind, info->script_subtype);
+        auto* c = dynamic_cast<Creature*>(info->obj);
+        if (creature::CreatureBrain* b = c ? creature::BrainOf(c) : nullptr; b && info->dev_stage >= 0)
+            b->SetDevelopmentStage(static_cast<uint32_t>(info->dev_stage));
+    }
 
     // Re-snap altitude to terrain so the new entity sits on the ground rather
     // than at whatever Y the script supplied (often 0).
@@ -520,6 +525,7 @@ void GameState::SpawnCreatureAt(float x, float z) {
     lhvm::SpawnInfo info = {};
     info.obj = obj;
     info.script_type = 12;  // SCRIPT_OBJECT_TYPE CREATURE
+    info.dev_stage = 13;    // grown, as LOAD_CREATURE makes one
     info.x = x;
     info.z = z;
     EntitySpawnCallback(&info);

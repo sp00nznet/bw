@@ -37,6 +37,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Creature development stages (info.dat DETAIL_CREATURE_DEVELOPMENT) switch desires
+  on and off, as v1.0's do: sub_4ACB00 for a new or loaded creature (LOAD_CREATURE
+  sets 13), and SET_CREATURE_DEV_STAGE (sub_68EBD0) for the story's steps.
+- Action 161, the creature's rest, runs as v1.0's sub-actions.
 - A creature with no mind file gets a fresh mind for its species, as a new creature
   does: the species' desire tables, nothing learned, no abilities or spells known.
   Viewer creatures without a named mind get one instead of Khazar's.

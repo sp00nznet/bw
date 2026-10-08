@@ -105,6 +105,7 @@ struct SpawnInfo {
     int32_t  script_subtype;  // for a creature, its CREATURE_TYPE (= its CREATURE_INFO index)
     float    x, y, z;
     const char* mind = nullptr;  // LOAD_CREATURE's mind file, a name under CreatureMind/
+    int32_t  dev_stage = -1;     // the development stage it is set to (LOAD_CREATURE: 13), or -1
 };
 using EntitySpawnFn = void (*)(const SpawnInfo*);
 extern EntitySpawnFn g_entity_spawn_func;

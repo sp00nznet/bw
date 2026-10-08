@@ -732,9 +732,46 @@ scripts reach them:
 
 Ours had 259's two pops the wrong way round.
 
-Its development stage stays the creature's own; a new one is at 0. Below stage 1 the
-body does not drain energy (`sub_4CF980`), so in `test_level` a new ape's energy stays
-at 1. Over 3000 turns it does 114 actions of its own and abandons 70.
+### Development stages
+
+A creature's stage (creature +0x1268) decides which desires it has at all. The data is
+info.dat's DETAIL_CREATURE_DEVELOPMENT, at 0xBA5BD8 in memory: 14 records of 132 bytes,
+each with a name at +16. Each switches up to ten desires on (+76) and up to four off
+(+116); 42 marks an empty slot.
+
+| Stage | Name | On | Off |
+|---|---|---|---|
+| 0 | Initial Phase | 5 8 9 17 18 21 23 24 28 35 | |
+| 1 | Learn To Take and Eat Phase | 3 4 6 29 38 | |
+| 2 | Punishment Phase | 15 19 20 36 | |
+| 3 | Leash Introduction | 14 | |
+| 4 | Leash Attach To House | 7 33 | |
+| 5, 6 | Meet Guide, Friends with Guide | 16 37 | |
+| 7 | Guide Explains History | 31 | |
+| 8 | Guide Teaches Spells | | |
+| 9 | Gude Teaches How To Impress Town | 0 10 13 27 | |
+| 10 | Learn To Fight Phase | 2 | |
+| 11 | Learn To Help Town Phase | 1 | |
+| 12 | Leash Good and Evil | 0 10 27 | |
+| 13 | Fully Mature Phase | 1 32 34 39 | 29 |
+
+There are two ways to set it:
+- **`sub_4ACB00`** switches every desire off, then applies stages 0 up to the new one in
+  order. It also clears the desire countdowns and resets the agenda.
+  - LOAD_CREATURE's loader (`sub_606A50`) calls it with stage 13 after reading the
+    mind, so a loaded creature has the grown creature's desires, not the mind's flags.
+  - A new player creature gets stage 0 (`sub_5EDB70`).
+- **SET_CREATURE_DEV_STAGE** (`sub_68EBD0`) applies only the named stage's switches, on
+  top of what the creature already has. The story steps a creature through its stages
+  this way.
+
+A fresh mind takes the creature's own stage, which is 0 for a new one. Hunger (4) comes
+on only at stage 1, and the body only drains energy from stage 1 (`sub_4CF980`).
+
+At stage 0, rest (23) is the desire that wins. Its action, 161 (`sub_496860`), was
+untranslated, so it finished as soon as it started and a new ape churned through 500 of
+them. It now runs as v1.0's sub-actions: twice, a 1–2 s Wait and then individual action
+57. In `test_level`, a new ape rests 54 times in 3000 turns.
 
 ## Not yet
 

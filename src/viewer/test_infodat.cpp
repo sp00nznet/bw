@@ -125,6 +125,19 @@ int main() {
     TestSynthetic();
     TestShipped();
     TestScriptNames();
+    {
+        // The creature's development stages (the table sub_4ACB00 reads at
+        // 0xBA5BD8): a name at +16, ten desires switched on at +76, four off
+        // at +116, 42 for none.
+        const auto* s0 = static_cast<const char*>(infodat::Element(infodat::DETAIL_CREATURE_DEVELOPMENT, 0));
+        const auto* s13 = static_cast<const char*>(infodat::Element(infodat::DETAIL_CREATURE_DEVELOPMENT, 13));
+        int32_t on0 = 0, off13 = 0;
+        if (s0) std::memcpy(&on0, s0 + 76, 4);
+        if (s13) std::memcpy(&off13, s13 + 116, 4);
+        CHECK(infodat::Count(infodat::DETAIL_CREATURE_DEVELOPMENT) == 14 && s0 && s13 && !std::strcmp(s0 + 16, "Initial Phase") &&
+                  !std::strcmp(s13 + 16, "Fully Mature Phase") && on0 == 5 && off13 == 29,
+              "14 development stages, 'Initial Phase' (switches desire 5 on) to 'Fully Mature Phase' (switches 29 off)");
+    }
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;
 }

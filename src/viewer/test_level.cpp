@@ -856,6 +856,19 @@ int main() {
             }
             std::snprintf(msg, sizeof msg, "over %d turns it acts on its own desires: %u actions done (%s), %u stopped", turn, brain->completed, log.c_str(), brain->stopped);
             CHECK(brain->completed > 0, msg);
+            // Its desires are stage 0's ("Initial Phase", DETAIL_CREATURE_DEVELOPMENT):
+            // 5 8 9 17 18 21 23 24 28 35. SET_CREATURE_DEV_STAGE 1 (sub_68EBD0) adds
+            // "Learn To Take and Eat Phase"'s: hunger (4) among them. Stage 13 by
+            // sub_4ACB00 has every stage's, less 29.
+            auto actives = [&] { std::string s; for (uint32_t d = 0; d < 40; ++d) if (brain->desires.active[d]) s += " " + std::to_string(d); return s; };
+            const std::string at0 = actives();
+            brain->EnterDevelopmentStage(1);
+            const std::string at1 = actives();
+            brain->SetDevelopmentStage(13);
+            const std::string at13 = actives();
+            std::snprintf(msg, sizeof msg, "stage 0 desires%s; stage 1 adds to%s; stage 13:%s", at0.c_str(), at1.c_str(), at13.c_str());
+            CHECK(at0 == " 5 8 9 17 18 21 23 24 28 35" && at1 == " 3 4 5 6 8 9 17 18 21 23 24 28 29 35 38" &&
+                      brain->desires.active[4] && !brain->desires.active[29] && brain->desires.active[39] && body->field_0x1268 == 13, msg);
             // It knew nothing; CREATURE_LEARN_EVERYTHING (sub_4635C0) teaches abilities 0..5 and magic types 0..41.
             const bool knew = brain->Knows(0, 0) || brain->Knows(1, 0);
             brain->LearnEverything();

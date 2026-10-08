@@ -6,6 +6,7 @@
 #include <black/CreatureActionValidity.h>
 #include <black/CreatureOpinion.h>
 #include <black/FishFarm.h>
+#include <black/InfoDat.h>
 #include <black/Map.h>
 #include <black/Object.h>
 #include <black/Villager.h>
@@ -54,6 +55,8 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind& m, uint32_t spe
 // watching (sub_4C3AD0); only a fight (sub_464C10) or a script (sub_68DD20)
 // grants them all (sub_4635C0).
 bool CreatureBrain::Init(Creature* creature, uint32_t species) { return Init(creature, nullptr, species); }
+// A fresh mind's desires are those of the creature's stage (a new one's is 0),
+// as v1.0 sets them for a new player creature (sub_5EDB70 -> sub_4ACB00(0)).
 
 bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t species) {
     static const CreatureMind kFresh;
@@ -116,7 +119,42 @@ bool CreatureBrain::Init(Creature* creature, const CreatureMind* saved, uint32_t
                 trees_[d][k].Induce(static_cast<CREATURE_BELIEF_KIND>(k), by_kind[k].data(),
                                     static_cast<uint32_t>(by_kind[k].size()));
     }
+    if (!saved) SetDevelopmentStage(static_cast<uint32_t>(std::max(creature->field_0x1268, 0)));
     return true;
+}
+
+// A development stage's desires (DETAIL_CREATURE_DEVELOPMENT, one 132-byte
+// record per stage, 0 "Initial Phase" .. 13 "Fully Mature Phase"): ten it
+// switches on (+76) and four it switches off (+116); 42 is an empty slot.
+// sub_4BEEA0 sets the flag (CreatureDesires +8).
+void CreatureBrain::ApplyStage(uint32_t stage) {
+    const auto* r = static_cast<const uint8_t*>(infodat::Element(infodat::DETAIL_CREATURE_DEVELOPMENT, stage));
+    if (!r) return;
+    auto at = [&](int i) { int32_t v; std::memcpy(&v, r + 4 * i, 4); return v; };
+    for (int i = 19; i < 29; ++i) if (at(i) >= 0 && at(i) < static_cast<int32_t>(kNumCreatureDesires)) desires.active[at(i)] = true;
+    for (int i = 29; i < 33; ++i) if (at(i) >= 0 && at(i) < static_cast<int32_t>(kNumCreatureDesires)) desires.active[at(i)] = false;
+}
+
+// sub_4ACB00: every desire off, then each stage up to this one in turn; the
+// countdowns cleared (sub_4BE470) and the agenda reset (sub_4B6D60).
+// ponytail: the leash reset at stage 5 (creature +4532) and +404/+4716 are
+// not modelled.
+void CreatureBrain::SetDevelopmentStage(uint32_t stage) {
+    if (stage >= infodat::Count(infodat::DETAIL_CREATURE_DEVELOPMENT)) return;
+    creature_->field_0x1268 = static_cast<int>(stage);
+    std::fill(std::begin(desires.countdown), std::end(desires.countdown), 0u);
+    std::fill(std::begin(desires.active), std::end(desires.active), false);
+    for (uint32_t s = 0; s <= stage; ++s) ApplyStage(s);
+    EndAction();
+}
+
+// SET_CREATURE_DEV_STAGE (sub_68EBD0): only that stage's switches, on top of
+// what the creature has.
+void CreatureBrain::EnterDevelopmentStage(uint32_t stage) {
+    if (stage >= infodat::Count(infodat::DETAIL_CREATURE_DEVELOPMENT)) return;
+    creature_->field_0x1268 = static_cast<int>(stage);
+    std::fill(std::begin(desires.countdown), std::end(desires.countdown), 0u);
+    ApplyStage(stage);
 }
 
 // sub_4C3F50: whether the mind's list (kind 0 abilities, 1 magic types) has it.
