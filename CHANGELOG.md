@@ -40,6 +40,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The viewer's hand feeds the core hand: a picked-up object is held by player 0's hand
+  status, and let go gently over a building it is offered to it (vslot 417).
 - The player's hand takes things to buildings. A picked-up object is held with the land's
   owner (sub_59C390). Let go over a store, worship site, workshop or building site, the
   building takes its resource (vslot 417, sub_5ECB70), and the player's creature may copy

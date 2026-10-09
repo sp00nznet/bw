@@ -283,7 +283,24 @@ up row 4.
   - the rest of the pick-up (a held living, hand states, multi-pick-up);
   - the local player's displays, sounds and tutorial cues;
   - Scaffold's own take (`sub_685A70`).
-- The viewer's hand still moves its own entities and does not call this yet.
+- In the viewer, a picked-up object is held by player 0's hand as well. Let go gently
+  over a building (within its radius + 2 m) and the building is offered it; a taken object
+  disappears. A flung or thrown one is not taken: v1.0's landing goes through physics.
+
+**The creature's side.** The rows' copying actions are DETAIL_CREATURE_ACTION's (names at
++24). Their handlers come from emulating the action table's initialiser (0x479CA0, +32):
+- 28 GiveFoodFromFieldToStoragePit → `sub_48B340`;
+- 29 GiveFishToStoragePit → `sub_4935A0`;
+- 32 GiveWoodFromTreeToStoragePit → `sub_485E30`;
+- 48 CastMagicFood → `sub_4880B0`;
+- 104 CastMagicWood → `sub_48E8C0`;
+- 245 PutFoodFromFieldByWorshipSite → `sub_4A0070`.
+
+GiveWoodFromTreeToStoragePit picks a tree (`sub_4D1040`: the best object in the mimicked
+object's town) and pulls it up. It then runs MoveToThrowPos, TurnToFaceObject,
+ConsiderActionCompleted and ClearObjectToUse, then ThrowInPile, which throws the tree at
+the store as a physics object. A tree's own resource is 0 (`sub_53EF30`), so the store's
+wood comes from the landing. These actions wait on the throw physics.
 
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;

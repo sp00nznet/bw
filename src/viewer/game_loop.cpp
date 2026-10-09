@@ -2,6 +2,9 @@
 // Manages entity lifecycle, hand interaction, and game state
 // Now bridges to bw_core for real entity logic.
 
+#include <black/GInterfaceStatus.h>
+#include <black/MultiMapFixed.h>
+#include <black/Player.h>
 #include "game_loop.h"
 #include "mesh_names.h"
 #include "audio.h"
@@ -705,6 +708,9 @@ void GameState::PickUpEntity(int index) {
     e.selected = true;
     e.physics_active = false;
     hand.held_entity = index;
+    // Player 0's hand holds the core object too (sub_59C390).
+    if (index < static_cast<int>(core_entities.size()) && core_entities[index])
+        HandStatusOf(PlayerAt(0))->PickUp(core_entities[index]);
     printf("Game: Picked up %s (entity %d)\n", e.name.c_str(), index);
 }
 
@@ -723,8 +729,25 @@ void GameState::DropEntity() {
         printf("Game: Flung %s (speed=%.0f)\n", e.name.c_str(), speed);
     } else {
         e.y = GetTerrainHeight(e.x, e.z);
+        // Let go over a building: it may take what is held (vslot 417).
+        GInterfaceStatus* st = HandStatusOf(PlayerAt(0));
+        Object* target = nullptr;
+        float best = 1e30f;
+        for (Object* o : core_entities) {
+            if (!o || o == st->held || !dynamic_cast<MultiMapFixed*>(o)) continue;
+            const float dx = MetresOf(o->coords.x) - hand.x, dz = MetresOf(o->coords.z) - hand.z;
+            const float d = std::sqrt(dx * dx + dz * dz);
+            if (d <= o->GetRadius() + 2.0f && d < best) best = d, target = o;
+        }
+        Object* held = st->held;
+        if (target && st->DropOn(target)) {
+            e.alive = false;
+            printf("Game: %s takes %s\n", target->GetDebugText() ? target->GetDebugText() : "building", e.name.c_str());
+        } else if (held) {
+            st->held = nullptr;
+        }
     }
-
+    if (GInterfaceStatus* st = HandStatusOf(PlayerAt(0))) st->held = nullptr;  // a fling lands on its own
     hand.held_entity = -1;
 }
 
@@ -737,6 +760,9 @@ void GameState::ThrowEntity(float tvx, float tvy, float tvz) {
     e.vy = tvy;
     e.vz = tvz;
     hand.held_entity = -1;
+    // ponytail: a thrown object landing on a store is not taken (v1.0's
+    // landing path is the physics'); the hand just lets go.
+    HandStatusOf(PlayerAt(0))->held = nullptr;
     printf("Game: Threw %s with velocity (%.1f, %.1f, %.1f)\n",
            e.name.c_str(), tvx, tvy, tvz);
 }
