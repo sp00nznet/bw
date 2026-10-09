@@ -13,6 +13,7 @@
 #include "types.h"
 
 struct Object;
+struct GPlayer;
 
 namespace spell {
 
@@ -76,7 +77,9 @@ float ApplyToLiving(const Effect& e, Object* target);
 // field is planted or grown. The drops fall within 6 m (magic 22) or 12 m
 // (23) of the cast (sub_5B8600) for as long as the spell lasts.
 // ponytail: one drop at the point; only fields answer (fire, trees not yet).
-int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby);
+// A field watered by a player's miracle tells that player's creature
+// (sub_4FF8D0 -> sub_4CB260: mimic row 33, "Cast water on crops", magic 22).
+int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby, GPlayer* caster = nullptr);
 
 // Spells that last (the game's spell list, +0x201C80; sub_6B7570 each
 // turn). A spell ages a tenth of a second a turn (sub_6B7730) and stops
@@ -89,7 +92,7 @@ int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby);
 // ponytail: the cast's power is 1 (the icon's power is not modelled), and
 // only Water has a per-turn tick here -- the other spells deliver through
 // their particle effect, which is not built, so they land once when cast.
-void StartWater(int magic_type, const MapCoords& at);
+void StartWater(int magic_type, const MapCoords& at, GPlayer* caster = nullptr);
 void ProcessActive(const std::vector<Object*>& world);
 int ActiveCount();
 void ClearActive();

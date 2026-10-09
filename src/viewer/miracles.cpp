@@ -141,7 +141,7 @@ std::string Cast(level::World& w, float x, float z) {
         return g_status;
     }
     if (magic == 22 || magic == 23) {  // MAGIC_WATER: rains for its duration, a drop a turn
-        spell::StartWater(magic, MapCoordsFromMetres(x, z));
+        spell::StartWater(magic, MapCoordsFromMetres(x, z), Me());
         g_status = std::string(SeedName(seed)) + ": raining";
         return g_status;
     }

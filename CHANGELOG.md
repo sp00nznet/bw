@@ -39,6 +39,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Creatures mimic their player (sub_4CB260, DETAIL_MIMIC_PLAYER_ACTION_TABLE). On the
+  learning leash, a creature that sees its player's Water land on crops learns the
+  miracle and takes up mimicking it. See docs/creature-chooser.md.
 - Spell icons. A town's magic (CREATE_TOWN_SPELL / CREATE_NEW_TOWN_SPELL, sub_6D0200)
   puts its seeds' icons at the worship site. A miracle picked by gesture charges at its
   icon from the site's mana (sub_5F9050, sub_704610), and the charged seed goes to the

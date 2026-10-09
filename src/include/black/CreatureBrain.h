@@ -37,6 +37,7 @@
 #include <vector>
 
 struct Creature;
+struct GPlayer;
 struct Villager;
 struct Object;
 
@@ -120,6 +121,28 @@ public:
     bool Observe(int kind, uint32_t id);
     // sub_4BA660's learning half: what a villager it notices is doing.
     void WatchVillager(const Villager* v);
+
+    // v1.0 sub_4CB260: its player did something it may copy -- a row of
+    // DETAIL_MIMIC_PLAYER_ACTION_TABLE (46 x 192 bytes: priority +144, needs
+    // the learning leash +148, action +152, desire +180, turns +184), done to
+    // `done_to`, with `magic` when it was a miracle. True when it takes it up:
+    // it is taught about the object for the row's desire (kinds 1 and 2 at
+    // 0.5), stops what it was doing, and starts mimicking.
+    bool MimicPlayer(uint32_t type, Object* done_to, uint32_t magic = 0);
+    // The player's hold on it (v1.0 sub_4B29D0's record +300: +24 on, +28 the
+    // mode), for the host to set: 0 none, 2 the learning leash.
+    int leash_mode = 0;
+    // mental+7216 (sub_4CA950): what it is mimicking.
+    struct Mimic {
+        bool      active = false;   // +7224
+        uint32_t  type = 0;         // +7232: the table row
+        uint32_t  magic = 0;        // +7236
+        Object*   object = nullptr; // +7240
+        MapCoords at{};             // +7264: where it was
+        uint32_t  state = 0;        // +7248
+        uint32_t  limit = 0;        // +7256: the row's +184 (+ sub_67BC90(1), always 0); its use not yet read
+        uint32_t  turn = 0;         // +7260: when
+    } mimic;
 
     // The player's feedback, -1..1: a stroke (> 0) or a slap (< 0)
     // (sub_4C2090). It stops what the creature is doing and teaches it about
@@ -210,6 +233,9 @@ private:
 CreatureBrain* AttachBrain(Creature* c, const CreatureMind& mind, uint32_t species = 0);
 CreatureBrain* AttachBrain(Creature* c, const CreatureMind* mind, uint32_t species);  // null: a fresh mind
 CreatureBrain* BrainOf(const Creature* c);
+// sub_4CB260's caller side: the player did a mimic-table action; its
+// creature's brain, if it has one, may copy it.
+bool PlayerDid(GPlayer* player, uint32_t type, Object* done_to, uint32_t magic = 0);
 // One turn of an attached brain, over what the map's cells hold within 600 m
 // (the furthest any predicate looks: sub_4B6A40's fish farms). False when it
 // has none.

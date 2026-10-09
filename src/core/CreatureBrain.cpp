@@ -177,6 +177,12 @@ template <class T> T InfoAt(infodat::Section s, uint32_t i, size_t off) {
 }
 }  // namespace
 
+// sub_4D82D0: the sightings a magic takes, +84 x the species' CREATURE_INFO +892.
+static float SightingsNeeded(uint32_t magic, uint32_t species) {
+    return static_cast<float>(InfoAt<uint32_t>(infodat::DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE, magic, 84)) *
+           InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species, 892);
+}
+
 // sub_4C3AD0. ponytail: its feedback (sub_4B0770) and the creature's
 // interested look (sub_4668F0) are not modelled, nor the frozen-by-spell gate
 // (mental+134372; core has no such spell), nor the +2 a spell sighting gets
@@ -203,10 +209,73 @@ bool CreatureBrain::Observe(int kind, uint32_t id) {
     if (now - spell_last_[id] > 50 || !spell_last_[id]) ++spell_seen_[id];
     spell_last_[id] = now;
     Learn(1, id);
-    // sub_4D82D0: the sightings it takes, +84 x the species' CREATURE_INFO +892.
-    const float need = static_cast<float>(InfoAt<uint32_t>(infodat::DETAIL_CREATURE_MAGIC_ACTION_KNOWN_ABOUT_TABLE, id, 84)) *
-                       InfoAt<float>(infodat::DETAIL_CREATURE_INFO, species_, 892);
-    return need <= static_cast<float>(spell_seen_[id]);
+    return SightingsNeeded(id, species_) <= static_cast<float>(spell_seen_[id]);
+}
+
+// sub_4CB260. ponytail: not modelled --
+//  - the creature-held check (+148 -> sub_67F950 +16 < 150) and the facing
+//    test (sub_4615B0: the head within 120 degrees, or the same cell);
+//  - the sight range is sqrt(x * 60 + 160) rounded to an odd square, x the
+//    creature's +352 -> +88 record +144, which is not kept; x = 1 gives 225 m;
+//  - the plan's related target (sub_4BB170) -- the object itself stands;
+//  - a mimic row 18 takes its action from the magic table (0xBCB038);
+//  - the "Mimicking" anim reset (+4432/+4436), mental+119944 for desire 2,
+//    and the second record at +109028 beyond what Mimic keeps.
+bool CreatureBrain::MimicPlayer(uint32_t type, Object* done_to, uint32_t magic) {
+    const auto* row = static_cast<const char*>(infodat::Element(infodat::DETAIL_MIMIC_PLAYER_ACTION_TABLE, type));
+    if (!row || !done_to || (creature_->field_0x24 & 0x10)) return false;
+    auto u = [row](size_t off) { uint32_t v; std::memcpy(&v, row + off, 4); return v; };
+    float prio;
+    std::memcpy(&prio, row + 144, 4);
+    GPlayer* p = creature_->owner;
+    if (!p || p->type == PLAYER_TYPE_COMPUTER || creature_->field_0x1268 < 3) return false;
+    if (leash_mode != 2 && u(148)) return false;  // the learning leash, or a row that needs none
+    const float dist = MetresOf(1) * creature_->GetDistanceFromObject(done_to->coords);
+    if (!(225.0f > dist)) return false;
+    float score = prio;
+    if (mimic.active) {
+        if (mimic.state != 2) {
+            float cur = 0.0f;
+            if (const auto* c = static_cast<const char*>(infodat::Element(infodat::DETAIL_MIMIC_PLAYER_ACTION_TABLE, mimic.type))) std::memcpy(&cur, c + 144, 4);
+            score = cur;
+            if (prio < cur || type == mimic.type) return false;
+        }
+    } else if (prio <= 0.0f) {
+        return false;
+    }
+    if (magic) {
+        if (magic >= 42) return false;
+        const float seen = static_cast<float>(spell_seen_[magic]);
+        const float need = SightingsNeeded(magic, species_);
+        const int left = static_cast<int>(std::lround(need - seen));
+        score = need != 0.0f && seen / need > 1.0f ? seen / need : need;
+        if (left > 0) {
+            Observe(1, magic);
+            if (left > 1 || !Random(2)) return false;
+        }
+    }
+    (void)score;  // sub_4BB170's weight
+
+    Remembered r;  // sub_4D1300 -> sub_4C3540: the plan it would make, as a lesson
+    r.desire = u(180);
+    r.action = u(152);
+    r.object = done_to;
+    r.kind = BeliefKindOfType(done_to->GetCreatureBeliefType());
+    r.feature_count = DescribeObject(r.kind, done_to, creature_, r.features, kMaxBeliefAttributes);
+    for (int kind = 1; kind <= 2; ++kind) Teach(r, 0.5f, kind);
+    Stop();  // sub_45FA70(creature, "Mimicking")
+    mimic = {true, type, magic, done_to, done_to->coords, 0, u(184), turn_};  // sub_4CA950
+    // The row's desire's first source (desire table +16) and source 54 rise.
+    auto add = [this](uint32_t t, float v) { if (float* s = SourceSlot(t, 0)) *s = std::clamp(*s + v, 0.0f, 1.0f); };
+    if (r.desire < kNumCreatureDesires) add(InfoAt<uint32_t>(infodat::DETAIL_CREATURE_DESIRE_TABLE, r.desire, 16), 0.1f);
+    add(54, 0.3f);
+    if (magic) Learn(1, magic);
+    return true;
+}
+
+bool PlayerDid(GPlayer* player, uint32_t type, Object* done_to, uint32_t magic) {
+    CreatureBrain* b = player && player->creature ? BrainOf(player->creature) : nullptr;
+    return b && b->MimicPlayer(type, done_to, magic);
 }
 
 // sub_4BA660, the part that learns: from stage 3, and not while it serves one

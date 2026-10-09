@@ -894,6 +894,55 @@ untranslated, so it finished as soon as it started and a new ape churned through
 them. It now runs as v1.0's sub-actions: twice, a 1–2 s Wait and then individual action
 57. In `test_level`, a new ape rests 54 times in 3000 turns.
 
+## Mimicking the player
+
+When the player does something a creature might copy, the game calls `sub_4CB260`
+(player, mimic row, the object done to, the magic). The rows are
+DETAIL_MIMIC_PLAYER_ACTION_TABLE: 46 records of 192 bytes, each with a name ("Put food in
+worship site", "Cast water on crops", "Break rocks", "Sacrifice", ...). The fields are:
+- +144: priority;
+- +148: whether it needs the learning leash;
+- +152: the action;
+- +180: the desire;
+- +184: a limit.
+
+**The gates.** The player's creature must:
+- have a player that is not a computer;
+- be at stage 3 or later;
+- not have creature +36 bit 0x10 set;
+- be on the learning leash (the player's record +300 in mode 2), unless the row needs
+  none;
+- be within sight;
+- not be busy mimicking something that matters more.
+
+**A miracle.** With a magic, the creature first has to have seen it enough
+(`sub_4D82D0`). Each time short of that is a sighting (`sub_4C3AD0`), and one short of
+enough goes on half the time. Sightings also need the magic's stage (Water: 8).
+
+**Taking it up.**
+- It is taught about the object for the row's desire: kinds 1 and 2 at 0.5
+  (`sub_4C3540` / `sub_4C2BB0`).
+- It stops what it was doing ("Mimicking") and records what it mimics (mental+7216,
+  `sub_4CA950`).
+- The desire's first source rises 0.1 and source 54 rises 0.3.
+- It learns the magic.
+
+The callers we reach: a player's Water landing on a field (`sub_4FF8D0` → row 33, magic
+22). The others are a hand dropping wood on a site (row 7), breaking rocks (37), taking
+or stealing objects (32, 35, 36), throwing at things (16) and sacrifice (40); they wait
+on the hand's actions.
+
+In `test_level`, a stage-8 creature of player 0 does not mimic off the leash. On the
+learning leash, after 9 drops of the player's Water on a field, it knows Water and is
+mimicking row 33.
+
+**Not yet:**
+- what the mimic record then drives (the action it carries out);
+- the plan's related target (`sub_4BB170`);
+- the facing test;
+- the creature's real sight range: +352 → +88 record +144 is taken as 1, which gives
+  225 m.
+
 ## Not yet
 
 - The two shortcuts in the town branch of `sub_4D1870`: action 101 for a big town,

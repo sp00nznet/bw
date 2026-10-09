@@ -918,6 +918,41 @@ int main() {
             PlayerAt(0)->creature = nullptr;
             body->SetOwner(nullptr);
 
+            // Mimicking (sub_4CB260): the player's Water lands on a field
+            // (sub_4FF8D0, mimic row 33 "Cast water on crops", magic 22).
+            // Row 33 needs the learning leash; on it, a creature of stage 8
+            // sees the miracle (sub_4C3AD0) until it has seen it enough, then
+            // takes it up: taught about the field for the row's desire and
+            // mimicking.
+            Field* crop = nullptr;
+            for (auto& s : w.objects) if (!crop) crop = dynamic_cast<Field*>(s.obj);
+            EntityCreateParams cp2{};
+            cp2.world_x = MetresOf(crop ? crop->coords.x : 0) + 20.0f;
+            cp2.world_z = MetresOf(crop ? crop->coords.z : 0);
+            cp2.scale = 5.0f;
+            auto* pupil = crop ? static_cast<Creature*>(EntityFactory::CreateCreature(cp2)) : nullptr;
+            creature::CreatureBrain* pb = pupil ? creature::AttachBrain(pupil, nullptr, 0) : nullptr;
+            if (pb) {
+                w.objects.push_back(level::Spawned{pupil, "CREATE_CREATURE", "", -1});
+                pb->SetDevelopmentStage(8);  // Water is learned from stage 8 (magic table +96)
+                SetPlayerCreature(PlayerAt(0), pupil);
+                const std::vector<Object*> at_crop{crop};
+                spell::WaterDrop(crop->coords, at_crop, PlayerAt(0));
+                const bool unleashed = pb->mimic.active;
+                pb->leash_mode = 2;
+                int drops = 0;
+                for (; drops < 40 && !pb->mimic.active; ++drops) {
+                    spell::WaterDrop(crop->coords, at_crop, PlayerAt(0));
+                    for (int t = 0; t < 60; ++t) level::Process(w);
+                }
+                std::snprintf(msg, sizeof msg, "on the learning leash it mimics the player's Water on crops after %d drops: row %u, magic %u, knows Water %d, row limit %u",
+                              drops, pb->mimic.type, pb->mimic.magic, (int)pb->Knows(1, 22), pb->mimic.limit);
+                CHECK(!unleashed && pb->mimic.active && pb->mimic.type == 33 && pb->mimic.magic == 22 && pb->mimic.object == crop && pb->Knows(1, 22), msg);
+                PlayerAt(0)->creature = nullptr;
+                pupil->SetOwner(nullptr);
+                w.objects.pop_back();
+            }
+
             // The player's feedback (sub_4C2090). It is about the most relevant
             // of the last five actions begun: one under way, or one the player
             // saw finish within its window (CREATURE_ACTION +224 seconds).

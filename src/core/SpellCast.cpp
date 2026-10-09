@@ -8,6 +8,7 @@
 #include <black/Living.h>
 #include <black/InfoDat.h>
 #include <black/Object.h>
+#include <black/CreatureBrain.h>
 
 #include <algorithm>
 #include <cmath>
@@ -104,7 +105,7 @@ int ApplyInArea(const Effect& e, const MapCoords& at, const std::vector<Object*>
     return n;
 }
 
-int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby) {
+int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby, GPlayer* caster) {
     int n = 0;
     for (Object* o : nearby) {
         auto* f = dynamic_cast<Field*>(o);
@@ -112,6 +113,7 @@ int WaterDrop(const MapCoords& at, const std::vector<Object*>& nearby) {
         const float dx = MetresOf(at.x - o->coords.x), dz = MetresOf(at.z - o->coords.z);
         if (std::sqrt(dx * dx + dz * dz) - f->GetRadius() >= 2.5f) continue;
         f->ApplyWaterSpell(nullptr);
+        if (caster) creature::PlayerDid(caster, 33, f, 22);
         ++n;
     }
     return n;
@@ -121,6 +123,7 @@ namespace {
 struct Active {
     int magic;
     MapCoords at;
+    GPlayer* caster;
     float age;
     float duration;
 };
@@ -142,13 +145,13 @@ void WaterTick(const Active& a, const std::vector<Object*>& world) {  // sub_6BB
     std::vector<Object*> near;
     for (Object* o : world)
         if (o && std::fabs(MetresOf(o->coords.x - p.x)) < 20.0f && std::fabs(MetresOf(o->coords.z - p.z)) < 20.0f) near.push_back(o);
-    WaterDrop(p, near);
+    WaterDrop(p, near, a.caster);
     ApplyInArea(EffectFor(a.magic), p, near);  // the drop lands (vslot 331): heat -4000
 }
 }  // namespace
 
-void StartWater(int magic_type, const MapCoords& at) {
-    g_active.push_back({magic_type, at, 0.0f, Duration(magic_type, 1.0f)});
+void StartWater(int magic_type, const MapCoords& at, GPlayer* caster) {
+    g_active.push_back({magic_type, at, caster, 0.0f, Duration(magic_type, 1.0f)});
 }
 
 void ProcessActive(const std::vector<Object*>& world) {
