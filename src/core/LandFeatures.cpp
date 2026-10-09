@@ -5,6 +5,7 @@
 #include <black/ObjectInfo.h>
 #include <black/Terrain.h>
 
+#include <cmath>
 #include <initializer_list>
 
 namespace land {
@@ -157,6 +158,23 @@ bool FeatureMap::Find(Feature f, const MapCoords& from, MapCoords* out, bool fir
         bx += kDir[dir & 3][0];
         bz += kDir[dir & 3][1];
     }
+}
+
+std::vector<MapCoords>& DrinkWaypoints() {
+    static std::vector<MapCoords> v;
+    return v;
+}
+
+bool NearestDrinkWaypoint(const MapCoords& from, float within, MapCoords* out) {
+    float best = 3.4028235e38f;
+    bool found = false;
+    const auto& v = DrinkWaypoints();
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {  // the list's head is the newest
+        const float dx = MetresOf(it->x - from.x), dz = MetresOf(it->z - from.z);
+        const float d = std::sqrt(dx * dx + dz * dz + (it->altitude - from.altitude) * (it->altitude - from.altitude));
+        if (d < within && d < best) best = d, *out = *it, found = true;
+    }
+    return found;
 }
 
 FeatureMap& Features() {

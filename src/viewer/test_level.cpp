@@ -676,6 +676,19 @@ int main() {
             std::snprintf(msg, sizeof msg, "he sits down by the water on turn %d, %.1f m from it (height %.0f), and drinks on turn %d: dehydration %.3f",
                           sat, sat_water, body->GetHeight(), drank, thirst);
             CHECK(sat > 0 && sat_water <= body->GetHeight() + 10.0f && drank > 0 && thirst < 1e-3f, msg);
+            // The level's drinking places (CREATE_DRINK_WAYPOINT, case 95): the
+            // nearest within 1 km comes first (sub_4673B0) -- walk there, drink.
+            {
+                MapCoords wp;
+                const bool near_wp = land::NearestDrinkWaypoint(body->coords, 1000.0f, &wp);
+                const bool queued = brain.StartAction(55);
+                const auto& e0 = brain.subactions.entries[0];
+                std::snprintf(msg, sizeof msg, "%zu drinking places; one within 1 km %d, %.0f m off: DrinkFromTheSea walks to it first %d",
+                              land::DrinkWaypoints().size(), near_wp, near_wp ? MetresOf(1) * body->GetDistanceFromObject(wp) : -1.0f,
+                              queued && e0.id == creature::kSubMoveToPos && e0.point == wp);
+                CHECK(land::DrinkWaypoints().size() == 47 && near_wp && queued && e0.id == creature::kSubMoveToPos && e0.point == wp && brain.subactions.count == 3, msg);
+                brain.subactions.Clear();
+            }
 
             // Two handlers his desires do not pick here, run directly: the plan
             // is set, its handler queues the sub-actions (sub_4B6CA0), and the

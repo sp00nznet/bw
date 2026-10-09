@@ -40,6 +40,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- CREATE_DRINK_WAYPOINT (loader case 95): the level's drinking places. A thirsty
+  creature's DrinkFromTheSea goes to the nearest within 1 km first (sub_4673B0), as v1.0's
+  does. Land 1 has 47.
 - A mimicking creature acts it out (sub_4CAB30): it notices (NoticeHelpfulAction 242), then
   copies the player, e.g. SprinkleMagicWaterOnCrops (239), which casts Water at the crops
   through the new GoNearObject and CastSpellAtObject sub-actions (sub_4D6F90). A creature

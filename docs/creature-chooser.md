@@ -560,7 +560,7 @@ The handlers that use it:
 | Action | Handler | Sub-actions |
 |---|---|---|
 | SitDownOnBeach (218) | `sub_494450` | MoveToPos near the nearest water; TurnToFacePos to it; StaticAction 38 (resting) for 10–25 s |
-| DrinkFromTheSea (55) | `sub_4895E0` | MoveToPos to the nearest coast, unless already in water; TurnToFacePos to the water beyond; IndividualAction 71; then Drink (51, `sub_4E4110`: dehydration 0, desire 14 held back 20 s) |
+| DrinkFromTheSea (55) | `sub_4895E0` | First the nearest drinking place within 1 km (`sub_4673B0`; the level's CREATE_DRINK_WAYPOINT list): MoveToPos there, IndividualAction 71, Drink. Else MoveToPos to the nearest coast, unless already in water; TurnToFacePos to the water beyond; IndividualAction 71; then Drink (51, `sub_4E4110`: dehydration 0, desire 14 held back 20 s) |
 | WaveAtPlayer (90) | `sub_48DDB0` | TurnToFaceCamera; IndividualAction 72 |
 | GoToHillAndWalkAlongRidge (27) | `sub_485B50` | MoveToPos to the nearest hill's top (else the nearest land), within 3 × height. This is the main sub-action, though it is queued first. Then eight MoveToPos 15 m round the top, 45° apart, each within 2 × height. |
 | TakeFishFromSeaToHome (259) | `sub_4A23B0` | Unless it already holds something edible: MoveToPos to the nearest fish farm, CreateFishFromSea, PickupCreatedObject. Then MoveToPos home and Discard (1, `sub_4DF500` / `sub_4DF570`) with clip 97. |
@@ -583,8 +583,8 @@ walk radius.
 - **SitDownOnBeach** walks toward the water point itself. The original's search for
   a clear patch of land beside it (`sub_4C1820` → `sub_4C18C0`) is not translated.
 - **DrinkFromTheSea:**
-  - Its first choice, a drinking place within 1 km (`sub_4673B0`), has no list in
-    core.
+  - Its first choice, a drinking place within 1 km (`sub_4673B0`), comes from the
+    level's CREATE_DRINK_WAYPOINT lines (loader case 95, `sub_6FDE10`). Land 1 has 47.
   - The shore fix-up (`sub_46C0E0` / `sub_46C260`) is not translated.
   - The failure path is not translated.
 - **The map is built once,** on first use.

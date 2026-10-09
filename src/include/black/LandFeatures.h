@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 // LandFeatures -- what kind of place each 8x8-cell block of the map is.
 //
 // v1.0 keeps one global CreatureGlobalExplorationMap (0xBAEFA0): 64 x 64
@@ -46,5 +47,11 @@ struct FeatureMap {           // CreatureGlobalExplorationMap
 // built on first use. ponytail: built once -- call Features().Build() again
 // after a new level (v1.0 rebuilds it at each level's load).
 FeatureMap& Features();
+
+// The level's drinking places (CREATE_DRINK_WAYPOINT, loader case 95 ->
+// sub_6FDE10: a 44-byte Waypoint at the head of the game's list +2104624).
+std::vector<MapCoords>& DrinkWaypoints();
+// sub_4673B0: the nearest within `within` metres, the newest on a tie.
+bool NearestDrinkWaypoint(const MapCoords& from, float within, MapCoords* out);
 
 }  // namespace land

@@ -274,8 +274,22 @@ bool CreatureBrain::StartAction(uint32_t action) {
         return true;
     }
     case 55: {  // DrinkFromTheSea (sub_4895E0): to the nearest coast, face the water, drink
-        // ponytail: the first choice, the nearest drinking place within 1 km
-        // (sub_4673B0, the game's list at +2104624), has no list in core.
+        // First choice: the nearest drinking place within 1 km (sub_4673B0):
+        // walk there, then drink -- no turning to the water.
+        // ponytail: its land checks (sub_46C0E0 / sub_46C260, the shore within
+        // 30 m, or fail and hold desires 14 and 20 back 30 s) are not translated.
+        MapCoords wp;
+        if (land::NearestDrinkWaypoint(creature_->coords, 1000.0f, &wp)) {
+            SubActionEntry m{kSubMoveToPos};
+            m.point = wp;
+            m.value = creature_->GetHeight();
+            a.Add(m);
+            SubActionEntry d{kSubIndividualAction};
+            d.integer = 71;
+            a.AddMain(d);
+            a.Add(SubActionEntry{kSubDrink});
+            return true;
+        }
         land::FeatureMap& fm = land::Features();
         MapCoords coast, water;
         fm.Find(land::kCoast, creature_->coords, &coast, true, true);

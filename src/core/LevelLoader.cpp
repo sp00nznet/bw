@@ -15,6 +15,7 @@
 #include <black/FishFarm.h>
 #include <black/InfoDat.h>
 #include <black/LHRandom.h>
+#include <black/LandFeatures.h>
 #include <black/Map.h>
 #include <black/Living.h>
 #include <black/PlannedAbode.h>
@@ -350,6 +351,12 @@ struct Loader {
         if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
         if (cmd == "CREATE_PLANNED_ABODE") return CreatePlannedAbode(a);
         if (cmd == "CREATE_PLANNED_CITADEL") return CreatePlannedCitadel(a);
+        if (cmd == "CREATE_DRINK_WAYPOINT") {  // case 95 (sub_6FDE10)
+            float x, z;
+            if (a.empty() || !ParsePos(a[0].s, x, z)) return false;
+            land::DrinkWaypoints().push_back(MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z)));
+            return true;
+        }
         if (cmd == "CREATE_TOWN_SPELL" || cmd == "CREATE_TOWN_CENTRE_SPELL_ICON") return CreateTownSpell(a, false);
         if (cmd == "CREATE_NEW_TOWN_SPELL") return CreateTownSpell(a, true);
         if (cmd == "CREATE_VILLAGER_POS") return CreateVillagerPos(a);
@@ -409,6 +416,7 @@ bool Load(const char* path, World& out, std::string* err) {
     if (!f) { if (err) *err = std::string("cannot open ") + path; return false; }
     ResetMap();  // what is created goes into it (InsertMapObject)
     ResetPlayers();
+    land::DrinkWaypoints().clear();
     Loader L{out};
     char line[2048];
     std::string name;
