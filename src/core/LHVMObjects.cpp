@@ -266,9 +266,21 @@ static void N_CREATE(LHVM* vm) {
     vm->PushObject(h);
 }
 
+namespace {
+// Script handles of influence rings (v1.0 registers the ring itself,
+// sub_6A67D0); ours are not Objects, so they get their own handles.
+std::unordered_map<uint32_t, InfluenceRing*> g_ring_handles;
+uint32_t g_next_ring_handle = 0x40000000u;
+}  // namespace
+
 static void N_OBJECT_DELETE(LHVM* vm) {
     vm->PopInt();  // 'with effect' flag — second arg in v1.0
     uint32_t h = vm->PopObject();
+    if (auto it = g_ring_handles.find(h); it != g_ring_handles.end()) {
+        RemoveInfluenceRing(it->second);
+        g_ring_handles.erase(it);
+        return;
+    }
     Slot* s = SlotOf(h);
     if (!s) return;
     s->obj->ToBeDeleted(0);
@@ -2690,15 +2702,6 @@ float CurrentGameTime() {
     return static_cast<float>(turn) / 10.0f;
 }
 
-struct InfluenceSource {
-    bool   from_object;
-    uint32_t source_handle;
-    float  x, z;
-    float  radius;
-    int32_t player;
-    bool   antiplayer;     // negative influence
-};
-std::vector<InfluenceSource> g_influences;
 
 uint32_t g_next_dance = 1;
 std::unordered_map<uint32_t, std::vector<uint32_t>> g_dance_members;
@@ -2715,53 +2718,30 @@ std::unordered_map<uint32_t, WalkPath> g_walk_paths;
 
 } // namespace
 
+// sub_6937B0: (object, radius, player, anti) -> a ring at the object
+// (sub_58E490 -> sub_58E310). The player is GGame's by index (sub_523640).
 static void N_INFLUENCE_OBJECT(LHVM* vm) {
-    bool antiplayer = vm->PopBoolean();
-    int32_t fixed = vm->PopInt();
-    (void)fixed;
-    float radius = vm->PopFloat();
-    uint32_t obj = vm->PopObject();
-    InfluenceSource s = {};
-    s.from_object = true;
-    s.source_handle = obj;
-    s.radius = radius;
-    s.antiplayer = antiplayer;
-    Object* o = LookupObject(obj);
-    if (o) { s.x = WorldX(o); s.z = WorldZ(o); }
-    g_influences.push_back(s);
-    vm->PushObject(0);
+    const bool anti = vm->PopInt() != 0;
+    const int32_t player = vm->PopInt();
+    const float radius = vm->PopFloat();
+    Object* o = LookupObject(vm->PopObject());
+    if (!o) { vm->PushObject(0); return; }
+    const uint32_t h = g_next_ring_handle++;
+    g_ring_handles[h] = AddInfluenceRing(o->coords, o, PlayerAt(static_cast<uint32_t>(player)), radius, anti);
+    vm->PushObject(h);
 }
 
+// sub_693870: (x, y, z, radius, player, anti) -> a ring at the point
+// (sub_58E4D0 -> sub_58E270).
 static void N_INFLUENCE_POSITION(LHVM* vm) {
-    bool antiplayer = vm->PopBoolean();
-    int32_t fixed = vm->PopInt();
-    (void)fixed;
-    float radius = vm->PopFloat();
-    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    const bool anti = vm->PopInt() != 0;
+    const int32_t player = vm->PopInt();
+    const float radius = vm->PopFloat();
+    const float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
     (void)y;
-    InfluenceSource s = {};
-    s.from_object = false;
-    s.x = x; s.z = z; s.radius = radius;
-    s.antiplayer = antiplayer;
-    g_influences.push_back(s);
-    vm->PushObject(0);
-}
-
-// Override chunk 1's GET_INFLUENCE with a real walking sum
-static void N_GET_INFLUENCE_REAL(LHVM* vm) {
-    int32_t player = vm->PopInt();
-    float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
-    (void)y;
-    float total = 0.0f;
-    for (const auto& s : g_influences) {
-        float dx = s.x - x, dz = s.z - z;
-        float d2 = dx*dx + dz*dz;
-        if (d2 > s.radius * s.radius) continue;
-        float w = 1.0f - sqrtf(d2) / s.radius;
-        total += s.antiplayer ? -w : w;
-    }
-    (void)player;
-    vm->PushFloat(total);
+    const uint32_t h = g_next_ring_handle++;
+    g_ring_handles[h] = AddInfluenceRing(MapCoordsFromMetres(x, z), nullptr, PlayerAt(static_cast<uint32_t>(player)), radius, anti);
+    vm->PushObject(h);
 }
 
 // --- Special effects + animation overrides -----------------------------
@@ -3541,14 +3521,14 @@ uint32_t SnapshotSpirits(SpiritPointView* out, uint32_t out_max) {
 
 uint32_t SnapshotInfluences(InfluenceSourceView* out, uint32_t out_max) {
     uint32_t n = 0;
-    for (const auto& s : g_influences) {
+    for (const InfluenceRing* r : InfluenceRings()) {
         if (n >= out_max) break;
-        out[n].x           = s.x;
-        out[n].z           = s.z;
-        out[n].radius      = s.radius;
-        out[n].player      = s.player;
-        out[n].antiplayer  = s.antiplayer;
-        out[n].from_object = s.from_object;
+        out[n].x           = MetresOf(r->at.x);
+        out[n].z           = MetresOf(r->at.z);
+        out[n].radius      = r->radius;
+        out[n].player      = r->player ? r->player->player_number : -1;
+        out[n].antiplayer  = r->anti;
+        out[n].from_object = r->follow != nullptr;
         n++;
     }
     return n;
@@ -3883,7 +3863,6 @@ void RegisterObjectNatives(LHVM* vm) {
     // --- Chunk 7: town/player/influence, timers, animation, music (50) ---
     vm->RegisterNativeFunction(NATIVE_INFLUENCE_OBJECT,                     "INFLUENCE_OBJECT",                     N_INFLUENCE_OBJECT);
     vm->RegisterNativeFunction(NATIVE_INFLUENCE_POSITION,                   "INFLUENCE_POSITION",                   N_INFLUENCE_POSITION);
-    vm->RegisterNativeFunction(NATIVE_GET_INFLUENCE,                        "GET_INFLUENCE",                        N_GET_INFLUENCE_REAL);
     vm->RegisterNativeFunction(NATIVE_SPECIAL_EFFECT_POSITION,              "SPECIAL_EFFECT_POSITION",              N_SPECIAL_EFFECT_POSITION);
     vm->RegisterNativeFunction(NATIVE_SPECIAL_EFFECT_OBJECT,                "SPECIAL_EFFECT_OBJECT",                N_SPECIAL_EFFECT_OBJECT);
     vm->RegisterNativeFunction(NATIVE_OVERRIDE_STATE_ANIMATION,             "OVERRIDE_STATE_ANIMATION",             N_OVERRIDE_STATE_ANIMATION);

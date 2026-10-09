@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 // GPlayer — player state (human or AI)
 // Struct layout from bw1-decomp
 //
@@ -137,6 +138,21 @@ extern float g_player_influence_multiplier;
 // power and each of its towns' influence count in full where the point is
 // nearer than that many metres; the sum is clamped. No player: 1.
 float PlayerInfluence(GPlayer* player, const MapCoords& at);
+// v1.0's InfluenceRing (68 bytes, a GameThingWithPos; sub_58E270 at a point,
+// sub_58E310 at an object): a scripted influence on the game's list +2104584.
+struct Object;
+struct InfluenceRing {
+    MapCoords at;             // +0x14 (an object's position when made)
+    Object*   follow = nullptr;  // +0x28: the object it was made at
+    GPlayer*  player = nullptr;  // +0x34
+    float     radius = 0.0f;     // +0x38
+    bool      anti = false;      // +0x3C: none of the player's influence within it
+};
+InfluenceRing* AddInfluenceRing(const MapCoords& at, Object* follow, GPlayer* player, float radius, bool anti);
+void RemoveInfluenceRing(InfluenceRing* ring);
+const std::vector<InfluenceRing*>& InfluenceRings();
+// v1.0 sub_58E140: a ring's share at distance d of radius r.
+float RingFalloff(float d, float r);
 // v1.0 sub_58E1E0: the player with the most influence at the point, else the
 // local player (0).
 GPlayer* InfluenceOwner(const MapCoords& at, float* amount = nullptr);

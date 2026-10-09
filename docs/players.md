@@ -319,7 +319,27 @@ The land's owner (`sub_58E1E0`) is the player with the most influence there, els
 local player. The hand's +0x128 uses it.
 
 GET_INFLUENCE (native 62, `sub_693970`) pops z, y, x, a flag, then the player. Ours had
-popped the player first.
+popped the player first. A second, later registration (`N_GET_INFLUENCE_REAL`) had
+overridden the fix in 699c87b. It is gone now.
+
+**Scripted rings.** An InfluenceRing is 68 bytes, a GameThingWithPos on game list
++2104584:
+- at +0x14 its position, and at +0x28 the object it was made at;
+- at +0x34 its player, at +0x38 its radius, and at +0x3C whether it is an anti-ring.
+
+Scripts make them:
+- INFLUENCE_OBJECT (native 60, `sub_6937B0` → `sub_58E310`) pops anti, the player (GGame's
+  index), radius and the object;
+- INFLUENCE_POSITION (61, `sub_693870` → `sub_58E270`) pops anti, player, radius and the
+  position.
+
+SetupLand1 uses both. In the influence sum:
+- A ring adds its falloff (`sub_58E140`): whole within A·r, falling to 1 − C by
+  (A + B)·r, then from 0.2 to 0 at r. A, B and C (0xC38DE0..E8) are in .bss, and no code
+  writes them or points at them. So they are 0, and a ring gives 1 at its very centre and
+  0.2 × (1 − d / r) elsewhere.
+- An anti-ring of the player's leaves it no influence within its radius (`sub_58E510`).
+- A ring whose object is being deleted is skipped.
 
 In `test_level`, town 0's influence is 400 m (25 + its abodes' 376). Player 0 has 1.0
 there and 0 at town 1, which the neutral player owns. The citadel's power is 0: its heart
@@ -330,7 +350,6 @@ was made unbuilt.
   - the debug all-influence flags;
   - the game mode that denies a citadel-less player;
   - the landscape test (ours: inside the map);
-  - the scripted virtual influences and anti-influences (game +2104584);
   - GET_INFLUENCE's hands' share and allies' fallback.
 
 **Not yet:**

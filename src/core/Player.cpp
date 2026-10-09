@@ -2,6 +2,7 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 // Cross-referenced with bw1-decomp (v1.20)
 
+#include <black/Object.h>
 #include <cmath>
 #include <algorithm>
 #include <black/Citadel.h>
@@ -122,11 +123,41 @@ void SetPlayerCreature(GPlayer* p, Creature* c) {
 float g_town_influence_multiplier = 1.0f;
 float g_player_influence_multiplier = 1.0f;
 
+namespace {
+std::vector<InfluenceRing*> g_rings;  // game +2104584 (newest first there; order does not matter to the sum)
+}
+
+InfluenceRing* AddInfluenceRing(const MapCoords& at, Object* follow, GPlayer* player, float radius, bool anti) {
+    auto* r = new InfluenceRing{follow ? follow->coords : at, follow, player, radius, anti};
+    g_rings.push_back(r);
+    return r;
+}
+
+void RemoveInfluenceRing(InfluenceRing* ring) {
+    for (auto it = g_rings.begin(); it != g_rings.end(); ++it)
+        if (*it == ring) { delete ring; g_rings.erase(it); return; }
+}
+
+const std::vector<InfluenceRing*>& InfluenceRings() { return g_rings; }
+
+// The inner part (A x r) is whole; to (A + B) x r it falls to 1 - C; out to r
+// it falls from 0.2 to 0. A, B and C are floats at 0xC38DE0..E8 in .bss that
+// no code writes and nothing points at, so they are 0 in the shipped game:
+// a ring gives 0.2 x (1 - d / r).
+float RingFalloff(float d, float r) {
+    constexpr float A = 0.0f, Bw = 0.0f, C = 0.0f;
+    const float inner = A * r;
+    if (d <= inner) return 1.0f;
+    const float mid = (Bw + A) * r;
+    if (d <= mid) return (1.0f - (d - inner) / (mid - inner)) * (1.0f - C);
+    if (d >= r) return 0.0f;
+    return (1.0f - (d - mid) / (r - mid)) * 0.2f;
+}
+
 // ponytail: not modelled -- the debug "all influence" flag (game +20 bit
 // 0x2000) and the player's +332; the game mode that gives a citadel-less
 // player none (sub_5256A0); the landscape test (sub_442BD0, ours: inside the
-// map); and the scripted virtual influences and anti-influences (game
-// +2104584, sub_58E410 / sub_58E510).
+// map). A ring keeps the position it was made at (+0x14).
 float PlayerInfluence(GPlayer* p, const MapCoords& at) {
     if (!p) return 1.0f;
     auto dist = [&at](const MapCoords& c) { return std::hypot(MetresOf(at.x - c.x), MetresOf(at.z - c.z)); };
@@ -138,6 +169,16 @@ float PlayerInfluence(GPlayer* p, const MapCoords& at) {
     for (Town* t = p->towns.first; t; t = t->next)  // sub_6D9500
         if (dist(t->coords) < t->influence) v += t->influence;
     if (at.x < 0 || at.z < 0) return 0.0f;
+    // The rings (sub_58E410 / sub_58E510), skipping one whose object is going
+    // (+0x24 bit 2): the player's own anti-ring around the point leaves it
+    // none; the rest add their falloff.
+    for (const InfluenceRing* r : g_rings) {
+        if (r->follow && (r->follow->field_0x24 & 4)) continue;
+        if (r->player != p) continue;
+        const float d = dist(r->at);
+        if (r->anti) { if (d <= r->radius) return 0.0f; }
+        else v += RingFalloff(d, r->radius);
+    }
     return std::clamp(v, -1.0f, 1.0f);
 }
 

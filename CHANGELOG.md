@@ -6,6 +6,8 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- GET_INFLUENCE was registered twice; the later host-side version, with the wrong pop order,
+  overrode v1.0's. Only v1.0's remains.
 - GET_INFLUENCE popped its player first and always answered 0; v1.0's pops the position,
   a flag, then the player (sub_693970).
 - The mimic lesson used the row's notice action (+152); the copying actions start at +156.
@@ -42,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Scripted influence rings (INFLUENCE_OBJECT / INFLUENCE_POSITION, sub_58E270 / sub_58E310):
+  rings add to their player's influence (sub_58E140) and anti-rings remove it. OBJECT_DELETE
+  removes one.
 - Player influence (sub_58DE80): citadel power and town influence radii, the level's
   influence multipliers (cases 96 / 97), the land's owner (sub_58E1E0), and GET_INFLUENCE.
   See docs/players.md.

@@ -1176,6 +1176,23 @@ int main() {
         CHECK(own == 1.0f && there == 0.0f && owner1 == t1->GetPlayer() && owner1 != PlayerAt(0) && InfluenceOwner(far_off) == PlayerAt(0) &&
                   g_town_influence_multiplier == 1.0f && g_player_influence_multiplier == 1.0f,
               msg);
+
+        // Scripted rings (INFLUENCE_POSITION / _OBJECT -> sub_58E270 / sub_58E310):
+        // 0.2 x (1 - d / r) of the player's, whole at the centre itself
+        // (sub_58E140 with its .bss constants at 0); an anti-ring leaves the player none within it.
+        InfluenceRing* ring = AddInfluenceRing(t1->coords, nullptr, PlayerAt(0), 30.0f, false);
+        const auto at_m = [&](float dx) { return MapCoordsFromMetres(MetresOf(t1->coords.x) + dx, MetresOf(t1->coords.z)); };
+        const float c0 = PlayerInfluence(PlayerAt(0), at_m(0.0f)), c1 = PlayerInfluence(PlayerAt(0), at_m(1.0f)), c15 = PlayerInfluence(PlayerAt(0), at_m(15.0f)), c31 = PlayerInfluence(PlayerAt(0), at_m(31.0f));
+        InfluenceRing* anti = AddInfluenceRing(t0->coords, nullptr, PlayerAt(0), 20.0f, true);
+        const float blocked = PlayerInfluence(PlayerAt(0), t0->coords);
+        const float beyond = PlayerInfluence(PlayerAt(0), MapCoordsFromMetres(MetresOf(t0->coords.x) + 50.0f, MetresOf(t0->coords.z)));
+        RemoveInfluenceRing(anti);
+        RemoveInfluenceRing(ring);
+        std::snprintf(msg, sizeof msg, "a ring of 30 m gives %.2f at its very centre (d <= 0 x r), %.3f at 1 m, %.2f at 15 m, %.2f at 31 m; an anti-ring of 20 m leaves %.2f inside, %.2f at 50 m; %zu left",
+                      c0, c1, c15, c31, blocked, beyond, InfluenceRings().size());
+        CHECK(c0 == 1.0f && std::fabs(c1 - 0.2f * 29.0f / 30.0f) < 1e-5f && std::fabs(c15 - 0.1f) < 1e-5f && c31 == 0.0f && blocked == 0.0f && beyond == 1.0f && InfluenceRings().empty() &&
+                  PlayerInfluence(PlayerAt(0), t0->coords) == 1.0f,
+              msg);
     }
 
     // Land 2's town spells (loader cases 10 / 11 -> sub_6D0200).
