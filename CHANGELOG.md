@@ -6,6 +6,8 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- GET_INFLUENCE popped its player first and always answered 0; v1.0's pops the position,
+  a flag, then the player (sub_693970).
 - The mimic lesson used the row's notice action (+152); the copying actions start at +156.
 - BUILD_BUILDING popped an object and set its build fraction. v1.0's takes a position and
   a desire.
@@ -40,6 +42,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Player influence (sub_58DE80): citadel power and town influence radii, the level's
+  influence multipliers (cases 96 / 97), the land's owner (sub_58E1E0), and GET_INFLUENCE.
+  See docs/players.md.
 - The viewer's hand feeds the core hand: a picked-up object is held by player 0's hand
   status, and let go gently over a building it is offered to it (vslot 417).
 - The player's hand takes things to buildings. A picked-up object is held with the land's
