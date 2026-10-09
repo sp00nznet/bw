@@ -27,6 +27,7 @@
 #include <black/Town.h>
 #include <black/TownCentre.h>
 #include <black/Villager.h>
+#include <black/MobileStatic.h>
 #include <black/WorshipSite.h>
 
 #include <cmath>
@@ -395,6 +396,32 @@ struct Loader {
             if (o) w.forests.push_back(static_cast<BigForest*>(o)->forest);
             return o != nullptr;
         }
+        // case 38: (pos, pot type, ?, amount). No pot when the amount is not
+        // positive -- Land 1's four all give 0.
+        // ponytail: a pot that would be made (sub_616C40) is not translated.
+        if (cmd == "CREATE_POT") return a.size() >= 4 && ParsePos(a[0].s, x, z);
+        // case 73: (pos, f1, angle, scale) -> sub_432250. f1 is passed and not used.
+        if (cmd == "CREATE_BONFIRE")
+            return a.size() >= 4 && ParsePos(a[0].s, x, z) && Make(ENTITY_CAT_BONFIRE, cmd, x, z, a[2].f, a[3].f, 8);
+        // case 43: (pos, player, tree type, scale, x, y, z angles) -> sub_4EE200.
+        // ponytail: the player (sub_5F89B0) is not kept on it.
+        if (cmd == "CREATE_DEAD_TREE") {
+            if (a.size() < 7 || !ParsePos(a[0].s, x, z)) return false;
+            Object* o = Make(ENTITY_CAT_DEAD_TREE, cmd, x, z, 0.0f, a[3].f, a[2].n);
+            if (o) static_cast<MobileStatic*>(o)->SetXYZAnglesAndScale(a[4].f, a[5].f, a[6].f, a[3].f);  // vslot 326
+            return o != nullptr;
+        }
+        // case 80: (pos, type) -> sub_6CA4E0, none within 0.5 m of a lantern.
+        if (cmd == "CREATE_STREET_LANTERN") {
+            if (a.size() < 2 || !ParsePos(a[0].s, x, z)) return false;
+            for (const Spawned& s : w.objects)
+                if (s.command == "CREATE_STREET_LANTERN" && std::hypot(MetresOf(s.obj->coords.x) - x, MetresOf(s.obj->coords.z) - z) < 0.5f) return true;
+            return Make(ENTITY_CAT_STREET_LANTERN, cmd, x, z, 0.0f, 1.0f, a[1].n) != nullptr;
+        }
+        // case 87: (pos, name, angle*1000, scale*1000) -> sub_41CB70.
+        if (cmd == "CREATE_ANIMATED_STATIC")
+            return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
+                   Make(ENTITY_CAT_ANIMATED_STATIC, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, -1, a[1].s);
         // case 25: (pos, type, flock, town, age)
         if (cmd == "CREATE_NEW_ANIMAL") {
             if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;

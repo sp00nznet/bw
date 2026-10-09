@@ -39,6 +39,9 @@ enum EntityCategory : uint32_t {
     ENTITY_CAT_FIELD      = 10,  // a town field (Field abode, DETAIL_FIELD_TYPE_INFO)
     ENTITY_CAT_FISH_FARM  = 11,
     ENTITY_CAT_BIG_FOREST = 12,  // BigForest + its Forest container (sub_431AA0)
+    ENTITY_CAT_DEAD_TREE  = 13,  // DeadTree, DETAIL_TREE_INFO (sub_4EE200)
+    ENTITY_CAT_STREET_LANTERN = 14,  // GStreetLantern, DETAIL_MOBILE_STATIC_INFO (sub_6CA4E0)
+    ENTITY_CAT_ANIMATED_STATIC = 15,  // AnimatedStatic, DETAIL_ANIMATED_STATIC_INFO (sub_41CB70)
 };
 
 namespace EntityFactory {
@@ -64,6 +67,10 @@ Object* CreateMobileObject(const EntityCreateParams& params);
 Object* CreateField(const EntityCreateParams& params);
 Object* CreateFishFarm(const EntityCreateParams& params);
 Object* CreateBigForest(const EntityCreateParams& params);
+Object* CreateBonfire(const EntityCreateParams& params);
+Object* CreateDeadTree(const EntityCreateParams& params);
+Object* CreateStreetLantern(const EntityCreateParams& params);
+Object* CreateAnimatedStatic(const EntityCreateParams& params);
 
 // Create a creature (player's avatar)
 Object* CreateCreature(const EntityCreateParams& params);

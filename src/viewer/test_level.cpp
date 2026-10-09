@@ -76,6 +76,28 @@ int main() {
     printf("      %d lines, %d commands, %d handled, %zu objects, %zu towns\n",
            w.lines, w.commands, w.handled, w.objects.size(), w.towns.size());
     for (auto& u : w.unhandled) printf("      not yet: %-32s x%d\n", u.first.c_str(), u.second);
+    {
+        // Cases 87, 43, 73, 80 and 38: Land 1's animated statics (by name),
+        // dead trees, bonfires and street lanterns, each with its record; its
+        // pots all carry no amount, so none is made.
+        char msg[256];
+        auto count = [&](const char* cmd, int* with_info) {
+            int n = 0;
+            *with_info = 0;
+            for (const level::Spawned& s : w.objects)
+                if (s.command == cmd) { ++n; *with_info += s.obj->info != nullptr; }
+            return n;
+        };
+        int i_as, i_dt, i_bf, i_sl;
+        const int as = count("CREATE_ANIMATED_STATIC", &i_as), dt = count("CREATE_DEAD_TREE", &i_dt);
+        const int bf = count("CREATE_BONFIRE", &i_bf), sl = count("CREATE_STREET_LANTERN", &i_sl);
+        bool left = false;
+        for (const char* c : {"CREATE_ANIMATED_STATIC", "CREATE_DEAD_TREE", "CREATE_BONFIRE", "CREATE_STREET_LANTERN", "CREATE_POT"})
+            left = left || w.unhandled.count(c);
+        std::snprintf(msg, sizeof msg, "Land 1's statics: %d animated (%d with records), %d dead trees (%d), %d bonfires (%d), %d street lanterns (%d)",
+                      as, i_as, dt, i_dt, bf, i_bf, sl, i_sl);
+        CHECK(as == 4 && i_as == 4 && dt == 3 && i_dt == 3 && bf == 2 && i_bf == 2 && sl > 0 && i_sl == sl && !left, msg);
+    }
 
     CHECK(w.towns.size() == 6, "six towns (CREATE_TOWN x6)");
     {

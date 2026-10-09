@@ -31,6 +31,11 @@ The handlers index the info arrays directly, and every base and stride matches
 | `CREATE_NEW_TOWN_FIELD` | `340 * idx + 0xBF03D0` (field type) | `sub_4FEE50` |
 | `CREATE_TOWN_FISH_FARM` | `296 * idx + 0xBF0FD8` | `sub_502C80` |
 | `CREATE_TOWN` | `DETAIL_TOWN_INFO[0]` | `sub_6CD070` |
+| `CREATE_DEAD_TREE` | `320 * idx + 0xCC4770` (tree) | `sub_4EE200` → `sub_4EE080` (160 bytes) |
+| `CREATE_BONFIRE` | `0xC5BF40`, MOBILE_STATIC_INFO[8] "Bonfire" | `sub_432250` → `sub_432150` (152 bytes) |
+| `CREATE_STREET_LANTERN` | `300 * idx + 0xC5B5E0` (mobile static) | `sub_6CA4E0` (100 bytes) |
+| `CREATE_ANIMATED_STATIC` | `300 * idx + 0xB765F0`, by name (`sub_41D0E0`) | `sub_41CB70` (152 bytes, made whole) |
+| `CREATE_POT` | `324 * idx + 0xC6D400` (pot) | `sub_616C40`, only when its amount (arg 3) is positive |
 
 ## What each handler does
 
@@ -47,6 +52,24 @@ The handlers index the info arrays directly, and every base and stride matches
   `maxAdults` (+0x174), children included. Land 1: 34 villagers name a cell holding an
   abode and 29 get in; the other 5 find it full. 21 name a cell with no abode and stay
   homeless in the original as well.
+- **The statics** (cases 38, 43, 73, 80, 87):
+  - The loader keeps int arguments at +24576 + 4i and floats at +24624 + 4i.
+  - **CREATE_DEAD_TREE** `("x,z", player, tree type, scale, x, y, z angles)`: angles and
+    scale through vslot 326.
+  - **CREATE_BONFIRE** `("x,z", f, angle, scale)`: its first float is passed and not used.
+  - **CREATE_STREET_LANTERN** `("x,z", type)`: none within 0.5 m of another.
+  - **CREATE_ANIMATED_STATIC** `("x,z", name, angle×1000, scale×1000)`.
+  - **CREATE_POT** `("x,z", type, _, amount)`: makes nothing when the amount is not
+    positive. Land 1's four all give 0.
+
+  Land 1 makes 4 animated statics, 3 dead trees, 2 bonfires and 12 lanterns. Not kept:
+  - the bonfire's 25 m light (`sub_5EFC40`);
+  - the dead tree's player;
+  - the game's animated-static list (+2104696).
+
+  Our Bonfire header is 0x94 where v1.0's is 152 bytes. The viewer draws animated
+  statics from their record's mesh (+0x120). Mobile-static records hold −1 at the +0x100
+  that `MobileStatic::GetMesh` reads, so bonfires and lanterns are not drawn yet.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.

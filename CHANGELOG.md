@@ -44,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Land 1's statics: CREATE_ANIMATED_STATIC, CREATE_DEAD_TREE, CREATE_BONFIRE,
+  CREATE_STREET_LANTERN and CREATE_POT (loader cases 87, 43, 73, 80, 38). See
+  docs/level-loader.md.
 - Scripted influence rings (INFLUENCE_OBJECT / INFLUENCE_POSITION, sub_58E270 / sub_58E310):
   rings add to their player's influence (sub_58E140) and anti-rings remove it. OBJECT_DELETE
   removes one.

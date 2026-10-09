@@ -315,6 +315,10 @@ A player's influence at a point (`sub_58DE80`, −1..1):
 The multipliers come from SET_TOWN_INFLUENCE_MULTIPLIER and
 SET_PLAYER_INFLUENCE_MULTIPLIER (loader cases 96 and 97; Land 1 sets both to 1).
 
+A citadel's power is set only when its heart is made (`sub_44FED0`). `sub_5BE6E0`
+re-applies it (`sub_44F0B0`) without raising it. So Land 1's heart, made unbuilt by
+BUILD_BUILDING, gives its temple no influence in our model.
+
 The land's owner (`sub_58E1E0`) is the player with the most influence there, else the
 local player. The hand's +0x128 uses it.
 

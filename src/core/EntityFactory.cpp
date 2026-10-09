@@ -19,6 +19,9 @@
 #include <black/Villager.h>
 #include <black/Rock.h>
 #include <black/Bonfire.h>
+#include <black/DeadTree.h>
+#include <black/GStreetLantern.h>
+#include <black/AnimatedStatic.h>
 #include <black/MobileStatic.h>
 #include <black/Feature.h>
 #include <black/Animal.h>
@@ -75,6 +78,10 @@ Object* CreateEntity(EntityCategory category, const EntityCreateParams& params) 
     case ENTITY_CAT_FIELD:    obj = CreateField(params);        break;
     case ENTITY_CAT_FISH_FARM: obj = CreateFishFarm(params);    break;
     case ENTITY_CAT_BIG_FOREST: obj = CreateBigForest(params);  break;
+    case ENTITY_CAT_BONFIRE:  obj = CreateBonfire(params);      break;
+    case ENTITY_CAT_DEAD_TREE: obj = CreateDeadTree(params);    break;
+    case ENTITY_CAT_STREET_LANTERN: obj = CreateStreetLantern(params); break;
+    case ENTITY_CAT_ANIMATED_STATIC: obj = CreateAnimatedStatic(params); break;
     default: {
         // Generic feature fallback — allocate a Feature
         Feature* feat = new Feature();
@@ -170,6 +177,45 @@ Object* CreateAnimal(const EntityCreateParams& params) {
     animal->info = InfoFor(infodat::DETAIL_ANIMAL_INFO, params);
     animal->InsertMapObject();
     return animal;
+}
+
+// sub_432250 -> sub_432150: a mobile static of the fixed record
+// MOBILE_STATIC_INFO[8] (0xC5BF40). ponytail: its fire light (sub_5EFC40,
+// 25 m) is not made, and our Bonfire is 0x94 where v1.0's is 152 bytes.
+Object* CreateBonfire(const EntityCreateParams& params) {
+    auto* b = new Bonfire();
+    InitObjectFromParams(b, params);
+    b->info = infodat::Get<GObjectInfo>(infodat::DETAIL_MOBILE_STATIC_INFO, 8);
+    b->InsertMapObject();
+    return b;
+}
+
+// sub_4EE200 -> sub_4EE080 (160 bytes): a tree record's dead tree.
+Object* CreateDeadTree(const EntityCreateParams& params) {
+    auto* t = new DeadTree();
+    InitObjectFromParams(t, params);
+    t->info = InfoFor(infodat::DETAIL_TREE_INFO, params);
+    t->InsertMapObject();
+    return t;
+}
+
+// sub_6CA4E0 (100 bytes). The caller skips one within 0.5 m of another.
+Object* CreateStreetLantern(const EntityCreateParams& params) {
+    auto* l = new GStreetLantern();
+    InitObjectFromParams(l, params);
+    l->info = InfoFor(infodat::DETAIL_MOBILE_STATIC_INFO, params);
+    return l;
+}
+
+// sub_41CB70 (152 bytes): a MultiMapFixed made whole (sub_5044E0 with 1.0).
+// ponytail: the game's animated-static list (+2104696) is not kept.
+Object* CreateAnimatedStatic(const EntityCreateParams& params) {
+    auto* s = new AnimatedStatic();
+    InitObjectFromParams(s, params);
+    s->info = InfoFor(infodat::DETAIL_ANIMATED_STATIC_INFO, params);
+    s->percent_built = 1.0f;
+    s->InsertMapObject();
+    return s;
 }
 
 Object* CreateMobileObject(const EntityCreateParams& params) {

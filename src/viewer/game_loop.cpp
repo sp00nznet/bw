@@ -498,6 +498,8 @@ void GameState::SpawnEntitiesFromWorld() {
         e.y = GetTerrainHeight(e.x, e.z);
         if (e.y < 2.0f) continue;
         e.mesh_id = MeshForSpawn(sp.command, sp.type_name, sp.type_index, &e.scale_mul);
+        // An animated static's mesh is its record's (Feature::GetMesh, info +0x120).
+        if (e.mesh_id < 0 && sp.command == "CREATE_ANIMATED_STATIC" && obj->info) e.mesh_id = obj->GetMesh();
         e.angle = obj->y_angle;
         e.scale = obj->scale * e.scale_mul;
         e.name = sp.type_name.empty() ? sp.command : sp.type_name;
