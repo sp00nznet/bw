@@ -15,6 +15,8 @@
 #include <black/Flock.h>
 #include <black/Player.h>
 #include <black/Town.h>
+#include <black/TownCentre.h>
+#include <black/WorshipSite.h>
 #include <black/types.h>
 
 #include <algorithm>
@@ -368,6 +370,11 @@ static void N_SET_PROPERTY(LHVM* vm) {
     case SP_HEALTH:        o->SetLife(val); break;
     case SP_ANGLE:         o->y_angle = val; break;
     case SP_SCALE:         o->scale = val;   break;
+    case SP_HEIGHT:
+        // v1.0 sub_6A7D30 case 19: a town centre's totem height is its
+        // town's worship percentage (sub_6CF1C0).
+        if (dynamic_cast<TownCentre*>(o)) if (Town* t = o->GetTown()) t->SetWorshipPercentage(val);
+        break;
     case SP_BUILT_PERCENT:
         if (val < 0) val = 0; if (val > 1) val = 1;
         *reinterpret_cast<float*>(reinterpret_cast<char*>(o) + 0x54) = val;
@@ -666,9 +673,10 @@ static void N_GET_INFLUENCE(LHVM* vm) {
     vm->PushFloat(0.0f);
 }
 
+// sub_698410: a worship site's mana (+0xF0); 0 for anything else.
 static void N_GET_MANA(LHVM* vm) {
-    vm->PopObject(); // player
-    vm->PushFloat(100.0f);  // generous default until prayer-site economy lands
+    auto* ws = dynamic_cast<WorshipSite*>(LookupObject(vm->PopObject()));
+    vm->PushFloat(ws ? ws->mana : 0.0f);
 }
 
 static void N_BELIEF_FOR_PLAYER(LHVM* vm) {
@@ -2136,9 +2144,13 @@ static void N_DETACH_SOUND_TAG(LHVM* vm) {
     g_audio.attached_tags.erase(obj);
 }
 
+// sub_698350: (object, mana) onto a worship site's +0xF0, its icons'
+// charge (+0x134) cleared first (sub_7041C0).
+// ponytail: v1.0 also takes a town (vslot 244) for the town's site; towns
+// are not script handles here. There are no icons to clear yet.
 static void N_GAME_SET_MANA(LHVM* vm) {
-    vm->PopFloat();   // mana
-    vm->PopObject();  // player — applied via Game::SetMana when wired
+    const float mana = vm->PopFloat();
+    if (auto* ws = dynamic_cast<WorshipSite*>(LookupObject(vm->PopObject()))) ws->mana = mana;
 }
 
 // --- Music ---------------------------------------------------------------

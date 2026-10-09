@@ -39,6 +39,11 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Worship and mana. Villagers worship when their town wants worshippers (sub_6F99B0). They
+  walk to their tribe's worship site at the temple and dance, in states 58, 59, 60, 213,
+  248 and 249. The dancers make the site's mana each turn (sub_704610 / sub_7047E0), and
+  worship tires them. GET_MANA and SET_MANA read and write it, and SET_PROPERTY 19 on a
+  town centre sets the town's worship. See docs/players.md.
 - Worship sites. The finished CitadelHeart (sub_4503D0) gives each of the player's towns
   its tribe's worship site in the citadel (sub_450320, sub_44EBE0). The town's villagers
   then build it. See docs/players.md.

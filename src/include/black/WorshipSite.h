@@ -94,6 +94,12 @@ struct WorshipSite : public CitadelPart {
     int GetNumVillagersRequestingToGoHome();                                 // 0x0077e260
     // v1.0 sub_705750: the town worships here.
     void AddTown(Town* town);
+    void AddWorshipper(Villager* v);      // sub_705F00
+    void RemoveWorshipper(Villager* v);   // sub_705F60
+    uint32_t Dancers() const;             // sub_705EB0: the dance's members (+0x90)
+    float ManaProduced();                 // sub_706C40
+    float MaxMana() const;                // sub_707180
+    void ProcessWorship();                // sub_704610 -> sub_7047E0
 
     // === Fields ===
     GTribeInfo*                      tribe_info;     // 0x8C
@@ -107,11 +113,18 @@ struct WorshipSite : public CitadelPart {
     int32_t*                         field_0xb8;     // 0xB8
     uint8_t                          field_0xbc[0xC]; // 0xBC
     int32_t                          field_0xc8;     // 0xC8
-    uint8_t                          field_0xcc[0xC]; // 0xCC
-    int32_t                          field_0xd8;     // 0xD8
+    uint8_t                          field_0xcc[0x8]; // 0xCC
+    LHNodeList                       worshippers;    // 0xD4 — sub_705F00; field_0xc8 counts them
     WorshipTotem*                    totem;          // 0xDC
     LHListHead_WorshipSpellIcon      icon_list;      // 0xE0
-    uint8_t                          field_0xe8[0x28]; // 0xE8
+    uint8_t                          field_0xe8[0x8]; // 0xE8
+    float                            mana;           // 0xF0 — GET_MANA (sub_698410)
+    float                            field_0xf4;     // 0xF4
+    float                            mana_shown;     // 0xF8 — mana + this turn's production
+    float                            mana_spent;     // 0xFC — taken by spell icons this turn
+    float                            field_0x100;    // 0x100
+    float                            worship_rate;   // 0x104 — mana per worshipper this turn; tires them
+    uint8_t                          field_0x108[0x8]; // 0x108
     uint8_t                          slot;           // 0x110 — its place in the citadel (sub_703AC0)
     uint8_t                          field_0x111[3];
     float                            field_0x114;    // 0x114
@@ -122,3 +135,5 @@ struct WorshipSite : public CitadelPart {
 };
 static_assert(sizeof(WorshipSite) == 0x128, "WorshipSite size mismatch");
 static_assert(offsetof(WorshipSite, towns) == 0xA4 && offsetof(WorshipSite, slot) == 0x110, "sub_703AC0");
+static_assert(offsetof(WorshipSite, worshippers) == 0xD4 && offsetof(WorshipSite, mana) == 0xF0 &&
+              offsetof(WorshipSite, worship_rate) == 0x104 && offsetof(WorshipSite, field_0x114) == 0x114, "sub_7047E0");

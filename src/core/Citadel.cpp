@@ -7,6 +7,7 @@
 
 #include <black/Citadel.h>
 #include <black/CitadelHeart.h>
+#include <black/Dance.h>
 #include <black/InfoDat.h>
 #include <black/LHVMObjects.h>
 #include <black/Player.h>
@@ -116,6 +117,13 @@ WorshipSite* Citadel::WorshipSiteFor(Town* town) {
     return FindOrCreateWorshipSite(static_cast<const GTribeInfo*>(infodat::Element(infodat::DETAIL_TRIBE_INFO, town->tribe_type)));
 }
 
+// ponytail: the citadel's own share (sub_44EEE0 with the sites' highest
+// +0x114) is not translated.
+void Citadel::ProcessWorship() {
+    for (WorshipSite* w : worship_sites)
+        if (w) w->ProcessWorship();
+}
+
 // sub_44EBE0 -> sub_703DB0 -> sub_703AC0. The tribe's record is 28 bytes, its
 // worship site record 352 (both by tribe). The slot is the free one of six
 // whose place (the heart's mesh point 9 turned by heart angle + slot x 2pi/7,
@@ -152,6 +160,10 @@ WorshipSite* Citadel::CreateWorshipSite(const GTribeInfo* tribe_info) {
     part_list[0] = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(w));
     ++part_list[1];
     worship_sites[slot] = w;  // sub_44EE00
+    // sub_704040: its dance (300 bytes, sub_4E9DC0). ponytail: the dance's
+    // groups and paths (sub_4E9E90, DANCE data 176 bytes by tribe) are not
+    // built; only its member count (+0x90) is kept.
+    w->dance = new Dance();
     w->InsertMapObject();
     lhvm::RegisterObject(w);
     // sub_7040D0: the player's towns of the tribe worship here.

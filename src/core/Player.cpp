@@ -102,6 +102,7 @@ void ResetPlayers() {
         p.creature = nullptr;
         p.citadel = nullptr;
         p.towns = {};
+        for (int k = 0; k < 9; ++k) p.multipliers[k] = p.multipliers_b8[k] = 1.0f;  // sub_5F7360
         char16_t name[16] = u"Player[0]";
         name[7] = static_cast<char16_t>(u'0' + i);
         p.Init(i == 0 ? PLAYER_TYPE_HUMAN : i == 7 ? PLAYER_TYPE_NEUTRAL : PLAYER_TYPE_NONE, static_cast<uint8_t>(i), name, static_cast<uint8_t>(i));

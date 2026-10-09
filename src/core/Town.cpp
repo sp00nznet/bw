@@ -393,9 +393,12 @@ void Town::SetBeliefInPlayer(GPlayer* player, float value) {
     belief.SetBelief(player_num, value);
 }
 
+// v1.0 sub_6CF1C0: kept only while the town has a worship site.
+// ponytail: the town centre's totem (sub_6CC0B0 / sub_6CC2B0) and calling
+// the extra worshippers in (sub_6CF250) are not translated; villagers ask
+// for themselves when they look for something to do (sub_6F99B0).
 void Town::SetWorshipPercentage(float percentage) {
-    // Original at 0x0073c060 — sets the worship percentage for this town
-    worship_percentage = percentage;
+    worship_percentage = GetWorshipSite() ? percentage : 0.0f;
 }
 
 void Town::AdjustWorshipersWorshipping(long /*param1*/, int /*param2*/, int /*param3*/) {
@@ -410,9 +413,22 @@ GTribeInfo* Town::GetTribe() const {
     return nullptr;
 }
 
-int Town::GetWorshipersNeeded(int /*param1*/, int /*param2*/, int* /*result*/) {
-    // Original at 0x0073c860 — complex
-    return 0;
+// v1.0 sub_6CF9C0: the worshippers wanted (the percentage of the people,
+// at least one, plus the site's extra +0x124) less those worshipping (+0x5C4)
+// and, with on_way, those walking there (+0x5CC). *full: more are wanted
+// though the percentage alone is met.
+int Town::GetWorshipersNeeded(int on_way, int site_extra, int* full) {
+    const int have = static_cast<int>(worship_count) + (on_way ? worshippers_on_way : 0);
+    WorshipSite* ws = site_extra ? GetWorshipSite() : nullptr;
+    const int extra = ws ? ws->num_villagers_requesting_to_go_home : 0;
+    int want = 0;
+    if (worship_percentage > 0.0f) {
+        want = static_cast<int>(static_cast<float>(stats.num_adults + stats.num_children) * worship_percentage + 0.5f);
+        if (want <= 1) want = 1;
+    }
+    const int r = extra + want - have;
+    if (full) *full = r > 0 && have >= want;
+    return r;
 }
 
 bool32_t Town::IsBuildingSiteValid(BuildingSite* /*site*/) {

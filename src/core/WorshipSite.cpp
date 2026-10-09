@@ -4,6 +4,10 @@
 #include "../include/black/BuildingSite.h"
 #include "../include/black/WorshipTotem.h"
 #include "../include/black/Town.h"
+#include "../include/black/Dance.h"
+#include "../include/black/Player.h"
+#include "../include/black/Villager.h"
+#include <cstring>
 #include <cmath>
 
 // === Overrides of Base virtuals ===
@@ -155,6 +159,75 @@ void WorshipSite::RemovePotFromStructure(PotStructure* /*structure*/) {}
 void WorshipSite::AddTown(Town* town) {
     town->SetWorshipSite(this);
     if (!towns.Has(town)) towns.Add(town);
+}
+
+void WorshipSite::AddWorshipper(Villager* v) {
+    if (!v || worshippers.Has(v)) return;
+    worshippers.Add(v);
+    ++field_0xc8;
+}
+
+void WorshipSite::RemoveWorshipper(Villager* v) {
+    if (!field_0xc8 || !worshippers.Has(v)) return;
+    worshippers.Remove(v);
+    --field_0xc8;
+}
+
+uint32_t WorshipSite::Dancers() const { return dance ? dance->members : 0; }
+
+namespace {
+float SiteInfo(const WorshipSite* w, int off) { float x = 0; if (w->info) std::memcpy(&x, reinterpret_cast<const char*>(w->info) + off, 4); return x; }
+}
+
+// The dancers x info +324 x the player's worship multiplier (+0x70).
+float WorshipSite::ManaProduced() {
+    GPlayer* p = GetPlayer();
+    return static_cast<float>(Dancers()) * SiteInfo(this, 324) * (p ? p->multipliers[2] : 0.0f);
+}
+
+float WorshipSite::MaxMana() const { return static_cast<float>(Dancers()) * SiteInfo(this, 340) + SiteInfo(this, 336); }
+
+// sub_704610 then sub_7047E0, once a turn per site from the citadel
+// (sub_44EFB0). What the dancers make is kept, less what the spell icons
+// took (+0xFC), at an efficiency that falls as the store nears its most:
+// 0.5 - mana / max / 2, at least 0.2 while positive, plus the share spent,
+// at most 1.
+// ponytail: there are no spell icons yet (sub_704040), so nothing is spent
+// and the charging pass of sub_704610 has nothing to feed. Every 1000 turns
+// v1.0 also passes some on through the list at +0xAC (sub_420CF0); not
+// translated. The dance's look (sub_704A00) is not kept.
+void WorshipSite::ProcessWorship() {
+    // ponytail: v1.0 counts a dancer in (sub_55E370) and out (vslot 705);
+    // with no dance groups built, the members are recounted here: the
+    // site's worshippers dancing or on their way to their place (60).
+    if (dance) {
+        uint32_t n = 0;
+        for (LHNode* x = worshippers.head; x; x = x->next) {
+            const auto* v = static_cast<const Villager*>(x->obj);
+            n += v->action.top_state == VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE || v->action.final_state == VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE;
+        }
+        dance->members = n;
+    }
+    const float made = ManaProduced();
+    if (made == 0.0f) field_0x114 = field_0x100 == 0.0f ? 0.0f : 1.0f;
+    else field_0x114 = (field_0x100 - made) / made;
+
+    const float spent_share = made == 0.0f ? 1.0f : mana_spent / made;
+    const float most = MaxMana();
+    float eff = 0.5f - (most != 0.0f ? mana / most : 0.0f) * 0.5f;
+    if (eff <= 0.0f) eff = 0.0f;
+    else if (eff < 0.2f) eff = 0.2f;
+    eff += spent_share;
+    if (eff >= 1.0f) eff = 1.0f;
+    const float kept = made * eff;
+    const float dancers = static_cast<float>(Dancers());
+    worship_rate = dancers == 0.0f ? 0.0f : kept / dancers;
+    float m = mana - (mana_spent - kept);
+    if (m <= 0.0f) m = 0.0f;
+    mana = m;
+    mana_spent = 0.0f;
+    field_0x100 = 0.0f;
+    mana_shown = m + made;
 }
 
 // 0x0077afc0

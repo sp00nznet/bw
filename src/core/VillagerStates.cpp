@@ -20,6 +20,10 @@
 #include <black/Terrain.h>
 #include <black/Town.h>
 #include <black/TownDesire.h>
+#include <black/TownCentre.h>
+#include <black/Citadel.h>
+#include <black/Player.h>
+#include <black/WorshipSite.h>
 
 #include <cmath>
 #include <cstring>
@@ -90,6 +94,32 @@ void BuilderSlots(Villager& v, bool was) {
     }
 }
 
+// The worship states' exit slots. A state's goal is where it walks to, or
+// the state itself.
+uint8_t Goal(const Villager& v) {
+    const uint8_t walk = InfoB(v, 292) ? InfoB(v, 292) : VILLAGER_STATE_MOVE_TO_POS;
+    return v.action.top_state == walk ? v.action.final_state : v.action.top_state;
+}
+bool GoingToWorship(uint8_t s) { return s == VILLAGER_STATE_GOTO_WORSHIP_SITE_FOR_WORSHIP || s == VILLAGER_STATE_ARRIVES_AT_WORSHIP_SITE_FOR_WORSHIP; }
+bool AtWorship(uint8_t s) {
+    return s == VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE || s == VILLAGER_STATE_HIDING_AT_WORSHIP_SITE || s == VILLAGER_STATE_GET_FOOD_AT_WORSHIP_SITE;
+}
+void StopWorshipping(Villager& v);
+// 58/59 exit (0x6FA030 -> sub_6D0FE0): off the town's walkers, +0xE0 bit 4
+// cleared. 60/213 exit (sub_6FA0B0): leaving for a state outside worship
+// stops it (sub_6FA300).
+// ponytail: "outside worship" is 60, 213 and 241 here; v1.0 asks a per-state
+// table (0xCDABC8, sub_6E20F0) and the walk slot (vslot 602).
+void WorshipSlots(Villager& v, uint8_t was) {
+    const uint8_t now = Goal(v);
+    if (GoingToWorship(was) && !GoingToWorship(now) && (v.field_0xe0 & 0x10)) {
+        if (Town* t = v.GetTown()) --t->worshippers_on_way;
+        v.field_0xe0 &= ~0x10u;
+    }
+    if ((was == VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE || was == VILLAGER_STATE_HIDING_AT_WORSHIP_SITE) && !AtWorship(now))
+        StopWorshipping(v);
+}
+
 // vslot 569 (sub_6E1B90), the core: the new state, its turn count from zero.
 // ponytail: the original first may divert a frail villager into
 // PauseForASecond (239), and runs every state's exit/enter slots; only the
@@ -97,12 +127,14 @@ void BuilderSlots(Villager& v, bool was) {
 void SetState(Villager& v, uint8_t s) {
     const Site was = SiteOf(v);
     const bool was_building = Building(v);
+    const uint8_t was_goal = Goal(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = s;
     if (IsFishingState(v.action.final_state) && !IsFishingState(s)) v.action.final_state = s;  // a stale goal must not keep it a fisherman
     v.action.turns_since_state_change = 0;
     FishingSlots(v, was);
     BuilderSlots(v, was_building);
+    WorshipSlots(v, was_goal);
 }
 
 // sub_5B0E40: walk (the state at villager info +292) to pos, then enter `arrive`.
@@ -111,6 +143,7 @@ void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     if (!walk) walk = VILLAGER_STATE_MOVE_TO_POS;
     const Site was = SiteOf(v);
     const bool was_building = Building(v);
+    const uint8_t was_goal = Goal(v);
     v.action.previous_state = v.action.top_state;
     v.action.top_state = walk;
     v.action.final_state = arrive;
@@ -120,6 +153,7 @@ void MoveToPosThen(Villager& v, const MapCoords& pos, uint8_t arrive) {
     v.SetGoalPos(p);
     FishingSlots(v, was);
     BuilderSlots(v, was_building);
+    WorshipSlots(v, was_goal);
 }
 // sub_5AC660. ponytail: the original asks the object for its own approach
 // (vslot 32, e.g. an abode's door); straight to its position here.
@@ -197,8 +231,11 @@ bool SleepOrEat(Villager& v, float threshold) {
     return false;
 }
 
-// sub_6EED30: worship (not yet), a job from the town's desires, then sleep/eat.
+bool WorshipCheck(Villager& v);
+
+// sub_6EED30: worship, a job from the town's desires, then sleep/eat.
 bool FindSomethingToDo(Villager& v) {
+    if (WorshipCheck(v)) return true;  // sub_6F99B0
     if (Town* t = v.GetTown()) {
         if (t->desire.FindWorkForVillager(&v, BusyFactor(v))) {  // sub_6E76A0 -> sub_6D7D30
             v.field_0xe0 &= ~1u;
@@ -285,6 +322,176 @@ void Die(Villager& v, int /*cause*/) {
     if (t) std::memcpy(&o, reinterpret_cast<const char*>(t) + 1856, sizeof o);
     v.turns_until_next_state_change = static_cast<int16_t>(InfoU(v, o && o->IsFunctional() ? 660 : 656));
     v.field_0xe0 |= 0x40;
+}
+
+// --- worship ----------------------------------------------------------------
+void DecideWhatToDo(Villager& v);
+bool WorkOnSite(Villager& v, BuildingSite* s);
+// A town's worshippers walk to its tribe's worship site at the temple and
+// dance there; the dancers make the site's mana, and tire as it is made.
+
+// sub_6FA200: through the town. ponytail: a villager with no town asks the
+// player's citadel for its tribe's site (sub_6E1AA0, sub_44EA50); not kept.
+WorshipSite* WorshipSiteOf(Villager& v) { Town* t = v.GetTown(); return t ? t->GetWorshipSite() : nullptr; }
+
+// sub_6FA2B0: counted in the town (+0x5C4), +0xE0 bit 2, on the site's list.
+void StartWorshipping(Villager& v, WorshipSite* ws) {
+    if (!(v.field_0xe0 & 2)) {
+        if (Town* t = v.GetTown()) ++t->worship_count;  // sub_6D1060
+        v.field_0xe0 |= 2;
+        v.target = nullptr;
+    }
+    ws->AddWorshipper(&v);
+}
+
+// sub_6FA300. The dance's members are recounted by the site each turn.
+void StopWorshipping(Villager& v) {
+    if (Town* t = v.GetTown()) {
+        if ((v.field_0xe0 & 2) && t->worship_count) --t->worship_count;  // sub_6D1070
+        if (WorshipSite* ws = t->GetWorshipSite()) ws->RemoveWorshipper(&v);
+    }
+    v.field_0xe0 &= ~2u;
+    v.target = nullptr;
+}
+
+// The town centre stands built and the site is the town's player's.
+bool CanWorshipThere(Town* t, WorshipSite* ws) {
+    return t && ws && t->town_centre && t->town_centre->IsAvailable() && t->town_centre->IsBuilt() && ws->GetPlayer() == t->GetPlayer();
+}
+
+// sub_6FA380: join the dance and go to it, state 60.
+// ponytail: sub_55E370 places the dancer in a group with room (+0x80, each
+// group's +0x78 < +0xEC); with no groups built every dancer is taken and
+// stands somewhere within 5 m of the site.
+bool JoinDance(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws || !ws->IsAvailable() || !ws->dance) return false;
+    MoveToPosThen(v, Around(ws->coords, lh::RandomFloat(6.2831855f), lh::RandomFloat(5.0f)), VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE);
+    StartWorshipping(v, ws);
+    return true;
+}
+
+// sub_6FA410: no room in the dance; stand at the site (213) and worship.
+bool StandAside(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws) { DecideWhatToDo(v); return true; }
+    MoveToObjectThen(v, ws, VILLAGER_STATE_HIDING_AT_WORSHIP_SITE);
+    StartWorshipping(v, ws);
+    return true;
+}
+
+// sub_6F9DB0: 1 when the villager is done worshipping (and has been told
+// where to go).
+// ponytail: v1.0 sends home only the first of the site's leavers (+0x120,
+// sub_706C80); the list is not kept, so any leaver goes.
+bool DoneWorshipping(Villager& v) {
+    Town* t = v.GetTown();
+    if (!t) return false;
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!CanWorshipThere(t, ws)) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return true; }
+    if (t->GetWorshipersNeeded(0, 0, nullptr) >= 0) return false;
+    SetState(v, VILLAGER_STATE_GO_HOME_FROM_WORSHIP);
+    return true;
+}
+
+// sub_6FA6C0: worship tires: life down by the site's rate x villager info
+// +652. 33 when it kills.
+int Tire(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws) return 1;
+    v.ReduceLife(ws->worship_rate * InfoF(v, 652), nullptr);
+    if (v.GetLife() > 0.0f) return 1;
+    Die(v, 4);
+    return 33;
+}
+
+// sub_6FA750. ponytail: a hungry worshipper fetching food from the site
+// (sub_6FA800 -> 241) is not translated.
+int WorshipTurn(Villager& v) {
+    if (DoneWorshipping(v)) return 35;
+    if (Tire(v) == 33) return 35;
+    return 1;
+}
+
+// sub_6FA790: the site is not built; work on its site.
+bool BuildWorshipSite(Villager& v) {
+    Town* t = v.GetTown();
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws) {
+        GPlayer* p = t ? t->GetPlayer() : nullptr;
+        ws = p && p->citadel ? p->citadel->WorshipSiteFor(t) : nullptr;  // sub_44EA80
+    }
+    BuildingSite* s = ws && t ? t->SiteFor(ws) : nullptr;
+    if (!s) return false;
+    SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO);
+    return WorkOnSite(v, s);
+}
+
+// 58, sub_6F9C10: to a built site; on the town's walkers (+0x5CC, +0xE0 bit 4).
+// ponytail: the dance's walkers (+0x114) and the worship disciple's
+// percentage top-up (+0xF2 == 11, sub_6CF7B0) are not kept.
+bool GotoWorshipSite(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws || !ws->IsBuilt()) return false;
+    const bool counted = v.field_0xe0 & 0x10;
+    if (DistanceM(v.coords, ws->coords) <= 0.0f) SetState(v, VILLAGER_STATE_ARRIVES_AT_WORSHIP_SITE_FOR_WORSHIP);
+    else MoveToObjectThen(v, ws, VILLAGER_STATE_ARRIVES_AT_WORSHIP_SITE_FOR_WORSHIP);
+    v.field_0xe0 |= 0x10;
+    if (Town* t = v.GetTown(); t && !counted) ++t->worshippers_on_way;  // sub_6D0F80
+    return true;
+}
+
+// sub_6F9A30: go worship (or build the site) if the temple can take it.
+// ponytail: far from the site (beyond town info +328) a full quota waits for
+// a creature to bring the villager (sub_6F9B70 -> sub_5FA5D0); no creature
+// is looked for, so far villagers do not go then.
+bool GoWorship(Villager& v, bool full) {
+    Town* t = v.GetTown();
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!CanWorshipThere(t, ws)) return false;
+    float reach = 0.0f;
+    if (t->info) std::memcpy(&reach, reinterpret_cast<const char*>(t->info) + 328, 4);
+    const bool near = DistanceM(v.coords, ws->coords) <= reach || !t->GetPlayer();
+    if (!near && full) return false;
+    return BuildWorshipSite(v) || GotoWorshipSite(v);
+}
+
+// sub_6F99B0: before looking for work. A worshipper back from elsewhere
+// rejoins the dance or stops; otherwise one goes if the town wants more.
+bool WorshipCheck(Villager& v) {
+    Town* t = v.GetTown();
+    if (v.field_0xe0 & 2) {
+        if (JoinDance(v)) return true;
+        StopWorshipping(v);
+        return false;
+    }
+    if (!t || t->worship_percentage == 0.0f) return false;
+    int full = 1;
+    if (t->GetWorshipersNeeded(1, 1, &full) <= 0) return false;
+    return GoWorship(v, full != 0);
+}
+
+// 59, sub_6F9CF0: within 10 m, dance if there is room (info +332), else stand aside.
+// ponytail: the arrival point is the site itself (v1.0: its special pos 9).
+void ArrivesAtWorshipSite(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws) { DecideWhatToDo(v); return; }
+    if (DistanceM(v.coords, ws->coords) >= 10.0f) { MoveToObjectThen(v, ws, VILLAGER_STATE_ARRIVES_AT_WORSHIP_SITE_FOR_WORSHIP); return; }
+    uint32_t room = 0;
+    if (ws->info) std::memcpy(&room, reinterpret_cast<const char*>(ws->info) + 332, 4);
+    if (ws->Dancers() >= room) StandAside(v);
+    else JoinDance(v);
+}
+
+// 60, sub_6FA540: dance on.
+void WorshippingAtWorshipSite(Villager& v) { WorshipTurn(v); }
+
+// 213, sub_6FA4A0: at the site (within 1 m), worship; else walk to it.
+void HidingAtWorshipSite(Villager& v) {
+    WorshipSite* ws = WorshipSiteOf(v);
+    if (!ws) { SetState(v, VILLAGER_STATE_DECIDE_WHAT_TO_DO); return; }
+    if (DistanceM(v.coords, ws->coords) <= 1.0f) WorshipTurn(v);
+    else MoveToObjectThen(v, ws, VILLAGER_STATE_HIDING_AT_WORSHIP_SITE);
 }
 
 // sub_6EAC20: how much food the villager wants to eat now -- its hunger (the
@@ -774,10 +981,11 @@ void DecideWhatToDo(Villager& v) {  // 163, vslot 561 (sub_6E1260)
     RandomIdle(v);
 }
 
-void GoHome(Villager& v) {  // 36 / 121, sub_6EEF60(37, 238)
+// sub_6EEF60(arrive, tent): 36 / 121 use (37, 238), 248 from worship (249, 250).
+void GoHome(Villager& v, uint8_t arrive_home = VILLAGER_STATE_ARRIVES_HOME, uint8_t tent = VILLAGER_STATE_SLEEP_IN_TENT) {
     if (Abode* home = v.GetHome()) {
         if (v.field_0xe0 & 4) SetState(v, VILLAGER_STATE_AT_HOME);
-        else if (v.action.final_state != VILLAGER_STATE_ARRIVES_HOME) MoveToObjectThen(v, home, VILLAGER_STATE_ARRIVES_HOME);
+        else if (v.action.final_state != arrive_home) MoveToObjectThen(v, home, arrive_home);
         return;
     }
     Town* t = v.GetTown();
@@ -786,7 +994,7 @@ void GoHome(Villager& v) {  // 36 / 121, sub_6EEF60(37, 238)
     MapCoords pos;
     if (DistanceM(v.coords, t->coords) <= 100.0f) {  // near town: somewhere to lie down
         pos = Around(v.coords, lh::RandomFloat(6.2831855f), lh::RandomFloat(8.0f) + 2.0f);
-        arrive = VILLAGER_STATE_SLEEP_IN_TENT;  // ponytail: sub_6EF1D0's free-spot search
+        arrive = tent;  // ponytail: sub_6EF1D0's free-spot search
     } else {                                       // far: head for town
         const float a = Heading(t->coords, v.coords) + lh::RandomFloat(1.5707964f) - 0.785398f;
         pos = Around(t->coords, a, lh::RandomFloat(25.0f) + 10.0f);
@@ -1131,6 +1339,12 @@ uint32_t Villager::ProcessState() {
     case VILLAGER_STATE_EAT_FOOD: vs::EatFood(*this); break;
     case VILLAGER_STATE_EAT_FOOD_AT_HOME: vs::EatFoodAtHome(*this); break;
     case VILLAGER_STATE_DYING: vs::Dying(*this); break;
+    case VILLAGER_STATE_GOTO_WORSHIP_SITE_FOR_WORSHIP: if (!vs::GotoWorshipSite(*this)) vs::SetState(*this, VILLAGER_STATE_DECIDE_WHAT_TO_DO); break;
+    case VILLAGER_STATE_ARRIVES_AT_WORSHIP_SITE_FOR_WORSHIP: vs::ArrivesAtWorshipSite(*this); break;
+    case VILLAGER_STATE_WORSHIPPING_AT_WORSHIP_SITE: vs::WorshippingAtWorshipSite(*this); break;
+    case VILLAGER_STATE_HIDING_AT_WORSHIP_SITE: vs::HidingAtWorshipSite(*this); break;
+    case VILLAGER_STATE_GO_HOME_FROM_WORSHIP: vs::GoHome(*this, VILLAGER_STATE_ARRIVES_HOME_FROM_WORSHIP, VILLAGER_STATE_SLEEP_IN_TENT_FROM_WORSHIP); break;  // sub_6F0670
+    case VILLAGER_STATE_ARRIVES_HOME_FROM_WORSHIP: vs::ArrivesHome(*this); break;  // sub_6F97F0
     case VILLAGER_STATE_IN_HAND: break;  // its holder moves it
     case VILLAGER_STATE_DEAD: break;  // ponytail: the body's removal (vslot 552, sub_6F8620) is not translated
     default:

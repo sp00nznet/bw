@@ -140,6 +140,57 @@ slot 0. Town 0's villagers build it to 100% in 1,000 turns.
   - the towns' worship distance (`sub_6CE140`);
   - the local player's sound and help.
 
+## Worship and mana
+
+A town's worship percentage (+0x5C0) is set by the town centre's totem. Scripts set it
+with SET_PROPERTY 19 on the town centre (`sub_6A7D30` → `sub_6CF1C0`). It is kept only
+while the town has a worship site.
+
+**How many worship.** The town wants its people × percentage, at least one, plus the
+site's extra (+0x124). Worshippers (+0x5C4) and walkers (+0x5CC) count against that
+(`sub_6CF9C0`).
+
+**The villagers.** They walk to the site and dance there; see docs/villager-states.md.
+The site keeps them on a list (+0xD4, counted at +0xC8). Its Dance (`sub_4E9DC0`, 300
+bytes) counts the dancers (+0x90).
+
+**The mana.** Each turn, every player's citadel runs its worship sites (`sub_5F8410` →
+`sub_44EFB0`, in the magic pass `sub_6B7570`). For each site (`sub_704610` →
+`sub_7047E0`):
+- The dancers make dancers × site info +324 × player +0x70 (`sub_706C40`).
+- The player's nine multipliers at +0x68, and nine more at +0xB8, start at 1
+  (`sub_5F7360`).
+- What is made is kept at an efficiency of 0.5 − mana / most / 2, at least 0.2 while
+  positive, plus the share the spell icons took, at most 1. "Most" is dancers × info +340
+  + info +336.
+- The site's mana (+0xF0) gains what is kept, less what the icons took (+0xFC).
+- The rate per dancer (+0x104) is what tires them.
+
+GET_MANA (`sub_698410`, native 422) reads +0xF0 off a worship site; SET_MANA
+(`sub_698350`, native 355) writes it.
+
+In `test_level`, Land 1's town 0 sets 25% to worship (7 of 26 people). All 7 walk 141 m to
+the temple and dance there. The site holds 5,745 mana after 2,500 turns. With worship
+off, they all go home and the mana stays.
+
+The v1.0 native table is built inline at 0x69B000. Each entry is 144 bytes, from
+0xB358E0, with native 130 BUILD_BUILDING first in that run. Scanning its
+`mov [entry], offset fn` stores gives every native's function.
+
+**Ours:**
+- The Dance's groups and paths are not built. Every dancer is taken and stands within
+  5 m of the site, and the member count is recounted each turn from the site's
+  worshippers in state 60.
+- There are no spell icons yet, so nothing is spent.
+- Not translated:
+  - the totem's look and calling worshippers in (`sub_6CF250`);
+  - food at the site (241);
+  - the creature that brings far villagers (`sub_6F9B70`);
+  - the worship disciples;
+  - the 1000-turn pass at +0xAC;
+  - the citadel's share (`sub_44EEE0`).
+- SET_MANA on a town is not supported; towns are not script handles here.
+
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;
 - interfaces, the +0x15C object, GameStats and the citadel;

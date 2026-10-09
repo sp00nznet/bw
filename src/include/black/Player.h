@@ -96,12 +96,15 @@ struct GPlayer : public GameThing {
     GInterface*      interfaces[8];             // 0x14 -- by interface index (Init's last argument)
     uint8_t          field_0x34[0x2C];          // 0x34-0x5F (+0x5C zeroed by the constructor)
     GAlignment*      alignment;                 // 0x60
-    uint8_t          field_0x64[0x50];          // 0x64-0xB3 (+0x8C/+0x90, +0x94..+0xB3 zeroed by Init)
+    uint32_t         field_0x64;                // 0x64
+    float            multipliers[9];            // 0x68 -- 1.0 (sub_5F7360); +0x70 scales worship (sub_706C40)
+    uint8_t          field_0x8c[0x28];          // 0x8C-0xB3 (+0x8C/+0x90, +0x94..+0xB3 zeroed by Init)
     uint8_t          field_0xb4;                // 0xB4
     uint8_t          player_number;             // 0xB5
     uint8_t          field_0xb6;                // 0xB6
     uint8_t          field_0xb7;                // 0xB7
-    uint8_t          field_0xb8[0x40];          // 0xB8-0xF7
+    float            multipliers_b8[9];         // 0xB8 -- 1.0 (sub_5F7360)
+    uint8_t          field_0xdc[0x1C];          // 0xDC-0xF7
     PLAYER_TYPE      type;                      // 0xF8 -- sub_523530 stops at the neutral (3)
     char16_t         name[0x1E];                // 0xFC
     uint8_t          field_0x138[0x50];         // 0x138-0x187 (+0x15C a 508-byte object LOAD_CREATURE needs; +0x164)
@@ -116,6 +119,7 @@ struct GPlayer : public GameThing {
     uint32_t         field_0x274;               // 0x274
 };
 static_assert(sizeof(GPlayer) == 0x278, "GPlayer size mismatch");
+static_assert(offsetof(GPlayer, multipliers) == 0x68 && offsetof(GPlayer, multipliers_b8) == 0xB8, "sub_5F7360");
 static_assert(offsetof(GPlayer, player_number) == 0xB5 && offsetof(GPlayer, type) == 0xF8 &&
               offsetof(GPlayer, creature) == 0x264, "GPlayer v1.0 offsets");
 

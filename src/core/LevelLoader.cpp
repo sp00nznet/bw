@@ -6,6 +6,7 @@
 #include <black/Abode.h>
 #include <black/EntityFactory.h>
 #include <black/BigForest.h>
+#include <black/Citadel.h>
 #include <black/Creature.h>
 #include <black/Field.h>
 #include <black/Fire.h>
@@ -415,8 +416,10 @@ void Process(World& w) {
         }
         s.obj->Process();
     }
-    // Spells that last (sub_6B7570), then the fires (sub_6C6A30); both
-    // reach anything in the world.
+    // The magic pass (sub_6B7570): each player's citadel's worship
+    // (sub_5F8410), then spells that last, then the fires (sub_6C6A30).
+    for (uint32_t i = 0; i < 8; ++i)
+        if (Citadel* c = PlayerAt(i)->citadel) c->ProcessWorship();
     if (spell::ActiveCount() || fire::Count()) {
         std::vector<Object*> all;
         all.reserve(w.objects.size());

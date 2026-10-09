@@ -45,6 +45,9 @@ struct Citadel : public Container {
     // v1.0 sub_44EA80: the worship site for the town's tribe, made if need be;
     // nullptr if the town cannot worship or the citadel's worship is off (+0x74).
     WorshipSite* WorshipSiteFor(Town* town);
+    // v1.0 sub_44EFB0: each worship site's turn (from sub_5F8410, once a
+    // turn for every player's citadel).
+    void ProcessWorship();
 
     // === Fields ===
     CitadelHeart*  heart;             // 0x30

@@ -1005,6 +1005,36 @@ int main() {
                 std::snprintf(msg, sizeof msg, "town 0's villagers build the worship site: %.1f%% after 1000 turns", ws->percent_built * 100.0f);
                 CHECK(ws->percent_built > 0.0f, msg);
             }
+
+            // Worship (sub_6F99B0 -> sub_6F9A30 -> states 58/59/60): with a
+            // quarter of town 0 asked to worship, villagers walk to the site
+            // and dance; the dancers make its mana (sub_704610 / sub_7047E0).
+            if (ws && v0->town_centre) {
+                if (!ws->IsBuilt()) ws->BuildBy(1.0f - ws->percent_built);
+                v0->SetWorshipPercentage(0.25f);
+                const int want = v0->GetWorshipersNeeded(0, 0, nullptr);
+                uint32_t most_dancing = 0, most_worshipping = 0;
+                bool counts_agree = true;
+                for (int t = 0; t < 2500; ++t) {
+                    level::Process(w);
+                    most_dancing = std::max(most_dancing, ws->Dancers());
+                    most_worshipping = std::max(most_worshipping, v0->worship_count);
+                    counts_agree = counts_agree && v0->worship_count == static_cast<uint32_t>(ws->field_0xc8);
+                }
+                const float mana = ws->mana;
+                std::snprintf(msg, sizeof msg, "town 0 worships (%d wanted of %d, %.0f m from the site): up to %u worshipping, %u dancing; mana %.1f, rate %.3f, most %.0f",
+                              want, v0->stats.num_adults + v0->stats.num_children, std::hypot(MetresOf(v0->coords.x - ws->coords.x), MetresOf(v0->coords.z - ws->coords.z)), most_worshipping, most_dancing, mana, ws->worship_rate, ws->MaxMana());
+                CHECK(want > 0 && most_worshipping > 0 && most_dancing > 0 && mana > 0.0f && counts_agree, msg);
+
+                // Worship off: the worshippers are no longer wanted and go home (248).
+                v0->SetWorshipPercentage(0.0f);
+                for (int t = 0; t < 2500; ++t) level::Process(w);
+                std::snprintf(msg, sizeof msg, "worship off: %u still worshipping, %d walking there, mana kept %.1f", v0->worship_count, v0->worshippers_on_way, ws->mana);
+                CHECK(v0->worship_count == 0 && v0->worshippers_on_way == 0 && ws->mana > 0.0f, msg);
+            } else {
+                std::snprintf(msg, sizeof msg, "worship needs town 0's centre: %s", v0->town_centre ? "there" : "none");
+                CHECK(false, msg);
+            }
         }
     }
 

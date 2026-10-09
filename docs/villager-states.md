@@ -58,6 +58,17 @@ are the ones the code agrees with.
 | 69 FarmerDigsUpCrop | `sub_6E9010` | dig food up; a full load goes to the store |
 | 53 ArrivesAtBigForest | `sub_6EE7A0` | at half the forest's radius, take what there is room for; then decide |
 | 14 Dying | vslot 551, `sub_6F85B0` | on to Dead |
+| 58 GotoWorshipSiteForWorship | `sub_6F9C10` | to the town's built worship site, counted on the way (town +0x5CC) |
+| 59 ArrivesAtWorshipSiteForWorship | `sub_6F9CF0` | within 10 m: dance if there is room (site info +332), else stand aside |
+| 60 WorshippingAtWorshipSite | `sub_6FA540` | dance; worship tires (life by site rate × info +652); leave when not wanted |
+| 213 HidingAtWorshipSite | `sub_6FA4A0` | worship standing at the site |
+| 248 GoHomeFromWorship / 249 | `sub_6EEF60(249, 250)`, `sub_6EF610` | GoHome and ArrivesHome with worship's states |
+
+Worship comes first when a villager looks for something to do (`sub_6F99B0`). A
+worshipper back from elsewhere rejoins the dance, or stops. Otherwise, if the town wants
+more worshippers (`sub_6CF9C0`), it goes (`sub_6F9A30`). That needs a built town centre
+and a site of the town's player. An unbuilt site is worked on instead (`sub_6FA790`). See
+docs/players.md for the mana.
 | 15 Dead | vslot 552 | holds (the body's removal is not translated) |
 
 **DecideWhatToDo, in v1.0's order:**
@@ -194,7 +205,7 @@ vagrants (130).
   forester states 47-52), the building-site delivery in `sub_6EE9B0`, a big forest's
   shrinking mesh and deletion when empty.
 - **The other work handlers** (food, wood, building, repair,
-  worship), Relaxation's handler (it needs the town's relax spots), the disciple and
+  worship's food at the site, 241), Relaxation's handler (it needs the town's relax spots), the disciple and
   child deciders, and `SetState`'s exit/enter slots and pause diversion.
 - **The random seed's starting value**: the game sets it at runtime, and we have not
   recovered it.

@@ -228,7 +228,7 @@ struct Town : public Container {
     float                          worship_percentage;      // 0x5C0
     uint32_t                       worship_count;           // 0x5C4
     float                          influence;               // 0x5C8
-    int                            field_0x5cc;             // 0x5CC
+    int                            worshippers_on_way;      // 0x5CC — sub_6D0F80 / sub_6D0FE0
     uint32_t                       field_0x5d0;             // 0x5D0
     uint32_t                       field_0x5d4;             // 0x5D4
     float                          belief_in_neutral_player;// 0x5D8
