@@ -664,13 +664,15 @@ static void N_IS_CREATURE_AVAILABLE(LHVM* vm) {
 
 // --- Influence / mana / belief / alignment -------------------------------
 
+// sub_693970: (player, also-allies, x, y, z) -> the player's influence there
+// (sub_58DDC0). ponytail: the hands' share (sub_6FB100) and the allies'
+// fallback when the flag is clear (sub_58E050) are not kept.
 static void N_GET_INFLUENCE(LHVM* vm) {
-    vm->PopInt();    // player
-    vm->PopFloat();  // z
-    vm->PopFloat();  // y
-    vm->PopFloat();  // x
-    // Influence map not yet wired (depends on Town::GetRadius walks).
-    vm->PushFloat(0.0f);
+    const float z = vm->PopFloat(), y = vm->PopFloat(), x = vm->PopFloat();
+    (void)y;
+    vm->PopInt();  // the flag
+    const int32_t player = static_cast<int32_t>(vm->PopFloat());
+    vm->PushFloat(PlayerInfluence(ScriptPlayer(player), MapCoordsFromMetres(x, z)));
 }
 
 // sub_698410: a worship site's mana (+0xF0); 0 for anything else.

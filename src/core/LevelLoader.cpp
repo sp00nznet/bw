@@ -351,6 +351,8 @@ struct Loader {
         if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
         if (cmd == "CREATE_PLANNED_ABODE") return CreatePlannedAbode(a);
         if (cmd == "CREATE_PLANNED_CITADEL") return CreatePlannedCitadel(a);
+        if (cmd == "SET_TOWN_INFLUENCE_MULTIPLIER" && !a.empty()) { g_town_influence_multiplier = a[0].f; return true; }      // case 96
+        if (cmd == "SET_PLAYER_INFLUENCE_MULTIPLIER" && !a.empty()) { g_player_influence_multiplier = a[0].f; return true; }  // case 97
         if (cmd == "CREATE_DRINK_WAYPOINT") {  // case 95 (sub_6FDE10)
             float x, z;
             if (a.empty() || !ParsePos(a[0].s, x, z)) return false;
@@ -416,6 +418,7 @@ bool Load(const char* path, World& out, std::string* err) {
     if (!f) { if (err) *err = std::string("cannot open ") + path; return false; }
     ResetMap();  // what is created goes into it (InsertMapObject)
     ResetPlayers();
+    g_town_influence_multiplier = g_player_influence_multiplier = 1.0f;
     land::DrinkWaypoints().clear();
     Loader L{out};
     char line[2048];

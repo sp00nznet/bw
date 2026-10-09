@@ -129,6 +129,17 @@ GPlayer* PlayerAt(uint32_t index);
 // A single-player start (sub_523160's shape): player 0 human, 1..6 unused,
 // 7 the neutral player.
 void ResetPlayers();
+// The game's influence multipliers (game +2408752 towns, +2408756 players),
+// set by the level's SET_TOWN_ / SET_PLAYER_INFLUENCE_MULTIPLIER (cases 96 / 97).
+extern float g_town_influence_multiplier;
+extern float g_player_influence_multiplier;
+// v1.0 sub_58DE80: the player's influence at the point, -1..1. Its citadel's
+// power and each of its towns' influence count in full where the point is
+// nearer than that many metres; the sum is clamped. No player: 1.
+float PlayerInfluence(GPlayer* player, const MapCoords& at);
+// v1.0 sub_58E1E0: the player with the most influence at the point, else the
+// local player (0).
+GPlayer* InfluenceOwner(const MapCoords& at, float* amount = nullptr);
 // A script's player number (sub_6862D0): 1-based; 0 is the local player (0).
 GPlayer* ScriptPlayer(int32_t n);
 // The player's creature, and it the creature's owner (player +612, creature

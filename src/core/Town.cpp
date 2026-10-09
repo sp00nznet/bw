@@ -592,7 +592,7 @@ uint32_t Town::Process() {
     // not yet: sub_4344F0 over the list at +0x788 (drops finished entries)
     influence = TownInfoInfluence();         // sub_6D2810
     ProcessAbodes(g_game_turn, info_u(76));  // sub_6D9120
-    // not yet: x game influence multiplier (+2408752) when the town has a player
+    if (GetPlayer()) influence *= g_town_influence_multiplier;  // game +2408752
     desire.Process();                        // sub_6D7950
     // not yet: sub_6D92A0 (list +0x98C), every 10 turns sub_6DA400,
     //          sub_6D9180 (drop dead villagers from +0x768), the object at +0xE9C,

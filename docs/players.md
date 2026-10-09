@@ -275,8 +275,6 @@ store goes 3,750 → 3,850, the pile is gone, and the creature on the learning l
 up row 4.
 
 **Ours:**
-- There is no influence map in core. The land's owner is the player of the nearest town
-  whose radius holds the point, else player 0.
 - The taken object is taken off the map and marked unavailable, not freed; the level's
   object list still holds it.
 - Not translated:
@@ -301,6 +299,39 @@ object's town) and pulls it up. It then runs MoveToThrowPos, TurnToFaceObject,
 ConsiderActionCompleted and ClearObjectToUse, then ThrowInPile, which throws the tree at
 the store as a physics object. A tree's own resource is 0 (`sub_53EF30`), so the store's
 wood comes from the landing. These actions wait on the throw physics.
+
+## Influence
+
+A player's influence at a point (`sub_58DE80`, −1..1):
+- **Citadel** (`sub_44E9B0`): its power counts in full when the point is nearer than that
+  many metres. Its power (`sub_44F720`) is the players' multiplier (game +2408756) ×
+  citadel +0x6C. That field grows by built × heart info +284 (125 m) when the heart is
+  made (`sub_44FED0`).
+- **Towns** (`sub_6D9500`): each town counts its influence (+0x5C8) the same way. That is
+  TownInfo +120 (25 m) plus its abodes' (`sub_6D9120`), × the towns' multiplier (game
+  +2408752) when the town has a player.
+- The sum is clamped.
+
+The multipliers come from SET_TOWN_INFLUENCE_MULTIPLIER and
+SET_PLAYER_INFLUENCE_MULTIPLIER (loader cases 96 and 97; Land 1 sets both to 1).
+
+The land's owner (`sub_58E1E0`) is the player with the most influence there, else the
+local player. The hand's +0x128 uses it.
+
+GET_INFLUENCE (native 62, `sub_693970`) pops z, y, x, a flag, then the player. Ours had
+popped the player first.
+
+In `test_level`, town 0's influence is 400 m (25 + its abodes' 376). Player 0 has 1.0
+there and 0 at town 1, which the neutral player owns. The citadel's power is 0: its heart
+was made unbuilt.
+
+**Ours:**
+- Not modelled:
+  - the debug all-influence flags;
+  - the game mode that denies a citadel-less player;
+  - the landscape test (ours: inside the map);
+  - the scripted virtual influences and anti-influences (game +2104584);
+  - GET_INFLUENCE's hands' share and allies' fallback.
 
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;

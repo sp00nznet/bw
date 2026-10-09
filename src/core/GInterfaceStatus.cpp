@@ -25,20 +25,6 @@ GInterface* GInterfaceStatus::GetInterface() { return nullptr; }
 void GInterfaceStatus::Init(uint8_t number, GInterface* i) { player_number = number; iface = i; }
 
 namespace {
-// sub_5BFD00 -> sub_58E1E0: the player with the most influence at the point,
-// else the local player. ponytail: there is no influence map in core
-// (sub_58DDC0); the player of the nearest town whose radius holds the point
-// stands in, else player 0.
-GPlayer* LandOwner(const MapCoords& at) {
-    GPlayer* best = PlayerAt(0);
-    float nearest = 3.4028235e38f;
-    for (uint32_t p = 0; p < 8; ++p)
-        for (Town* t = PlayerAt(p)->towns.first; t; t = t->next) {
-            const float d = std::hypot(MetresOf(at.x - t->coords.x), MetresOf(at.z - t->coords.z));
-            if (d <= t->GetRadius() && d < nearest) nearest = d, best = PlayerAt(p);
-        }
-    return best;
-}
 GInterfaceStatus* g_hands[8];
 }  // namespace
 
@@ -48,7 +34,7 @@ GInterfaceStatus* g_hands[8];
 bool GInterfaceStatus::PickUp(Object* o) {
     if (!o || held) return false;
     held = o;
-    taken_from = LandOwner(o->coords);
+    taken_from = InfluenceOwner(o->coords);  // sub_5BFD00 -> sub_58E1E0
     return true;
 }
 

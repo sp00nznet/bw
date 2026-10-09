@@ -119,6 +119,8 @@ WorshipSite* Citadel::WorshipSiteFor(Town* town) {
 
 // ponytail: the citadel's own share (sub_44EEE0 with the sites' highest
 // +0x114) is not translated.
+float Citadel::Power() const { return g_player_influence_multiplier * influence; }
+
 void Citadel::ProcessWorship() {
     for (WorshipSite* w : worship_sites)
         if (w) w->ProcessWorship();

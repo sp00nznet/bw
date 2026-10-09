@@ -1159,6 +1159,25 @@ int main() {
         }
     }
 
+    // Influence (sub_58DE80): a player's towns count where nearer than their
+    // influence (TownInfo +120 = 25 m, plus abodes', x the level's multiplier);
+    // the citadel its power (heart info +284 x built). InfluenceOwner
+    // (sub_58E1E0) is who has the most, else player 0.
+    {
+        Town* t0 = level::FindTown(w, 0);
+        Town* t1 = level::FindTown(w, 1);
+        const float own = PlayerInfluence(PlayerAt(0), t0->coords);
+        const float there = PlayerInfluence(PlayerAt(0), t1->coords);
+        GPlayer* owner1 = InfluenceOwner(t1->coords);
+        const MapCoords far_off = MapCoordsFromMetres(MetresOf(t0->coords.x) + 2000.0f, MetresOf(t0->coords.z));
+        std::snprintf(msg, sizeof msg, "influence: player 0 at town 0 %.2f (radius %.0f m), at town 1 %.2f; town 1 belongs to player %d; citadel power %.0f; multipliers %.1f / %.1f",
+                      own, t0->influence, there, owner1 ? owner1->player_number : -1, PlayerAt(0)->citadel ? PlayerAt(0)->citadel->Power() : -1.0f,
+                      g_town_influence_multiplier, g_player_influence_multiplier);
+        CHECK(own == 1.0f && there == 0.0f && owner1 == t1->GetPlayer() && owner1 != PlayerAt(0) && InfluenceOwner(far_off) == PlayerAt(0) &&
+                  g_town_influence_multiplier == 1.0f && g_player_influence_multiplier == 1.0f,
+              msg);
+    }
+
     // Land 2's town spells (loader cases 10 / 11 -> sub_6D0200).
     {
         level::World w2;

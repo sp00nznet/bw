@@ -2,6 +2,9 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 // Cross-referenced with bw1-decomp (v1.20)
 
+#include <cmath>
+#include <algorithm>
+#include <black/Citadel.h>
 #include <black/Player.h>
 #include <black/Game.h>
 #include <black/Town.h>
@@ -116,6 +119,43 @@ void SetPlayerCreature(GPlayer* p, Creature* c) {
 }
 
 // ponytail: v1.0's 0 is the player at GGame+2104087 (the local one); here, player 0.
+float g_town_influence_multiplier = 1.0f;
+float g_player_influence_multiplier = 1.0f;
+
+// ponytail: not modelled -- the debug "all influence" flag (game +20 bit
+// 0x2000) and the player's +332; the game mode that gives a citadel-less
+// player none (sub_5256A0); the landscape test (sub_442BD0, ours: inside the
+// map); and the scripted virtual influences and anti-influences (game
+// +2104584, sub_58E410 / sub_58E510).
+float PlayerInfluence(GPlayer* p, const MapCoords& at) {
+    if (!p) return 1.0f;
+    auto dist = [&at](const MapCoords& c) { return std::hypot(MetresOf(at.x - c.x), MetresOf(at.z - c.z)); };
+    float v = 0.0f;
+    if (Citadel* c = p->citadel) {  // sub_44E9B0
+        const float power = c->Power();
+        if (power > dist(c->coords)) v += power;
+    }
+    for (Town* t = p->towns.first; t; t = t->next)  // sub_6D9500
+        if (dist(t->coords) < t->influence) v += t->influence;
+    if (at.x < 0 || at.z < 0) return 0.0f;
+    return std::clamp(v, -1.0f, 1.0f);
+}
+
+// sub_523530 walks the players in use. ponytail: v1.0 starts from the local
+// player's slot; here the first strictly greater wins from player 0 up.
+GPlayer* InfluenceOwner(const MapCoords& at, float* amount) {
+    GPlayer* best = PlayerAt(0);
+    float most = 0.0f;
+    for (uint32_t i = 0; i < 8; ++i) {
+        GPlayer* p = PlayerAt(i);
+        if (p->type == PLAYER_TYPE_NONE) continue;
+        const float v = PlayerInfluence(p, at);
+        if (v > most) most = v, best = p;
+    }
+    if (amount) *amount = most;
+    return best;
+}
+
 GPlayer* ScriptPlayer(int32_t n) { return PlayerAt(n > 0 ? static_cast<uint32_t>(n - 1) : 0u); }
 
 void GPlayer::Process() {

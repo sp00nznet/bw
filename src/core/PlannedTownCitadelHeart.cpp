@@ -9,6 +9,7 @@
 #include <black/LHVMObjects.h>
 #include <black/Player.h>
 #include <black/Town.h>
+#include <cstring>
 
 Town* PlannedTownCitadelHeart::GetTown() { return town; }
 
@@ -77,6 +78,13 @@ MultiMapFixed* PlannedTownCitadelHeart::CreatePlannedNoFixedCheck(float built) {
     heart->life = 1.0f;
     heart->info = info;
     heart->percent_built = built;
+    // sub_44FED0: the citadel's power grows by built x heart info +284 (125 m).
+    // ponytail: the other game modes' value (+0x13C + 4n) is not used.
+    {
+        float r = 0.0f;
+        if (info) std::memcpy(&r, reinterpret_cast<const char*>(info) + 284, 4);
+        citadel->influence = citadel->Power() + built * r;
+    }
     heart->citadel = citadel;
     heart->field_0x90 = 0;
     heart->field_0x8c = 0;
