@@ -3,6 +3,7 @@
 #include "../include/black/WorshipSite.h"
 #include "../include/black/BuildingSite.h"
 #include "../include/black/WorshipTotem.h"
+#include "../include/black/Town.h"
 #include <cmath>
 
 // === Overrides of Base virtuals ===
@@ -148,6 +149,13 @@ MapCoords* WorshipSite::GetResourceNearestEdge(MapCoords* /*out*/, RESOURCE_TYPE
 void WorshipSite::RemovePotFromStructure(PotStructure* /*structure*/) {}
 
 // === Non-virtual methods ===
+
+// ponytail: the footpath to the town (sub_6D3BE0, GFootpathLink) and the
+// town's spells (sub_705860) are not translated.
+void WorshipSite::AddTown(Town* town) {
+    town->SetWorshipSite(this);
+    if (!towns.Has(town)) towns.Add(town);
+}
 
 // 0x0077afc0
 MapCoords* WorshipSite::GetSpellIconPosFromSlot(MapCoords* /*coords*/, uint32_t /*slot*/, float /*angle*/) { return nullptr; }

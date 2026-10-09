@@ -1,6 +1,7 @@
 // CitadelPart class implementation
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
+#include <black/Citadel.h>
 #include <black/CitadelPart.h>
 
 void CitadelPart::ToBeDeleted(int param) {
@@ -8,9 +9,8 @@ void CitadelPart::ToBeDeleted(int param) {
     MultiMapFixed::ToBeDeleted(param);
 }
 
-GPlayer* CitadelPart::GetPlayer() {
-    // Original at 0x00469750 — complex
-    return nullptr;
+GPlayer* CitadelPart::GetPlayer() {  // v1.0 sub_454840: citadel +0x2C
+    return citadel ? citadel->GetPlayer() : nullptr;
 }
 
 char* CitadelPart::GetDebugText() {
@@ -102,15 +102,9 @@ bool CitadelPart::ShouldFootpathsGoRound() {
     return true;
 }
 
-bool CitadelPart::IsRepaired() {
-    // Original at 0x00464ab0 — complex
-    return false;
-}
+bool CitadelPart::IsRepaired() { return GetPercentRepaired() >= 1.0f; }  // v1.0 0x401420 (vslot 547): life
 
-bool CitadelPart::IsBuilt() {
-    // Original at 0x00464ad0 — complex
-    return false;
-}
+bool CitadelPart::IsBuilt() { return !(field_0x58 & 2) && GetPercentBuilt() >= 1.0f; }  // v1.0 sub_44FFB0 (vslot 548)
 
 PlannedMultiMapFixed* CitadelPart::ConvertToPlanned() {
     // Original at 0x004694a0 — complex

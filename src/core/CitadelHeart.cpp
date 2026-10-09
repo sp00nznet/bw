@@ -3,6 +3,10 @@
 
 #include <black/CitadelHeart.h>
 #include <black/Citadel.h>
+#include <black/BuildingSite.h>
+#include <black/Player.h>
+#include <black/Town.h>
+#include <black/WorshipSite.h>
 
 // ============================================================================
 // LeashObj
@@ -213,9 +217,29 @@ MapCoords* CitadelHeart::GetDoorPos(MapCoords* pos) {
     return pos;
 }
 
+// v1.0 sub_4503D0: built, scale 1 (vslot 364), its site off every town of
+// the player, then the worship sites. ponytail: the local player's sound (61)
+// and help (20) are not translated.
 bool CitadelHeart::Built() {
-    // Original at 0x00465000 — complex
-    return false;
+    MultiMapFixed::Built();
+    scale = 1.0f;
+    GPlayer* p = GetPlayer();
+    for (Town* t = p ? p->towns.first : nullptr; t; t = t->next) t->RemoveBuildingSite(this);
+    if (citadel) StartWorshipSites(0.0f);
+    return true;
+}
+
+void CitadelHeart::StartWorshipSites(float priority) {
+    GPlayer* p = GetPlayer();
+    for (Town* t = p && citadel ? p->towns.first : nullptr; t; t = t->next) {
+        WorshipSite* w = citadel->WorshipSiteFor(t);
+        if (!w) continue;
+        w->AddTown(t);
+        if (w->IsBuilt() && w->IsRepaired()) continue;
+        BuildingSite* s = t->SiteFor(w);
+        if (!s) s = t->StartBuilding(w);
+        if (s) s->field_0x63c = priority;
+    }
 }
 
 ABODE_TYPE CitadelHeart::GetAbodeType() {

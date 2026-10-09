@@ -19,6 +19,7 @@
 #include <black/Villager.h>
 #include <black/Game.h>
 #include <black/InfoDat.h>
+#include <black/WorshipSite.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -154,11 +155,7 @@ bool32_t Town::CanBePlayedWithByCreature(Creature* /*creature*/) {
     return 1;
 }
 
-WorshipSite* Town::GetWorshipSite() {
-    // Original at 0x0073c940 — complex lookup through citadel parts
-    // Look up worship site through citadel parts — needs citadel worship site tracking
-    return nullptr;
-}
+WorshipSite* Town::GetWorshipSite() { return worship_site; }  // v1.0 sub_6CFAA0
 
 bool32_t Town::IsTownBelongingToOtherPlayer(Creature* /*creature*/) {
     // Original at 0x004e4140 — complex
@@ -379,9 +376,14 @@ BuildingSite* Town::AddBuildingSiteNoFixedCheck(PlannedMultiMapFixed* /*planned*
     return nullptr;
 }
 
-uint32_t Town::RemoveBuildingSite(MultiMapFixed* /*structure*/) {
-    // Original at 0x0073ba20 — complex
-    return 0;
+// v1.0 sub_6CEC00: the building's site is deleted (vslot 3). Ours does not
+// delete itself, so it leaves the list here.
+uint32_t Town::RemoveBuildingSite(MultiMapFixed* structure) {
+    BuildingSite* s = SiteFor(structure);
+    if (!s) return 0;
+    s->ToBeDeleted(0);
+    building_site_list.Remove(s);
+    return 1;
 }
 
 void Town::SetBeliefInPlayer(GPlayer* player, float value) {
@@ -859,6 +861,27 @@ BuildingSite* Town::StartPlanned(PlannedMultiMapFixed* planned) {  // sub_6CEA80
     if (!b || !b->CreateBuildingSite() || !b->building_site) return nullptr;
     AddBuildingSite(b->building_site);
     return b->building_site;
+}
+
+BuildingSite* Town::SiteFor(MultiMapFixed* building) {
+    for (LHNode* n = building_site_list.head; n; n = n->next)
+        if (static_cast<BuildingSite*>(n->obj)->root_building == building) return static_cast<BuildingSite*>(n->obj);
+    return nullptr;
+}
+
+BuildingSite* Town::StartBuilding(MultiMapFixed* building) {
+    if (!building->CreateBuildingSite() || !building->building_site) return nullptr;
+    AddBuildingSite(building->building_site);
+    return building->building_site;
+}
+
+// ponytail: the game-wide check (game +2104004 == 1) is not kept.
+bool Town::CanWorship() const { return !field_0x5f0 && stats.num_adults + stats.num_children; }
+
+// ponytail: the walk to it (sub_6D5F30, when +0x99C is set) is not translated.
+void Town::SetWorshipSite(WorshipSite* site) {
+    worship_site = site;
+    if (!site->IsBuilt() && !SiteFor(site)) StartBuilding(site);
 }
 
 BuildingSite* BuildPlannedAt(const MapCoords& at, float priority) {

@@ -6,6 +6,14 @@
 // are packed 16 bytes apart (trivial returns).
 
 #include <black/Citadel.h>
+#include <black/CitadelHeart.h>
+#include <black/InfoDat.h>
+#include <black/LHVMObjects.h>
+#include <black/Player.h>
+#include <black/Town.h>
+#include <black/WorshipSite.h>
+#include <cmath>
+#include <cstring>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -92,7 +100,63 @@ void* Citadel::AddTown(Town* /*town*/) {
     return nullptr;
 }
 
-WorshipSite* Citadel::FindOrCreateWorshipSite(const GTribeInfo* /*tribe_info*/) {
-    // Original at 0x00463220 — complex
+WorshipSite* Citadel::FindWorshipSite(const GTribeInfo* tribe_info) {
+    for (WorshipSite* w : worship_sites)
+        if (w && w->tribe_info == tribe_info) return w;
     return nullptr;
+}
+
+WorshipSite* Citadel::FindOrCreateWorshipSite(const GTribeInfo* tribe_info) {
+    if (WorshipSite* w = FindWorshipSite(tribe_info)) return w;
+    return CreateWorshipSite(tribe_info);
+}
+
+WorshipSite* Citadel::WorshipSiteFor(Town* town) {
+    if (!town || field_0x74 || !town->CanWorship()) return nullptr;
+    return FindOrCreateWorshipSite(static_cast<const GTribeInfo*>(infodat::Element(infodat::DETAIL_TRIBE_INFO, town->tribe_type)));
+}
+
+// sub_44EBE0 -> sub_703DB0 -> sub_703AC0. The tribe's record is 28 bytes, its
+// worship site record 352 (both by tribe). The slot is the free one of six
+// whose place (the heart's mesh point 9 turned by heart angle + slot x 2pi/7,
+// sub_44ECD0 / sub_452BB0) is nearest the tribe's nearest town (sub_6CE6D0).
+// The site stands at the citadel (+0x14), 0% built, scale 1.
+// ponytail: there are no meshes in core, so every slot's place is the heart's
+// own (v1.0's fallback when the mesh has no point 9) and the first free slot
+// wins. The totem (sub_708CF0), spell icons (sub_704040) and the towns'
+// worship distances (sub_6CE140) are not translated.
+WorshipSite* Citadel::CreateWorshipSite(const GTribeInfo* tribe_info) {
+    const auto* base = static_cast<const uint8_t*>(infodat::Element(infodat::DETAIL_TRIBE_INFO, 0));
+    if (!tribe_info || !base) return nullptr;
+    const uint32_t tribe = static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(tribe_info) - base) / 28);
+    const void* info = infodat::Element(infodat::DETAIL_WORSHIP_SITE_INFO, tribe);
+    if (!info) return nullptr;
+    uint32_t slot = 0;
+    while (slot < 6 && worship_sites[slot]) ++slot;
+    if (slot == 6) return nullptr;
+
+    auto* w = new WorshipSite();
+    w->SetPos(coords);
+    w->obj_coords = coords;
+    w->y_angle = (heart ? heart->y_angle : 0.0f) + static_cast<float>(slot) * 0.89759791f;
+    w->life = 1.0f;
+    w->info = static_cast<GObjectInfo*>(const_cast<void*>(info));
+    w->scale = *reinterpret_cast<const float*>(static_cast<const uint8_t*>(info) + 296);  // sub_5EC3B0
+    std::memcpy(&w->field_0x7c, static_cast<const uint8_t*>(info) + 284, 4);  // this[31] = info +284
+    w->percent_built = 0.0f;
+    w->tribe_info = const_cast<GTribeInfo*>(tribe_info);
+    w->slot = static_cast<uint8_t>(slot);
+    // sub_4545E0: onto the citadel's parts (+0x4C, count +0x50).
+    w->citadel = this;
+    w->next = reinterpret_cast<CitadelPart*>(part_list[0]);
+    part_list[0] = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(w));
+    ++part_list[1];
+    worship_sites[slot] = w;  // sub_44EE00
+    w->InsertMapObject();
+    lhvm::RegisterObject(w);
+    // sub_7040D0: the player's towns of the tribe worship here.
+    if (GPlayer* p = GetPlayer())
+        for (Town* t = p->towns.first; t; t = t->next)
+            if (t->tribe_type == tribe) w->AddTown(t);
+    return w;
 }

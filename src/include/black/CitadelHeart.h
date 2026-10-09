@@ -107,6 +107,9 @@ struct CitadelHeart : public CitadelPart {
     // === Overrides of MultiMapFixed virtuals ===
     MapCoords* GetDoorPos(MapCoords* pos) override;
     bool Built() override;
+    // v1.0 sub_450320: every town of the player gets its worship site, and an
+    // unbuilt one's site gets this priority.
+    void StartWorshipSites(float priority);
     ABODE_TYPE GetAbodeType() override;
     PlannedMultiMapFixed* ConvertToPlanned() override;
     void CreateCollideData() override;

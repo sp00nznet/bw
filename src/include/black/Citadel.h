@@ -39,7 +39,12 @@ struct Citadel : public Container {
 
     // === Non-virtual methods ===
     void* AddTown(Town* town);
-    WorshipSite* FindOrCreateWorshipSite(const GTribeInfo* tribe_info);
+    WorshipSite* FindOrCreateWorshipSite(const GTribeInfo* tribe_info);  // sub_44EAD0
+    WorshipSite* FindWorshipSite(const GTribeInfo* tribe_info);          // sub_44EA50
+    WorshipSite* CreateWorshipSite(const GTribeInfo* tribe_info);        // sub_44EBE0
+    // v1.0 sub_44EA80: the worship site for the town's tribe, made if need be;
+    // nullptr if the town cannot worship or the citadel's worship is off (+0x74).
+    WorshipSite* WorshipSiteFor(Town* town);
 
     // === Fields ===
     CitadelHeart*  heart;             // 0x30

@@ -194,6 +194,15 @@ struct Town : public Container {
     // v1.0 sub_6CEA80: start this planned building (vslot 321, then its site,
     // vslot 309, joins the town). The site, or nullptr.
     BuildingSite* StartPlanned(PlannedMultiMapFixed* planned);
+    // v1.0 sub_6CFDF0: this town's site for the building, or nullptr.
+    BuildingSite* SiteFor(MultiMapFixed* building);
+    // v1.0 sub_6CEAC0: the building's site (vslot 309) onto the town's list.
+    BuildingSite* StartBuilding(MultiMapFixed* building);
+    // v1.0 sub_6D3500: the town has people and worship is not disabled (+0x5F0).
+    bool CanWorship() const;
+    // v1.0 sub_6CFF60: the town worships here (+0x984); an unbuilt site is
+    // started.
+    void SetWorshipSite(WorshipSite* site);
     // v1.0 sub_6D1750: the forests within TownInfo +356 of the store (or the
     // town) that hold wood, from the global list.
     void CollectForests(const std::vector<Forest*>& all);
@@ -261,7 +270,7 @@ struct Town : public Container {
     LHLinkedList_Playthings        playthings;               // 0x974
     uint32_t                       field_0x984;             // 0x97C
     uint32_t                       field_0x988;             // 0x980
-    uint32_t                       field_0x98c;             // 0x984
+    WorshipSite*                   worship_site;            // 0x984 — sub_6CFF60
     uint32_t                       field_0x990;             // 0x988
     LHLinkedList_TownArtifactList  artifacts;                // 0x98C
     uint32_t                       field_0x99c;             // 0x994

@@ -36,6 +36,7 @@
 #include <black/PlannedTownCitadelHeart.h>
 #include <black/Citadel.h>
 #include <black/CitadelHeart.h>
+#include <black/WorshipSite.h>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -986,6 +987,24 @@ int main() {
             }
             std::snprintf(msg, sizeof msg, "town 0's villagers build the heart: %.1f%% after 3000 turns, up to %u builders", heart->percent_built * 100.0f, most);
             CHECK(most > 0 && heart->percent_built > 0.0f, msg);
+
+            // The heart finished (sub_4503D0): its site leaves the town, and
+            // sub_450320 gives town 0 its tribe's worship site in the citadel
+            // (sub_44EBE0), unbuilt, with its site on the town's list.
+            heart->BuildBy(1.0f - heart->percent_built);
+            WorshipSite* ws = v0->GetWorshipSite();
+            BuildingSite* ws_site = ws ? v0->SiteFor(ws) : nullptr;
+            std::snprintf(msg, sizeof msg, "the finished heart starts town 0's worship site: heart site %s, worship site %s (tribe %u, slot %u), its site %s",
+                          v0->building_site_list.Has(s) ? "kept" : "gone", ws ? "made" : "none", v0->tribe_type, ws ? ws->slot : 99, ws_site ? "listed" : "none");
+            CHECK(heart->IsBuilt() && !v0->building_site_list.Has(s) && ws && c->worship_sites[ws->slot] == ws && ws->citadel == c &&
+                      ws->towns.Has(v0) && !ws->IsBuilt() && ws_site && ws->GetPlayer() == PlayerAt(0) &&
+                      c->FindOrCreateWorshipSite(ws->tribe_info) == ws,
+                  msg);
+            if (ws_site) {
+                for (int t = 0; t < 1000; ++t) level::Process(w);
+                std::snprintf(msg, sizeof msg, "town 0's villagers build the worship site: %.1f%% after 1000 turns", ws->percent_built * 100.0f);
+                CHECK(ws->percent_built > 0.0f, msg);
+            }
         }
     }
 

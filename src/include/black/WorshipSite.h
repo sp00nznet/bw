@@ -10,6 +10,7 @@
 
 #include "CitadelPart.h"
 #include "WorshipSpellIcon.h"
+#include "LHNodeList.h"
 
 // Forward declarations
 struct Dance;
@@ -91,6 +92,8 @@ struct WorshipSite : public CitadelPart {
     void RemoveVillagerFromWorshipCount(Villager* villager);                  // 0x0077d0a0
     void RemoveVillagerRequestingToGoHome(Villager* villager);               // 0x0077e1d0
     int GetNumVillagersRequestingToGoHome();                                 // 0x0077e260
+    // v1.0 sub_705750: the town worships here.
+    void AddTown(Town* town);
 
     // === Fields ===
     GTribeInfo*                      tribe_info;     // 0x8C
@@ -99,7 +102,8 @@ struct WorshipSite : public CitadelPart {
     uint32_t                         field_0x98;     // 0x98
     uint32_t                         field_0x9c;     // 0x9C
     Dance*                           dance;          // 0xA0
-    uint8_t                          field_0xa4[0x14]; // 0xA4
+    LHNodeList                       towns;          // 0xA4 — sub_705750
+    uint8_t                          field_0xac[0xC]; // 0xAC
     int32_t*                         field_0xb8;     // 0xB8
     uint8_t                          field_0xbc[0xC]; // 0xBC
     int32_t                          field_0xc8;     // 0xC8
@@ -107,7 +111,9 @@ struct WorshipSite : public CitadelPart {
     int32_t                          field_0xd8;     // 0xD8
     WorshipTotem*                    totem;          // 0xDC
     LHListHead_WorshipSpellIcon      icon_list;      // 0xE0
-    uint8_t                          field_0xe8[0x2C]; // 0xE8
+    uint8_t                          field_0xe8[0x28]; // 0xE8
+    uint8_t                          slot;           // 0x110 — its place in the citadel (sub_703AC0)
+    uint8_t                          field_0x111[3];
     float                            field_0x114;    // 0x114
     float                            field_0x118;    // 0x118
     float                            field_0x11c;    // 0x11C
@@ -115,3 +121,4 @@ struct WorshipSite : public CitadelPart {
     int32_t  num_villagers_requesting_to_go_home;    // 0x124
 };
 static_assert(sizeof(WorshipSite) == 0x128, "WorshipSite size mismatch");
+static_assert(offsetof(WorshipSite, towns) == 0xA4 && offsetof(WorshipSite, slot) == 0x110, "sub_703AC0");

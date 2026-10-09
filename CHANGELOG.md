@@ -39,6 +39,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Worship sites. The finished CitadelHeart (sub_4503D0) gives each of the player's towns
+  its tribe's worship site in the citadel (sub_450320, sub_44EBE0). The town's villagers
+  then build it. See docs/players.md.
 - The player's citadel. CREATE_PLANNED_CITADEL plans it on the village. BUILD_BUILDING,
   which Land 1's opening calls at that spot, now builds the planned building there, as
   v1.0's does (sub_6D11E0). For the citadel plan, that makes the player's Citadel and an

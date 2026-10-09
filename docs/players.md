@@ -92,9 +92,53 @@ The creature's "player has a temple" (player +608) now reads the citadel.
   - its power base (`sub_44F720`);
   - the heart's entrance (`sub_450590`);
   - PostCreatePlanned (vslot 322);
-  - what happens when the heart is finished (`sub_450320`).
 - BUILD_BUILDING takes a plan within 10 m of its centre. v1.0 measures to the plan's
   edge.
+
+## Worship sites
+
+When the heart is finished, CitadelHeart::Built (`sub_4503D0`) does this:
+
+1. It runs MultiMapFixed::Built and sets scale 1.
+2. It takes the heart's site off every town of the player (`sub_6CEC00`).
+3. It calls `sub_450320`. A heart made already built (`sub_450280`, built ≥ 1) calls
+   it straight away.
+
+`sub_450320` walks the player's towns. For each one, the citadel finds the worship site
+for the town's tribe, or makes it (`sub_44EA80` → `sub_44EA50` / `sub_44EBE0`).
+
+That is skipped when:
+- the citadel's worship is off (+0x74);
+- the town has no people;
+- the town's worship is disabled (+0x5F0, `sub_6D3500`).
+
+The town joins the site's town list (+0xA4, `sub_705750`), and the town's worship site
+(+0x984) is set (`sub_6CFF60`). An unbuilt worship site gets a site on the town's list,
+with priority 0.
+
+A worship site (`sub_703DB0` → `sub_703AC0`, 296 bytes) is a CitadelPart:
+- It stands at the citadel, 0% built.
+- Its record is WORSHIP_SITE_INFO[tribe] (352 bytes), and its tribe is
+  TRIBE_INFO[tribe] (28 bytes, at +0x8C).
+- It takes one of the citadel's six slots (+0x34; its slot byte is at +0x110). The slot
+  is the free one whose place is nearest the tribe's nearest town. That place is the
+  heart mesh's point 9, turned by heart angle + slot × 2π/7.
+
+CitadelPart's GetPlayer (`sub_454840`, the citadel's player), IsBuilt (`sub_44FFB0`) and
+IsRepaired (life ≥ 1) were stubs and are now translated.
+
+In `test_level`, finishing Land 1's heart gives town 0 (tribe 7) its worship site in
+slot 0. Town 0's villagers build it to 100% in 1,000 turns.
+
+**Ours:**
+- With no meshes in core, every slot's place is the heart's own position, which is what
+  v1.0 uses when the mesh has no point 9. The first free slot is taken.
+- Not translated:
+  - the totem (`sub_708CF0`);
+  - spell icons (`sub_704040`, `sub_705860`);
+  - the footpath to each town (`sub_6D3BE0`);
+  - the towns' worship distance (`sub_6CE140`);
+  - the local player's sound and help.
 
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;

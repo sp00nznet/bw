@@ -86,6 +86,7 @@ MultiMapFixed* PlannedTownCitadelHeart::CreatePlannedNoFixedCheck(float built) {
     if (field_0x30) heart->field_0x58 |= 4;
     heart->InsertMapObject();
     lhvm::RegisterObject(heart);
+    if (built >= 1.0f) heart->StartWorshipSites(0.0f);
     // vslot 322 (PostCreatePlanned) is not translated; vslot 3 deletes the plan.
     town->RemovePlanned(this);
     delete this;
