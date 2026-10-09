@@ -240,6 +240,51 @@ then holds Food. In the viewer, once the player has a temple:
 - The hand's seed is a host record (`HeldSeed`), not a SpellSeed object.
 - SET_MAGIC_IN_OBJECT still does nothing; towns are not script handles.
 
+## The hand: taking things to buildings
+
+A player's hand status is its GInterface's GInterfaceStatus (0x134 bytes, also in v1.0).
+Its player is GGame's player by its number (+0x28, `sub_59BCA0`).
+
+**Picking up** (`sub_59C390`): the object goes to +0x120. +0x128 records the player with
+the most influence where it was picked up (`sub_5BFD00` → `sub_58E1E0`, else the local
+player). The v1.41-based header had these two named `last_dropped_object` and
+`leash_status`.
+
+**Letting go over a building** calls its DeleteObjectAndTakeResource (vslot 417):
+
+| Class | v1.0 | Takes it when |
+|---|---|---|
+| MultiMapFixed (abodes, fields) | `sub_505610` | it has a site under way (+0x74) |
+| StoragePit | `sub_6C9840` | always |
+| WorshipSite | `sub_7071B0` | always |
+| Workshop, Pot, piles | `sub_617A00` | always |
+
+Taking (`sub_5ECB70`): the object's resource type and all it holds go to the building's
+AddResource. If that took any, the building's DoCreatureMimicAfterAddingResource
+(vslot 419) lets the player's creature see it. Then the object is removed.
+
+| Class | v1.0 | Mimic row |
+|---|---|---|
+| any, under construction | `sub_5053E0` | wood: 7 Put wood in building site |
+| StoragePit | `sub_6C9900` | from the player's own land: food 2, wood 4; else food 43 or 44, wood 45 (theft) |
+| WorshipSite | `sub_706BF0` | food: 0 Put food in worship site |
+| Workshop | `sub_703880` | wood: 9 Put wood in workshop |
+
+In `test_level`, player 0 picks up 100 wood in village 0 and lets go over its store. The
+store goes 3,750 → 3,850, the pile is gone, and the creature on the learning leash takes
+up row 4.
+
+**Ours:**
+- There is no influence map in core. The land's owner is the player of the nearest town
+  whose radius holds the point, else player 0.
+- The taken object is taken off the map and marked unavailable, not freed; the level's
+  object list still holds it.
+- Not translated:
+  - the rest of the pick-up (a held living, hand states, multi-pick-up);
+  - the local player's displays, sounds and tutorial cues;
+  - Scaffold's own take (`sub_685A70`).
+- The viewer's hand still moves its own entities and does not call this yet.
+
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;
 - interfaces, the +0x15C object, GameStats and the citadel;

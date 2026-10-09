@@ -2,6 +2,9 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/StoragePit.h>
+#include <black/CreatureBrain.h>
+#include <black/GInterfaceStatus.h>
+#include <cstdlib>
 #include <black/InfoDat.h>
 #include <black/ObjectInfo.h>
 #include <black/PileFood.h>
@@ -92,8 +95,26 @@ uint32_t StoragePit::GetDiscipleStateIfInteractedWith(GInterfaceStatus*, Village
 void StoragePit::CallVirtualFunctionsForCreation(const MapCoords&) { /* 0x00732e80 */ }
 LH3DObject_ObjectType StoragePit::Get3DType() { return static_cast<LH3DObject_ObjectType>(0); } // 0x0055ccd0
 bool StoragePit::IsResourceStore(RESOURCE_TYPE) { return true; } // 0x0055cd20
-bool StoragePit::DeleteObjectAndTakeResource(Object*, GInterfaceStatus*) { return false; } // 0x00733750
-bool StoragePit::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE, GInterfaceStatus*) { return false; } // 0x00733810
+// v1.0 sub_6C9840. ponytail: the local player's tutorial cue for a held
+// living (sub_586170(6)) and the town statistic (sub_67EFC0(22)) are not kept.
+bool StoragePit::DeleteObjectAndTakeResource(Object* o, GInterfaceStatus* status) {
+    TakeResourceOf(o, status);
+    return true;
+}
+// v1.0 sub_6C9900: after a building site's own case (sub_5053E0), food or
+// wood put in: from the player's own land "Put ... in storage pit" (2 / 4),
+// from another's a theft (food 43 or 44 at random, wood 45).
+// ponytail: the coin for 43/44 is the brain's own dice, not the game's.
+bool StoragePit::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE type, GInterfaceStatus* status) {
+    if (MultiMapFixed::DoCreatureMimicAfterAddingResource(type, status)) return true;
+    GPlayer* p = status ? status->GetPlayer() : nullptr;
+    const bool own = status && status->taken_from == p;
+    uint32_t row;
+    if (type == RESOURCE_TYPE_WOOD) row = own ? 4 : 45;
+    else row = own ? 2 : (std::rand() & 1 ? 44 : 43);
+    creature::PlayerDid(p, row, this);
+    return true;
+}
 void StoragePit::SetPoisonedResource(RESOURCE_TYPE, int) { /* 0x007335f0 */ }
 void StoragePit::SetPoisoned(int) { /* 0x007335d0 */ }
 void StoragePit::ReactToPhysicsImpact(PhysicsObject*, bool) { /* 0x00733730 */ }

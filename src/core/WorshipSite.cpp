@@ -9,6 +9,8 @@
 #include "../include/black/Villager.h"
 #include "../include/black/WorshipSpellIcon.h"
 #include "../include/black/InfoDat.h"
+#include "../include/black/CreatureBrain.h"
+#include "../include/black/GInterfaceStatus.h"
 #include <cstring>
 #include <cmath>
 
@@ -99,11 +101,21 @@ void WorshipSite::CallVirtualFunctionsForCreation(const MapCoords& /*coords*/) {
 // 0x0077dec0
 bool WorshipSite::IsResourceStore(RESOURCE_TYPE /*type*/) { return false; }
 // 0x0077e7b0
-bool WorshipSite::DeleteObjectAndTakeResource(Object* /*object*/, GInterfaceStatus* /*status*/) { return false; }
+// v1.0 sub_7071B0. ponytail: the tutorial cue for a held living is not kept.
+bool WorshipSite::DeleteObjectAndTakeResource(Object* o, GInterfaceStatus* status) {
+    TakeResourceOf(o, status);
+    return true;
+}
 // 0x0077e480
 float WorshipSite::GetRadiusMultiplierForApplyingPotToPos() { return 0.0f; }
 // 0x0077def0
-bool WorshipSite::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*status*/) { return false; }
+// v1.0 sub_706BF0: food put in is "Put food in worship site" (row 0).
+bool WorshipSite::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE type, GInterfaceStatus* status) {
+    if (MultiMapFixed::DoCreatureMimicAfterAddingResource(type, status)) return true;
+    if (type != RESOURCE_TYPE_FOOD) return false;
+    creature::PlayerDid(status ? status->GetPlayer() : nullptr, 0, this);
+    return true;
+}
 // 0x0077de20 — distance from object to worship site center
 float WorshipSite::GetDistanceFromObject_1(Object* object) {
     if (!object) return 0.0f;

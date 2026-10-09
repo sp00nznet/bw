@@ -7,6 +7,8 @@
 // connectivity, resource management, and collision.
 
 #include <black/MultiMapFixed.h>
+#include <black/CreatureBrain.h>
+#include <black/GInterfaceStatus.h>
 #include <black/Map.h>
 #include <cstdlib>
 
@@ -309,15 +311,32 @@ bool MultiMapFixed::IsResourceStore(RESOURCE_TYPE type) {
     return (type == RESOURCE_TYPE_WOOD) && (building_site != nullptr);
 }
 
-bool MultiMapFixed::DeleteObjectAndTakeResource(Object* /*param1*/, GInterfaceStatus* /*param2*/) {
-    // Original at 0x0052f460: base class no-op — overridden by specific types
-    return false;
+// v1.0 sub_505610 (vslot 417): only a building with a site under way takes it.
+bool MultiMapFixed::DeleteObjectAndTakeResource(Object* o, GInterfaceStatus* status) {
+    if (!building_site) return false;
+    TakeResourceOf(o, status);
+    return true;
 }
 
-bool MultiMapFixed::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE /*type*/, GInterfaceStatus* /*status*/) {
-    // Original at 0x0052f210 — triggers creature mimic learning after resource delivery
-    // Base returns false (no mimic); overridden by Abode/StoragePit
-    return false;
+// v1.0 sub_5ECB70. ponytail: the local player's resource display
+// (sub_6B2BE0) and the wood drop sound are not kept. The object is taken off
+// the map and marked unavailable (+0xA bit 0) rather than freed (vslot 3),
+// since the level's object list still holds it.
+void MultiMapFixed::TakeResourceOf(Object* o, GInterfaceStatus* status) {
+    if (!o) return;
+    const RESOURCE_TYPE type = o->GetResourceType();
+    const uint32_t n = o->GetResource(type);
+    if (AddResource(type, n, status, false, o->coords, 0) && status) DoCreatureMimicAfterAddingResource(type, status);
+    if (o->IsObjectInMap_0()) o->RemoveMapObject();
+    o->field_0xa |= 1;
+}
+
+// v1.0 sub_5053E0 (vslot 419): wood given to a building under way is copied
+// as "Put wood in building site" (row 7).
+bool MultiMapFixed::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE type, GInterfaceStatus* status) {
+    if (!IsBeingBuilt(nullptr) || type != RESOURCE_TYPE_WOOD) return false;
+    creature::PlayerDid(status ? status->GetPlayer() : nullptr, 7, this);
+    return true;
 }
 
 void MultiMapFixed::StartOnFire() {

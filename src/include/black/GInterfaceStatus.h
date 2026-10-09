@@ -39,6 +39,14 @@ struct GInterfaceStatus : public GameThingWithPos {
     GInterface* GetInterface();
     void Init(uint8_t player_number, GInterface* iface);
 
+    // The hand's part of v1.0's pick-up (sub_59C390): it holds the object, and
+    // notes whose land it came from.
+    bool PickUp(Object* o);
+    // Let go over `target` (a building): it takes the held object's resource
+    // if it will (vslot 417, DeleteObjectAndTakeResource). The hand is empty
+    // after. True when the target took it.
+    bool DropOn(Object* target);
+
     // === Fields ===
     uint8_t              player_number;     // 0x28
     uint8_t              pad_0x29[3];       // 0x29
@@ -72,10 +80,15 @@ struct GInterfaceStatus : public GameThingWithPos {
     LHPoint              hand_velocity;     // 0x10C
     float                field_0x118;       // 0x118
     uint32_t             field_0x11c;       // 0x11C
-    Object*              last_dropped_object; // 0x120
+    Object*              held;              // 0x120 — what the hand picked up (v1.0 sub_59C390)
     uint32_t             field_0x124;       // 0x124
-    GLeashStatus*        leash_status;      // 0x128
+    GPlayer*             taken_from;        // 0x128 — the player with most influence where it was picked up (sub_5BFD00)
     GVirtualInfluence*   influence;         // 0x12C
     float                field_0x130;       // 0x130
 };
 static_assert(sizeof(GInterfaceStatus) == 0x134, "GInterfaceStatus size mismatch");
+static_assert(offsetof(GInterfaceStatus, held) == 0x120 && offsetof(GInterfaceStatus, taken_from) == 0x128, "sub_59C390");
+
+// A player's hand status (v1.0: its GInterface's, 0x134 bytes, sub_59B8F0).
+// Core has no interfaces; one per player is kept here.
+GInterfaceStatus* HandStatusOf(GPlayer* player);

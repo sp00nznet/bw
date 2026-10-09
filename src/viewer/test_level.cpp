@@ -5,6 +5,8 @@
 #include <black/BigForest.h>
 #include <black/BuildingSite.h>
 #include <black/Field.h>
+#include <black/GInterfaceStatus.h>
+#include <black/PileWood.h>
 #include <black/Fire.h>
 #include <black/Forest.h>
 #include <black/PlannedMultiMapFixed.h>
@@ -979,6 +981,30 @@ int main() {
                 std::snprintf(msg, sizeof msg, "it acts it out: notices %d, sprinkles Water %d, a Water spell %d, reached phase %u, done after %d turns (%s)",
                               noticed, sprinkled, rained, most_state, t, pb->mimic.active ? "still mimicking" : "over");
                 CHECK(noticed && sprinkled && rained && most_state >= 2 && !pb->mimic.active, msg);
+
+                // The hand: player 0 picks up a pile of 100 wood in its own
+                // village (sub_59C390: the land's owner kept at +0x128) and
+                // lets go over the village's store (vslot 417, sub_6C9840 ->
+                // sub_5ECB70): the store takes it all, the pile is gone, and
+                // the creature sees "Put wood in storage pit" (sub_6C9900, row 4).
+                Town* home = level::FindTown(w, 0);
+                auto* store = reinterpret_cast<StoragePit*>(home->storage_pit_list);
+                auto* logs = new PileWood();
+                logs->info = infodat::Get<GObjectInfo>(infodat::DETAIL_POT_INFO, 3);
+                logs->coords = home->coords;
+                logs->field_0x68 = static_cast<RESOURCE_TYPE>(1);
+                logs->JustAddResource(static_cast<RESOURCE_TYPE>(1), 100, false);
+                GInterfaceStatus* hand0 = HandStatusOf(PlayerAt(0));
+                const uint32_t wood_before = store->GetResource(static_cast<RESOURCE_TYPE>(1));
+                const bool picked = hand0->PickUp(logs);
+                GPlayer* from = hand0->taken_from;
+                const bool taken = hand0->DropOn(store);
+                const uint32_t wood_after = store->GetResource(static_cast<RESOURCE_TYPE>(1));
+                std::snprintf(msg, sizeof msg, "the hand puts 100 wood in town 0's store: %u -> %u, taken from player %d, pile gone %d, the creature mimics row %u (%s)",
+                              wood_before, wood_after, from ? from->player_number : -1, !logs->IsAvailable(), pb->mimic.type, pb->mimic.active ? "active" : "not");
+                CHECK(picked && taken && from == PlayerAt(0) && wood_after == wood_before + 100 && !logs->IsAvailable() && !hand0->held &&
+                          pb->mimic.active && pb->mimic.type == 4 && pb->mimic.object == store,
+                      msg);
                 PlayerAt(0)->creature = nullptr;
                 pupil->SetOwner(nullptr);
                 w.objects.pop_back();

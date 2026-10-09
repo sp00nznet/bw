@@ -78,6 +78,9 @@ struct MultiMapFixed : public Fixed {
     bool IsResourceStore(RESOURCE_TYPE type) override;
     bool DeleteObjectAndTakeResource(Object* param1, GInterfaceStatus* param2) override;
     bool DoCreatureMimicAfterAddingResource(RESOURCE_TYPE type, GInterfaceStatus* status) override;
+    // v1.0 sub_5ECB70: take the object's resource (its type, all it holds), let
+    // the player's creature see it (vslot 419), and remove the object.
+    void TakeResourceOf(Object* o, GInterfaceStatus* status);
     void StartOnFire() override;
     bool InteractsWithPhysicsObjects() override;
     bool CreatureMustAvoid(Creature* param1) override;

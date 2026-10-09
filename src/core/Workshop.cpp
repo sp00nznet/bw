@@ -1,6 +1,8 @@
 // Workshop class implementation
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
+#include <black/CreatureBrain.h>
+#include <black/GInterfaceStatus.h>
 #include <black/Workshop.h>
 
 void Workshop::ToBeDeleted(int param) { Abode::ToBeDeleted(param); } // 0x00779480
@@ -40,5 +42,15 @@ uint32_t Workshop::GetDiscipleStateIfInteractedWith(GInterfaceStatus*, Villager*
 void Workshop::CallVirtualFunctionsForCreation(const MapCoords&) { /* 0x007793e0 */ }
 LH3DObject_ObjectType Workshop::Get3DType() { return static_cast<LH3DObject_ObjectType>(0); } // 0x007792b0
 bool Workshop::IsResourceStore(RESOURCE_TYPE) { return false; } // 0x0077a650
-bool Workshop::DeleteObjectAndTakeResource(Object*, GInterfaceStatus*) { return false; } // 0x00779f20
-bool Workshop::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE, GInterfaceStatus*) { return false; } // 0x0077a680
+// v1.0 sub_617A00: it takes anything.
+bool Workshop::DeleteObjectAndTakeResource(Object* o, GInterfaceStatus* status) {
+    TakeResourceOf(o, status);
+    return true;
+}
+// v1.0 sub_703880: wood put in is "Put wood in workshop" (row 9).
+bool Workshop::DoCreatureMimicAfterAddingResource(RESOURCE_TYPE type, GInterfaceStatus* status) {
+    if (MultiMapFixed::DoCreatureMimicAfterAddingResource(type, status)) return true;
+    if (type != RESOURCE_TYPE_WOOD) return false;
+    creature::PlayerDid(status ? status->GetPlayer() : nullptr, 9, this);
+    return true;
+}

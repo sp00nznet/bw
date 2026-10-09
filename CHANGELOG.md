@@ -40,6 +40,11 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The player's hand takes things to buildings. A picked-up object is held with the land's
+  owner (sub_59C390). Let go over a store, worship site, workshop or building site, the
+  building takes its resource (vslot 417, sub_5ECB70), and the player's creature may copy
+  it: put food or wood in a store, food at the worship site, wood at a workshop or site, or
+  theft (vslot 419). See docs/players.md.
 - CREATE_DRINK_WAYPOINT (loader case 95): the level's drinking places. A thirsty
   creature's DrinkFromTheSea goes to the nearest within 1 km first (sub_4673B0), as v1.0's
   does. Land 1 has 47.
