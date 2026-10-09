@@ -6,6 +6,7 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- The mimic lesson used the row's notice action (+152); the copying actions start at +156.
 - BUILD_BUILDING popped an object and set its build fraction. v1.0's takes a position and
   a desire.
 - CREATURE_LEARN_EVERYTHING and CREATURE_LEARN_EVERYTHING_EXCLUDING now teach the
@@ -39,6 +40,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- A mimicking creature acts it out (sub_4CAB30): it notices (NoticeHelpfulAction 242), then
+  copies the player, e.g. SprinkleMagicWaterOnCrops (239), which casts Water at the crops
+  through the new GoNearObject and CastSpellAtObject sub-actions (sub_4D6F90). A creature
+  short of practice only tries.
 - Creatures mimic their player (sub_4CB260, DETAIL_MIMIC_PLAYER_ACTION_TABLE). On the
   learning leash, a creature that sees its player's Water land on crops learns the
   miracle and takes up mimicking it. See docs/creature-chooser.md.

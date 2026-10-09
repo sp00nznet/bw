@@ -11,6 +11,7 @@
 #include <black/Object.h>
 #include <black/Player.h>
 #include <black/Villager.h>
+#include <black/SpellCast.h>
 #include <black/types.h>
 
 #include <algorithm>
@@ -258,13 +259,13 @@ bool CreatureBrain::MimicPlayer(uint32_t type, Object* done_to, uint32_t magic) 
 
     Remembered r;  // sub_4D1300 -> sub_4C3540: the plan it would make, as a lesson
     r.desire = u(180);
-    r.action = u(152);
+    r.action = u(156);  // sub_4CAC90(type, 0, magic): the first copying action
     r.object = done_to;
     r.kind = BeliefKindOfType(done_to->GetCreatureBeliefType());
     r.feature_count = DescribeObject(r.kind, done_to, creature_, r.features, kMaxBeliefAttributes);
     for (int kind = 1; kind <= 2; ++kind) Teach(r, 0.5f, kind);
     Stop();  // sub_45FA70(creature, "Mimicking")
-    mimic = {true, type, magic, done_to, done_to->coords, 0, u(184), turn_};  // sub_4CA950
+    mimic = {true, type, magic, done_to, done_to->coords, 0, 0, u(184), turn_};  // sub_4CA950
     // The row's desire's first source (desire table +16) and source 54 rise.
     auto add = [this](uint32_t t, float v) { if (float* s = SourceSlot(t, 0)) *s = std::clamp(*s + v, 0.0f, 1.0f); };
     if (r.desire < kNumCreatureDesires) add(InfoAt<uint32_t>(infodat::DETAIL_CREATURE_DESIRE_TABLE, r.desire, 16), 0.1f);
@@ -273,9 +274,86 @@ bool CreatureBrain::MimicPlayer(uint32_t type, Object* done_to, uint32_t magic) 
     return true;
 }
 
+void CreatureBrain::SetPlan(uint32_t desire, uint32_t action, Object* on, float total) {
+    ActionPlan p;
+    p.desire = desire;
+    p.action = action;
+    p.belief = on ? IdOf(on) : 0;
+    p.total = total;
+    agenda.plans.SetCurrent(p);
+    agenda.current_total = total;
+}
+
+// sub_4CAB30. A phase ends when its actions are done (+7252 reaches +7256),
+// when the notice has been given (phase 0, one action), or after 180 s; the
+// "after" phase (2) only if the row has +188.
+bool CreatureBrain::MimicTick() {
+    const auto* row = static_cast<const char*>(infodat::Element(infodat::DETAIL_MIMIC_PLAYER_ACTION_TABLE, mimic.type));
+    if (!row) { mimic.active = false; return false; }
+    auto u = [row](size_t off) { uint32_t v; std::memcpy(&v, row + off, 4); return v; };
+    if (mimic.count >= mimic.limit || (mimic.state == 0 && mimic.count) || turn_ - mimic.turn > 1800u) {
+        ++mimic.state;
+        if (mimic.state < 3 && (mimic.state != 2 || u(188))) {
+            mimic.count = 0;
+            mimic.limit = u(184);
+            mimic.turn = turn_;
+        } else {
+            mimic.active = false;
+        }
+        mimic_action_ = 0;
+        return false;
+    }
+    switch (mimic.state) {
+    case 0:  // sub_4CACD0: notice it -- desire 6, the row's +152, about the object
+        if (!mimic.object) return false;
+        SetPlan(6, u(152), mimic.object, 3.4028235e38f);
+        mimic_action_ = u(152);
+        return true;
+    case 1:  // sub_4CAD20: the first of the row's six actions (+156) it can do, on the object
+        // ponytail: "can do" is "has a handler here", where v1.0 asks the
+        // action's validity (sub_4D1BE0) and the mind (sub_4C4D20), takes the
+        // first valid one only half the time, looks for related targets
+        // (sub_4BB170) and then for any object of the right kind (sub_4D1170).
+        if (!mimic.object) { mimic.active = false; return false; }
+        for (uint32_t i = 0; i < 6; ++i) {
+            const uint32_t a = u(156 + 4 * i);
+            if (!a || !HasSubActions(a)) continue;
+            SetPlan(u(180), a, mimic.object, 1.0f);
+            mimic_action_ = a;
+            return true;
+        }
+        return false;
+    case 2:  // sub_4CB130: afterwards the row's desire rests 120 s
+        // ponytail: the reset of desire 33 (sub_4BE450), +7228 and the
+        // early end when mental+8700 passes 40 are not kept.
+        if (u(180) < kNumCreatureDesires) desires.Countdown(u(180), 120.0f);
+        return false;
+    default: return false;
+    }
+}
+
 bool PlayerDid(GPlayer* player, uint32_t type, Object* done_to, uint32_t magic) {
     CreatureBrain* b = player && player->creature ? BrainOf(player->creature) : nullptr;
     return b && b->MimicPlayer(type, done_to, magic);
+}
+
+// sub_4D6F90: it casts a miracle at the object. Short of practice -- seen
+// fewer than 0.999 x (the sightings it takes - 1) -- it only tries, which
+// counts as a sighting, and the cast fails.
+// ponytail: the cost from its 3D object's store (+19116, when +21132 is on:
+// the effect's cost / 10000), the offset to the object's edge, the spell's
+// power and the "trying" feedback (sub_4B0770(39)) are not kept; only Water
+// (22, 23) is cast here, through the spell system, with no player to credit.
+bool CreatureBrain::CastAt(uint32_t magic, Object* target) {
+    if (!target || magic >= 42) return false;
+    const float need = std::max(SightingsNeeded(magic, species_) - 1.0f, 1.0f);
+    if (static_cast<float>(spell_seen_[magic]) / need < 0.999f) {
+        ++spell_seen_[magic];
+        return false;
+    }
+    if (magic != 22 && magic != 23) return false;
+    spell::StartWater(static_cast<int>(magic), target->coords, nullptr);
+    return true;
 }
 
 // sub_4BA660, the part that learns: from stage 3, and not while it serves one
@@ -650,8 +728,17 @@ bool CreatureBrain::Tick(const std::vector<Object*>& objects) {
     std::copy(std::begin(mind.action_count), std::end(mind.action_count), facts.action_count);
     ++turn_;
 
+    // sub_4D0440: while it mimics, with nothing under way the mimic's phase
+    // runs (sub_4CAB30); in its first two phases its plan stands in for the
+    // agenda's choice.
+    bool mimicking = false;
+    if (mimic.active) {
+        const bool running = subactions.count && subactions.current < subactions.count;
+        if (!running && MimicTick()) mimicking = true;
+        else mimicking = mimic.active && mimic.state < 2 && mimic_action_ && Action() == mimic_action_;
+    }
     PlanChooser chooser(tables_, mind, host_, beliefs_);
-    agenda.Tick(chooser, mind, host_);
+    if (!mimicking) agenda.Tick(chooser, mind, host_);
 
     // Carry out the current plan. A plan that has just become current runs
     // its action's handler (sub_4D15E0 -> sub_4B6CA0), which queues the

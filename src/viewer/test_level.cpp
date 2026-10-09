@@ -943,11 +943,29 @@ int main() {
                 int drops = 0;
                 for (; drops < 40 && !pb->mimic.active; ++drops) {
                     spell::WaterDrop(crop->coords, at_crop, PlayerAt(0));
-                    for (int t = 0; t < 60; ++t) level::Process(w);
+                    for (int t = 0; t < 60 && !pb->mimic.active; ++t) level::Process(w);
                 }
                 std::snprintf(msg, sizeof msg, "on the learning leash it mimics the player's Water on crops after %d drops: row %u, magic %u, knows Water %d, row limit %u",
                               drops, pb->mimic.type, pb->mimic.magic, (int)pb->Knows(1, 22), pb->mimic.limit);
                 CHECK(!unleashed && pb->mimic.active && pb->mimic.type == 33 && pb->mimic.magic == 22 && pb->mimic.object == crop && pb->Knows(1, 22), msg);
+
+                // The mimic's phases (sub_4CAB30): notice it (242, desire 6),
+                // then copy it -- SprinkleMagicWaterOnCrops (239, sub_49EDC0):
+                // near the crops, face them, cast Water (sub_4D6F90) -- the
+                // row's +184 times, then rest that desire.
+                bool noticed = false, sprinkled = false, rained = false;
+                uint32_t most_state = 0;
+                int t = 0;
+                for (; t < 4000 && pb->mimic.active; ++t) {
+                    level::Process(w);
+                    noticed = noticed || pb->Action() == 242;
+                    sprinkled = sprinkled || pb->Action() == 239;
+                    rained = rained || spell::ActiveCount() > 0;
+                    most_state = std::max(most_state, pb->mimic.state);
+                }
+                std::snprintf(msg, sizeof msg, "it acts it out: notices %d, sprinkles Water %d, a Water spell %d, reached phase %u, done after %d turns (%s)",
+                              noticed, sprinkled, rained, most_state, t, pb->mimic.active ? "still mimicking" : "over");
+                CHECK(noticed && sprinkled && rained && most_state >= 2 && !pb->mimic.active, msg);
                 PlayerAt(0)->creature = nullptr;
                 pupil->SetOwner(nullptr);
                 w.objects.pop_back();

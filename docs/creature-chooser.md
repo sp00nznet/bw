@@ -431,6 +431,8 @@ These are the actions Khazar does before he gets hungry:
 |---|---|---|
 | LookAtSun (193) | `sub_499520` | TurnToFacePos toward (−50000, −50000) m; half the time, then PointAtPoint at it for 3 s |
 | PointAtCamera (168) | `sub_4976C0` | TurnToFaceCamera, then PointAtPoint at the camera for 1 s. The camera is `sub_467190`'s: its player's nearest, or the game's when it has no player. Fails with no camera. |
+| SprinkleMagicWaterOnCrops (239, 325) | `sub_49EDC0` | GoNearObject, TurnToFaceObject, then CastSpellAtObject Water. See "Mimicking the player". |
+| NoticeHelpfulAction (242) | `sub_49EF50` | GoNearObject, TurnToFaceObject, IndividualAction 55 (partial). |
 | PointAtHand (169) | `sub_4977F0` | TurnToFaceCamera, then PointAtPoint at the player's nearest hand for 1 s. Fails with no hand. |
 | CommunicateState (23) | `sub_485610` | TurnToFaceCamera, then CommunicateToPlayer |
 | HangAroundAtHome (165) | `sub_496DC0` | MoveToPos home (within 5 m), Wait 2 to 5 s, then IndividualAction 57 when its player has no temple |
@@ -902,9 +904,11 @@ DETAIL_MIMIC_PLAYER_ACTION_TABLE: 46 records of 192 bytes, each with a name ("Pu
 worship site", "Cast water on crops", "Break rocks", "Sacrifice", ...). The fields are:
 - +144: priority;
 - +148: whether it needs the learning leash;
-- +152: the action;
+- +152: the action that notices it (242 NoticeHelpfulAction, 268 NoticePlayfulAction);
+- +156: up to six actions that copy it (`sub_4CAC90`; row 18 uses the magic table);
 - +180: the desire;
-- +184: a limit.
+- +184: how many actions each phase lasts;
+- +188: whether there is an "after" phase.
 
 **The gates.** The player's creature must:
 - have a player that is not a computer;
@@ -936,8 +940,47 @@ In `test_level`, a stage-8 creature of player 0 does not mimic off the leash. On
 learning leash, after 9 drops of the player's Water on a field, it knows Water and is
 mimicking row 33.
 
+### Acting it out
+
+While a mimic is active and nothing is under way, the think step (`sub_4D0440`) runs
+the mimic's phase (`sub_4CAB30`). In phases 0 and 1 its plan stands in for the agenda's
+choice.
+
+Each action finished during a mimic counts (+7252, at the end of `sub_45F790`). A phase
+ends when its count reaches the limit (+7256), when phase 0 has one action done, or after
+180 s.
+- **Phase 0, notice** (`sub_4CACD0`): a plan for desire 6 with the row's +152 action on
+  the object.
+- **Phase 1, copy** (`sub_4CAD20`): a plan for the row's desire with the first of its
+  +156 actions.
+- **Phase 2, after** (`sub_4CB130`, rows with +188 only): the row's desire rests 120 s
+  while the creature does its own things.
+
+The actions for row 33:
+
+| Action | Handler | What it queues |
+|---|---|---|
+| SprinkleMagicWaterOnCrops (239), ...PU1 (325) | `sub_49EDC0` (both cast 22) | GoNearObject at 2 × its height, TurnToFaceObject 0.1 s, then CastSpellAtObject (clip 47, 3 s, magic 22) |
+| NoticeHelpfulAction (242) | `sub_49EF50` | GoNearObject at 5 × its height, TurnToFaceObject, IndividualAction 55 (its middle, the player's sub-actions, is not translated) |
+
+The sub-actions:
+- **GoNearObject (61):** `sub_4E4550` / `sub_4E4610`, walk until within both radii plus
+  the entry's.
+- **CastSpellAtObject (39):** `sub_4DFEB0` / `sub_4DFF00` / `sub_4E0150`:
+  - plays the clip;
+  - at its cast frame casts (`sub_4D6F90`);
+  - holds for the entry's seconds.
+
+  A creature short of practice only tries: fewer than 0.999 × (sightings needed − 1)
+  seen, and the try counts as a sighting. The cast fails and the action stops.
+
+In `test_level`, after taking up row 33, the creature notices (242), sprinkles Water
+(239) and a Water spell runs. The mimic is over after 228 turns.
+
 **Not yet:**
-- what the mimic record then drives (the action it carries out);
+- the cast's cost from the creature's own store (3D +19116, effect cost / 10000), and
+  casting anything but Water;
+- the copy phase's validity tests and its search for other targets (`sub_4D1170`);
 - the plan's related target (`sub_4BB170`);
 - the facing test;
 - the creature's real sight range: +352 → +88 record +144 is taken as 1, which gives

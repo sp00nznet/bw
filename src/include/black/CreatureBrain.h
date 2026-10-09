@@ -139,8 +139,9 @@ public:
         uint32_t  magic = 0;        // +7236
         Object*   object = nullptr; // +7240
         MapCoords at{};             // +7264: where it was
-        uint32_t  state = 0;        // +7248
-        uint32_t  limit = 0;        // +7256: the row's +184 (+ sub_67BC90(1), always 0); its use not yet read
+        uint32_t  state = 0;        // +7248: 0 notice, 1 copy, 2 after (sub_4CAB30)
+        uint32_t  count = 0;        // +7252: actions finished in this phase (sub_45F790)
+        uint32_t  limit = 0;        // +7256: the row's +184 (+ sub_67BC90(1), always 0): actions per phase
         uint32_t  turn = 0;         // +7260: when
     } mimic;
 
@@ -185,6 +186,10 @@ private:
     void Stop();                        // sub_45FA70
     void Override(uint32_t old_action); // sub_4D08E0's stop of the action it replaces
     void Finish();                      // sub_45F790
+    bool MimicTick();                   // sub_4CAB30; true when it made a plan current
+    void SetPlan(uint32_t desire, uint32_t action, Object* on, float total);  // sub_4ABA10
+    bool CastAt(uint32_t magic, Object* target);  // sub_4D6F90
+    uint32_t mimic_action_ = 0;         // the plan MimicTick made current
     void EndAction();
     void Remember();     // sub_4D1680, as a plan becomes current
     void RememberFinished();  // sub_45F790's part: the newest is done

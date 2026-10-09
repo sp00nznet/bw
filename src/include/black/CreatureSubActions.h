@@ -42,6 +42,8 @@ enum : uint32_t {  // sub-action ids: records of the table at 0xB0EAF8
     kSubPickupCreatedObject = 55,
     kSubCreateFishFromSea = 92,
     kSubEatCreatedObject = 128,
+    kSubCastSpellAtObject = 39,
+    kSubGoNearObject = 61,
 };
 
 // What a step answers (sub_4DE180's switch).
@@ -61,6 +63,7 @@ struct SubActionEntry {      // 96 bytes at agenda +48 in the original
     int32_t  integer = 0;    // +8: SubArgumentInteger (a clip, or turns to wait)
     MapCoords point;         // +12: SubArgumentPoint
     float    value = 0.0f;   // +24: the float of ...AndFloat (a radius, or seconds)
+    uint32_t magic = 0;      // SubArgumentObjectIntegerFloatAndSpell's spell (entry +76)
 };
 
 struct SubActionAgenda {

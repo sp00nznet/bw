@@ -74,6 +74,8 @@ constexpr Record kRecords[] = {
     {kSubPickupCreatedObject, 1, {true, true, false, false}},  // sub_4E4360, sub_4E4380
     {kSubCreateFishFromSea, 1, {false, true, false, false}},   // -, sub_4E5EE0
     {kSubEatCreatedObject, 0, {true, true, true, false}},      // sub_4DF5A0, sub_4DF7A0, sub_4DF7D0
+    {kSubCastSpellAtObject, 1, {true, true, true, true}},      // sub_4DFEB0, sub_4DFF00, sub_4E0150; abort sub_4E7800
+    {kSubGoNearObject, 3, {true, true, false, false}},         // sub_4E4550, sub_4E4610
 };
 
 const Record* Find(uint32_t id) {
@@ -86,7 +88,8 @@ const Record* Find(uint32_t id) {
 uint32_t SubActionKind(uint32_t id) { const Record* r = Find(id); return r ? r->kind : 3; }
 bool SubActionHasStep(uint32_t id, uint32_t step) { const Record* r = Find(id); return r && step < 4 && r->step[step]; }
 bool HasSubActions(uint32_t action) {
-    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 65 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165 || action == 161 || action == 315;
+    return action == 155 || action == 11 || action == 12 || action == 90 || action == 218 || action == 55 || action == 27 || action == 259 || action == 65 || action == 193 || action == 169 || action == 168 || action == 23 || action == 165 || action == 161 || action == 315 ||
+           action == 239 || action == 325 || action == 242;
 }
 
 // sub_4B6CA0: clear the agenda and run the action's handler.
@@ -301,6 +304,41 @@ bool CreatureBrain::StartAction(uint32_t action) {
         a.Add(SubActionEntry{kSubTurnToFaceCamera});
         a.AddMain(SubActionEntry{kSubCommunicateToPlayer});
         return true;
+    case 239:    // SprinkleMagicWaterOnCrops and
+    case 325: {  // ...PU1 (both sub_49EDC0, Water 22): near the crops, face them, cast
+        SubActionEntry g{kSubGoNearObject};
+        g.object = Target();
+        g.value = creature_->GetHeight() * 2.0f;
+        a.Add(g);
+        SubActionEntry t{kSubTurnToFaceObject};
+        t.object = Target();
+        t.value = 0.1f;
+        a.Add(t);
+        SubActionEntry c{kSubCastSpellAtObject};
+        c.object = Target();
+        c.integer = 47;  // the casting clip
+        c.value = 3.0f;
+        c.magic = 22;
+        a.AddMain(c);
+        return true;
+    }
+    case 242: {  // NoticeHelpfulAction (sub_49EF50): near it, face it, react
+        // ponytail: its middle -- the player's sub-actions 89 and 76, a
+        // pickup, a walk to the player's point (56) and waits -- is not
+        // translated; it goes near (5 x its height), faces and plays clip 55.
+        SubActionEntry g{kSubGoNearObject};
+        g.object = Target();
+        g.value = creature_->GetHeight() * 5.0f;
+        a.Add(g);
+        SubActionEntry t{kSubTurnToFaceObject};
+        t.object = Target();
+        t.value = 0.1f;
+        a.Add(t);
+        SubActionEntry i{kSubIndividualAction};
+        i.integer = 55;
+        a.AddMain(i);
+        return true;
+    }
     case 315: {  // HowlAtFriend (sub_4A9D50): face the friend, look 2 s, then individual action 217
         // Neither is the main sub-action; the action is done after the last.
         SubActionEntry t{kSubTurnToFaceObject};
@@ -517,6 +555,28 @@ int CreatureBrain::Step(uint32_t id, uint32_t step) {
         if (hand.Busy() || !countdown_) return hand.Busy() ? kStepWait : kStepDone;
         --countdown_;
         return kStepWait;
+    case kSubGoNearObject * 4 + 0:  // sub_4E4550: where it set out from (ours: nothing to keep)
+        return e.object ? kStepDone : kStepFailed;
+    case kSubGoNearObject * 4 + 1: {  // sub_4E4610: within its radius + the object's + the entry's
+        // ponytail: the object's radius for a creature is its 2D radius here
+        // (v1.0 vslot 497), and the walk does not lead a moving object.
+        if (!e.object) return kStepFailed;
+        const int w = WalkTo(e.object->coords, creature_->Get2DRadius() + e.object->Get2DRadius() + e.value);
+        return w == 3 ? kStepDone : w == 1 ? kStepWait : kStepFailed;
+    }
+    case kSubCastSpellAtObject * 4 + 0:  // sub_4DFEB0: the casting clip
+        if (!PlayAnim(static_cast<uint32_t>(e.integer), kHeld)) return kStepWait;
+        countdown_ = 0;
+        return kStepDone;
+    case kSubCastSpellAtObject * 4 + 1:  // sub_4DFF00: at the clip's cast frame (3D state 3), cast
+        // ponytail: the cast frame is the first turn after the clip starts.
+        if (!CastAt(e.magic, e.object)) return kStepStop;
+        countdown_ = static_cast<uint16_t>(e.value * kTurnsPerSecond);
+        return kStepDone;
+    case kSubCastSpellAtObject * 4 + 2:  // sub_4E0150: hold for the entry's seconds, then let go
+        if (countdown_) { --countdown_; return kStepWait; }
+        EndAnim();
+        return kStepDone;
     case kSubClearObjectToActOn * 4 + 1:  // sub_4E6910
         // ponytail: the plan's object (mental+3928) becomes sub_4BA1B0's; the
         // brain's plan keeps its target here.
@@ -691,7 +751,7 @@ void CreatureBrain::EndAction() {
     // ponytail: PointAtPoint has no abort handler, and where v1.0 lets go of
     // an abandoned point (3D state 8) is not found; it is released here as
     // sub_46D340 does at its end, or it would hold the hand for good.
-    if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
+    if (subactions.count && (subactions.entries[subactions.current].id == kSubStaticAction || subactions.entries[subactions.current].id == kSubCastSpellAtObject)) EndAnim();  // their abort sub_4E7800
     if (hand.anim == kClipPoint) EndAnim();
     subactions.Clear();
     created_ = Food();
@@ -716,7 +776,7 @@ void CreatureBrain::Stop() {
 void CreatureBrain::Override(uint32_t old_action) {
     mind.action_count[old_action] = 0;
     ++stopped;
-    if (subactions.count && subactions.entries[subactions.current].id == kSubStaticAction) EndAnim();
+    if (subactions.count && (subactions.entries[subactions.current].id == kSubStaticAction || subactions.entries[subactions.current].id == kSubCastSpellAtObject)) EndAnim();  // their abort sub_4E7800
     if (hand.anim == kClipPoint) EndAnim();  // as in EndAction
     subactions.Clear();
 }
@@ -733,6 +793,7 @@ void CreatureBrain::Finish() {
     // rebuilds it (ours, see CreatureBrain::Tick).
     if (served < kNumCreatureDesires) agenda.plans.plans[served].total = 0.0f;
     EndAction();
+    if (mimic.active) ++mimic.count;  // the end of sub_45F790
 }
 
 }  // namespace creature
