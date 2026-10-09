@@ -39,6 +39,10 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Spell icons. A town's magic (CREATE_TOWN_SPELL / CREATE_NEW_TOWN_SPELL, sub_6D0200)
+  puts its seeds' icons at the worship site. A miracle picked by gesture charges at its
+  icon from the site's mana (sub_5F9050, sub_704610), and the charged seed goes to the
+  hand (sub_707DF0). See docs/players.md.
 - Worship and mana. Villagers worship when their town wants worshippers (sub_6F99B0). They
   walk to their tribe's worship site at the temple and dance, in states 58, 59, 60, 213,
   248 and 249. The dancers make the site's mana each turn (sub_704610 / sub_7047E0), and

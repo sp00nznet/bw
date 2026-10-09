@@ -26,6 +26,7 @@
 #include <black/Town.h>
 #include <black/TownCentre.h>
 #include <black/Villager.h>
+#include <black/WorshipSite.h>
 
 #include <cmath>
 #include <cstdio>
@@ -211,6 +212,37 @@ struct Loader {
     // record CITADEL_HEART_INFO[heart]. BUILD_BUILDING starts it.
     // ponytail: the plan's position kept at 0xB7FAE0 is not read by anything
     // found, so it is not kept.
+    // A record by the name at `off`, ignoring case (sub_734DE0): seeds by
+    // +24 (sub_6C1AF0), magic by its effect record's +52 (sub_5B8C40).
+    int ByName(infodat::Section sec, uint32_t n, int off, const std::string& name) {
+        for (uint32_t i = 0; i < n; ++i)
+            if (const auto* e = static_cast<const char*>(infodat::Element(sec, i)); e && _stricmp(name.c_str(), e + off) == 0) return static_cast<int>(i);
+        return -1;
+    }
+
+    // case 10 / 12 (CREATE_TOWN_SPELL, CREATE_TOWN_CENTRE_SPELL_ICON):
+    // (town, seed) -- the seed's base magic held (+292, sub_6D0200).
+    // case 11 (CREATE_NEW_TOWN_SPELL): (town, magic) -- it and its seed's base.
+    // ponytail: case 10's town centre icon (sub_6D6180) comes through the
+    // worship site's icons instead (Town::AddMagicTypesHeld).
+    bool CreateTownSpell(const Args& a, bool by_magic) {
+        if (a.size() < 2) return false;
+        Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
+        if (!town) return false;
+        if (!by_magic) {
+            const int seed = ByName(infodat::DETAIL_SPELL_SEEDS, 30, 24, a[1].s);
+            if (seed < 0) return false;
+            town->AddMagicTypesHeld(static_cast<MAGIC_TYPE>(SeedBase(seed)));
+            return true;
+        }
+        const int m = ByName(infodat::DETAIL_MAGIC_EFFECT_INFO, 42, 52, a[1].s);
+        if (m <= 0 || m >= 42) return false;
+        town->AddMagicTypesHeld(static_cast<MAGIC_TYPE>(m));
+        const int base = SeedBase(SeedOfMagic(m));
+        if (!town->IsMagicTypeHeld(static_cast<MAGIC_TYPE>(base))) town->AddMagicTypesHeld(static_cast<MAGIC_TYPE>(base));
+        return true;
+    }
+
     bool CreatePlannedCitadel(const Args& a) {
         float x, z;
         if (a.size() < 6 || !ParsePos(a[1].s, x, z)) return false;
@@ -318,6 +350,8 @@ struct Loader {
         if (cmd == "CREATE_TOWN_CENTRE") return CreateAbode(cmd, a, true);
         if (cmd == "CREATE_PLANNED_ABODE") return CreatePlannedAbode(a);
         if (cmd == "CREATE_PLANNED_CITADEL") return CreatePlannedCitadel(a);
+        if (cmd == "CREATE_TOWN_SPELL" || cmd == "CREATE_TOWN_CENTRE_SPELL_ICON") return CreateTownSpell(a, false);
+        if (cmd == "CREATE_NEW_TOWN_SPELL") return CreateTownSpell(a, true);
         if (cmd == "CREATE_VILLAGER_POS") return CreateVillagerPos(a);
         if (cmd == "CREATE_NEW_TOWN_FIELD")
             return CreateTownStructure(ENTITY_CAT_FIELD, cmd, a, a.size() > 3 ? a[3].f : 0.0f);

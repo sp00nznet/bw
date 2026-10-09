@@ -281,7 +281,7 @@ struct Town : public Container {
     PlayerTownInteract             player_interactions[8];  // 0x9F4  (8 player slots)
     uint32_t                       field_0x9f4;             // 0xDF4 (v1.41 kept these two before the array)
     uint32_t                       field_0x9f8;             // 0xDF8
-    int                            magic_remainder[42];     // 0xDF4  (MAGIC_TYPE_LAST_142)
+    int                            magic_held[42];          // 0xDF4 — sub_6D0200 / sub_6D0490
     uint32_t                       field_0xea4;             // 0xE9C
     uint32_t                       field_0xea8;             // 0xEA0
     uint32_t                       field_0xeac;             // 0xEA4
@@ -319,6 +319,7 @@ static_assert(offsetof(Town, abode_list) == 0x74C, "abode list head (this[467])"
 static_assert(offsetof(Town, next) == 0x754, "next town in the player's list (this[469])");
 static_assert(offsetof(Town, belief) == 0x790, "GBelief vftable at this[484]");
 static_assert(offsetof(Town, town_centre) == 0x99C, "town centre (CREATE_TOWN_CENTRE, +2460)");
+static_assert(offsetof(Town, magic_held) == 0xDF4, "magic held (this[893 + n])");
 static_assert(offsetof(Town, town_desire_flags) == 0x9A8, "desire objects (this[618..634])");
 static_assert(offsetof(Town, player_interactions) == 0x9EC, "8 x 128-byte records (this[635])");
 static_assert(offsetof(Town, field_0xeb4) == 0xEAC, "1.0f (this[939])");

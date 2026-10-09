@@ -37,6 +37,7 @@
 #include <black/Citadel.h>
 #include <black/CitadelHeart.h>
 #include <black/WorshipSite.h>
+#include <black/WorshipSpellIcon.h>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -1031,11 +1032,52 @@ int main() {
                 for (int t = 0; t < 2500; ++t) level::Process(w);
                 std::snprintf(msg, sizeof msg, "worship off: %u still worshipping, %d walking there, mana kept %.1f", v0->worship_count, v0->worshippers_on_way, ws->mana);
                 CHECK(v0->worship_count == 0 && v0->worshippers_on_way == 0 && ws->mana > 0.0f, msg);
+
+                // A town spell (sub_6D0200): town 0 holds Food (magic 14);
+                // its seed (3) gets an icon at the worship site (sub_705930),
+                // and the player gains the magic (sub_5F94A0).
+                v0->AddMagicTypesHeld(static_cast<MAGIC_TYPE>(14));
+                WorshipSpellIcon* food = nullptr;
+                for (WorshipSpellIcon* i = ws->icons; i; i = i->next)
+                    if (i->seed_info == infodat::Element(infodat::DETAIL_SPELL_SEEDS, 3)) food = i;
+                std::snprintf(msg, sizeof msg, "town 0 holds Food: %u icon(s) at the site, Food's %s (cost %.0f), player 0 has it %d",
+                              ws->icon_count, food ? "there" : "missing", food ? food->Cost() : -1.0f, PlayerAt(0)->magic_remainder[14]);
+                CHECK(food && food->Cost() == 7000.0f && PlayerAt(0)->magic_remainder[14] > 0, msg);
+
+                // Charging (sub_5F9050 -> sub_707F00, sub_704610): the hand
+                // asks for Food; the icon fills from the site's mana and,
+                // full, its charge goes to player 0's hand as the seed.
+                if (food) {
+                    v0->SetWorshipPercentage(0.25f);
+                    const float before = ws->mana;
+                    WorshipSpellIcon* charging = ChargeSpell(PlayerAt(0), 3);
+                    int turns = 0;
+                    while (HeldSeed(PlayerAt(0)).seed < 0 && turns < 6000) { level::Process(w); ++turns; }
+                    const HandSeed held = HeldSeed(PlayerAt(0));
+                    std::snprintf(msg, sizeof msg, "Food charges from %.0f mana in %d turns: hand holds seed %d with %.0f, site left %.0f, icon idle %d",
+                                  before, turns, held.seed, held.charge, ws->mana, food->charging == 0);
+                    CHECK(charging == food && held.seed == 3 && held.charge == 7000.0f && food->charging == 0 && food->charge == 0.0f, msg);
+                    HeldSeed(PlayerAt(0)) = {};
+                    v0->SetWorshipPercentage(0.0f);
+                }
             } else {
                 std::snprintf(msg, sizeof msg, "worship needs town 0's centre: %s", v0->town_centre ? "there" : "none");
                 CHECK(false, msg);
             }
         }
+    }
+
+    // Land 2's town spells (loader cases 10 / 11 -> sub_6D0200).
+    {
+        level::World w2;
+        std::string err2;
+        const bool loaded = level::Load((root + "Land2.txt").c_str(), w2, &err2);
+        Town* t1 = loaded ? level::FindTown(w2, 1) : nullptr;
+        Town* t2 = loaded ? level::FindTown(w2, 2) : nullptr;
+        auto held = [](Town* t, int m) { return t && t->IsMagicTypeHeld(static_cast<MAGIC_TYPE>(m)); };
+        std::snprintf(msg, sizeof msg, "Land 2's town spells: town 1 Fire %d Nature %d Food %d Wood %d, town 2 Heal %d",
+                      held(t1, 1), held(t1, 13), held(t1, 14), held(t1, 21), held(t2, 10));
+        CHECK(held(t1, 1) && held(t1, 13) && held(t1, 14) && held(t1, 21) && held(t2, 10), msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

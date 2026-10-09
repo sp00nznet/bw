@@ -7,6 +7,8 @@
 #include "../include/black/Dance.h"
 #include "../include/black/Player.h"
 #include "../include/black/Villager.h"
+#include "../include/black/WorshipSpellIcon.h"
+#include "../include/black/InfoDat.h"
 #include <cstring>
 #include <cmath>
 
@@ -159,6 +161,20 @@ void WorshipSite::RemovePotFromStructure(PotStructure* /*structure*/) {}
 void WorshipSite::AddTown(Town* town) {
     town->SetWorshipSite(this);
     if (!towns.Has(town)) towns.Add(town);
+    AddTownSpells(town);  // sub_705860
+}
+
+float WorshipSite::ManaAvailable() const { return field_0x108 ? 1000000.0f : mana_shown - mana_spent; }
+
+// The want is counted in full (+0x100); what is there is taken (+0xFC).
+// ponytail: the player's statistics (+604 -> +4384) are not kept.
+float WorshipSite::Spend(float amount) {
+    if (amount < 0.0f) return 0.0f;
+    field_0x100 += amount;
+    if (ManaAvailable() >= amount) { mana_spent += amount; return amount; }
+    const float got = ManaAvailable();
+    mana_spent = mana_shown;
+    return got;
 }
 
 void WorshipSite::AddWorshipper(Villager* v) {
@@ -174,6 +190,22 @@ void WorshipSite::RemoveWorshipper(Villager* v) {
 }
 
 uint32_t WorshipSite::Dancers() const { return dance ? dance->members : 0; }
+
+namespace {
+int32_t SeedInt(int seed, int off) {
+    int32_t x = 0;
+    if (const void* e = infodat::Element(infodat::DETAIL_SPELL_SEEDS, static_cast<uint32_t>(seed))) std::memcpy(&x, static_cast<const uint8_t*>(e) + off, 4);
+    return x;
+}
+}  // namespace
+
+int SeedBase(int seed) { return SeedInt(seed, 292); }  // seed +292 (sub_6C1980(-1))
+int SeedOfMagic(int magic) {                           // sub_6C1A50 / sub_6C1A20
+    for (int s = 0; s < 30; ++s)
+        for (int off : {292, 296, 300, 304})
+            if (SeedInt(s, off) == magic) return s;
+    return -1;
+}
 
 namespace {
 float SiteInfo(const WorshipSite* w, int off) { float x = 0; if (w->info) std::memcpy(&x, reinterpret_cast<const char*>(w->info) + off, 4); return x; }
@@ -212,6 +244,33 @@ void WorshipSite::ProcessWorship() {
     if (made == 0.0f) field_0x114 = field_0x100 == 0.0f ? 0.0f : 1.0f;
     else field_0x114 = (field_0x100 - made) / made;
 
+    // The charging icons share what there is (sub_704610): each gets an
+    // equal part, and each one's full want is spent (sub_705BA0).
+    if (field_0x114 <= 0.0f) {
+        float n = 0.0f, want = 0.0f;
+        bool reserve = false;
+        field_0x10c = 0;  // +0x111 in v1.0 (a byte): something charged this turn
+        for (WorshipSpellIcon* i = icons; i; i = i->next) {
+            if (i->charging && i->Demand() > 0.0f) { n += 1.0f; want += i->Demand(); }
+            if (i->field_0x12c) reserve = true;
+        }
+        if (n != 0.0f) {
+            float avail = ManaAvailable();
+            if (reserve) avail = std::max(0.0f, avail - SiteInfo(this, 344));  // sub_705B10
+            const float share = std::min(avail, want) / n;
+            if (share != 0.0f)
+                for (WorshipSpellIcon* i = icons; i; i = i->next) {
+                    if (!i->charging) continue;
+                    const float d = i->Demand();
+                    if (d <= 0.0f) continue;
+                    i->AddCharge(share);
+                    if (!field_0x108) Spend(d);
+                    field_0x10c = 1;
+                }
+        }
+    }
+    for (WorshipSpellIcon* i = icons; i; i = i->next) i->Process();  // vslot 383
+
     const float spent_share = made == 0.0f ? 1.0f : mana_spent / made;
     const float most = MaxMana();
     float eff = 0.5f - (most != 0.0f ? mana / most : 0.0f) * 0.5f;
@@ -235,11 +294,43 @@ MapCoords* WorshipSite::GetSpellIconPosFromSlot(MapCoords* /*coords*/, uint32_t 
 // 0x0077b080
 MapCoords* WorshipSite::GetSpellIconPos(MapCoords* /*coords*/, int16_t* /*slot*/) { return nullptr; }
 // 0x0077c430
-void WorshipSite::AddSpellIcon(WorshipSpellIcon* /*icon*/) {}
+void WorshipSite::AddSpellIcon(WorshipSpellIcon* icon) {  // sub_7054C0
+    icon->next = icons;
+    icons = icon;
+    ++icon_count;
+}
 // 0x0077c910
-void WorshipSite::AddTownSpells(Town* /*town*/) {}
+// sub_705860: an icon for each of the town's spells (its list +0x770).
+// ponytail: that list is the town centre's icons (TownCentreSpellIcon,
+// sub_6D6180), which are not built; the town's held magic stands in, each
+// base magic with its seed (sub_6C1A50).
+void WorshipSite::AddTownSpells(Town* town) {
+    if (!town->town_centre) return;
+    for (int m = 1; m < 42; ++m) {
+        if (!town->IsMagicTypeHeld(static_cast<MAGIC_TYPE>(m))) continue;
+        const int seed = SeedOfMagic(m);
+        if (seed >= 0 && SeedBase(seed) == m) AddSpellIconIfNecessary(static_cast<SPELL_SEED_TYPE>(seed));
+    }
+}
 // 0x0077c9e0
-void WorshipSite::AddSpellIconIfNecessary(SPELL_SEED_TYPE /*seed_type*/) {}
+// sub_705930: the seed's icon if the site has none (sub_7077C0: 320 bytes,
+// SpellIcon info 0xCBE080, the seed's record, at the site).
+// ponytail: an existing icon's refresh (sub_708410), the icon's place by
+// slot (sub_7041E0) and its look are not kept.
+void WorshipSite::AddSpellIconIfNecessary(SPELL_SEED_TYPE seed_type) {
+    const auto* rec = static_cast<const GSpellSeedInfo*>(infodat::Element(infodat::DETAIL_SPELL_SEEDS, static_cast<uint32_t>(seed_type)));
+    if (!rec) return;
+    for (WorshipSpellIcon* i = icons; i; i = i->next)
+        if (i->seed_info == rec) return;
+    auto* icon = new WorshipSpellIcon();
+    icon->seed_info = const_cast<GSpellSeedInfo*>(rec);
+    icon->SetPos(coords);
+    icon->scale = 1.0f;
+    icon->site = this;
+    icon->powerup = -1;
+    icon->slot = -1;
+    AddSpellIcon(icon);
+}
 // 0x0077cf30 — returns position of the totem at this worship site
 MapCoords* WorshipSite::GetTotemPos(MapCoords* coords) {
     if (totem) {

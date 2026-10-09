@@ -181,7 +181,6 @@ The v1.0 native table is built inline at 0x69B000. Each entry is 144 bytes, from
 - The Dance's groups and paths are not built. Every dancer is taken and stands within
   5 m of the site, and the member count is recounted each turn from the site's
   worshippers in state 60.
-- There are no spell icons yet, so nothing is spent.
 - Not translated:
   - the totem's look and calling worshippers in (`sub_6CF250`);
   - food at the site (241);
@@ -190,6 +189,56 @@ The v1.0 native table is built inline at 0x69B000. Each entry is 144 bytes, from
   - the 1000-turn pass at +0xAC;
   - the citadel's share (`sub_44EEE0`).
 - SET_MANA on a town is not supported; towns are not script handles here.
+
+## Spell icons and charging
+
+**A town's magic.** A town holds magic types (+0xDF4, one int each of 42).
+`sub_6D0200` adds one, and the town's player gains it (`sub_5F94A0`: count at +0x188,
+enabled at +0x230). It comes from:
+- the level: CREATE_TOWN_SPELL and CREATE_TOWN_CENTRE_SPELL_ICON (cases 10 and 12) name a
+  seed; CREATE_NEW_TOWN_SPELL (case 11) names a magic, and its seed's base comes with it;
+- scripts: SET_MAGIC_IN_OBJECT (native 386).
+
+Land 1 grants none at load. Land 2 gives town 1 Fire, Nature, Food and Wood, and town 2
+Heal.
+
+**The records.** A seed is DETAIL_SPELL_SEEDS (30 × 400 bytes). Its name is at +24, its
+base magic at +292, and its power-ups at +296..+304. A magic's cost is its
+DETAIL_MAGIC_EFFECT_INFO record +120, and its name is at +52 (Fire 3,500, Food 7,000).
+
+**Icons.** A seed's base magic gets a WorshipSpellIcon at the town's worship site
+(`sub_705930` → `sub_7077C0`, 320 bytes). This happens through the town centre's icons
+(`sub_6D6180`). The site keeps them at +0xE0, counted at +0xE4, with next at icon +0x110.
+A site joining a town takes the town's spells (`sub_705860`).
+
+**Charging.**
+1. A miracle picked by gesture asks the player's worship sites for its seed
+   (`sub_5F9050`). The icon whose site has the most mana to give starts charging
+   (`sub_708040` → `sub_707F00`): +0x120 set, the power-up at +0x124, and the charger at
+   +0x128. That needs the player to hold the magic (`sub_5F93C0`) and the site to have
+   mana.
+2. Each turn the site splits what it has among its charging icons (`sub_704610`). Each
+   icon's full want is spent (`sub_705BA0` → `sub_704C80`: wanted +0x100, taken +0xFC).
+3. Full (`sub_7078A0`), the icon's charge (+0x134) goes to a human charger's hand as the
+   seed (`sub_707DF0` → `sub_6BED50`).
+
+In `test_level`, town 0 is given Food, and its icon appears at the worship site. Charging
+it for player 0 fills 7,000 from 5,745 stored mana plus worship in 1,142 turns. The hand
+then holds Food. In the viewer, once the player has a temple:
+- the gesture menu offers only the miracles whose icons stand at its worship sites
+  (`sub_58F9C0`);
+- a picked miracle charges at the temple before it can be cast.
+
+**Ours:**
+- The town centre's own icons (TownCentreSpellIcon) and the town's icon list (+0x770) are
+  not built. The worship site's icons come straight from the town's magic.
+- Not translated:
+  - power-up upgrades (`sub_6D6140`);
+  - icon slots and looks;
+  - a seed already in the hand topping up (`sub_7081E0`);
+  - the refresh countdown.
+- The hand's seed is a host record (`HeldSeed`), not a SpellSeed object.
+- SET_MAGIC_IN_OBJECT still does nothing; towns are not script handles.
 
 **Not yet:**
 - player processing (`GPlayer::Process`): towns are still run by `level::Process`;

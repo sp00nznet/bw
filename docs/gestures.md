@@ -226,7 +226,7 @@ spiral and Food's gesture as mouse strokes and casts on the village's pit, which
 200 food.
 
 Simplified:
-- Every miracle counts as known (Land 1 has no worship-site icons yet).
+- Before the player has a citadel, every miracle counts as known and casts for free. After that, only the miracles with icons at its worship sites are known, and they charge from mana first (docs/players.md).
 - A stroke is matched when the button comes up. v1.0 matches every frame and starts
   the trail again after each match.
 - A cast other than Water is one landing, so one first drop.

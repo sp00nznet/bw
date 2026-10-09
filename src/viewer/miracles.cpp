@@ -7,6 +7,10 @@
 #include <black/Object.h>
 #include <black/SpellCast.h>
 #include <black/Town.h>
+#include <black/Citadel.h>
+#include <black/Player.h>
+#include <black/WorshipSite.h>
+#include <black/WorshipSpellIcon.h>
 
 #include <cmath>
 #include <cstdio>
@@ -23,9 +27,25 @@ bool g_loaded = false;
 int g_held = -1;  // the chosen seed
 std::string g_status = "middle mouse: draw a gesture (spiral, then the miracle's)";
 
-// ponytail: every miracle counts as known. In v1.0 the player has those
-// whose icons stand at its worship sites (sub_7080A0); Land 1 has none yet.
+// The miracles the player knows: in v1.0, those whose icons stand at its
+// worship sites (sub_58F9C0). ponytail: before the player has a citadel every
+// miracle counts as known and casts free, so the viewer can try them all.
 bool g_known[30];
+int g_charging = -1;  // a seed charging at a worship site icon
+
+GPlayer* Me() { return PlayerAt(0); }
+bool HasTemple() { return Me() && Me()->citadel; }
+
+void RefreshKnown() {
+    if (!HasTemple()) { for (bool& k : g_known) k = true; return; }
+    for (bool& k : g_known) k = false;
+    const auto* base = static_cast<const uint8_t*>(infodat::Element(infodat::DETAIL_SPELL_SEEDS, 0));
+    for (WorshipSite* ws : Me()->citadel->worship_sites)
+        for (WorshipSpellIcon* i = ws ? ws->icons : nullptr; i; i = i->next) {
+            const long s = (reinterpret_cast<const uint8_t*>(i->seed_info) - base) / 400;
+            if (s >= 0 && s < 30) g_known[s] = true;
+        }
+}
 
 const char* SeedName(int s) { return infodat::DebugName(infodat::DETAIL_SPELL_SEEDS, static_cast<uint32_t>(s)); }
 
@@ -55,6 +75,7 @@ void StrokeEnd(float ratio) {
     // starts the trail again after each match (sub_58FC40 / sub_58EE10);
     // here a stroke is one gesture, matched when the button comes up.
     if (!g_select.active) {
+        RefreshKnown();
         for (uint8_t opening : {1, 2}) {
             if (matches(opening) && g_select.Begin(opening, g_known)) {
                 g_status = opening == 1 ? "spiral: now draw a miracle's gesture" : "spiral: now draw a creature spell's gesture";
@@ -66,7 +87,15 @@ void StrokeEnd(float ratio) {
     }
     bool done = false;
     const int chosen = g_select.Step(0.0f, matches, g_known, &done);
-    if (chosen >= 0) {
+    if (chosen >= 0 && HasTemple()) {
+        // sub_5F9050: the hand asks the worship sites; the icon charges from mana.
+        if (ChargeSpell(Me(), chosen)) {
+            g_charging = chosen;
+            g_status = std::string("charging ") + SeedName(chosen) + " at the temple";
+        } else {
+            g_status = std::string(SeedName(chosen)) + ": no mana to charge it";
+        }
+    } else if (chosen >= 0) {
         g_held = chosen;
         g_status = std::string("holding ") + SeedName(chosen) + " -- left click to cast";
     } else if (done) {
@@ -76,7 +105,19 @@ void StrokeEnd(float ratio) {
     }
 }
 
-bool Holding() { return g_held >= 0; }
+bool Holding() {
+    // A charged icon puts the seed in the hand (sub_707DF0).
+    if (Me()) {
+        HandSeed& h = HeldSeed(Me());
+        if (h.seed >= 0) {
+            g_held = h.seed;
+            g_charging = -1;
+            g_status = std::string("holding ") + SeedName(h.seed) + " -- left click to cast";
+            h = {};
+        }
+    }
+    return g_held >= 0;
+}
 
 std::string Cast(level::World& w, float x, float z) {
     if (g_held < 0) return g_status;
@@ -122,6 +163,9 @@ std::string Cast(level::World& w, float x, float z) {
     return g_status;
 }
 
-std::string Status() { return g_status; }
+std::string Status() {
+    Holding();
+    return g_status;
+}
 
 }  // namespace miracles

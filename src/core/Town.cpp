@@ -456,14 +456,28 @@ TownSpellIcon* Town::GetNextSpellIcon(TownSpellIcon* /*icon*/) {
     return nullptr;
 }
 
-bool Town::AddMagicTypesHeld(MAGIC_TYPE /*type*/) {
-    // Original at 0x0073d380 — complex
-    return false;
+// v1.0 sub_6D0200: the town holds the magic, and its player gains it
+// (sub_5F94A0: count +0x188, enabled +0x230). A seed's base magic gets its
+// icon at the town's worship site (through the town centre, sub_6D6180).
+// ponytail: power-ups (sub_6D6140), the town centre's own icons and the
+// player's sites' refresh (sub_7049E0) are not kept.
+bool Town::AddMagicTypesHeld(MAGIC_TYPE type) {
+    const int m = static_cast<int>(type);
+    if (m < 0 || m >= 42 || magic_held[m]) return false;
+    magic_held[m] = 1;
+    if (GPlayer* p = GetPlayer()) {
+        ++p->magic_remainder[m];
+        p->magic_enabled[m] = true;
+    }
+    const int seed = SeedOfMagic(m);
+    if (town_centre && worship_site && seed >= 0 && SeedBase(seed) == m)
+        worship_site->AddSpellIconIfNecessary(static_cast<SPELL_SEED_TYPE>(seed));
+    return true;
 }
 
-bool Town::IsMagicTypeHeld(MAGIC_TYPE /*type*/) {
-    // Original at 0x0073d630 — complex
-    return false;
+bool Town::IsMagicTypeHeld(MAGIC_TYPE type) {  // sub_6D0490
+    const int m = static_cast<int>(type);
+    return m >= 0 && m < 42 && magic_held[m] > 0;
 }
 
 bool Town::GetFlock(LIVING_TYPE /*type*/, int /*param*/) {

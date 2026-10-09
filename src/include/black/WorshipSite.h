@@ -100,6 +100,8 @@ struct WorshipSite : public CitadelPart {
     float ManaProduced();                 // sub_706C40
     float MaxMana() const;                // sub_707180
     void ProcessWorship();                // sub_704610 -> sub_7047E0
+    float ManaAvailable() const;          // sub_705B60: +0xF8 less +0xFC (all with +0x108)
+    float Spend(float amount);            // sub_704C80
 
     // === Fields ===
     GTribeInfo*                      tribe_info;     // 0x8C
@@ -116,7 +118,8 @@ struct WorshipSite : public CitadelPart {
     uint8_t                          field_0xcc[0x8]; // 0xCC
     LHNodeList                       worshippers;    // 0xD4 — sub_705F00; field_0xc8 counts them
     WorshipTotem*                    totem;          // 0xDC
-    LHListHead_WorshipSpellIcon      icon_list;      // 0xE0
+    WorshipSpellIcon*                icons;          // 0xE0 — sub_7054C0, next at icon +0x110
+    uint32_t                         icon_count;     // 0xE4
     uint8_t                          field_0xe8[0x8]; // 0xE8
     float                            mana;           // 0xF0 — GET_MANA (sub_698410)
     float                            field_0xf4;     // 0xF4
@@ -124,7 +127,8 @@ struct WorshipSite : public CitadelPart {
     float                            mana_spent;     // 0xFC — taken by spell icons this turn
     float                            field_0x100;    // 0x100
     float                            worship_rate;   // 0x104 — mana per worshipper this turn; tires them
-    uint8_t                          field_0x108[0x8]; // 0x108
+    uint32_t                         field_0x108;    // 0x108 — mana without limit (sub_705B60)
+    uint32_t                         field_0x10c;    // 0x10C
     uint8_t                          slot;           // 0x110 — its place in the citadel (sub_703AC0)
     uint8_t                          field_0x111[3];
     float                            field_0x114;    // 0x114
@@ -134,6 +138,11 @@ struct WorshipSite : public CitadelPart {
     int32_t  num_villagers_requesting_to_go_home;    // 0x124
 };
 static_assert(sizeof(WorshipSite) == 0x128, "WorshipSite size mismatch");
+
+// DETAIL_SPELL_SEEDS (30 x 400 bytes): a seed's base magic (+292) and the
+// seed holding a magic as base or power-up (+296..+304), or -1.
+int SeedBase(int seed);
+int SeedOfMagic(int magic);
 static_assert(offsetof(WorshipSite, towns) == 0xA4 && offsetof(WorshipSite, slot) == 0x110, "sub_703AC0");
 static_assert(offsetof(WorshipSite, worshippers) == 0xD4 && offsetof(WorshipSite, mana) == 0xF0 &&
               offsetof(WorshipSite, worship_rate) == 0x104 && offsetof(WorshipSite, field_0x114) == 0x114, "sub_7047E0");
