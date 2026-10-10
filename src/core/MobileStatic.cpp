@@ -5,6 +5,7 @@
 // MobileStatic is a moveable multi-cell object (rocks, toys, fences).
 // Methods at 0x004396xx are small (~16 bytes each).
 
+#include <cstring>
 #include <black/MobileStatic.h>
 
 // ============================================================================
@@ -285,7 +286,10 @@ uint32_t MobileStatic::ApplyOnlyAfterReleased() {
 }
 
 uint32_t MobileStatic::GetPhysicsConstantsType() {
-    // Original at 0x00609270: reads physics type from info at offset 0x108
+    // ponytail: v1.0 sub_5C3FD0 picks 3 (records 5, 14, 15, 49..52, or
+    // +296 == 2), 18 (a cuddly toy), 14..20 by the record's type 399..403,
+    // else 1; it calls the record's own vtable (slot 11), which our flat
+    // info structs do not have. The old reading of +0x108 is kept.
     return *reinterpret_cast<const uint32_t*>(
         reinterpret_cast<const char*>(info) + 0x108);
 }
@@ -344,4 +348,11 @@ size_t MobileStatic::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*
     // Original at 0x006088e0 — complex
     // Needs save system
     return 0;
+}
+
+// v1.0 sub_5EA850: scale cubed times the record's density (+172).
+float MobileStatic::GetWeight() {
+    float density = 0.0f;
+    if (info) std::memcpy(&density, reinterpret_cast<const char*>(info) + 172, 4);
+    return scale * scale * scale * density;
 }

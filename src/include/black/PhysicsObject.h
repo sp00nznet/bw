@@ -1,25 +1,44 @@
 #pragma once
-// PhysicsObject — physics simulation for game objects
-// Struct layout from bw1-decomp (PhysicsObject.h)
+// PhysicsObject -- one object under physics, and the pool of them (v1.0's
+// growable array of 476-byte entries at 0xC685BC; game layer 0x5F2CE0..
+// 0x5F5D00). docs/physics.md.
 //
-// Size: 0x1DC bytes (extends Base)
+// The vendor's opaque 0x1DC layout is replaced by named fields: the
+// arithmetic is the original's, the storage is ours (offsets in brackets).
+#include "RigidBody.h"
 
-#include "Base.h"
+#include <cstdint>
+#include <vector>
 
-struct PhysicsObject : public Base {
-    uint8_t  field_0x8[0x1A0]; // 0x08
-    float    field_0x1a8;      // 0x1A8
-    uint32_t field_0x1ac;      // 0x1AC
-    uint32_t field_0x1b0;      // 0x1B0
-    uint32_t field_0x1b4;      // 0x1B4
-    float    field_0x1b8;      // 0x1B8
-    uint32_t field_0x1bc;      // 0x1BC
-    uint32_t field_0x1c0;      // 0x1C0
-    uint32_t field_0x1c4;      // 0x1C4
-    float    field_0x1c8;      // 0x1C8
-    uint32_t field_0x1cc;      // 0x1CC
-    uint32_t field_0x1d0;      // 0x1D0
-    uint32_t field_0x1d4;      // 0x1D4
-    uint32_t field_0x1d8;      // 0x1D8
+struct Object;
+
+struct PhysicsObject {
+    physics::Vec3 impulse;           // [12] forces summed over touching substeps
+    Object*  object = nullptr;       // [24]
+    Object*  thrower = nullptr;      // [28]
+    PhysicsObject* hit = nullptr;    // [32] the entry it hit this turn
+    int32_t  kind = 0;               // [36] sub_5F30F0's a5
+    float    strength = 0;           // [8] |impulse| x 0.05
+    physics::RigidBody body;         // [40]
+    bool     resting = false;        // [412]
+    int32_t  villager = 0;           // [420] 1 for a Villager
+    uint32_t flags = 1;              // [472] bit 0 kept this turn, bit 7 always kept
 };
-static_assert(sizeof(PhysicsObject) == 0x1DC, "PhysicsObject size mismatch");
+
+namespace physics {
+
+// sub_5F30F0: the object flies with velocity `vel` (clamped to 124 m/s) and
+// spin `spin` (body axes). Not for an object that cannot become physical
+// (vslot 492) or whose +0x25 bit 0x10 is set; an object already in the pool
+// is restarted only when resting. Returns its entry or nullptr.
+PhysicsObject* Throw(Object* object, const Vec3& vel, const Vec3& spin, Object* thrower, int kind);
+// sub_5F3B40: the object joins at rest (disturbed by something moving).
+PhysicsObject* AddResting(Object* object);
+// sub_5F3D10: one game turn, 20 substeps of 5 ms.
+void Step();
+// The entry for an object, or nullptr.
+PhysicsObject* Find(const Object* object);
+const std::vector<PhysicsObject*>& Pool();
+void ResetPool();  // sub_5F3000
+
+}  // namespace physics

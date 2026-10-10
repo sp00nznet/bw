@@ -339,6 +339,7 @@ add_library(bw_core STATIC
     core/GUtils.cpp
     core/Zoomer.cpp
     core/RigidBody.cpp
+    core/PhysicsObject.cpp
     # Terrain and entity factory (bridge to viewer)
     core/Terrain.cpp
     core/EntityFactory.cpp
@@ -422,7 +423,7 @@ set_target_properties(test_chooser PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
-# Creature decision-tree induction
+# Physics: the rigid body and the pool
 add_executable(test_physics
     viewer/test_physics.cpp
 )
@@ -431,6 +432,7 @@ set_target_properties(test_physics PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
+# Creature decision-tree induction
 add_executable(test_learning
     viewer/test_learning.cpp
 )

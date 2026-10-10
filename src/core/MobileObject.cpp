@@ -5,6 +5,8 @@
 // MobileObject is a moveable single-cell object (pots, mushrooms).
 // Methods at 0x00425bxx are small (~16 bytes each).
 
+#include <black/InfoDat.h>
+#include <cstring>
 #include <black/MobileObject.h>
 #include <black/Map.h>
 
@@ -242,11 +244,13 @@ uint32_t MobileObject::ApplyThisToObject(GInterfaceStatus* /*status*/, Object* /
     return 0;
 }
 
+// v1.0 sub_5C2E10 (vslot 482): records 17..19 (0xC5A5A4, 0xC5A6B8,
+// 0xC5A7CC) are materials 21..23; any other is 1 when it can become
+// physical (sub_5E9B10), else 0.
 uint32_t MobileObject::GetPhysicsConstantsType() {
-    // Original at 0x006079f0: reads physics type from info at offset 0x110
-    if (!info) return 0;
-    return *reinterpret_cast<const uint32_t*>(
-        reinterpret_cast<const char*>(info) + 0x110);
+    for (uint32_t r = 17; r <= 19; ++r)
+        if (info && info == infodat::Element(infodat::DETAIL_MOBILE_OBJECT_INFO, r)) return r + 4;
+    return CanBecomeAPhysicsObject() ? 1u : 0u;
 }
 
 void MobileObject::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool /*param2*/) {
@@ -278,4 +282,11 @@ size_t MobileObject::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*
 // Static methods
 void MobileObject::AddMobileObjectCheckSum() {
     // Original at 0x00606fc0 — integrity checksum for mobile objects
+}
+
+// v1.0 sub_5EA850: scale cubed times the record's density (+172).
+float MobileObject::GetWeight() {
+    float density = 0.0f;
+    if (info) std::memcpy(&density, reinterpret_cast<const char*>(info) + 172, 4);
+    return scale * scale * scale * density;
 }

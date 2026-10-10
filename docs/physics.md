@@ -104,10 +104,43 @@ restitution from a 24-byte material.
   the land normal (`sub_761570` takes the cell's triangle; ours is a central
   difference), the sea's cell check (0xD73794) and the body resting on another (+360).
 
+## The game layer (translated: `black/PhysicsObject.h`, `core/PhysicsObject.cpp`)
+
+`PhysicsObject` now has named fields instead of the vendor's opaque block, and the pool
+is a vector of them. `physics::Throw` is `sub_5F30F0`, `AddResting` is `sub_5F3B40`,
+`Step` is `sub_5F3D10`:
+
+1. Entries whose object is gone leave; a dead object (life under 0.01) takes 0.01 more
+   water each turn.
+2. Moving entries are kept; resting ones go unless the object always stays
+   (vslot 493).
+3. 20 substeps: predict and forces for all, contacts for all, then each body
+   integrates. A body low in the water with water taken on stops if the object sinks
+   (vslot 494). Code 1 moves the object to the body (the centre less the turned point
+   average); code 2 does that, calls `EndPhysics` (vslot 484) and puts the body to
+   sleep; code 3 wakes it; code 4 (sunk) removes the object. While touching, the
+   body's forces add to the entry's impulse.
+4. A turn with an impulse over 1e-4 gives the entry a strength (|impulse| × 0.05) and
+   calls the object's `ReactToPhysicsImpact` (vslot 491).
+
+Materials by object (vslot 482): a mobile object's records 17..19 are materials 21..23,
+any other 1; an abode is 0. Weight (vslot 398, `sub_5EA850`) is scale³ × the record's
+density (+172), at least 0.01. Points come from the host's `g_mesh_points_func`
+(`Terrain.h`), else a 1 m box. In `test_physics` a mobile object thrown at 3 m/s
+across and 4 up lands 2.8 m on and rests after 18 turns; one in the sea is gone after
+23 s.
+
+Not translated yet in this layer: waking what lies under a moving body (vslot 487),
+body-to-body contacts (`sub_75C060`), turning the object with its body (`sub_759210` →
+vslot 325), the splash and landing sound, the impact damage of a hard knock
+(`sub_5F5240`), the creature's lessons from thrown objects (`sub_4CB260` kinds 15 and
+16), and the mobile static's material choice (`sub_5C3FD0` calls the record's own
+vtable). Sunk objects are marked unavailable rather than freed, as the store's take
+does.
+
 ## Plan
 
 1. ~~The rigid body~~ (done: `test_physics` drops a box on land and into the sea).
-2. The pool and step (`sub_5F30F0`, `sub_5F3B40`, `sub_5F3D10`), with landing calling
-   the object's impact virtuals.
+2. ~~The pool and step~~ (done, above).
 3. Hooks: the hand's throw, the creature's `ThrowInPile` (the store actions), and
    objects landing on a store (`MultiMapFixed` resource taking).

@@ -62,6 +62,7 @@ struct MobileObject : public Mobile {
     uint32_t GetPhysicsConstantsType() override;
     void ReactToPhysicsImpact(PhysicsObject* param1, bool param2) override;
     bool CanBecomeAPhysicsObject() override;
+    float GetWeight() override;  // vslot 398, sub_5EA850
     void AddToRoutePlan(RPHolder* p1, Creature* p2, int p3, void (*p4)(int, Point2D, float, int)) override;
     uint32_t GetTastiness() override;
     size_t SaveObject(LHOSFile* param1, const MapCoords* param2) override;

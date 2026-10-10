@@ -309,10 +309,8 @@ uint32_t Abode::InterfaceTap(GInterfaceStatus* /*status*/) {
 }
 
 uint32_t Abode::GetPhysicsConstantsType() {
-    // Original at 0x00402dc0: reads from GAbodeInfo at offset 0x160
-    if (!info) return 0;
-    return *reinterpret_cast<const uint32_t*>(
-        reinterpret_cast<const char*>(info) + 0x160);
+    // v1.0 sub_404E60 (vslot 482): 0.
+    return 0;
 }
 
 void Abode::SetUpPhysOb(PhysOb* /*param1*/) {

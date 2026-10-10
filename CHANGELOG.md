@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- MobileObject's physics material read a float out of its record; v1.0 (sub_5C2E10) gives
+  records 17..19 materials 21..23 and the rest 1. Abode's is 0 (sub_404E60), not a record
+  field. MobileObject and MobileStatic now weigh scale³ × density (sub_5EA850).
 - SpellDispenser was 0xC4 bytes (the vendor's); v1.0's is 0xDC, with its timer, recharge,
   seed, active flag and magic after the Abode part.
 - GET_INFLUENCE was registered twice; the later host-side version, with the wrong pop order,
@@ -46,6 +49,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- The physics game layer (`core/PhysicsObject.cpp`): the pool of physics objects, Throw /
+  AddResting / Step from sub_5F30F0 / sub_5F3B40 / sub_5F3D10. Objects fly, land, rest,
+  sink, and get ReactToPhysicsImpact. Hosts can hand in mesh points (`g_mesh_points_func`).
 - The rigid body of v1.0's physics (`core/RigidBody.cpp`, sub_75B830 / sub_75BAD0 /
   sub_75C440 / sub_75C860): contact points with a spring and friction anchor, gravity,
   drag, floating and sinking in the sea, coming to rest. Materials from

@@ -24,6 +24,14 @@ inline float GetTerrainHeightAt(float x, float z) {
 using MeshRadiusFunc = float (*)(int32_t mesh_id);
 extern MeshRadiusFunc g_mesh_radius_func;
 
+// Mesh physics points -- the host owns the meshes. The original's rigid body
+// takes the vertices of the mesh's physics submeshes (flag 0x2000, else
+// 0x20000000; sub_75A110). Writes up to max_points (x, y, z) triples of
+// AllMeshes.g3d entry `mesh_id` into xyz, unscaled, and returns how many;
+// 0 when it has none (the physics then uses a 1 m box).
+using MeshPointsFunc = int (*)(int32_t mesh_id, float* xyz, int max_points);
+extern MeshPointsFunc g_mesh_points_func;
+
 // Landscape cell flags — the host owns the .lnd. Returns the flags word of map
 // cell (cx, cz) (LND cell +6), or -1 where there is no cell. The original reads
 // it straight from its block grid (sub_5BFBF0).

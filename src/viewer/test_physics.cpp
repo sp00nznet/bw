@@ -2,6 +2,10 @@
 // land comes to rest on it, sitting level; one dropped into the sea floats
 // at the surface for a while, then sinks as it takes on water.
 #include <black/RigidBody.h>
+#include <black/PhysicsObject.h>
+#include <black/EntityFactory.h>
+#include <black/InfoDat.h>
+#include <black/MobileObject.h>
 #include <black/Terrain.h>
 
 #include <cmath>
@@ -26,6 +30,7 @@ static RigidBody Box(const Material& m, float x, float y, float z) {
 }
 
 int main() {
+    setvbuf(stdout, nullptr, _IONBF, 0);
     const char* roots[] = {"game_data/", "../game_data/", "../../game_data/", "../../../game_data/"};
     std::string root;
     for (const char* r : roots)
@@ -81,6 +86,47 @@ int main() {
         std::snprintf(msg, sizeof msg, "a box dropped into the sea: floating %d, y after 3 s %.3f, sinks (code %d) after %.0f s, buoyancy divisor %.2f",
                       floated, after3s, code, steps * kSubstep, b.buoyancy);
         CHECK(floated && std::fabs(after3s) < b.radius && code == 4, msg);
+    }
+
+    // The game layer (sub_5F30F0 / sub_5F3D10): a mobile object thrown at
+    // 3 m/s across and 4 up flies, lands and rests as the pool's turns run,
+    // placed where its body stopped; one thrown into the sea sinks and is
+    // deleted, and the pool lets it go.
+    if (infodat::Load((root + "info.dat").c_str())) {
+        g_ground = 10.0f;
+        EntityCreateParams p{};
+        p.world_x = 200.0f; p.world_z = 200.0f; p.angle = 0.0f; p.scale = 1.0f; p.mesh_id = -1; p.type_enum = 0;
+        p.type_name = "test";
+        Object* o = EntityFactory::CreateEntity(ENTITY_CAT_MOBILE_OBJECT, p);
+        o->coords = MapCoordsFromMetres(200.0f, 200.0f, 10.6f);
+        PhysicsObject* e = physics::Throw(o, {3.0f, 4.0f, 0.0f}, {}, nullptr, 0);
+        int turns = 0;
+        float peak = 0.0f, hardest = 0.0f;
+        while (e && !e->body.asleep && turns < 200) {
+            physics::Step();
+            peak = std::fmax(peak, o->coords.altitude);
+            hardest = std::fmax(hardest, e->strength);
+            ++turns;
+        }
+        const float moved = MetresOf(o->coords.x) - 200.0f;
+        std::snprintf(msg, sizeof msg, "a thrown mobile object (weight %.2f, material %u): rests after %d turns, %.2f m on, peak %.2f, at y %.2f, hardest knock %.1f; pool %zu",
+                      o->GetWeight(), o->GetPhysicsConstantsType(), turns, moved, peak, o->coords.altitude, hardest, physics::Pool().size());
+        CHECK(e && e->body.asleep && turns < 200 && moved > 0.5f && peak > 10.8f && std::fabs(o->coords.altitude - 10.0f) < 1.0f &&
+              hardest > 0.0f && physics::Pool().size() == 1, msg);
+
+        g_ground = 0.0f;
+        physics::ResetPool();
+        Object* s2 = EntityFactory::CreateEntity(ENTITY_CAT_MOBILE_OBJECT, p);
+        s2->coords = MapCoordsFromMetres(200.0f, 200.0f, 2.0f);
+        physics::Throw(s2, {}, {}, nullptr, 0);
+        turns = 0;
+        while (s2->IsAvailable() && turns < 2000) { physics::Step(); ++turns; }
+        physics::Step();
+        std::snprintf(msg, sizeof msg, "a mobile object in the sea: deleted after %d turns (%.0f s), pool %zu",
+                      turns, turns * 0.1f, physics::Pool().size());
+        CHECK(!s2->IsAvailable() && turns < 2000 && physics::Pool().empty(), msg);
+    } else {
+        printf("note: info.dat not reachable; game-layer checks skipped\n");
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
