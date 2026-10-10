@@ -338,6 +338,7 @@ add_library(bw_core STATIC
     # Utility functions
     core/GUtils.cpp
     core/Zoomer.cpp
+    core/RigidBody.cpp
     # Terrain and entity factory (bridge to viewer)
     core/Terrain.cpp
     core/EntityFactory.cpp
@@ -422,6 +423,14 @@ set_target_properties(test_chooser PROPERTIES
 )
 
 # Creature decision-tree induction
+add_executable(test_physics
+    viewer/test_physics.cpp
+)
+target_link_libraries(test_physics PRIVATE bw_core)
+set_target_properties(test_physics PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 add_executable(test_learning
     viewer/test_learning.cpp
 )

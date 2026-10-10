@@ -1,8 +1,9 @@
-# Physics (map, not yet translated)
+# Physics
 
-Thrown and dropped objects in v1.0 are simulated by a rigid-body engine. The core has
-no translation of it yet: `PhysicsObject.h` is the vendor's opaque 0x1DC layout, and the
-viewer fakes flights (`GameState::ThrowEntity`, `game_loop.cpp`). This page maps the
+Thrown and dropped objects in v1.0 are simulated by a rigid-body engine. The rigid body
+is translated (`black/RigidBody.h`, `core/RigidBody.cpp`, checked by `test_physics`); the
+game layer is not yet: `PhysicsObject.h` is the vendor's opaque 0x1DC layout, and the
+viewer still fakes flights (`GameState::ThrowEntity`, `game_loop.cpp`). This page maps the
 original so the translation can go in phases. Dumps: `work/decomp/physics.txt` and
 `work/decomp/rigidbody.txt` (gitignored; regenerate with `tools/decomp`).
 
@@ -78,10 +79,34 @@ The four passes, called in order each substep:
 body's world matrix; `sub_759E40(mass, material, a4)` sets mass, friction and
 restitution from a 24-byte material.
 
+## What the translation found
+
+- **Points come from the mesh** (`sub_75A110`): the vertices of the submeshes flagged
+  0x2000 (else 0x20000000), centred on their average and scaled; the radius is the
+  farthest. bw_core has no meshes, so `RigidBody::Setup` takes the vertices.
+- **Materials** are `game_data/PhysicsConstants.txt` (version 3, 24 rows of six), the
+  table at 0xBE7840 picked by the object's vslot 482: buoyancy divisor, stiffness and
+  damping per kg, friction, spin kept per second (`pow(x, 0.005)` a substep), drag
+  (× r² × 0.3).
+- **The contact spring** is `k × d₀ + 200 c × (d − d₀) × lever/rest`, where d₀ is the
+  depth at first contact (the point's +0, written only then) and d the depth now, 60 ms
+  ahead. The disassembly confirms it. Friction is a spring to where the point first
+  touched, slipping past `fn × friction`.
+- **Coming to rest** (`sub_75C860` code 2) happens at the first slow moment while
+  touching, once the age (−radius mm, +5 a substep) is positive. A box dropped 4.5 m
+  on material 1 rests at the bottom of its landing, 0.6 m in; the game layer (case 2
+  of `sub_5F3D10`) puts the object where the body is.
+- **The sea** (land height 0 under the centre, centre less than a radius up): points
+  under 0 lift the body by `depth share × weight / buoyancy`, and the divisor grows by
+  1/15000 a substep, so a floating thing sinks; under −4 radii it is gone (code 4).
+- **Inertia** element [5] takes −xz where −yz is meant: the original's slip, kept.
+- **Not translated yet:** body-to-body contacts (+76, +356 triangles, `sub_75C360`),
+  the land normal (`sub_761570` takes the cell's triangle; ours is a central
+  difference), the sea's cell check (0xD73794) and the body resting on another (+360).
+
 ## Plan
 
-1. The rigid body: the four passes, with a test that drops a body onto flat land and
-   onto the sea (it should come to rest; it should float).
+1. ~~The rigid body~~ (done: `test_physics` drops a box on land and into the sea).
 2. The pool and step (`sub_5F30F0`, `sub_5F3B40`, `sub_5F3D10`), with landing calling
    the object's impact virtuals.
 3. Hooks: the hand's throw, the creature's `ThrowInPile` (the store actions), and
