@@ -4,6 +4,7 @@
 
 #include <black/PhysicsObject.h>
 
+#include <black/Map.h>
 #include <black/Object.h>
 #include <black/Terrain.h>
 #include <black/Villager.h>
@@ -18,6 +19,7 @@ namespace {
 std::vector<PhysicsObject*> g_pool;
 
 void Remove(size_t i) {
+    for (PhysicsObject* e : g_pool) if (e->hit == g_pool[i]) e->hit = nullptr;
     delete g_pool[i];
     g_pool[i] = g_pool.back();  // the original moves the last entry into the gap
     g_pool.pop_back();
@@ -32,18 +34,21 @@ bool SetUp(PhysicsObject* e, Object* o) {
     const Material* m = PhysicsConstants(static_cast<int>(o->GetPhysicsConstantsType()));
     if (!m) return false;
     std::vector<Vec3> v;
+    std::vector<int> faces;
     if (g_mesh_points_func) {
         static float xyz[3 * 4096];
         const int n = g_mesh_points_func(o->GetMesh(), xyz, 4096);
         for (int i = 0; i < n; ++i) v.push_back({xyz[3 * i], xyz[3 * i + 1], xyz[3 * i + 2]});
     }
-    if (v.empty())
-        for (int i = 0; i < 8; ++i) v.push_back({i & 1 ? 0.5f : -0.5f, i & 2 ? 0.5f : -0.5f, i & 4 ? 0.5f : -0.5f});
+    // ponytail: a host mesh brings its points only; its faces (sub_75A110's
+    // index triples) would need a faces hook, so such a body is not hit by
+    // others yet. The box has both.
+    if (v.empty()) UnitBox(v, faces);
     const float c = std::cos(o->y_angle), s = std::sin(o->y_angle);
     const float rows[9] = {c, 0, -s, 0, 1, 0, s, 0, c};
     const bool on = o->CanBecomeAPhysicsObject() && !(o->field_0x24 & 0x1000);
     e->body.Setup(v, o->scale > 0.0f ? o->scale : 1.0f, std::max(o->GetWeight(), 0.0099999998f), *m, on, rows,
-                  {MetresOf(o->coords.x), o->coords.altitude, MetresOf(o->coords.z)});
+                  {MetresOf(o->coords.x), o->coords.altitude, MetresOf(o->coords.z)}, faces);
     return true;
 }
 
@@ -53,7 +58,7 @@ PhysicsObject* Join(Object* o, Object* thrower, GInterfaceStatus* status, bool r
     e->object = o;
     e->thrower = thrower;
     e->status = status;
-    e->resting = resting;
+    e->body.asleep = resting;
     e->villager = dynamic_cast<Villager*>(o) ? 1 : 0;
     e->flags = 1u | (o->GetAlwaysRemainsInPhysicsInternalSystem() ? 0x80u : 0u);
     g_pool.push_back(e);
@@ -92,7 +97,7 @@ PhysicsObject* Throw(Object* o, const Vec3& vel, const Vec3& spin, Object* throw
     if (!o || !o->CanBecomeAPhysicsObject() || (o->field_0x24 & 0x1000)) return nullptr;
     for (size_t i = 0; i < g_pool.size(); ++i) {
         if (g_pool[i]->object != o) continue;
-        if (!g_pool[i]->resting) return nullptr;
+        if (!g_pool[i]->body.asleep) return nullptr;
         Remove(i);
         break;
     }
@@ -121,23 +126,64 @@ void Step() {
         if (e->object->GetLife() < 0.0099999998f) e->body.buoyancy += 0.0099999998f;
         if (!e->object->IsAvailable()) { Remove(i); continue; }
         e->impulse = Vec3{};
-        e->hit = nullptr;
+        e->body.hit = nullptr;
         ++i;
     }
     // Moving entries are kept; resting ones go unless always kept (bit 7).
-    // ponytail: v1.0 first wakes what lies in the map cells under each moving
-    // body (vslot 487, sub_5F3B40), which keeps those too.
     for (PhysicsObject* e : g_pool) {
-        if (!(e->flags & 1)) { if (!e->resting) e->flags |= 1; }
-        else if (e->resting && !(e->flags & 0x80)) e->flags &= ~1u;
+        if (!(e->flags & 1)) { if (!e->body.asleep) e->flags |= 1; }
+        else if (e->body.asleep && !(e->flags & 0x80)) e->flags &= ~1u;
+    }
+    // What lies in the map cells under a moving body (its radius and a tenth
+    // of a second of travel either way) and interacts (vslot 487) is kept,
+    // or joins at rest.
+    // ponytail: v1.0 adds only objects with a 3D object (+0x40); bw_core
+    // makes none and the host draws everything on the map, so all may join.
+    for (size_t i = 0; i < g_pool.size(); ++i) {
+        const RigidBody& b = g_pool[i]->body;
+        if (b.asleep || !g_map) continue;
+        const float m = std::sqrt(b.vel.x * b.vel.x + b.vel.y * b.vel.y + b.vel.z * b.vel.z) * 0.1f + b.radius;
+        const MapCoords lo = MapCoordsFromMetres(b.pos.x - m, b.pos.z - m), hi = MapCoordsFromMetres(b.pos.x + m, b.pos.z + m);
+        const int x0 = std::max(static_cast<int>(lo.x.full) >> 16, 0), z0 = std::max(static_cast<int>(lo.z.full) >> 16, 0);
+        const int x1 = std::min(static_cast<int>(hi.x.full) >> 16, 511), z1 = std::min(static_cast<int>(hi.z.full) >> 16, 511);
+        std::vector<Object*> near;
+        for (int x = x0; x <= x1; ++x)
+            for (int z = z0; z <= z1; ++z) {
+                if (!g_map->InBounds(x, z)) continue;
+                const MapCell* c = g_map->ToMap(x, z);
+                for (Object* o = c->first_object_fixed; o; o = o->map_parent) near.push_back(o);
+                for (Object* o = c->first_object_mobile; o; o = o->map_child) near.push_back(o);
+            }
+        for (Object* o : near) {
+            if (!o->InteractsWithPhysicsObjects()) continue;
+            if (PhysicsObject* e = Find(o)) e->flags |= 1;
+            else AddResting(o);
+        }
     }
     for (size_t i = 0; i < g_pool.size();)
         if (!(g_pool[i]->flags & 1)) Remove(i); else ++i;
 
     for (int sub = 0; sub < 20; ++sub) {
         for (PhysicsObject* e : g_pool) { e->body.Predict(); e->body.Forces(); }
-        // ponytail: body-to-body contacts (sub_75C060 over each pair, not a
-        // thrower and what it threw) are not translated.
+        // Each pair whose bounding spheres meet: the first's points against
+        // the second's faces (sub_75C060), unless the first checks no bodies
+        // (vslot 488, bit 4), both rest, a villager meets an entry that passes
+        // through villagers, or one threw the other.
+        for (PhysicsObject* a : g_pool) {
+            if (!a->object->ChecksVerticesVObjects() || (a->flags & 0x10)) continue;
+            for (PhysicsObject* b : g_pool) {
+                if (a == b) continue;
+                RigidBody& ab = a->body;
+                RigidBody& bb = b->body;
+                if (ab.asleep && bb.asleep && !ab.fresh && !bb.fresh) continue;
+                if ((a->villager == 1 && (b->flags & 2)) || (b->villager == 1 && (a->flags & 2))) continue;
+                if (a->thrower == b->object || b->thrower == a->object) continue;
+                const float r = ab.radius + bb.radius;
+                const Vec3 d{ab.pos.x - bb.pos.x, ab.pos.y - bb.pos.y, ab.pos.z - bb.pos.z};
+                if (!(r * r > d.x * d.x + d.y * d.y + d.z * d.z)) continue;
+                ab.Collide(bb);
+            }
+        }
         for (PhysicsObject* e : g_pool) e->body.Contacts();
         for (size_t i = 0; i < g_pool.size(); ++i) {
             PhysicsObject* e = g_pool[i];
@@ -185,6 +231,14 @@ void Step() {
         const float i2 = p.x * p.x + p.y * p.y + p.z * p.z;
         if (i2 <= 0.000099999997f) continue;
         e->strength = std::sqrt(i2) * 0.050000001f;
+        // The entry of the body it last touched; an entry nobody threw takes
+        // the hand of the one that hit it.
+        if (!e->body.hit) e->hit = nullptr;
+        for (PhysicsObject* o : g_pool) {
+            if (&o->body != e->body.hit) continue;
+            if (!e->status) e->status = o->status;
+            e->hit = o;
+        }
         e->object->ReactToPhysicsImpact(e, false);
     }
 }

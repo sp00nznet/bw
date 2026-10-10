@@ -134,10 +134,11 @@ void ResetPlayers();
 // set by the level's SET_TOWN_ / SET_PLAYER_INFLUENCE_MULTIPLIER (cases 96 / 97).
 extern float g_town_influence_multiplier;
 extern float g_player_influence_multiplier;
-// SET_GLOBAL_LAND_BALANCE's table (0xC3B390, sub_5A2440); e.g. [1] scales a
-// player's +232 (sub_5EB6B0). .bss, so 0 until a land sets it.
-// ponytail: 16 entries; v1.0 does not bound the index (lands use 0..6).
-extern float g_land_balance[16];
+// SET_GLOBAL_LAND_BALANCE's table (0xC3B390, sub_5A2440, 8 floats saved with
+// the game); e.g. [1] scales a player's +232 (sub_5EB6B0), [5] a tree's wood
+// (sub_6DCC80). A new game sets all eight to 1 (sub_5A23E0).
+extern float g_land_balance[8];
+void ResetLandBalance();
 // v1.0 sub_58DE80: the player's influence at the point, -1..1. Its citadel's
 // power and each of its towns' influence count in full where the point is
 // nearer than that many metres; the sum is clamped. No player: 1.

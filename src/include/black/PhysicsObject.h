@@ -20,10 +20,10 @@ struct PhysicsObject {
     PhysicsObject* hit = nullptr;    // [32] the entry it hit this turn
     GInterfaceStatus* status = nullptr;  // [36] the hand that threw it (sub_5F30F0's a5)
     float    strength = 0;           // [8] |impulse| x 0.05
-    physics::RigidBody body;         // [40]
-    bool     resting = false;        // [412]
+    physics::RigidBody body;         // [40]; [412] resting is body.asleep
     int32_t  villager = 0;           // [420] 1 for a Villager
-    uint32_t flags = 1;              // [472] bit 0 kept this turn, bit 7 always kept
+    uint32_t flags = 1;              // [472] bit 0 kept this turn, bit 1 passes through villagers,
+                                     // bit 4 checks no bodies, bit 7 always kept
 };
 
 namespace physics {

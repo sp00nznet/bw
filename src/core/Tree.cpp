@@ -10,6 +10,10 @@
 // (0x0055d8xx range — tiny return-constant functions).
 
 #include <black/Tree.h>
+#include <black/PhysicsObject.h>
+#include <black/Player.h>
+
+#include <cstring>
 
 // ============================================================================
 // Overrides of GameThingWithPos virtuals
@@ -173,10 +177,12 @@ float Tree::GetVillagerHugRadius() {
     return 0.0f;
 }
 
+// v1.0 sub_6DCC80: life x GetWoodValueMultiplier (vslot 538) x the
+// record's wood (+108, an int) x scale x the land's balance [5].
 float Tree::GetWoodValue() {
-    // Original at 0x0074b7b0 — reads from GTreeInfo
-    // Read wood value from GTreeInfo data struct when available
-    return 0.0f;
+    int32_t wood = 0;
+    if (info) std::memcpy(&wood, reinterpret_cast<const char*>(info) + 108, 4);
+    return GetLife() * GetWoodValueMultiplier() * static_cast<float>(wood) * GetScale() * g_land_balance[5];
 }
 
 bool Tree::IsResourceStore(RESOURCE_TYPE type) {
@@ -191,10 +197,8 @@ RESOURCE_TYPE Tree::GetResourceType() {
     return RESOURCE_TYPE_WOOD;
 }
 
-int Tree::GetDefaultResource() {
-    // Original at 0x0074b7a0
-    return 0;
-}
+// v1.0 sub_6DCC70: the wood value, truncated (_ftol, sub_733E6C).
+int Tree::GetDefaultResource() { return static_cast<int>(GetWoodValue()); }
 
 float Tree::ApplyWaterSpell(SpellWater*) {
     // Original at 0x0074c390 — complex water interaction
@@ -208,10 +212,16 @@ bool Tree::CanBecomeAPhysicsObject() {
     return true;
 }
 
-bool Tree::InteractsWithPhysicsObjects() {
-    // Trees interact with physics
-    // Original at 0x0074b6a0
-    return true;
+// v1.0 vslot 487 is 0x4048C0 (false): a moving body does not wake a tree.
+bool Tree::InteractsWithPhysicsObjects() { return false; }
+
+// v1.0 sub_6DCB90: a thrown tree that hits a wood store (vslot 416) is taken
+// by it (vslot 417) with the throwing hand's status.
+// ponytail: v1.0 also copies the entry's +424 matrix to 0xC62258 for the
+// store's use; nothing reads it here.
+void Tree::ReactToPhysicsImpact(PhysicsObject* entry, bool) {
+    Object* store = entry && entry->hit ? entry->hit->object : nullptr;
+    if (store && store->IsResourceStore(RESOURCE_TYPE_WOOD)) store->DeleteObjectAndTakeResource(this, entry->status);
 }
 
 bool Tree::CreatureMustAvoid(Creature*) {

@@ -1444,6 +1444,45 @@ int main() {
         CHECK(e && e->body.asleep && turns < 300 && moved > 1.0f && std::fabs(mo->coords.altitude - ground) < 2.0f, msg);
     }
 
+    // A thrown tree lands on the village's store and is taken as wood: the
+    // store joins the pool at rest when the tree comes near (vslot 487), the
+    // tree's points meet its faces (sub_75C060), and the tree's impact
+    // (sub_6DCB90) gives it to the store (vslots 416 / 417).
+    {
+        level::World w2;
+        std::string err2;
+        const bool loaded = level::Load((root + "Land1.txt").c_str(), w2, &err2) &&
+                            physics::LoadPhysicsConstants((root + "PhysicsConstants.txt").c_str());
+        Object* pit = loaded ? reinterpret_cast<Object*>(level::FindTown(w2, 0)->storage_pit_list) : nullptr;
+        Object* tree = nullptr;
+        for (const level::Spawned& sp : w2.objects)
+            if (dynamic_cast<Tree*>(sp.obj) && sp.obj->IsAvailable()) { tree = sp.obj; break; }
+        const uint32_t wood0 = pit ? pit->GetResource(RESOURCE_TYPE_WOOD) : 0;
+        // A tree's wood: life x record +108 x scale x the land's balance [5]
+        // (sub_6DCC80); Land 1 leaves [5] at 1.
+        const uint32_t tree_wood = tree ? tree->GetResource(RESOURCE_TYPE_WOOD) : 0;
+        PhysicsObject* e = nullptr;
+        if (pit && tree) {
+            // Headless, the loader has no land under the objects: the pit is
+            // put on it, as the host's height function would.
+            pit->coords.altitude = LandHeight(MetresOf(pit->coords.x), MetresOf(pit->coords.z));
+            tree->coords = MapCoordsFromMetres(MetresOf(pit->coords.x), MetresOf(pit->coords.z), pit->coords.altitude + 4.0f);
+            e = physics::Throw(tree, {0.0f, -2.0f, 0.0f}, {}, nullptr, nullptr);
+        }
+        int turns = 0;
+        bool pit_joined = false;
+        while (e && tree->IsAvailable() && turns < 100) {
+            level::Process(w2);
+            ++turns;
+            pit_joined |= physics::Find(pit) != nullptr;
+        }
+        if (e) level::Process(w2);  // the next turn's prune lets the taken tree go
+        const uint32_t wood1 = pit ? pit->GetResource(RESOURCE_TYPE_WOOD) : 0;
+        std::snprintf(msg, sizeof msg, "a tree dropped onto Land 1's store: store joined %d, taken %d after %d turns, wood %u -> %u (the tree's %u), tree in pool %d",
+                      pit_joined, tree && !tree->IsAvailable(), turns, wood0, wood1, tree_wood, tree && physics::Find(tree) != nullptr);
+        CHECK(e && pit_joined && !tree->IsAvailable() && tree_wood > 0 && wood1 == wood0 + tree_wood && !physics::Find(tree), msg);
+    }
+
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;
 }

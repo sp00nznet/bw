@@ -1,10 +1,10 @@
 # Physics
 
 Thrown and dropped objects in v1.0 are simulated by a rigid-body engine. The rigid body
-is translated (`black/RigidBody.h`, `core/RigidBody.cpp`, checked by `test_physics`); the
-game layer is not yet: `PhysicsObject.h` is the vendor's opaque 0x1DC layout, and the
-viewer still fakes flights (`GameState::ThrowEntity`, `game_loop.cpp`). This page maps the
-original so the translation can go in phases. Dumps: `work/decomp/physics.txt` and
+(`black/RigidBody.h`, `core/RigidBody.cpp`) and the game layer (`black/PhysicsObject.h`,
+`core/PhysicsObject.cpp`) are translated and run each game turn; `test_physics` and
+`test_level` check them. This page maps the original and records what the translation
+found. Dumps: `work/decomp/physics.txt` and
 `work/decomp/rigidbody.txt` (gitignored; regenerate with `tools/decomp`).
 
 ## Two layers
@@ -100,9 +100,22 @@ restitution from a 24-byte material.
   under 0 lift the body by `depth share × weight / buoyancy`, and the divisor grows by
   1/15000 a substep, so a floating thing sinks; under −4 radii it is gone (code 4).
 - **Inertia** element [5] takes −xz where −yz is meant: the original's slip, kept.
-- **Not translated yet:** body-to-body contacts (+76, +356 triangles, `sub_75C360`),
-  the land normal (`sub_761570` takes the cell's triangle; ours is a central
-  difference), the sea's cell check (0xD73794) and the body resting on another (+360).
+- **Bodies meet** (`sub_75C060`, between the forces and the contacts): each predicted
+  point inside the other's bounding sphere is cast from this body's centre through the
+  point (`sub_75A5B0`) onto the other's faces, the nearest face behind the point whose
+  normal faces the cast and whose three edges hold the crossing. The crossing is the
+  contact, the face's normal the normal, and the depth is how far the point is past it.
+  A deeper hit than the land's takes the point, and unless both bodies sleep it marks
+  both touching and each as the other's last hit (+120). The contact then uses the
+  lesser stiffness, damping and friction of the two (friction × 0.3) and pushes the
+  other body back (`sub_75C440`).
+- **Faces** (+352 / +356, 36 bytes): the mesh's triangles as point indices, with the
+  normal (b − a) × (c − a) made unit, in the body and turned to the world each predict.
+- **+360 is dead**: only `sub_75AD90` writes it, always 0, so the "body on another"
+  branches in `sub_75BAD0` and `sub_75C060` never run.
+- **Not translated yet:** the land normal (`sub_761570` takes the cell's triangle; ours is
+  a central difference), the sea's cell check (0xD73794), and `sub_75C360` (the
+  joining body's push-up, `sub_5F3550`).
 
 ## The game layer (translated: `black/PhysicsObject.h`, `core/PhysicsObject.cpp`)
 
@@ -114,14 +127,22 @@ is a vector of them. `physics::Throw` is `sub_5F30F0`, `AddResting` is `sub_5F3B
    water each turn.
 2. Moving entries are kept; resting ones go unless the object always stays
    (vslot 493).
-3. 20 substeps: predict and forces for all, contacts for all, then each body
+3. What lies in the map cells under each moving body (radius plus a tenth of a second of
+   travel either way) and interacts (vslot 487) is kept, or joins at rest
+   (`sub_5F3B40`); then entries not kept leave.
+4. 20 substeps: predict and forces for all; each pair whose spheres meet collides
+   (`sub_75C060`), unless the first checks no bodies (vslot 488, flag bit 4), both sleep
+   and neither is new, a villager meets an entry with flag bit 1, or one threw the other;
+   contacts for all; then each body
    integrates. A body low in the water with water taken on stops if the object sinks
    (vslot 494). Code 1 moves the object to the body (the centre less the turned point
    average); code 2 does that, calls `EndPhysics` (vslot 484) and puts the body to
    sleep; code 3 wakes it; code 4 (sunk) removes the object. While touching, the
    body's forces add to the entry's impulse.
-4. A turn with an impulse over 1e-4 gives the entry a strength (|impulse| × 0.05) and
-   calls the object's `ReactToPhysicsImpact` (vslot 491).
+5. A turn with an impulse over 1e-4 gives the entry a strength (|impulse| × 0.05), the
+   entry of the body it last touched (+32; an entry nobody threw takes that one's hand),
+   and calls the object's `ReactToPhysicsImpact` (vslot 491). A tree's (`sub_6DCB90`)
+   hands it to a wood store it hit (vslots 416 / 417) with the hand's status.
 
 Materials by object (vslot 482): a mobile object's records 17..19 are materials 21..23,
 any other 1; an abode is 0. Weight (vslot 398, `sub_5EA850`) is scale³ × the record's
@@ -130,8 +151,13 @@ density (+172), at least 0.01. Points come from the host's `g_mesh_points_func`
 across and 4 up lands 2.8 m on and rests after 18 turns; one in the sea is gone after
 23 s.
 
-Not translated yet in this layer: waking what lies under a moving body (vslot 487),
-body-to-body contacts (`sub_75C060`), turning the object with its body (`sub_759210` →
+Which objects take part, from v1.0's tables: vslot 487 (woken) is Object's "has a 3D
+object" (ours: true, as bw_core makes none), false for trees and fields, built over 0.1
+and alive for a multi-map fixed; vslot 488 (its points checked) is true but for abodes;
+vslot 492 (moves) is false for abodes. Bodies without a host mesh are the 1 m box with
+its twelve faces; a host mesh brings points only, so it is not hit by others yet.
+
+Not translated yet in this layer: turning the object with its body (`sub_759210` →
 vslot 325), the splash and landing sound, the impact damage of a hard knock
 (`sub_5F5240`), the creature's lessons from thrown objects (`sub_4CB260` kinds 15 and
 16), and the mobile static's material choice (`sub_5C3FD0` calls the record's own
@@ -155,14 +181,20 @@ does.
   follows v1.0's layout and cuts each cell along v1.0's diagonal, and the viewer's
   height is `LandHeight` once the cell hooks are in.
 
-Next: body-to-body contacts (`sub_75C060`, `sub_75A940`, `sub_75A5B0`), waking what
-lies under a moving body, and then a thrown tree landing on a store
-(`Tree::ReactToPhysicsImpact`, `sub_6DCB90`: the store takes it through vslots 416 /
-417 with the thrower's status).
+## Bodies meeting (phase 3, part 2)
+
+Body-to-body contacts, the wake pass and the tree's impact are in. `test_level` drops a
+Land 1 tree 4 m onto the first village's store: the store joins the pool at rest as the
+tree nears, the tree meets its faces on the sixth turn, and the store takes it, 237 wood
+(life 1 × record 350 × scale 0.68 × balance 1).
+
+Next: the abode's own impact (`sub_4048D0`: a hard hit from something that destroys
+abodes, `|impulse| × mass` over 2000, damages it; lesser ones make a sound), the
+creature's `ThrowInPile`, and a faces hook for host meshes.
 
 ## Plan
 
 1. ~~The rigid body~~ (done: `test_physics` drops a box on land and into the sea).
 2. ~~The pool and step~~ (done, above).
-3. Hooks: the hand's throw, the creature's `ThrowInPile` (the store actions), and
-   objects landing on a store (`MultiMapFixed` resource taking).
+3. Hooks: the hand's throw (done), objects landing on a store (done for trees), and the
+   creature's `ThrowInPile` (the store actions).

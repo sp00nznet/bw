@@ -59,6 +59,7 @@ struct Tree : public SingleMapFixed {
     int GetDefaultResource() override;
     float ApplyWaterSpell(SpellWater* spell) override;
     bool CanBecomeAPhysicsObject() override;
+    void ReactToPhysicsImpact(PhysicsObject* entry, bool param2) override;  // sub_6DCB90
     bool InteractsWithPhysicsObjects() override;
     bool CreatureMustAvoid(Creature*) override;
     bool IsARootedObject() override;

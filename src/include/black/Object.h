@@ -71,6 +71,7 @@ struct Object : public GameThingWithPos {
     // === Overrides of GameThingWithPos virtuals ===
     float GetLife() override;
     float GetScale() override;
+    uint32_t GetResource(RESOURCE_TYPE type) override;  // sub_5EB840
     bool IsMoving() const override;
     bool32_t IsObject() override;
     bool32_t IsSuitableForCreatureAction() override;

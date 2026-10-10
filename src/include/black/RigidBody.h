@@ -38,11 +38,27 @@ struct RigidBody {
         Vec3  normal;           // [64] the land's normal at the contact
         RigidBody* other = nullptr;  // [76] the body touched (land: none)
     };
+    // 36 bytes each: a face of the mesh (indices into points) and its unit
+    // normal, (b - a) x (c - a), in the body [12] and in the world [24].
+    struct Tri {
+        int  i[3] = {};
+        Vec3 local_n;
+        Vec3 n;
+    };
 
     // sub_759DB0 + sub_759E40 + sub_75A110 + sub_759EB0 + sub_75AD90.
-    // rows: orientation (3 rows of 3); pos: the object's position.
+    // rows: orientation (3 rows of 3); pos: the object's position; faces:
+    // index triples into vertices (the mesh's triangles).
     void Setup(const std::vector<Vec3>& vertices, float scale, float mass, const Material& m,
-               bool enabled, const float rows[9], const Vec3& pos);
+               bool enabled, const float rows[9], const Vec3& pos, const std::vector<int>& faces = {});
+
+    // sub_75C060, run between Forces and Contacts: each predicted point
+    // inside the other's bounding sphere, cast from the centre through it
+    // onto the other's faces, becomes a contact with the other body.
+    void Collide(RigidBody& other);
+    // sub_75A5B0: the nearest face crossed going back from p along dir
+    // (p + s dir, -1 < s < 0) whose normal faces dir; false when none.
+    bool Cast(const Vec3& p, const Vec3& dir, Vec3& at, Vec3& normal) const;
 
     // One substep: the four passes in the original's order. Returns
     // sub_75C860's code: 0 still/asleep, 1 moved, 2 came to rest, 3 moved
@@ -55,10 +71,12 @@ struct RigidBody {
     int  Integrate();  // sub_75C860
 
     std::vector<Point> points;
+    std::vector<Tri> tris;      // +352 / +356
     float inertia[9] = {};      // +8
     float inv_inertia[12] = {}; // +56 (3x3 and a translation, sub_759970)
     Vec3  ang_mom;              // +104
     bool  enabled = false;      // +116
+    RigidBody* hit = nullptr;   // +120 the last body touched (cleared each turn)
     float rows[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};  // +124 orientation
     Vec3  pos;                  // +160 centre of mass
     Vec3  vel;                  // +220
@@ -82,6 +100,10 @@ struct RigidBody {
     bool  touching = false;     // +374
     bool  floating = false;     // +375
 };
+
+// The 1 m box bodies take when the host has no mesh: corner i at
+// (bit 0, bit 1, bit 2) -> -0.5 / +0.5, twelve faces wound outward.
+void UnitBox(std::vector<Vec3>& vertices, std::vector<int>& faces);
 
 constexpr float kSubstep = 0.005f;      // 200 a second
 constexpr float kMaxSpeed = 124.0f;     // flt_B59340

@@ -122,7 +122,8 @@ void SetPlayerCreature(GPlayer* p, Creature* c) {
 // ponytail: v1.0's 0 is the player at GGame+2104087 (the local one); here, player 0.
 float g_town_influence_multiplier = 1.0f;
 float g_player_influence_multiplier = 1.0f;
-float g_land_balance[16] = {};
+float g_land_balance[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+void ResetLandBalance() { for (float& v : g_land_balance) v = 1.0f; }
 
 namespace {
 std::vector<InfluenceRing*> g_rings;  // game +2104584 (newest first there; order does not matter to the sum)

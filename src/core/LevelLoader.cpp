@@ -534,7 +534,7 @@ struct Loader {
         if (cmd == "TOGGLE_COMPUTER_PLAYER") return a.size() >= 2 && PlayerIndex(a[0].s) >= 0;
         // case 93: (index, value) -> sub_5A2440.
         if (cmd == "SET_GLOBAL_LAND_BALANCE") {
-            if (a.size() < 2 || a[0].n < 0 || a[0].n >= 16) return false;
+            if (a.size() < 2 || a[0].n < 0 || a[0].n >= 8) return false;
             g_land_balance[a[0].n] = a[1].f;
             return true;
         }
@@ -698,6 +698,7 @@ bool Load(const char* path, World& out, std::string* err) {
     g_town_influence_multiplier = g_player_influence_multiplier = 1.0f;
     land::DrinkWaypoints().clear();
     ResetClimates();
+    ResetLandBalance();  // sub_5A23E0
     physics::ResetPool();
     ResetStreams();
     ResetMists();

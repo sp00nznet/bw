@@ -329,10 +329,8 @@ void Abode::ReactToPhysicsImpact(PhysicsObject* /*param1*/, bool param2) {
     }
 }
 
-bool Abode::CanBecomeAPhysicsObject() {
-    // Original at 0x00406800 — abodes can become physics objects when destroyed
-    return IsBuilt();
-}
+// v1.0 vslot 492 is 0x404E60 (false): an abode never moves under physics.
+bool Abode::CanBecomeAPhysicsObject() { return false; }
 
 bool Abode::GetInspectObjectPos(Villager* /*param1*/, MapCoords* pos) {
     // Original at 0x00402cd0: returns the door position for inspection

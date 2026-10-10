@@ -366,6 +366,10 @@ RESOURCE_TYPE Object::GetResourceType() {
 }
 
 int Object::GetDefaultResource() { return 0; }
+// v1.0 sub_5EB840 (vslot 38): its default resource, of its own type only.
+uint32_t Object::GetResource(RESOURCE_TYPE type) {
+    return type == GetResourceType() ? static_cast<uint32_t>(GetDefaultResource()) : 0;
+}
 void Object::SetPoisonedResource(RESOURCE_TYPE, int) {}
 void Object::SetPoisoned(int) {}
 
@@ -473,8 +477,10 @@ void Object::GetBoundingSphere(LHPoint* center, float* radius) {
         *radius = scale > 0.0f ? scale : 1.0f;
     }
 }
-bool Object::InteractsWithPhysicsObjects() { return false; }
-uint32_t Object::ChecksVerticesVObjects() { return 0; }
+// v1.0 sub_5E9C20: has a 3D object (+0x40). ponytail: bw_core makes no 3D
+// objects and the host draws everything on the map, so true.
+bool Object::InteractsWithPhysicsObjects() { return true; }
+uint32_t Object::ChecksVerticesVObjects() { return 1; }  // 0x401710
 void Object::ShouldPhysicsRaiseObjectUntilNotIntersectingThis(Object*) {}
 uint32_t Object::PhysicallyDestroysAbodes() { return 0; }
 void Object::ReactToPhysicsImpact(PhysicsObject*, bool) {}

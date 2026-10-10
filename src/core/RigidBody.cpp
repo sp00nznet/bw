@@ -17,6 +17,9 @@ Material g_materials[24];
 bool g_materials_loaded = false;
 
 float Len(const Vec3& v) { return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z); }
+Vec3 Sub(const Vec3& a, const Vec3& b) { return {a.x - b.x, a.y - b.y, a.z - b.z}; }
+float Dot(const Vec3& a, const Vec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+Vec3 Cross(const Vec3& a, const Vec3& b) { return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}; }
 
 // A body point to the world: x row0 + y row1 + z row2 + offset.
 Vec3 ToWorld(const float r[9], const Vec3& l, const Vec3& o) {
@@ -107,8 +110,15 @@ const Material* PhysicsConstants(int type) {
     return g_materials_loaded && type >= 0 && type < 24 ? &g_materials[type] : nullptr;
 }
 
+void UnitBox(std::vector<Vec3>& v, std::vector<int>& faces) {
+    v.clear();
+    for (int i = 0; i < 8; ++i) v.push_back({i & 1 ? 0.5f : -0.5f, i & 2 ? 0.5f : -0.5f, i & 4 ? 0.5f : -0.5f});
+    faces = {0, 4, 2, 2, 4, 6,  1, 3, 5, 3, 7, 5,  0, 1, 4, 1, 5, 4,
+             2, 6, 3, 3, 6, 7,  0, 2, 1, 1, 2, 3,  4, 5, 6, 5, 7, 6};
+}
+
 void RigidBody::Setup(const std::vector<Vec3>& vertices, float scale, float m, const Material& mat,
-                      bool on, const float r[9], const Vec3& at) {
+                      bool on, const float r[9], const Vec3& at, const std::vector<int>& faces) {
     // sub_759E40: mass and material.
     mass = m;
     buoyancy = mat.v[0];
@@ -187,6 +197,21 @@ void RigidBody::Setup(const std::vector<Vec3>& vertices, float scale, float m, c
         p.prev_depth = 0;
         p.depth = 0;
     }
+    // The faces' normals, from the scaled points, to the world.
+    tris.clear();
+    hit = nullptr;
+    for (size_t f = 0; f + 2 < faces.size(); f += 3) {
+        Tri t;
+        for (int k = 0; k < 3; ++k) t.i[k] = faces[f + k];
+        if (t.i[0] < 0 || t.i[1] < 0 || t.i[2] < 0 || static_cast<size_t>(std::max({t.i[0], t.i[1], t.i[2]})) >= points.size())
+            continue;
+        const Vec3& a = points[t.i[0]].local;
+        t.local_n = Cross(Sub(points[t.i[1]].local, a), Sub(points[t.i[2]].local, a));
+        const float l = Len(t.local_n);
+        if (l != 0.0f) t.local_n = {t.local_n.x / l, t.local_n.y / l, t.local_n.z / l};
+        t.n = ToWorld(rows, t.local_n, {});
+        tris.push_back(t);
+    }
 }
 
 void RigidBody::Predict() {
@@ -204,15 +229,15 @@ void RigidBody::Predict() {
         p.lever = std::max(Len({p.pred.x - pos.x, p.pred.y - pos.y, p.pred.z - pos.z}), 0.001f);
     }
     pred_centre = {pos.x + d.x, pos.y + d.y, pos.z + d.z};
-    // ponytail: the 36-byte triangle list (+356), turned here too, is not
-    // kept: only body-to-body contacts read it.
+    for (Tri& t : tris) t.n = ToWorld(rows, t.local_n, {});
     force = ext_force;
     torque = ext_torque;
 }
 
 void RigidBody::Forces() {
     if (asleep) {
-        // ponytail: the branch for a body resting on another (+360) is not.
+        // v1.0's other branch (a body on another, +360) is dead: sub_75AD90
+        // writes +360 and nothing else does, always 0.
         for (Point& p : points) { p.contact = p.pred; p.depth = 0; }
         return;
     }
@@ -273,10 +298,12 @@ void RigidBody::Contacts() {
             p.prev_depth = 0;
             continue;
         }
-        // ponytail: contacts with another body (+76: the lesser of the two
-        // materials, friction x 0.3, and the reaction on it) wait on the
-        // game layer's collisions.
-        const float k = stiffness, c = damping, mu = friction;
+        // Against another body: the lesser of the two materials, friction
+        // x 0.3, and the reaction on it.
+        RigidBody* o = p.other;
+        const float k = o ? std::min(stiffness, o->stiffness) : stiffness;
+        const float c = o ? std::min(damping, o->damping) : damping;
+        const float mu = o ? std::min(friction, o->friction) * 0.30000001f : friction;
         float fn;
         if (p.prev_depth == 0.0f) {
             p.prev_depth = p.depth;
@@ -300,7 +327,61 @@ void RigidBody::Contacts() {
         p.normal = n;  // the original keeps the point's force in the normal's slot
         force = {force.x + n.x, force.y + n.y, force.z + n.z};
         AddTorque(torque, {p.pred.x - pred_centre.x, p.pred.y - pred_centre.y, p.pred.z - pred_centre.z}, n);
+        if (o) {
+            o->force = {o->force.x - n.x, o->force.y - n.y, o->force.z - n.z};
+            AddTorque(o->torque, Sub(p.pred, o->pos), {-n.x, -n.y, -n.z});
+        }
     }
+}
+
+void RigidBody::Collide(RigidBody& o) {
+    const float r2 = o.radius * o.radius;
+    for (Point& p : points) {
+        const Vec3 d = Sub(p.pred, o.pos);
+        if (!(Dot(d, d) < r2)) continue;
+        const Vec3 dir = Sub(p.pred, pos);
+        Vec3 at, n;
+        if (!o.Cast(p.pred, dir, at, n)) continue;
+        ++contacts;
+        p.contact = at;
+        p.other = &o;
+        p.normal = n;
+        const float depth = p.lever - Dot(Sub(at, pos), dir) / p.lever;
+        if (depth > p.depth) {
+            p.depth = depth;
+            if (!asleep || !o.asleep) {
+                hit = &o;
+                touching = true;
+                o.hit = this;
+                o.touching = true;
+            }
+        }
+    }
+}
+
+bool RigidBody::Cast(const Vec3& p, const Vec3& dir, Vec3& at, Vec3& normal) const {
+    float best = -1.0f;
+    bool found = false;
+    for (const Tri& t : tris) {
+        const float dn = Dot(dir, t.n);
+        if (!(dn < -0.000099999997f)) continue;
+        const Vec3& a = points[t.i[0]].pred;
+        const Vec3& b = points[t.i[1]].pred;
+        const Vec3& c = points[t.i[2]].pred;
+        const float s = -(Dot(Sub(p, a), t.n) / dn);
+        if (!(s < 0.0f && s > best)) continue;
+        const Vec3 h{p.x + s * dir.x, p.y + s * dir.y, p.z + s * dir.z};
+        // Inside each edge. ponytail: the third edge's test goes through
+        // sub_440270 / sub_596C00, read here as the other two's pattern.
+        if (!(Dot(Cross(Sub(b, a), Sub(h, a)), t.n) > 0.0f)) continue;
+        if (!(Dot(Cross(Sub(c, b), Sub(h, b)), t.n) > 0.0f)) continue;
+        if (!(Dot(Cross(Sub(a, c), Sub(h, c)), t.n) > 0.0f)) continue;
+        at = h;
+        normal = t.n;
+        best = s;
+        found = true;
+    }
+    return found;
 }
 
 int RigidBody::Integrate() {

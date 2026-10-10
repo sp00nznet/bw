@@ -6,6 +6,14 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- Physics vslots against v1.0's tables: Object checks its points against bodies (488,
+  0x401710) and interacts with them (487, has a 3D object); a tree does not wake (487
+  false); an abode never becomes physical (492, 0x404E60). A resting physics entry is its
+  body's asleep flag (+412 is body +372), so bodies added at rest now sleep.
+- Trees carried no wood. v1.0's is life × record +108 × scale × land balance [5]
+  (sub_6DCC80), truncated; Object::GetResource gives the default resource of its own type
+  (sub_5EB840).
+- The land balance table is 8 floats that a new game sets to 1 (sub_5A23E0), not 0.
 - The viewer drew the landscape mirrored across its diagonal (block grid and cell rows on
   z instead of x), so objects stood on the wrong land; it now follows v1.0's layout and
   cell diagonals.
@@ -52,6 +60,11 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Body-to-body physics: faces on each body (the 1 m box has twelve), points cast onto
+  another body's faces (sub_75C060 / sub_75A5B0) with the lesser material and the
+  reaction on the other; each turn wakes what lies under a moving body (vslot 487) and
+  pairs bodies whose spheres meet. A thrown tree that hits a store is taken as wood
+  (Tree::ReactToPhysicsImpact, sub_6DCB90); `test_level` drops one on Land 1's store.
 - Physics in the game: each turn runs `physics::Step` (after the magic pass, as v1.0),
   the viewer's hand throws go through `physics::Throw`, and the land under it is v1.0's
   own height (`LandHeight`, sub_760FD0).
