@@ -89,15 +89,19 @@ The handlers index the info arrays directly, and every base and stride matches
   **…_RAIN / _TEMP / _WIND** (61..63) set +0x34 (float, int, int, byte), +0x44 (two
   floats) and +0x4C (three floats) on the climate of that id. The constructors'
   season-dependent defaults and the weather state are not translated.
+- **CREATE_STREAM** / **CREATE_STREAM_POINT** (cases 66/67, `sub_6C9B30` / `sub_6C9C00`):
+  a `GStream` on the game's list (newest first) and its points in order, in metres at
+  the land's height, added to every stream of that id. Streams are drinking water:
+  `sub_6DEDF0` (the abode's search, `sub_405680`) takes the nearest stream point
+  within range (`sub_6C9D10`, 2D) and then any water cell nearer than it.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.
 
 ## Not translated yet
 
-Land 1 has 2,342 commands. 1,966 are handled; `test_level` lists the rest. The largest
-groups are stream points (187), drink waypoints (47), mist (17), and planned abodes and the citadel (7). Known departures from the
-original:
+Land 1 has 2,342 commands. 2,322 are handled; `test_level` lists the rest: mist (17)
+and arenas (3). Known departures from the original:
 
 - **The creates are not the original's constructors.** The objects are our classes,
   built with `new`, with the arguments set that the handler passes. The constructor and

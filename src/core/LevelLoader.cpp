@@ -21,6 +21,7 @@
 #include <black/Flock.h>
 #include <black/FireFly.h>
 #include <black/GClimate.h>
+#include <black/GStream.h>
 #include <black/PlannedAbode.h>
 #include <black/PlannedTownCitadelHeart.h>
 #include <black/Player.h>
@@ -425,6 +426,15 @@ struct Loader {
         if (cmd == "CREATE_ANIMATED_STATIC")
             return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
                    Make(ENTITY_CAT_ANIMATED_STATIC, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, -1, a[1].s);
+        // case 66: (id) -> sub_6C9B30. case 67: (id, pos) -> sub_6C9C00 on each
+        // stream of that id, the point at the land's height.
+        if (cmd == "CREATE_STREAM") return !a.empty() && CreateStream(a[0].n);
+        if (cmd == "CREATE_STREAM_POINT") {
+            if (a.size() < 2 || !ParsePos(a[1].s, x, z)) return false;
+            for (GStream* s = FirstStream(); s; s = s->next)
+                if (s->id == a[0].n) s->AddPoint(x, GetTerrainHeightAt(x, z), z);
+            return true;
+        }
         // case 88: (magic name, odds) -> sub_501E50; an unknown name is 42, ignored.
         if (cmd == "FIRE_FLY_SPELL_REWARD_PROB") {
             if (a.size() < 2) return false;
@@ -510,6 +520,7 @@ bool Load(const char* path, World& out, std::string* err) {
     g_town_influence_multiplier = g_player_influence_multiplier = 1.0f;
     land::DrinkWaypoints().clear();
     ResetClimates();
+    ResetStreams();
     Loader L{out};
     char line[2048];
     std::string name;

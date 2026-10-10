@@ -20,6 +20,7 @@
 #include <black/FireFly.h>
 #include <black/LHRandom.h>
 #include <black/GClimate.h>
+#include <black/GStream.h>
 #include <black/Villager.h>
 #include "lnd_loader.h"
 #include "miracles.h"
@@ -144,6 +145,25 @@ int main() {
                       total, heal, heal >= 0 ? FireFlyRewardProb(static_cast<uint32_t>(heal)) : -1.0f, picks_ok);
         CHECK(total == 26.0f && heal > 0 && FireFlyRewardProb(static_cast<uint32_t>(heal)) == 20.0f && picks_ok &&
               !w.unhandled.count("FIRE_FLY_SPELL_REWARD_PROB"), msg);
+    }
+    {
+        // Cases 66/67: 11 streams, 187 points; stream 0's seven run from
+        // (1866.75, 3122.91). Standing on its third point finds it as water
+        // (sub_6C9D10) and one 300 m away does not.
+        char msg[256];
+        int streams = 0, points = 0;
+        GStream* s0 = nullptr;
+        for (GStream* s = FirstStream(); s; s = s->next) { ++streams; points += s->count; if (s->id == 0) s0 = s; }
+        MapCoords at{};
+        GStream* near_s = NearestStreamPoint(MapCoordsFromMetres(1876.69f, 3105.25f), 200.0f, &at);
+        MapCoords far_at{};
+        GStream* far_s = NearestStreamPoint(MapCoordsFromMetres(1866.75f, 3422.91f + 300.0f), 200.0f, &far_at);
+        std::snprintf(msg, sizeof msg, "Land 1's streams: %d, %d points; stream 0 has %u from (%.2f, %.2f); near finds stream %d at (%.2f, %.2f), far finds %s",
+                      streams, points, s0 ? s0->count : 0, s0 && s0->points ? s0->points->x : 0, s0 && s0->points ? s0->points->z : 0,
+                      near_s ? near_s->id : -1, MetresOf(at.x), MetresOf(at.z), far_s ? "one" : "none");
+        CHECK(streams == 11 && points == 187 && s0 && s0->count == 7 && std::fabs(s0->points->x - 1866.75f) < 0.01f &&
+              near_s == s0 && std::fabs(MetresOf(at.x) - 1876.69f) < 0.01f && !far_s &&
+              !w.unhandled.count("CREATE_STREAM") && !w.unhandled.count("CREATE_STREAM_POINT"), msg);
     }
     {
         // Cases 60..63: three climates and the default, each with its rain,

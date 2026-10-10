@@ -1,4 +1,51 @@
 #include "black/GStream.h"
+#include "black/Terrain.h"
+#include <cmath>
+
+namespace { GStream* g_streams = nullptr; }
+
+GStream* CreateStream(int id) {
+    auto* s = new GStream();
+    s->id = id;
+    s->next = g_streams;
+    g_streams = s;
+    return s;
+}
+
+GStream* FirstStream() { return g_streams; }
+
+void ResetStreams() {
+    while (g_streams) {
+        GStream* s = g_streams;
+        g_streams = s->next;
+        while (s->points) { GStream::Point* p = s->points; s->points = p->next; delete p; }
+        delete s;
+    }
+}
+
+void GStream::AddPoint(float x, float y, float z) {
+    auto* p = new Point{x, y, z, nullptr};
+    Point** at = &points;
+    while (*at) at = &(*at)->next;
+    *at = p;
+    ++count;
+}
+
+GStream* NearestStreamPoint(const MapCoords& from, float max_m, MapCoords* out) {
+    const float fx = MetresOf(from.x), fz = MetresOf(from.z);
+    GStream* found = nullptr;
+    for (GStream* s = g_streams; s; s = s->next)
+        for (GStream::Point* p = s->points; p; p = p->next) {
+            const float d = std::hypot(p->x - fx, p->z - fz);  // sub_6DE0E0
+            if (d >= max_m) continue;
+            max_m = d;
+            // The point back in map units, its y above the land (sub_733E6C rounds).
+            const MapCoords c = MapCoordsFromMetres(p->x, p->z);
+            *out = MapCoordsFromMetres(p->x, p->z, p->y - GetTerrainHeightAt(MetresOf(c.x), MetresOf(c.z)));
+            found = s;
+        }
+    return found;
+}
 
 char*    GStream::GetDebugText() { return "GStream"; }
 uint32_t GStream::Load(GameOSFile* file) { return 0; }

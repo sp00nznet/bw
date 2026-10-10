@@ -5,6 +5,7 @@
 // Residential building class — houses villagers, manages food/wood
 // resources, handles building/repair lifecycle.
 
+#include <black/GStream.h>
 #include <black/Abode.h>
 #include <black/Town.h>
 #include <black/Villager.h>
@@ -718,9 +719,16 @@ void Abode::JoinTown(Town* t) {
     t->AddStructureToTown(this);                                     // sub_6CD6B0
     index = static_cast<uint8_t>(t->abode_list.count - 1);           // +0xB8 = count byte - 1
     // sub_405680(200): bit 0 of +0x7C says whether drinking water was found.
-    // The original tries the stream points first (sub_6C9D10); Land 1 creates
-    // every abode before any stream, so the cell search is what decides there.
-    const bool found = FindDrinkingWater(coords, 200.0f, &drinking_water);
+    // sub_6DEDF0 tries the stream points first, then water cells nearer than
+    // the stream; Land 1 makes its abodes before its streams, so there only
+    // the cells decide.
+    bool found;
+    if (NearestStreamPoint(coords, 200.0f, &drinking_water)) {
+        const float d = std::hypot(MetresOf(drinking_water.x - coords.x), MetresOf(drinking_water.z - coords.z));  // sub_6DE0A0
+        FindDrinkingWater(coords, d, &drinking_water);
+        found = true;
+    } else
+        found = FindDrinkingWater(coords, 200.0f, &drinking_water);
     field_0x7c = (field_0x7c & ~1u) | (found ? 1u : 0u);
 }
 

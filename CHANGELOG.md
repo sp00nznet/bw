@@ -44,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Level streams: CREATE_STREAM / CREATE_STREAM_POINT build the stream list, and an
+  abode's drinking-water search tries the nearest stream point before the water cells
+  (sub_6DEDF0). Land 1's 11 streams have 187 points.
 - Level climates and firefly odds: CREATE_WEATHER_CLIMATE and its RAIN / TEMP / WIND
   commands build the game's climate list and default climate; FIRE_FLY_SPELL_REWARD_PROB
   fills the reward odds a firefly draws from (sub_501F10).
