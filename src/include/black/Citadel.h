@@ -68,3 +68,17 @@ struct Citadel : public Container {
     Living*        living;            // 0x7C
 };
 static_assert(sizeof(Citadel) == 0x80, "Citadel size mismatch");
+
+struct GObjectInfo;
+// sub_44E400: Container (sub_456870: position, info, player), then the
+// player's citadel (+608). ponytail: sub_44E610 and the 8-byte list at +124
+// are not translated.
+Citadel* NewCitadel(GPlayer* player, const MapCoords& at);
+// sub_450280 -> sub_44FED0: a heart at `at`, `built` of the way up; the
+// citadel's heart if it has none, the citadel's power raised by built x info
+// +284; built >= 1 starts the worship sites (sub_450320).
+struct CitadelHeart* NewCitadelHeart(const MapCoords& at, GObjectInfo* info, Citadel* citadel,
+                                     float angle, float scale, float built, GameThing* town);
+// sub_44EAF0 (CREATE_CITADEL): the player's new citadel and its finished heart.
+// sub_4504D0 (CREATE_WORSHIP_SITE): the citadel's site for the tribe, given the
+// player's town of that tribe and finished.

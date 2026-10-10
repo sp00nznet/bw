@@ -44,6 +44,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Rival temples: CREATE_CITADEL gives a player a citadel with a finished heart and
+  CREATE_WORSHIP_SITE finishes its worship site for a tribe (Lands 2, 3 and 5).
 - Eight level commands from Lands 2–5: CREATE_FOREST (with trees joining their forest),
   CREATE_TOWN_VILLAGER, SET_TOWN_BELIEF_CAP, SET_TOWN_CONGREGATION_POS, TOWN_DESIRE_BOOST,
   SET_GLOBAL_LAND_BALANCE, SET_NIGHTTIME and TOGGLE_COMPUTER_PLAYER.

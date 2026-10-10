@@ -102,6 +102,16 @@ The handlers index the info arrays directly, and every base and stride matches
   villager reaction (`sub_67EFC0`, type 19).
 - v1.0's `MapCoords` y is the height above the land (a stream point is stored as land
   height + y); ours carry the altitude itself, so the loader adds the land's height.
+- **CREATE_CITADEL** (case 19, `sub_44EAF0`): `(pos, heart type, player, angle×1000,
+  scale×1000)`. A new citadel for the player (`sub_44E400`) and its heart, whole, at
+  scale 1 (the fifth argument is not read), which raises the citadel's power by 125 and
+  starts its worship sites (`sub_450320`). `NewCitadel` / `NewCitadelHeart` are shared
+  with the planned heart. The land check (`sub_5BFD80`) and the players' refresh
+  (`sub_59BBC0`) are not translated.
+- **CREATE_WORSHIP_SITE** (case 22, `sub_4504D0`): only the player and tribe are used.
+  The citadel's site for the tribe (`sub_44EAD0`) takes the player's town of that tribe
+  and, if the town is building it, is finished (vslot 576, `BuildBy(1)`) and the
+  building site removed; with no such town it is finished anyway.
 - **CREATE_FOREST** (case 26, `sub_50E200`): a `Forest` with that id (0: the next
   number) on the game's forest list; **CREATE_NEW_TREE**'s first argument is the id of
   its forest (−1 for none), and the tree's +0x68 points at it. The forest's own tree

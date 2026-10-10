@@ -1366,6 +1366,25 @@ int main() {
               !w3.unhandled.count("CREATE_FOREST") && !w3.unhandled.count("CREATE_TOWN_VILLAGER") && !w3.unhandled.count("SET_TOWN_BELIEF_CAP"), msg);
     }
 
+    // Land 5: player two's citadel (case 19, sub_44EAF0) with a whole heart,
+    // and its four worship sites (case 22, sub_4504D0), finished.
+    {
+        level::World w5;
+        std::string err5;
+        const bool loaded = level::Load((root + "Land5.txt").c_str(), w5, &err5);
+        GPlayer* p2 = loaded ? PlayerAt(1) : nullptr;
+        Citadel* c = p2 ? p2->citadel : nullptr;
+        int sites = 0, built = 0;
+        for (int i = 0; c && i < 6; ++i)
+            if (WorshipSite* ws = c->worship_sites[i]) { ++sites; built += ws->IsBuilt() ? 1 : 0; }
+        std::string left;
+        for (const auto& u : w5.unhandled) left += " " + u.first;
+        std::snprintf(msg, sizeof msg, "Land 5: player two's citadel %d, heart built %.2f, power %.0f, %d worship sites (%d built); unhandled:%s",
+                      c != nullptr, c && c->heart ? c->heart->percent_built : -1.0f, c ? c->Power() : 0.0f, sites, built, left.c_str());
+        CHECK(c && c->heart && c->heart->percent_built == 1.0f && c->Power() > 0.0f && sites == 4 && built == 4 &&
+              !w5.unhandled.count("CREATE_CITADEL") && !w5.unhandled.count("CREATE_WORSHIP_SITE"), msg);
+    }
+
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
     return g_fail ? 1 : 0;
 }

@@ -34,6 +34,7 @@
 #include <black/TownCentre.h>
 #include <black/Villager.h>
 #include <black/Tree.h>
+#include <black/CitadelHeart.h>
 #include <black/MobileStatic.h>
 #include <black/WorshipSite.h>
 
@@ -383,6 +384,45 @@ struct Loader {
             if (!o) return false;
             for (Forest* f : w.forests)
                 if (f->id == static_cast<uint32_t>(a[0].n)) { static_cast<Tree*>(o)->forest = f; break; }
+            return true;
+        }
+        // case 19: (pos, heart type, player, angle*1000, scale*1000) -> sub_44EAF0:
+        // a new citadel for the player and its heart, whole (scale 1; the
+        // fifth argument is not read).
+        // ponytail: the land check (sub_5BFD80) and the players' refresh
+        // afterwards (sub_59BBC0) are not translated.
+        if (cmd == "CREATE_CITADEL") {
+            const int p = a.size() >= 5 ? PlayerIndex(a[2].s) : -1;
+            const void* info = a.size() >= 5 ? infodat::Element(infodat::DETAIL_CITADEL_HEART_INFO, static_cast<uint32_t>(a[1].n)) : nullptr;
+            if (p < 0 || !info || !ParsePos(a[0].s, x, z)) return false;
+            const MapCoords at = MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z));
+            Citadel* c = NewCitadel(PlayerAt(static_cast<uint32_t>(p)), at);
+            NewCitadelHeart(at, static_cast<GObjectInfo*>(const_cast<void*>(info)), c, a[3].n * 0.001f, 1.0f, 1.0f, nullptr);
+            return true;
+        }
+        // case 22: (pos, type, player, tribe, ...) -> sub_4504D0 on the player's
+        // citadel (which needs its heart). Only the tribe is used: the
+        // citadel's site for it (sub_44EAD0) takes the player's town of that
+        // tribe (sub_705750) and, when the town is building it (sub_6CFDF0),
+        // is finished (vslot 576) and the building site goes (sub_6CEC00);
+        // with no such town it is finished anyway.
+        if (cmd == "CREATE_WORSHIP_SITE") {
+            const int p = a.size() >= 4 ? PlayerIndex(a[2].s) : -1;
+            const int tribe = a.size() >= 4 ? TribeIndex(a[3].s) : -1;
+            GPlayer* player = p >= 0 ? PlayerAt(static_cast<uint32_t>(p)) : nullptr;
+            Citadel* c = player ? player->citadel : nullptr;
+            if (!c || !c->heart || tribe < 0) return false;
+            WorshipSite* site = c->FindOrCreateWorshipSite(
+                static_cast<const GTribeInfo*>(infodat::Element(infodat::DETAIL_TRIBE_INFO, static_cast<uint32_t>(tribe))));
+            if (!site) return false;
+            Town* town = player->towns.first;
+            while (town && town->tribe_type != static_cast<uint32_t>(tribe)) town = town->next;
+            if (!town) { site->BuildBy(1.0f); return true; }
+            if (!site->towns.Has(town)) site->AddTown(town);
+            if (town->SiteFor(site)) {
+                site->BuildBy(1.0f);
+                town->RemoveBuildingSite(site);
+            }
             return true;
         }
         // case 26: (id, pos) -> sub_50E200: a Forest container on the game's

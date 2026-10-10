@@ -135,6 +135,43 @@ void Citadel::ProcessWorship() {
 // own (v1.0's fallback when the mesh has no point 9) and the first free slot
 // wins. The totem (sub_708CF0), spell icons (sub_704040) and the towns'
 // worship distances (sub_6CE140) are not translated.
+Citadel* NewCitadel(GPlayer* player, const MapCoords& at) {
+    auto* citadel = new Citadel();
+    citadel->info = static_cast<GContainerInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_CITADEL_INFO, 0)));
+    citadel->SetPos(at);
+    citadel->owner = player;
+    player->citadel = citadel;
+    return citadel;
+}
+
+// ponytail: the power base (sub_44F720), sub_450200, the entrance
+// (sub_450590, +0x98) and vslot 406 are not translated; nor the other game
+// modes' power (+0x13C + 4n).
+CitadelHeart* NewCitadelHeart(const MapCoords& at, GObjectInfo* info, Citadel* citadel,
+                              float angle, float scale, float built, GameThing* town) {
+    auto* heart = new CitadelHeart();
+    heart->SetPos(at);
+    heart->obj_coords = at;
+    heart->y_angle = angle;
+    heart->scale = scale > 0.0f ? scale : 1.0f;
+    heart->life = 1.0f;
+    heart->info = info;
+    heart->percent_built = built;
+    float r = 0.0f;
+    if (info) std::memcpy(&r, reinterpret_cast<const char*>(info) + 284, 4);
+    citadel->influence = citadel->Power() + built * r;  // sub_44FED0: 125 m for a whole heart
+    heart->citadel = citadel;
+    heart->field_0x90 = 0;
+    heart->field_0x8c = 0;
+    heart->field_0x9c = 2;
+    if (!citadel->heart) citadel->heart = heart;
+    heart->field_0x94 = town;
+    heart->InsertMapObject();
+    lhvm::RegisterObject(heart);
+    if (built >= 1.0f) heart->StartWorshipSites(0.0f);
+    return heart;
+}
+
 WorshipSite* Citadel::CreateWorshipSite(const GTribeInfo* tribe_info) {
     const auto* base = static_cast<const uint8_t*>(infodat::Element(infodat::DETAIL_TRIBE_INFO, 0));
     if (!tribe_info || !base) return nullptr;
