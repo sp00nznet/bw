@@ -21,6 +21,8 @@
 #include <black/LHRandom.h>
 #include <black/GClimate.h>
 #include <black/GStream.h>
+#include <black/Mist.h>
+#include <black/Arena.h>
 #include <black/Villager.h>
 #include "lnd_loader.h"
 #include "miracles.h"
@@ -164,6 +166,22 @@ int main() {
         CHECK(streams == 11 && points == 187 && s0 && s0->count == 7 && std::fabs(s0->points->x - 1866.75f) < 0.01f &&
               near_s == s0 && std::fabs(MetresOf(at.x) - 1876.69f) < 0.01f && !far_s &&
               !w.unhandled.count("CREATE_STREAM") && !w.unhandled.count("CREATE_STREAM_POINT"), msg);
+    }
+    {
+        // Cases 0 and 69: Land 1's 17 mists (the first at 2356.91, 2782.03,
+        // scale 2.37) and 3 arenas, whose GetRadius is the script's.
+        char msg[256];
+        int mists = 0, arenas = 0;
+        Mist* first_mist = nullptr;
+        for (Mist* m = FirstMist(); m; m = m->next) { ++mists; first_mist = m; }  // newest first: the last is the first made
+        float r_total = 0.0f;
+        for (GArena* g = FirstArena(); g; g = g->next) { ++arenas; r_total += g->GetRadius(); }
+        std::snprintf(msg, sizeof msg, "Land 1's mists: %d (first at %.2f, %.2f, scale %.2f, colour %08X); arenas: %d, radii sum %.2f",
+                      mists, first_mist ? MetresOf(first_mist->coords.x) : 0, first_mist ? MetresOf(first_mist->coords.z) : 0,
+                      first_mist ? first_mist->scale : 0, first_mist ? first_mist->colour : 0, arenas, r_total);
+        CHECK(mists == 17 && first_mist && std::fabs(MetresOf(first_mist->coords.x) - 2356.91f) < 0.01f &&
+              std::fabs(first_mist->scale - 2.373684f) < 1e-5f && first_mist->colour == 1398505633u && arenas == 3 &&
+              std::fabs(r_total - (29.298859f + 47.934418f + 27.453003f)) < 1e-3f && w.unhandled.empty(), msg);
     }
     {
         // Cases 60..63: three climates and the default, each with its rain,

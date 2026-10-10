@@ -29,9 +29,20 @@ struct GArena : public GameThingWithPos {
     const char* GetText() override;
 
     // === Fields ===
-    uint8_t field_0x28[0x24];  // 0x28
+    float    field_0x28;       // 0x28: 1 at creation
+    uint32_t field_0x2c;
+    float    radius;           // 0x30
+    uint32_t field_0x34;
+    uint32_t field_0x38[4];    // 0x38..0x44: 0 at creation
+    GArena*  next;             // 0x48: the game's list (+2104632), newest first
 };
 static_assert(sizeof(GArena) == 0x4C, "GArena size mismatch");
+
+// sub_41F040 -> sub_41EF60: an arena at pos, on the game's list.
+// ponytail: its reaction (sub_67EFC0, type 19) and vslot-320 call are not made.
+GArena* CreateArena(const MapCoords& pos, float radius);
+GArena* FirstArena();
+void ResetArenas();
 
 // ============================================================================
 // ArenaSpellIcon — spell icon displayed in the arena

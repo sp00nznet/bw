@@ -62,3 +62,25 @@ uint32_t Mist::GetScriptObjectType() {
     // Original at 0x00606910
     return 0x1d;
 }
+
+namespace { Mist* g_mists = nullptr; }
+
+Mist* CreateMist(const MapCoords& pos, float scale, uint32_t colour, float f34) {
+    auto* m = new Mist();
+    m->coords = pos;
+    m->field_0x28 = 0;
+    m->scale = scale;
+    m->colour = colour;
+    m->field_0x34 = f34;
+    for (uint8_t& b : m->field_0x38) b = 0;
+    m->field_0x4c = 0;
+    m->next = g_mists;
+    g_mists = m;
+    return m;
+}
+
+Mist* FirstMist() { return g_mists; }
+
+void ResetMists() {
+    while (g_mists) { Mist* m = g_mists; g_mists = m->next; delete m; }
+}

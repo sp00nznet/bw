@@ -22,6 +22,8 @@
 #include <black/FireFly.h>
 #include <black/GClimate.h>
 #include <black/GStream.h>
+#include <black/Mist.h>
+#include <black/Arena.h>
 #include <black/PlannedAbode.h>
 #include <black/PlannedTownCitadelHeart.h>
 #include <black/Player.h>
@@ -426,6 +428,15 @@ struct Loader {
         if (cmd == "CREATE_ANIMATED_STATIC")
             return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
                    Make(ENTITY_CAT_ANIMATED_STATIC, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, -1, a[1].s);
+        // case 0: (pos, height, colour, scale, f) -> sub_5C1AE0; the height is
+        // above the land (v1.0's y), so ours is the land's plus it.
+        if (cmd == "CREATE_MIST")
+            return a.size() >= 5 && ParsePos(a[0].s, x, z) &&
+                   CreateMist(MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z) + a[1].f), a[3].f, static_cast<uint32_t>(a[2].n), a[4].f);
+        // case 69: (pos, radius) -> sub_41F040.
+        if (cmd == "CREATE_ARENA")
+            return a.size() >= 2 && ParsePos(a[0].s, x, z) &&
+                   CreateArena(MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z)), a[1].f);
         // case 66: (id) -> sub_6C9B30. case 67: (id, pos) -> sub_6C9C00 on each
         // stream of that id, the point at the land's height.
         if (cmd == "CREATE_STREAM") return !a.empty() && CreateStream(a[0].n);
@@ -521,6 +532,8 @@ bool Load(const char* path, World& out, std::string* err) {
     land::DrinkWaypoints().clear();
     ResetClimates();
     ResetStreams();
+    ResetMists();
+    ResetArenas();
     Loader L{out};
     char line[2048];
     std::string name;

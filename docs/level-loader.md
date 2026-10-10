@@ -94,14 +94,22 @@ The handlers index the info arrays directly, and every base and stride matches
   the land's height, added to every stream of that id. Streams are drinking water:
   `sub_6DEDF0` (the abode's search, `sub_405680`) takes the nearest stream point
   within range (`sub_6C9D10`, 2D) and then any water cell nearer than it.
+- **CREATE_MIST** (case 0, `sub_5C1980`): `(pos, height, colour, scale, f)`. A `Mist`
+  on the game's list with its scale (+0x2C), ARGB colour (+0x30) and fifth argument
+  (+0x34); the height is above the land. **CREATE_ARENA** (case 69, `sub_41EF60`):
+  `(pos, radius)`, a `GArena` on its list whose `GetRadius` (vslot 24, `sub_41EFF0`)
+  is the radius at +0x30. Neither's vslot-320 creation call is made, nor the arena's
+  villager reaction (`sub_67EFC0`, type 19).
+- v1.0's `MapCoords` y is the height above the land (a stream point is stored as land
+  height + y); ours carry the altitude itself, so the loader adds the land's height.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.
 
 ## Not translated yet
 
-Land 1 has 2,342 commands. 2,322 are handled; `test_level` lists the rest: mist (17)
-and arenas (3). Known departures from the original:
+Land 1 has 2,342 commands and all of them are handled; `test_level` lists any that
+are not. Known departures from the original:
 
 - **The creates are not the original's constructors.** The objects are our classes,
   built with `new`, with the arguments set that the handler passes. The constructor and

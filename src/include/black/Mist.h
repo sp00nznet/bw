@@ -27,11 +27,17 @@ struct Mist : public GameThingWithPos {
 
     // === Fields ===
     uint32_t    field_0x28;        // 0x28
-    float       field_0x2c;        // 0x2C
-    uint32_t    field_0x30;        // 0x30
-    float       field_0x34;        // 0x34
+    float       scale;             // 0x2C: CREATE_MIST's fourth argument
+    uint32_t    colour;            // 0x30: its third (an ARGB word)
+    float       field_0x34;        // 0x34: its fifth
     uint8_t     field_0x38[0x14];  // 0x38
-    uint32_t    field_0x4c;        // 0x4C
-    Mist*       next;              // 0x50
+    uint32_t    field_0x4c;        // 0x4C: bit 0 cleared at creation
+    Mist*       next;              // 0x50: the game's list (+2104544), newest first
 };
 static_assert(sizeof(Mist) == 0x54, "Mist size mismatch");
+
+// sub_5C1AE0 -> sub_5C1980: a mist at pos, on the game's list.
+// ponytail: its vslot-320 creation call is not made.
+Mist* CreateMist(const MapCoords& pos, float scale, uint32_t colour, float f34);
+Mist* FirstMist();
+void ResetMists();

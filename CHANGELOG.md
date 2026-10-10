@@ -44,6 +44,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Level mist and arenas (CREATE_MIST, CREATE_ARENA). Every command in Land 1's script is
+  now handled.
 - Level streams: CREATE_STREAM / CREATE_STREAM_POINT build the stream list, and an
   abode's drinking-water search tries the nearest stream point before the water cells
   (sub_6DEDF0). Land 1's 11 streams have 187 points.

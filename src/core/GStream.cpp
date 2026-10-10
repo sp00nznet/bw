@@ -1,5 +1,4 @@
 #include "black/GStream.h"
-#include "black/Terrain.h"
 #include <cmath>
 
 namespace { GStream* g_streams = nullptr; }
@@ -39,9 +38,9 @@ GStream* NearestStreamPoint(const MapCoords& from, float max_m, MapCoords* out) 
             const float d = std::hypot(p->x - fx, p->z - fz);  // sub_6DE0E0
             if (d >= max_m) continue;
             max_m = d;
-            // The point back in map units, its y above the land (sub_733E6C rounds).
-            const MapCoords c = MapCoordsFromMetres(p->x, p->z);
-            *out = MapCoordsFromMetres(p->x, p->z, p->y - GetTerrainHeightAt(MetresOf(c.x), MetresOf(c.z)));
+            // v1.0 hands back y above the land (point y - land height); our
+            // MapCoords carry the altitude itself, which is the point's y.
+            *out = MapCoordsFromMetres(p->x, p->z, p->y);
             found = s;
         }
     return found;

@@ -12,9 +12,27 @@ void GArena::ToBeDeleted(int param) {
     GameThingWithPos::ToBeDeleted(param);
 }
 
-float GArena::GetRadius() {
-    // Original at 0x00424780 — complex
-    return 0.0f;
+// v1.0 sub_41EFF0 (vslot 24).
+float GArena::GetRadius() { return radius; }
+
+namespace { GArena* g_arenas = nullptr; }
+
+GArena* CreateArena(const MapCoords& pos, float r) {
+    auto* a = new GArena();
+    a->coords = pos;
+    a->field_0x28 = 1.0f;
+    a->field_0x2c = a->field_0x34 = 0;
+    a->radius = r;
+    for (uint32_t& f : a->field_0x38) f = 0;
+    a->next = g_arenas;
+    g_arenas = a;
+    return a;
+}
+
+GArena* FirstArena() { return g_arenas; }
+
+void ResetArenas() {
+    while (g_arenas) { GArena* a = g_arenas; g_arenas = a->next; delete a; }
 }
 
 char* GArena::GetDebugText() {
