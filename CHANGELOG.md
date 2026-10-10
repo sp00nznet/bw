@@ -44,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Level flocks: CREATE_FLOCK makes the flock with its domain centre and radii, and each
+  CREATE_NEW_ANIMAL joins its flock (v1.0's member list, sub_505B20). Land 1's 116 animals
+  are in its 16 flocks.
 - Land 1's statics: CREATE_ANIMATED_STATIC, CREATE_DEAD_TREE, CREATE_BONFIRE,
   CREATE_STREET_LANTERN and CREATE_POT (loader cases 87, 43, 73, 80, 38). See
   docs/level-loader.md.

@@ -16,6 +16,7 @@
 #include <black/LevelLoader.h>
 #include <black/Terrain.h>
 #include <black/Town.h>
+#include <black/Flock.h>
 #include <black/Villager.h>
 #include "lnd_loader.h"
 #include "miracles.h"
@@ -97,6 +98,29 @@ int main() {
         std::snprintf(msg, sizeof msg, "Land 1's statics: %d animated (%d with records), %d dead trees (%d), %d bonfires (%d), %d street lanterns (%d)",
                       as, i_as, dt, i_dt, bf, i_bf, sl, i_sl);
         CHECK(as == 4 && i_as == 4 && dt == 3 && i_dt == 3 && bf == 2 && i_bf == 2 && sl > 0 && i_sl == sl && !left, msg);
+    }
+    {
+        // Case 49 and case 25: Land 1's 16 flocks, every one of its 116 animals
+        // in its flock (sub_505B20), ordered by the member's +0xD4 byte; flock
+        // 1 keeps its radii (29, 15) and town 0 lists it.
+        char msg[256];
+        int members = 0, linked = 0;
+        bool ordered = true;
+        for (Flock* f : w.flocks) {
+            members += f->count;
+            for (Flock::Node* n = f->head; n; n = n->next) {
+                linked += n->living->flock == f;
+                if (n->next && static_cast<uint8_t>(n->living->field_0xd4) > static_cast<uint8_t>(n->next->living->field_0xd4)) ordered = false;
+            }
+        }
+        Flock* f1 = w.flocks.empty() ? nullptr : w.flocks[0];
+        Town* t0 = level::FindTown(w, 0);
+        bool listed = false;
+        for (Town::FlockLink* l = t0 ? t0->flocks : nullptr; l; l = l->next) listed = listed || l->flock == f1;
+        std::snprintf(msg, sizeof msg, "Land 1's flocks: %zu, %d members (%d linked); flock 1 has %d, radii %u/%u, town 0 lists it: %d",
+                      w.flocks.size(), members, linked, f1 ? f1->count : 0, f1 ? f1->domain_radius : 0, f1 ? f1->radius_b : 0, listed);
+        CHECK(w.flocks.size() == 16 && members == 116 && linked == 116 && ordered && f1 && f1->count == 7 &&
+              f1->domain_radius == 29 && f1->radius_b == 15 && listed && !w.unhandled.count("CREATE_FLOCK"), msg);
     }
 
     CHECK(w.towns.size() == 6, "six towns (CREATE_TOWN x6)");

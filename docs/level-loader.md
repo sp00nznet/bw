@@ -70,6 +70,14 @@ The handlers index the info arrays directly, and every base and stride matches
   Our Bonfire header is 0x94 where v1.0's is 152 bytes. The viewer draws animated
   statics from their record's mesh (+0x120). Mobile-static records hold −1 at the +0x100
   that `MobileStatic::GetMesh` reads, so bonfires and lanterns are not drawn yet.
+- **CREATE_FLOCK** (case 49, `sub_5058F0`): `(id, pos, centre, radius, radius 2, town)`
+  from script version 2.1 (before that the fifth argument is the town and radius 2 is
+  30). The flock is made at `pos`, then its domain centre (`sub_505CF0`, which also
+  sends the last member there) and radii (+0x50, 0 meaning 80; +0x52) are set, and the
+  town puts it on its list at +0xF00. **CREATE_NEW_ANIMAL**'s third argument is the
+  flock's id (+0x8C); the animal joins it (`sub_505B20`: a 12-byte node, ordered by the
+  member's +0xD4 byte, and the living's +0xB8 points back), and an age of 0 becomes
+  5..24. The animal's town (`sub_414480`) is not set yet.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.
@@ -77,8 +85,8 @@ The handlers index the info arrays directly, and every base and stride matches
 ## Not translated yet
 
 Land 1 has 2,342 commands. 1,966 are handled; `test_level` lists the rest. The largest
-groups are stream points (187), drink waypoints (47), firefly reward odds (42), flocks
-(16), mist (17), and planned abodes and the citadel (7). Known departures from the
+groups are stream points (187), drink waypoints (47), firefly reward odds (42), mist
+(17), and planned abodes and the citadel (7). Known departures from the
 original:
 
 - **The creates are not the original's constructors.** The objects are our classes,

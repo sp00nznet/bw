@@ -12,7 +12,7 @@
 
 // Forward declarations
 struct CitadelHeart;
-struct LivingDLList;
+struct Living;
 
 struct Flock : public Container {
     // === Overrides of Base virtuals ===
@@ -38,30 +38,37 @@ struct Flock : public Container {
     uint32_t GetScriptObjectType() override;
 
     // === Non-virtual methods ===
-    void SetDomainCentrePos(const MapCoords& pos);
+    // sub_5058F0 after the Container part: on the game's flock list, at pos.
+    void Init(const MapCoords& pos, uint32_t id);
+    void SetDomainCentrePos(const MapCoords& pos);  // sub_505CF0
     MapCoords* GetFlockPos();
+    bool AddMember(Living* l);                       // sub_505B20
+    bool RemoveMember(Living* l, bool delete_if_empty);  // sub_505C20
+
+    // A member's node (12 bytes, sub_746D70(12)).
+    struct Node { Node* next; Node* prev; Living* living; };
 
     // === Fields ===
-    uint32_t       field_0x30;
-    uint32_t       field_0x34;
+    Living*        leader;            // 0x30
+    Town*          town;              // 0x34 (CREATE_FLOCK's town, which lists it at +0xF00)
     CitadelHeart*  citadel_heart;     // 0x38
-    LivingDLList*  members;           // 0x3C
-    LivingDLList*  leader;            // 0x40
-    LivingDLList*  field_0x44;
-    int            field_0x48;
+    Node*          head;              // 0x3C: ordered by the member's +0xD4 byte
+    Node*          tail;              // 0x40
+    Node*          cursor;            // 0x44: the last node linked
+    int            count;             // 0x48
     uint32_t       field_0x4c;
-    uint16_t       domain_radius;     // 0x50
-    uint16_t       field_0x52;
+    uint16_t       domain_radius;     // 0x50 (80 unless set)
+    uint16_t       radius_b;          // 0x52 (30 unless set)
     uint32_t       field_0x54;
     uint32_t       field_0x58;
     uint32_t       field_0x5c;
-    MapCoords      field_0x60;        // 0x60
-    MapCoords      field_0x6c;        // 0x6C
-    uint32_t       field_0x78;
+    MapCoords      start_pos;         // 0x60
+    MapCoords      field_0x6c;        // 0x6C (also the start position)
+    uint32_t       field_0x78;        // 43 at init
     uint32_t       field_0x7c;
     uint32_t       field_0x80;
     uint32_t       field_0x84;
-    uint32_t       field_0x88;
-    uint32_t       field_0x8c;
+    uint32_t       max_count;         // 0x88: the most members it has had
+    uint32_t       id;                // 0x8C: the level script's flock number
 };
 static_assert(sizeof(Flock) == 0x90, "Flock size mismatch");

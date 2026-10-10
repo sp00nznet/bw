@@ -292,8 +292,9 @@ struct Town : public Container {
     uint32_t                       field_0xec0;             // 0xEB8
     uint32_t                       field_0xec4;             // 0xEBC
     void*                          field_0xec8[16];         // 0xEC0
-    uint32_t                       field_0xf08;             // 0xF00
-    uint32_t                       field_0xf0c;             // 0xF04
+    struct FlockLink { FlockLink* next; struct Flock* flock; };
+    FlockLink*                     flocks;                  // 0xF00: CREATE_FLOCK's, newest first
+    uint32_t                       flock_count;             // 0xF04
     MapCoords                      congregation_pos;        // 0xF08
     uint32_t                       field_0xf1c;             // 0xF14
     uint32_t                       field_0xf20;             // 0xF18

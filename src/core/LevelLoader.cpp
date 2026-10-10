@@ -18,6 +18,7 @@
 #include <black/LandFeatures.h>
 #include <black/Map.h>
 #include <black/Living.h>
+#include <black/Flock.h>
 #include <black/PlannedAbode.h>
 #include <black/PlannedTownCitadelHeart.h>
 #include <black/Player.h>
@@ -422,12 +423,44 @@ struct Loader {
         if (cmd == "CREATE_ANIMATED_STATIC")
             return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
                    Make(ENTITY_CAT_ANIMATED_STATIC, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, -1, a[1].s);
-        // case 25: (pos, type, flock, town, age)
+        // case 49 (version 2.1 on): (id, pos, centre, radius, radius 2, town)
+        // -> sub_5058F0, which flocks at pos; then the domain centre and radii
+        // (a radius of 0 is 80). The town lists it (+0xF00).
+        if (cmd == "CREATE_FLOCK") {
+            float cx, cz;
+            if (a.size() < 6 || !ParsePos(a[1].s, x, z) || !ParsePos(a[2].s, cx, cz)) return false;
+            auto* f = new Flock();
+            f->Init(MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z)), static_cast<uint32_t>(a[0].n));
+            if (Town* t = FindTown(w, static_cast<uint32_t>(a[5].n))) {
+                f->town = t;
+                t->flocks = new Town::FlockLink{t->flocks, f};
+                ++t->flock_count;
+            }
+            f->SetDomainCentrePos(MapCoordsFromMetres(cx, cz, GetTerrainHeightAt(cx, cz)));
+            f->domain_radius = static_cast<uint16_t>(a[3].n ? a[3].n : 80);
+            f->radius_b = static_cast<uint16_t>(a[4].n);
+            w.flocks.push_back(f);
+            return true;
+        }
+        // case 25: (pos, type, flock, town, age) -> sub_416240. In a flock an
+        // age of 0 is 5..24; the animal joins it (sub_505B20).
+        // ponytail: the town (sub_414480) and sub_416240's vslot-744 leader
+        // test are not translated.
         if (cmd == "CREATE_NEW_ANIMAL") {
             if (a.size() < 5 || !ParsePos(a[0].s, x, z)) return false;
+            Flock* flock = nullptr;
+            for (Flock* f : w.flocks) if (f->id == static_cast<uint32_t>(a[2].n)) { flock = f; break; }
             Object* o = Make(ENTITY_CAT_ANIMAL, cmd, x, z, 0.0f, 1.0f, a[1].n);
-            if (o) static_cast<Living*>(o)->SetAge(static_cast<uint32_t>(a[4].n));
-            return o != nullptr;
+            if (!o) return false;
+            auto* l = static_cast<Living*>(o);
+            uint32_t age = static_cast<uint32_t>(a[4].n);
+            if (flock && !age) age = lh::Random(20) + 5;
+            l->SetAge(age);
+            if (flock) {
+                flock->AddMember(l);
+                if (flock->max_count < static_cast<uint32_t>(flock->count)) flock->max_count = flock->count;
+            }
+            return true;
         }
         return false;
     }
