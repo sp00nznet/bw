@@ -138,6 +138,28 @@ vslot 325), the splash and landing sound, the impact damage of a hard knock
 vtable). Sunk objects are marked unavailable rather than freed, as the store's take
 does.
 
+## In the game (phase 3, part 1)
+
+- `level::Process` runs `physics::Step` after the magic pass, where v1.0's turn
+  (`sub_5215E0`) calls `sub_5F3D10`; loading a level empties the pool.
+- The land under the physics is v1.0's own (`LandHeight`, `Terrain.h`, from
+  `sub_760FD0`): the cell corners' altitude bytes × 0.67 on the cell's triangle, the
+  diagonal from byte +6 bit 7, corners at 3 or below as sea where the cell is at 4 or
+  below. It needs the host's cell hooks and falls back to `GetTerrainHeightAt`.
+- The viewer loads `PhysicsConstants.txt` beside info.dat, and its hand throw hands a
+  core object to `physics::Throw` (with the hand's interface status, which the store
+  path needs); the position sync then follows the core.
+- **The viewer's land was mirrored.** Its mesh put the block grid's first index and a
+  block's cell rows on z; v1.0 has them on x. Objects stood at their true positions on
+  a transposed landscape (Land 1's first town had no land within 168 m). The mesh now
+  follows v1.0's layout and cuts each cell along v1.0's diagonal, and the viewer's
+  height is `LandHeight` once the cell hooks are in.
+
+Next: body-to-body contacts (`sub_75C060`, `sub_75A940`, `sub_75A5B0`), waking what
+lies under a moving body, and then a thrown tree landing on a store
+(`Tree::ReactToPhysicsImpact`, `sub_6DCB90`: the store takes it through vslots 416 /
+417 with the thrower's status).
+
 ## Plan
 
 1. ~~The rigid body~~ (done: `test_physics` drops a box on land and into the sea).

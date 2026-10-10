@@ -2,6 +2,7 @@
 // Manages entity lifecycle, hand interaction, and game state
 // Now bridges to bw_core for real entity logic.
 
+#include <black/PhysicsObject.h>
 #include <black/GInterfaceStatus.h>
 #include <black/MultiMapFixed.h>
 #include <black/Player.h>
@@ -199,6 +200,9 @@ static float TerrainHeightCallback(float world_x, float world_z) {
 
 float GameState::GetTerrainHeight(float wx, float wz) const {
     if (terrain.vertices.empty()) return 0;
+    // The original's land height (sub_760FD0) once the cell hooks are in; the
+    // nearest sampled vertex is only the fallback before them.
+    if (g_cell_altitude_func && g_cell_flags_func) return LandHeight(wx, wz);
     float best_dist = 1e30f;
     float best_y = 0;
     size_t step = std::max<size_t>(1, terrain.vertices.size() / 20000);
@@ -238,6 +242,8 @@ bool GameState::Init(const std::string& script_path) {
         !infodat::Load((dir + "info.dat").c_str(), &info_err))
         fprintf(stderr, "Game: info.dat not loaded (%s) -- objects run without balance data\n",
                 info_err.c_str());
+    if (!physics::LoadPhysicsConstants((dir + "PhysicsConstants.txt").c_str()))
+        fprintf(stderr, "Game: PhysicsConstants.txt not loaded -- thrown objects use the viewer's flight\n");
 
     // Register terrain + LHVM host services
     s_current_game_state = this;
@@ -757,14 +763,22 @@ void GameState::ThrowEntity(float tvx, float tvy, float tvz) {
     if (hand.held_entity < 0) return;
     auto& e = entities[hand.held_entity];
     e.selected = false;
-    e.physics_active = true;
-    e.vx = tvx;
-    e.vy = tvy;
-    e.vz = tvz;
+    GInterfaceStatus* st = HandStatusOf(PlayerAt(0));
+    Object* core = use_bw_core && hand.held_entity < static_cast<int>(core_entities.size())
+                       ? core_entities[hand.held_entity] : nullptr;
+    if (core) core->coords = MapCoordsFromMetres(e.x, e.z, e.y);
+    if (core && physics::Throw(core, {tvx, tvy, tvz}, {}, nullptr, st)) {
+        e.physics_active = false;  // the core flies it; the sync follows
+    } else {
+        e.physics_active = true;
+        e.vx = tvx;
+        e.vy = tvy;
+        e.vz = tvz;
+    }
     hand.held_entity = -1;
-    // ponytail: a thrown object landing on a store is not taken (v1.0's
-    // landing path is the physics'); the hand just lets go.
-    HandStatusOf(PlayerAt(0))->held = nullptr;
+    // ponytail: landing on a store waits on body-to-body contacts (Tree's
+    // ReactToPhysicsImpact, sub_6DCB90, takes the "hit" from them).
+    if (st) st->held = nullptr;
     printf("Game: Threw %s with velocity (%.1f, %.1f, %.1f)\n",
            e.name.c_str(), tvx, tvy, tvz);
 }

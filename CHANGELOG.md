@@ -6,6 +6,9 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- The viewer drew the landscape mirrored across its diagonal (block grid and cell rows on
+  z instead of x), so objects stood on the wrong land; it now follows v1.0's layout and
+  cell diagonals.
 - MobileObject's physics material read a float out of its record; v1.0 (sub_5C2E10) gives
   records 17..19 materials 21..23 and the rest 1. Abode's is 0 (sub_404E60), not a record
   field. MobileObject and MobileStatic now weigh scale³ × density (sub_5EA850).
@@ -49,6 +52,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Physics in the game: each turn runs `physics::Step` (after the magic pass, as v1.0),
+  the viewer's hand throws go through `physics::Throw`, and the land under it is v1.0's
+  own height (`LandHeight`, sub_760FD0).
 - The physics game layer (`core/PhysicsObject.cpp`): the pool of physics objects, Throw /
   AddResting / Step from sub_5F30F0 / sub_5F3B40 / sub_5F3D10. Objects fly, land, rest,
   sink, and get ReactToPhysicsImpact. Hosts can hand in mesh points (`g_mesh_points_func`).

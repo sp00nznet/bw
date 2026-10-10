@@ -34,6 +34,7 @@
 #include <black/TownCentre.h>
 #include <black/Villager.h>
 #include <black/Tree.h>
+#include <black/PhysicsObject.h>
 #include <black/OneOffSpellSeed.h>
 #include <black/SpellDispenser.h>
 #include <black/CitadelHeart.h>
@@ -697,6 +698,7 @@ bool Load(const char* path, World& out, std::string* err) {
     g_town_influence_multiplier = g_player_influence_multiplier = 1.0f;
     land::DrinkWaypoints().clear();
     ResetClimates();
+    physics::ResetPool();
     ResetStreams();
     ResetMists();
     ResetArenas();
@@ -752,6 +754,7 @@ void Process(World& w) {
         spell::ProcessActive(all);
         fire::Process(all);
     }
+    physics::Step();  // sub_5F3D10
     ++g_game_turn;
 }
 

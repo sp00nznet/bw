@@ -58,10 +58,12 @@ void Landscape::BuildMesh() {
         // blocks[bi] corresponds to grid index (bi+1) since block 0 is not stored
         uint32_t grid_idx = bi + 1;
 
-        // Block world position from grid coordinates
-        // Each block is 16 cells wide, each cell is CELL_SIZE apart
-        float bx = block_grid_col[grid_idx] * 16.0f * CELL_SIZE;
-        float bz = block_grid_row[grid_idx] * 16.0f * CELL_SIZE;
+        // Block world position from grid coordinates. The grid's first index
+        // is x and its second z, and a block's cell (row, col) is (x, z): the
+        // original's lookup (sub_760FD0, sub_5BFBF0: grid[x >> 4][z >> 4],
+        // cell (z & 15) + 17 * (x & 15)).
+        float bx = block_grid_row[grid_idx] * 16.0f * CELL_SIZE;
+        float bz = block_grid_col[grid_idx] * 16.0f * CELL_SIZE;
 
         // Generate vertices for this block's 17x17 grid
         for (int row = 0; row < 17; ++row) {
@@ -69,9 +71,9 @@ void Landscape::BuildMesh() {
                 const auto& cell = blk.cells[row * 17 + col];
 
                 TerrainVertex v;
-                v.x = bx + col * CELL_SIZE;
+                v.x = bx + row * CELL_SIZE;
                 v.y = cell.altitude * HEIGHT_SCALE;
-                v.z = bz + row * CELL_SIZE;
+                v.z = bz + col * CELL_SIZE;
 
                 // Vertex color: cell RGB is often all-zero in v1.0,
                 // so generate from altitude gradient + luminance
@@ -116,23 +118,21 @@ void Landscape::BuildMesh() {
         // Generate triangle indices for this block (two triangles per cell quad)
         for (int row = 0; row < 16; ++row) {
             for (int col = 0; col < 16; ++col) {
-                uint32_t tl = vert_offset + row * 17 + col;
-                uint32_t tr = tl + 1;
-                uint32_t bl = tl + 17;
-                uint32_t br = bl + 1;
+                // A (x, z), B (x, z+1), C (x+1, z), D (x+1, z+1).
+                uint32_t a = vert_offset + row * 17 + col;
+                uint32_t b = a + 1;
+                uint32_t c = a + 17;
+                uint32_t d = c + 1;
 
-                // Check cell split direction from flags
+                // Byte +6 bit 7 cuts the cell along B-C, else along A-D, as
+                // the land height (sub_760FD0) does. Wound so normals face up.
                 const auto& cell = blk.cells[row * 17 + col];
-                bool split_ne = (cell.flags & 0x80) != 0; // bit for split direction
-
-                if (split_ne) {
-                    // NE-SW split: tl-br diagonal
-                    indices.push_back(tl); indices.push_back(bl); indices.push_back(br);
-                    indices.push_back(tl); indices.push_back(br); indices.push_back(tr);
+                if (cell.flags & 0x80) {
+                    indices.push_back(a); indices.push_back(b); indices.push_back(c);
+                    indices.push_back(b); indices.push_back(d); indices.push_back(c);
                 } else {
-                    // NW-SE split: tr-bl diagonal
-                    indices.push_back(tl); indices.push_back(bl); indices.push_back(tr);
-                    indices.push_back(tr); indices.push_back(bl); indices.push_back(br);
+                    indices.push_back(a); indices.push_back(b); indices.push_back(d);
+                    indices.push_back(a); indices.push_back(d); indices.push_back(c);
                 }
             }
         }

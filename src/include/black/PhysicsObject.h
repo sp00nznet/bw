@@ -11,13 +11,14 @@
 #include <vector>
 
 struct Object;
+struct GInterfaceStatus;
 
 struct PhysicsObject {
     physics::Vec3 impulse;           // [12] forces summed over touching substeps
     Object*  object = nullptr;       // [24]
     Object*  thrower = nullptr;      // [28]
     PhysicsObject* hit = nullptr;    // [32] the entry it hit this turn
-    int32_t  kind = 0;               // [36] sub_5F30F0's a5
+    GInterfaceStatus* status = nullptr;  // [36] the hand that threw it (sub_5F30F0's a5)
     float    strength = 0;           // [8] |impulse| x 0.05
     physics::RigidBody body;         // [40]
     bool     resting = false;        // [412]
@@ -31,7 +32,7 @@ namespace physics {
 // spin `spin` (body axes). Not for an object that cannot become physical
 // (vslot 492) or whose +0x25 bit 0x10 is set; an object already in the pool
 // is restarted only when resting. Returns its entry or nullptr.
-PhysicsObject* Throw(Object* object, const Vec3& vel, const Vec3& spin, Object* thrower, int kind);
+PhysicsObject* Throw(Object* object, const Vec3& vel, const Vec3& spin, Object* thrower, GInterfaceStatus* status);
 // sub_5F3B40: the object joins at rest (disturbed by something moving).
 PhysicsObject* AddResting(Object* object);
 // sub_5F3D10: one game turn, 20 substeps of 5 ms.

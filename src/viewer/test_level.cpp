@@ -18,6 +18,8 @@
 #include <black/Town.h>
 #include <black/Flock.h>
 #include <black/Tree.h>
+#include <black/PhysicsObject.h>
+#include <black/Terrain.h>
 #include <black/OneOffSpellSeed.h>
 #include <black/SpellDispenser.h>
 #include <black/Villager.h>
@@ -1416,6 +1418,30 @@ int main() {
                           let_go, !early, disp->seed != nullptr && disp->seed != first, disp->seed ? disp->seed->powerup : -9);
             CHECK(let_go && !early && disp->seed && disp->seed != first && disp->seed->powerup == 1, msg);
         }
+    }
+
+    // The turn runs the physics (sub_5215E0 -> sub_5F3D10): a Land 1 mobile
+    // object thrown up and across flies, lands and rests within the turns
+    // level::Process runs.
+    {
+        level::World w1;
+        std::string err1;
+        const bool loaded = level::Load((root + "Land1.txt").c_str(), w1, &err1) &&
+                            physics::LoadPhysicsConstants((root + "PhysicsConstants.txt").c_str());
+        Object* mo = nullptr;
+        for (const level::Spawned& sp : w1.objects)
+            if (sp.command == "CREATE_MOBILEOBJECT" && sp.obj->CanBecomeAPhysicsObject()) { mo = sp.obj; break; }
+        const float x0 = mo ? MetresOf(mo->coords.x) : 0.0f;
+        // On the land (this test has no host height, so the loader put it at 0).
+        if (mo) mo->coords.altitude = LandHeight(x0, MetresOf(mo->coords.z));
+        PhysicsObject* e = loaded && mo ? physics::Throw(mo, {4.0f, 5.0f, 0.0f}, {}, nullptr, nullptr) : nullptr;
+        int turns = 0;
+        while (e && !e->body.asleep && turns < 300) { level::Process(w1); ++turns; }
+        const float moved = mo ? MetresOf(mo->coords.x) - x0 : 0.0f;
+        const float ground = mo ? LandHeight(MetresOf(mo->coords.x), MetresOf(mo->coords.z)) : 0.0f;
+        std::snprintf(msg, sizeof msg, "the turn runs the physics: a thrown Land 1 mobile object rests after %d turns, %.2f m on, %.2f m over the land",
+                      turns, moved, mo ? mo->coords.altitude - ground : 0.0f);
+        CHECK(e && e->body.asleep && turns < 300 && moved > 1.0f && std::fabs(mo->coords.altitude - ground) < 2.0f, msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

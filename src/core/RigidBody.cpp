@@ -37,8 +37,8 @@ void AddTorque(Vec3& t, const Vec3& r, const Vec3& f) {
 // where the land is one plane, smoother across a cell's diagonal.
 Vec3 LandNormal(float x, float z) {
     constexpr float d = 0.5f;
-    Vec3 n{GetTerrainHeightAt(x - d, z) - GetTerrainHeightAt(x + d, z), 2 * d,
-           GetTerrainHeightAt(x, z - d) - GetTerrainHeightAt(x, z + d)};
+    Vec3 n{LandHeight(x - d, z) - LandHeight(x + d, z), 2 * d,
+           LandHeight(x, z - d) - LandHeight(x, z + d)};
     const float l = Len(n);
     return {n.x / l, n.y / l, n.z / l};
 }
@@ -225,7 +225,7 @@ void RigidBody::Forces() {
     // a radius up. ponytail: v1.0 also asks whether the first point's cell
     // is landscape with a non-zero altitude (the block table at 0xD73794);
     // a land height of 0 stands in for it.
-    if (GetTerrainHeightAt(pos.x, pos.z) < 0.0001f && pos.y < radius) {
+    if (LandHeight(pos.x, pos.z) < 0.0001f && pos.y < radius) {
         int under = 0;
         for (const Point& p : points) under += p.pred.y < 0.0f;
         if (under) {
@@ -251,7 +251,7 @@ void RigidBody::Forces() {
     // The land: each predicted point under it is a contact at the land's
     // height, with the land's normal there.
     for (Point& p : points) {
-        const float h = GetTerrainHeightAt(p.pred.x, p.pred.z);
+        const float h = LandHeight(p.pred.x, p.pred.z);
         p.depth = h - p.pred.y;
         p.other = nullptr;
         p.contact = p.pred;

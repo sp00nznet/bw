@@ -99,7 +99,7 @@ int main() {
         p.type_name = "test";
         Object* o = EntityFactory::CreateEntity(ENTITY_CAT_MOBILE_OBJECT, p);
         o->coords = MapCoordsFromMetres(200.0f, 200.0f, 10.6f);
-        PhysicsObject* e = physics::Throw(o, {3.0f, 4.0f, 0.0f}, {}, nullptr, 0);
+        PhysicsObject* e = physics::Throw(o, {3.0f, 4.0f, 0.0f}, {}, nullptr, nullptr);
         int turns = 0;
         float peak = 0.0f, hardest = 0.0f;
         while (e && !e->body.asleep && turns < 200) {
@@ -118,7 +118,7 @@ int main() {
         physics::ResetPool();
         Object* s2 = EntityFactory::CreateEntity(ENTITY_CAT_MOBILE_OBJECT, p);
         s2->coords = MapCoordsFromMetres(200.0f, 200.0f, 2.0f);
-        physics::Throw(s2, {}, {}, nullptr, 0);
+        physics::Throw(s2, {}, {}, nullptr, nullptr);
         turns = 0;
         while (s2->IsAvailable() && turns < 2000) { physics::Step(); ++turns; }
         physics::Step();

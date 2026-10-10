@@ -17,6 +17,13 @@ inline float GetTerrainHeightAt(float x, float z) {
     return 0.0f;
 }
 
+// v1.0 sub_760FD0: the land's height at a point, in metres, from the cell
+// corners' altitude bytes (x 0.67) on the cell's triangle (byte +6 bit 7
+// picks the diagonal); where the cell is at 4 or below, corners at 3 or below
+// are the sea (0). 0 off the map. Uses g_cell_altitude_func and
+// g_cell_flags_func; without them, GetTerrainHeightAt.
+float LandHeight(float x, float z);
+
 // Mesh extent query — the host owns the meshes. The original sizes an abode
 // from its 3D object's bounds (Abode vslot 25, sub_5EA550: the larger of two
 // horizontal bounds, times scale); bw_core has no meshes, so it asks the host

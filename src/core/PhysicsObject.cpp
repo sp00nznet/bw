@@ -47,12 +47,12 @@ bool SetUp(PhysicsObject* e, Object* o) {
     return true;
 }
 
-PhysicsObject* Join(Object* o, Object* thrower, int kind, bool resting) {
+PhysicsObject* Join(Object* o, Object* thrower, GInterfaceStatus* status, bool resting) {
     auto* e = new PhysicsObject();
     if (!SetUp(e, o)) { delete e; return nullptr; }
     e->object = o;
     e->thrower = thrower;
-    e->kind = kind;
+    e->status = status;
     e->resting = resting;
     e->villager = dynamic_cast<Villager*>(o) ? 1 : 0;
     e->flags = 1u | (o->GetAlwaysRemainsInPhysicsInternalSystem() ? 0x80u : 0u);
@@ -88,7 +88,7 @@ void ResetPool() {
     g_pool.clear();
 }
 
-PhysicsObject* Throw(Object* o, const Vec3& vel, const Vec3& spin, Object* thrower, int kind) {
+PhysicsObject* Throw(Object* o, const Vec3& vel, const Vec3& spin, Object* thrower, GInterfaceStatus* status) {
     if (!o || !o->CanBecomeAPhysicsObject() || (o->field_0x24 & 0x1000)) return nullptr;
     for (size_t i = 0; i < g_pool.size(); ++i) {
         if (g_pool[i]->object != o) continue;
@@ -96,7 +96,7 @@ PhysicsObject* Throw(Object* o, const Vec3& vel, const Vec3& spin, Object* throw
         Remove(i);
         break;
     }
-    PhysicsObject* e = Join(o, thrower, kind, false);
+    PhysicsObject* e = Join(o, thrower, status, false);
     if (!e) return nullptr;
     RigidBody& b = e->body;
     // The spin through the inertia, to the world: the angular momentum.
