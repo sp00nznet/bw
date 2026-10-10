@@ -19,6 +19,8 @@
 #include <black/Map.h>
 #include <black/Living.h>
 #include <black/Flock.h>
+#include <black/FireFly.h>
+#include <black/GClimate.h>
 #include <black/PlannedAbode.h>
 #include <black/PlannedTownCitadelHeart.h>
 #include <black/Player.h>
@@ -423,6 +425,33 @@ struct Loader {
         if (cmd == "CREATE_ANIMATED_STATIC")
             return a.size() >= 4 && ParsePos(a[0].s, x, z) &&
                    Make(ENTITY_CAT_ANIMATED_STATIC, cmd, x, z, a[2].n * 0.001f, a[3].n * 0.001f, -1, a[1].s);
+        // case 88: (magic name, odds) -> sub_501E50; an unknown name is 42, ignored.
+        if (cmd == "FIRE_FLY_SPELL_REWARD_PROB") {
+            if (a.size() < 2) return false;
+            const int m = ByName(infodat::DETAIL_MAGIC_EFFECT_INFO, 42, 52, a[0].s);
+            SetFireFlyRewardProb(m < 0 ? 42u : static_cast<uint32_t>(m), a[1].f);
+            return true;
+        }
+        // case 60: (id, climate type, pos, radius, radius) -> sub_6FE4B0.
+        if (cmd == "CREATE_WEATHER_CLIMATE") {
+            if (a.size() < 5 || !ParsePos(a[2].s, x, z)) return false;
+            return CreateClimate(MapCoordsFromMetres(x, z), a[1].n, a[3].f, a[4].f, a[0].n) != nullptr;
+        }
+        // cases 61..63: (id, ...) -> sub_7002F0 / sub_700380 / sub_7003C0, on the
+        // climate of that id (sub_7002A0), id 0 the default.
+        if (cmd == "CREATE_WEATHER_CLIMATE_RAIN" || cmd == "CREATE_WEATHER_CLIMATE_TEMP" || cmd == "CREATE_WEATHER_CLIMATE_WIND") {
+            if (a.empty()) return false;
+            GClimate* c = FindClimate(a[0].n);
+            if (!c) return true;  // no climate of that id: nothing
+            if (cmd == "CREATE_WEATHER_CLIMATE_RAIN" && a.size() >= 5)
+                c->rain = {a[1].f, a[2].n, a[3].n, static_cast<uint8_t>(a[4].n)};
+            else if (cmd == "CREATE_WEATHER_CLIMATE_TEMP" && a.size() >= 3)
+                c->temp[0] = a[1].f, c->temp[1] = a[2].f;
+            else if (cmd == "CREATE_WEATHER_CLIMATE_WIND" && a.size() >= 4)
+                c->wind[0] = a[1].f, c->wind[1] = a[2].f, c->wind[2] = a[3].f;
+            else return false;
+            return true;
+        }
         // case 49 (version 2.1 on): (id, pos, centre, radius, radius 2, town)
         // -> sub_5058F0, which flocks at pos; then the domain centre and radii
         // (a radius of 0 is 80). The town lists it (+0xF00).
@@ -480,6 +509,7 @@ bool Load(const char* path, World& out, std::string* err) {
     ResetPlayers();
     g_town_influence_multiplier = g_player_influence_multiplier = 1.0f;
     land::DrinkWaypoints().clear();
+    ResetClimates();
     Loader L{out};
     char line[2048];
     std::string name;

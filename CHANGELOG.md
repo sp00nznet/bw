@@ -44,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Level climates and firefly odds: CREATE_WEATHER_CLIMATE and its RAIN / TEMP / WIND
+  commands build the game's climate list and default climate; FIRE_FLY_SPELL_REWARD_PROB
+  fills the reward odds a firefly draws from (sub_501F10).
 - Level flocks: CREATE_FLOCK makes the flock with its domain centre and radii, and each
   CREATE_NEW_ANIMAL joins its flock (v1.0's member list, sub_505B20). Land 1's 116 animals
   are in its 16 flocks.

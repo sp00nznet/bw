@@ -53,3 +53,12 @@ struct FireFly : public Object {
     uint8_t     field_0xc0;     // 0xC0
 };
 static_assert(sizeof(FireFly) == 0xC4, "FireFly size mismatch");
+
+// The odds of each of the 42 magic types as a firefly's reward (0xBF0F0C),
+// with their running total (0xBF0E64). sub_501E50; out-of-range types are ignored.
+void SetFireFlyRewardProb(uint32_t magic, float prob);
+float FireFlyRewardProb(uint32_t magic);
+// sub_501F10's choice: a roll below the total picks the first type whose running
+// total reaches it; 0 (none) when the odds are all 0.
+// ponytail: the reward seed it then makes (sub_6C1930 / sub_6C0D30) is not.
+uint32_t PickFireFlyReward();

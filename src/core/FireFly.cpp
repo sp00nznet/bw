@@ -2,6 +2,29 @@
 // Decompiled from Black & White v1.0 (runblack_decrypted.exe)
 
 #include <black/FireFly.h>
+#include <black/LHRandom.h>
+
+namespace {
+float g_reward_prob[42];
+float g_reward_total[42];
+}
+
+void SetFireFlyRewardProb(uint32_t magic, float prob) {
+    if (magic > 41) return;
+    g_reward_prob[magic] = prob;
+    float sum = 0.0f;
+    for (int i = 0; i < 42; ++i) g_reward_total[i] = sum += g_reward_prob[i];
+}
+
+float FireFlyRewardProb(uint32_t magic) { return magic > 41 ? 0.0f : g_reward_prob[magic]; }
+
+uint32_t PickFireFlyReward() {
+    const float roll = lh::RandomFloat(g_reward_total[41]);  // sub_67BCB0
+    if (roll == 0.0f) return 0;
+    for (uint32_t i = 0; i < 42; ++i)
+        if (roll <= g_reward_total[i]) return i;
+    return 0;
+}
 
 // ============================================================================
 // Overrides of Base virtuals

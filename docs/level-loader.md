@@ -78,6 +78,17 @@ The handlers index the info arrays directly, and every base and stride matches
   flock's id (+0x8C); the animal joins it (`sub_505B20`: a 12-byte node, ordered by the
   member's +0xD4 byte, and the living's +0xB8 points back), and an age of 0 becomes
   5..24. The animal's town (`sub_414480`) is not set yet.
+- **FIRE_FLY_SPELL_REWARD_PROB** (case 88, `sub_501E50`): a magic type by name and its
+  odds, into a 42-float table (0xBF0F0C) with a running total (0xBF0E64). A firefly
+  (`sub_501F10`) rolls below the total and takes the first type whose running total
+  reaches the roll; `PickFireFlyReward` does that, the reward seed it then makes is not
+  translated. Land 1 has no fireflies; its odds are Heal 20 and six others 1.
+- **CREATE_WEATHER_CLIMATE** (case 60, `sub_6FE4B0`): `(id, type, pos, radius, radius)`.
+  Id 0 replaces the default climate (`sub_6FE1D0`: record 0, 5000 m); any other id
+  is a `GClimate` of DETAIL_CLIMATE_INFO[type] at pos with its radii in order.
+  **…_RAIN / _TEMP / _WIND** (61..63) set +0x34 (float, int, int, byte), +0x44 (two
+  floats) and +0x4C (three floats) on the climate of that id. The constructors'
+  season-dependent defaults and the weather state are not translated.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.
@@ -85,8 +96,7 @@ The handlers index the info arrays directly, and every base and stride matches
 ## Not translated yet
 
 Land 1 has 2,342 commands. 1,966 are handled; `test_level` lists the rest. The largest
-groups are stream points (187), drink waypoints (47), firefly reward odds (42), mist
-(17), and planned abodes and the citadel (7). Known departures from the
+groups are stream points (187), drink waypoints (47), mist (17), and planned abodes and the citadel (7). Known departures from the
 original:
 
 - **The creates are not the original's constructors.** The objects are our classes,

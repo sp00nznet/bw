@@ -17,6 +17,9 @@
 #include <black/Terrain.h>
 #include <black/Town.h>
 #include <black/Flock.h>
+#include <black/FireFly.h>
+#include <black/LHRandom.h>
+#include <black/GClimate.h>
 #include <black/Villager.h>
 #include "lnd_loader.h"
 #include "miracles.h"
@@ -121,6 +124,41 @@ int main() {
                       w.flocks.size(), members, linked, f1 ? f1->count : 0, f1 ? f1->domain_radius : 0, f1 ? f1->radius_b : 0, listed);
         CHECK(w.flocks.size() == 16 && members == 116 && linked == 116 && ordered && f1 && f1->count == 7 &&
               f1->domain_radius == 29 && f1->radius_b == 15 && listed && !w.unhandled.count("CREATE_FLOCK"), msg);
+    }
+    {
+        // Case 88: the firefly odds by magic name -- Heal 20, six others 1 --
+        // and a pick always lands on one of them.
+        char msg[256];
+        float total = 0.0f;
+        for (uint32_t m = 0; m < 42; ++m) total += FireFlyRewardProb(m);
+        int heal = -1;
+        for (uint32_t m = 0; m < 42 && heal < 0; ++m) {
+            const char* e = static_cast<const char*>(infodat::Element(infodat::DETAIL_MAGIC_EFFECT_INFO, m));
+            if (e && !_stricmp(e + 52, "HEAL")) heal = static_cast<int>(m);
+        }
+        bool picks_ok = true;
+        const uint32_t seed = lh::g_random_seed;  // the later checks expect the seed untouched
+        for (int i = 0; i < 200; ++i) picks_ok = picks_ok && FireFlyRewardProb(PickFireFlyReward()) > 0.0f;
+        lh::g_random_seed = seed;
+        std::snprintf(msg, sizeof msg, "Land 1's firefly odds: total %.1f, Heal (%d) %.1f, 200 picks all with odds: %d",
+                      total, heal, heal >= 0 ? FireFlyRewardProb(static_cast<uint32_t>(heal)) : -1.0f, picks_ok);
+        CHECK(total == 26.0f && heal > 0 && FireFlyRewardProb(static_cast<uint32_t>(heal)) == 20.0f && picks_ok &&
+              !w.unhandled.count("FIRE_FLY_SPELL_REWARD_PROB"), msg);
+    }
+    {
+        // Cases 60..63: three climates and the default, each with its rain,
+        // temperature and wind; climate 1 is the cold one.
+        char msg[256];
+        GClimate* c1 = FindClimate(1);
+        GClimate* c0 = DefaultClimate();
+        std::snprintf(msg, sizeof msg, "Land 1's climates: %zu; climate 1 radii %.1f..%.1f rain %.4f/%d temp %.1f/%.1f wind %.0f; default rain %.6f",
+                      Climates().size(), c1 ? c1->radius_min : 0, c1 ? c1->radius_max : 0, c1 ? c1->rain.amount : 0, c1 ? c1->rain.a : 0,
+                      c1 ? c1->temp[0] : 0, c1 ? c1->temp[1] : 0, c1 ? c1->wind[0] : 0, c0 ? c0->rain.amount : 0);
+        bool left = false;
+        for (const auto& u : w.unhandled) left = left || u.first.rfind("CREATE_WEATHER_CLIMATE", 0) == 0;
+        CHECK(Climates().size() == 4 && c1 && c1->info && std::fabs(c1->radius_min - 156.67f) < 0.01f && std::fabs(c1->radius_max - 321.67f) < 0.01f &&
+              std::fabs(c1->rain.amount - 0.630036f) < 1e-5f && c1->rain.a == 97 && std::fabs(c1->temp[0] + 35.2f) < 1e-4f && c1->wind[0] == 40.0f &&
+              c0 && c0->id == 0 && std::fabs(c0->rain.amount - 0.004632f) < 1e-6f && c0->rain.a == 1 && !left, msg);
     }
 
     CHECK(w.towns.size() == 6, "six towns (CREATE_TOWN x6)");
