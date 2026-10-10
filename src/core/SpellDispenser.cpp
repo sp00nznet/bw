@@ -5,6 +5,7 @@
 #include <black/SpellDispenser.h>
 #include <black/OneOffSpellSeed.h>
 #include <black/WorshipSite.h>
+#include <cmath>
 
 void SpellDispenser::ToBeDeleted(int /*param*/) {
     // Original at 0x007228a0 — complex
@@ -35,19 +36,29 @@ bool32_t SpellDispenser::IsSpellDispenser() {
     return 1;
 }
 
-bool32_t SpellDispenser::IsActive() const {
-    // Original at 0x007226c0: returns 1
-    return 1;
-}
+// v1.0 sub_413FC0 (vslot 259).
+bool32_t SpellDispenser::IsActive() const { return active; }
 
 uint32_t SpellDispenser::GetScriptObjectType() {
     // Original at 0x00722fb0 — complex
     return 0;
 }
 
+// v1.0 sub_6B99E0 (vslot 383): the abode's own turn; then a seed that is gone
+// (unavailable, +0xA bit 0) or no longer touching (vslot 430: the gap between
+// the two, centre distance less both radii, sub_5EA3E0, over 0.001 m) is let
+// go; with none out, an active, built and repaired dispenser counts turns and
+// dispenses at its recharge.
 uint32_t SpellDispenser::Process() {
-    // Original at 0x00722a70 — complex
-    return 0;
+    Abode::Process();  // sub_4031C0
+    if (seed) {
+        const float gap = std::hypot(MetresOf(coords.x - seed->coords.x), MetresOf(coords.z - seed->coords.z)) -
+                          (GetRadius() + seed->GetRadius());
+        if (!seed->IsAvailable() || gap > 0.001f) { seed = nullptr; turns = 0; }
+        return 1;
+    }
+    if (IsActive() && magic && IsBuilt() && IsRepaired() && ++turns >= recharge) Dispense();
+    return 1;
 }
 
 void SpellDispenser::Draw() {

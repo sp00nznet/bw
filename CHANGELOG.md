@@ -46,6 +46,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Spell dispensers recharge: once their seed is taken they make the next after their
+  recharge time (sub_6B99E0). `SpellDispenser::IsActive` returns the dispenser's flag.
 - Spell dispensers and one-off spell seeds (CREATE_SPELL_DISPENSER, CREATE_ONE_SHOT_SPELL_PU).
   Every command in the six campaign land scripts is now handled.
 - Rival temples: CREATE_CITADEL gives a player a citadel with a finished heart and

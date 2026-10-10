@@ -111,7 +111,9 @@ The handlers index the info arrays directly, and every base and stride matches
   magic, activates it (`sub_6B9F90`, which dispenses a one-off seed at once,
   `sub_6B9AF0`), then sets the recharge; 0 deactivates it. The seed sits at the
   building's base: v1.0 lifts it by 1.2 × the collision mesh's height, which we lack.
-  The dispenser's recharge loop (its Process) is not translated yet.
+  Its turn (`sub_6B99E0`) lets a seed go once it is unavailable or no longer touching
+  the building (centre distance less both radii over 0.001 m), then counts its own
+  turns while active, built and repaired and dispenses again at the recharge.
 - **CREATE_CITADEL** (case 19, `sub_44EAF0`): `(pos, heart type, player, angle×1000,
   scale×1000)`. A new citadel for the player (`sub_44E400`) and its heart, whole, at
   scale 1 (the fifth argument is not read), which raises the citadel's power by 125 and

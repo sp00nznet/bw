@@ -1401,6 +1401,21 @@ int main() {
                       disp && disp->seed ? disp->seed->powerup : -9, fire_seed, water, left.c_str());
         CHECK(disp && disp->active && disp->recharge == 600 && disp->seed && disp->seed->seed == fire_seed && disp->seed->powerup == 1 &&
               disp->GetTown() && water == 2 && w5.unhandled.empty(), msg);
+
+        // sub_6B99E0: once the seed is taken (unavailable) the dispenser lets
+        // it go, then makes the next after 600 of its own turns, not before.
+        if (disp && disp->seed) {
+            OneOffSpellSeed* first = disp->seed;
+            first->field_0xa |= 1;
+            disp->Process();
+            const bool let_go = disp->seed == nullptr;
+            for (int i = 0; i < 599; ++i) disp->Process();
+            const bool early = disp->seed != nullptr;
+            disp->Process();
+            std::snprintf(msg, sizeof msg, "Land 5's dispenser recharge: taken seed let go %d, none after 599 turns %d, a new one at 600 %d (power-up %d)",
+                          let_go, !early, disp->seed != nullptr && disp->seed != first, disp->seed ? disp->seed->powerup : -9);
+            CHECK(let_go && !early && disp->seed && disp->seed != first && disp->seed->powerup == 1, msg);
+        }
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);
