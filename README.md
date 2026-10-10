@@ -22,7 +22,7 @@ This project is a **static recompilation** of Black & White — taking the origi
 
 ## Current Status
 
-**612 headers | 265 implementations | 35 viewer files | ~57,000 lines of C++ | 10 test suites | 288 commits**
+**630 headers | 282 implementations | 51 viewer files | ~72,000 lines of C++ | 17 test suites | 388 commits**
 
 The viewer ticks the entire game loop end-to-end: terrain renders, CHL scripts drive entity spawning, the LHVM dispatches ~430 wired native functions, villagers play real ANM skeletal animations from `AllAnims.anm`, real MP2 voice/dialogue decodes and plays, spell casts throw camera-facing particle FX, and the camera follows whatever the script tells it to.
 
@@ -37,6 +37,13 @@ Two habits did most of the work. First, whole class families share a vtable shap
 **World (native level loader)**
 - Land scripts load through the game's own command table and handlers (`docs/level-loader.md`): Land 1 builds 6 towns, 57 abodes owned by their towns, 29 villagers housed in the homes the script names, fields, fish farms, trees, animals and features, 1,946 objects in all, each with its `info.dat` record (`docs/info-dat.md`)
 - Play mode draws that world and the turn processes it: towns, then every object
+- Every campaign land script (Land 1-5 and the tutorial) is fully handled: flocks, forests, streams, mist, arenas, climates, citadels, worship sites, spell dispensers
+
+**Physics (v1.0's rigid-body engine)**
+- The game's own rigid body (`docs/physics.md`): contact springs, friction, drag, the sea (things float, take on water and sink), coming to rest; materials from `PhysicsConstants.txt`
+- The physics pool runs 20 substeps of 5 ms each game turn; the hand's throws go through it
+- The land under it is v1.0's own height function, cell triangles and all (it also exposed that the viewer had been drawing every landscape mirrored, now fixed)
+- Bodies meet: points are cast onto another body's faces, a moving body wakes what lies in its path, and a thrown tree that lands on a village store is taken in as wood
 
 **Rendering**
 - L3D mesh loader (bind pose + bones preserved for runtime CPU skinning)
@@ -77,7 +84,7 @@ Two habits did most of the work. First, whole class families share a vtable shap
 - Hand position + clicks → LHVM (`GET_HAND_POSITION/STATE`, `GAME_THING_CLICKED`, `POSITION_CLICKED`)
 - Script-spawned entities (CREATE, FLOCK_CREATE, LOAD_CREATURE, etc.) appear in the viewer's render list with sensible default meshes from `SCRIPT_OBJECT_TYPE`
 - Camera follows LHVM `FOCUS_FOLLOW` / `POSITION_FOLLOW` targets with lerp + shake
-- Thrown objects fire `Object::ReactToPhysicsImpact` on neighbours within a speed-scaled blast radius
+- Thrown objects fly through the core physics (`physics::Throw`), carrying the hand's status so a store they land on credits the right player
 - `SET_HEADING_AND_SPEED` imparts real movement on living units (villager/animal/creature) — sets the MobileWallHug goal + speed and enters `MOVE_TO_POS` so `MoveToGoal` walks them there (safe `Living` downcast gated on `GetScriptObjectType`)
 - Hand interaction phase state machine reports the correct `HAND_STATES` code (Invisible/Normal/Holding) to `GET_HAND_STATE`
 
@@ -156,6 +163,8 @@ Two habits did most of the work. First, whole class families share a vtable shap
 - [x] Full polymorphic `HandState` dispatch — real state objects under `HandMachine`, Exit-then-Enter transitions
 - [x] Particle engine scope-A — `Atom`/rule interface with 210 parameters under their real names *(rule **graphs** are code-built, not data, and remain untouched)*
 - [x] Creature AI — attributes, belief vectors, C4.5 learning, opinion scale, mind-file reader, desire dynamics, plans/actions
+- [x] Native level loader — every campaign land script fully handled
+- [~] Physics — rigid body, pool, game-turn step, land height, body-to-body contacts and the tree-into-store path done; a building's own impact damage, the creature's `ThrowInPile` and host mesh faces remain
 - [ ] Multiplayer / network stack — LAN-only, planned for a separate private repo + server emulator
 - [ ] Computer player AI behaviour
 
