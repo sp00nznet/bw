@@ -102,6 +102,24 @@ The handlers index the info arrays directly, and every base and stride matches
   villager reaction (`sub_67EFC0`, type 19).
 - v1.0's `MapCoords` y is the height above the land (a stream point is stored as land
   height + y); ours carry the altitude itself, so the loader adds the land's height.
+- **CREATE_FOREST** (case 26, `sub_50E200`): a `Forest` with that id (0: the next
+  number) on the game's forest list; **CREATE_NEW_TREE**'s first argument is the id of
+  its forest (−1 for none), and the tree's +0x68 points at it. The forest's own tree
+  lists are not filled yet.
+- **CREATE_TOWN_VILLAGER** (case 16): `(town, pos, type, age)`, a villager like
+  CREATE_VILLAGER_POS's, taken in by the town of that id or else the nearest
+  (`sub_525710`) through `AddVillagerToTown` (`sub_6CD8E0`).
+- **SET_TOWN_BELIEF_CAP** (case 4, `sub_4316D0`): the belief cap (+0x68) for a player,
+  stored as given (Land 3 uses 2.0), the current belief untouched.
+  **SET_TOWN_CONGREGATION_POS** (case 6): town +0xF08.
+  **TOWN_DESIRE_BOOST** (case 86): `desire.boost[i]` (town +0x108), the desire named
+  from v1.0's table at 0xCC3F60 (Food, Wood, Playtime, Protection, Mercy, Abodes,
+  Civic_Buildings, Supply_Worship, For_Children, To_Build, For_Rain, For_Sun,
+  Repair_Town, Suppy_Workshop — the misspelling is the game's).
+- **SET_GLOBAL_LAND_BALANCE** (case 93): `g_land_balance[i]` (0xC3B390).
+  **SET_NIGHTTIME** (case 102, `sub_528F70`): day length, night and dusk shares, clamped;
+  the light ramp is not built. **TOGGLE_COMPUTER_PLAYER** (case 77) acts on the player's
+  computer player (+0x15C), which we never make, so it changes nothing.
 - **SET_TOWN_BELIEF**, **SET_TOWN_UNINHABITABLE** (+0x5F4 = 1, which makes
   `AddVillagerToTown` refuse everyone), **START_CAMERA_POS**, **LOAD_LANDSCAPE**,
   **SET_LAND_NUMBER**, **VERSION**.

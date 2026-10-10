@@ -44,6 +44,9 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Eight level commands from Lands 2–5: CREATE_FOREST (with trees joining their forest),
+  CREATE_TOWN_VILLAGER, SET_TOWN_BELIEF_CAP, SET_TOWN_CONGREGATION_POS, TOWN_DESIRE_BOOST,
+  SET_GLOBAL_LAND_BALANCE, SET_NIGHTTIME and TOGGLE_COMPUTER_PLAYER.
 - Level mist and arenas (CREATE_MIST, CREATE_ARENA). Every command in Land 1's script is
   now handled.
 - Level streams: CREATE_STREAM / CREATE_STREAM_POINT build the stream list, and an

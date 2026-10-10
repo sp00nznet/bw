@@ -33,6 +33,7 @@
 #include <black/Town.h>
 #include <black/TownCentre.h>
 #include <black/Villager.h>
+#include <black/Tree.h>
 #include <black/MobileStatic.h>
 #include <black/WorshipSite.h>
 
@@ -374,9 +375,95 @@ struct Loader {
         if (cmd == "CREATE_TOWN_FISH_FARM")
             return CreateTownStructure(ENTITY_CAT_FISH_FARM, cmd, a, 0.0f);
         // case 28: (forest, pos, type, flag, angle, scale, scale2)
-        if (cmd == "CREATE_NEW_TREE")
-            return a.size() >= 6 && ParsePos(a[1].s, x, z) &&
-                   Make(ENTITY_CAT_TREE, cmd, x, z, a[4].f, a[5].f, a[2].n);
+        // The forest is the one with that id on the game's list, if any.
+        // ponytail: the tree is not put on the forest's own tree lists.
+        if (cmd == "CREATE_NEW_TREE") {
+            if (a.size() < 6 || !ParsePos(a[1].s, x, z)) return false;
+            Object* o = Make(ENTITY_CAT_TREE, cmd, x, z, a[4].f, a[5].f, a[2].n);
+            if (!o) return false;
+            for (Forest* f : w.forests)
+                if (f->id == static_cast<uint32_t>(a[0].n)) { static_cast<Tree*>(o)->forest = f; break; }
+            return true;
+        }
+        // case 26: (id, pos) -> sub_50E200: a Forest container on the game's
+        // list; id 0 takes the next number (dword_B17458).
+        if (cmd == "CREATE_FOREST") {
+            if (a.size() < 2 || !ParsePos(a[1].s, x, z)) return false;
+            static uint32_t next_id = 0;
+            auto* f = new Forest();
+            f->coords = MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z));
+            f->big_forest = nullptr;
+            f->field_0x3c = 0;
+            const uint32_t id = static_cast<uint32_t>(a[0].n);
+            f->id = id ? id : next_id;
+            if (!id || next_id < id) next_id = f->id + 1;
+            w.forests.push_back(f);
+            return true;
+        }
+        // case 4: (town, player, cap) -> sub_4316D0, the belief's +0x68 cap
+        // for that player; the current belief is left alone.
+        if (cmd == "SET_TOWN_BELIEF_CAP") {
+            Town* t = a.size() >= 3 ? FindTown(w, static_cast<uint32_t>(a[0].n)) : nullptr;
+            const int p = a.size() >= 3 ? PlayerIndex(a[1].s) : -1;
+            if (!t || p < 0) return false;
+            t->belief.belief_in_player_max[p] = a[2].f;
+            return true;
+        }
+        // case 6: (town, pos) -> town +0xF08.
+        if (cmd == "SET_TOWN_CONGREGATION_POS") {
+            Town* t = a.size() >= 2 ? FindTown(w, static_cast<uint32_t>(a[0].n)) : nullptr;
+            if (!t || !ParsePos(a[1].s, x, z)) return false;
+            t->congregation_pos = MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z));
+            return true;
+        }
+        // case 86: (town, desire name, boost) -> the town desire's boost
+        // (+0x108 = desire +0xD4). The names are v1.0's table at 0xCC3F60
+        // (set at 0x6D6F06 and around); entries 14..16 have none.
+        if (cmd == "TOWN_DESIRE_BOOST") {
+            static const char* const kNames[] = {"Food", "Wood", "Playtime", "Protection", "Mercy", "Abodes",
+                "Civic_Buildings", "Supply_Worship", "For_Children", "To_Build", "For_Rain", "For_Sun",
+                "Repair_Town", "Suppy_Workshop"};
+            Town* t = a.size() >= 3 ? FindTown(w, static_cast<uint32_t>(a[0].n)) : nullptr;
+            int d = -1;
+            for (int i = 0; i < 14 && a.size() >= 3; ++i) if (a[1].s == kNames[i]) { d = i; break; }
+            if (!t || d < 0) return false;
+            t->desire.boost[d] = a[2].f;
+            return true;
+        }
+        // case 16: (town, pos, villager type, age) -> sub_6DFF00, then the town
+        // (by id, else the nearest, sub_525710) takes it in (sub_6CD8E0).
+        if (cmd == "CREATE_TOWN_VILLAGER") {
+            if (a.size() < 4 || !ParsePos(a[1].s, x, z)) return false;
+            auto* v = static_cast<Villager*>(Make(ENTITY_CAT_VILLAGER, cmd, x, z, 0.0f, 1.0f, -1, a[2].s));
+            if (!v) return false;
+            v->Construct(static_cast<uint32_t>(a[3].n), false);
+            Town* t = FindTown(w, static_cast<uint32_t>(a[0].n));
+            if (!t) {
+                float best = 0.0f;
+                for (Town* c : w.towns) {
+                    const float d = std::hypot(MetresOf(c->coords.x - v->coords.x), MetresOf(c->coords.z - v->coords.z));
+                    if (!t || d < best) { t = c; best = d; }
+                }
+            }
+            if (t) t->AddVillagerToTown(v);
+            return true;
+        }
+        // case 77: (player, on) -> sub_5F9550 on the player's computer player
+        // (+0x15C): its +440 and, when on, the player's type 2. We make no
+        // computer player, so as in v1.0 without one, nothing changes.
+        if (cmd == "TOGGLE_COMPUTER_PLAYER") return a.size() >= 2 && PlayerIndex(a[0].s) >= 0;
+        // case 93: (index, value) -> sub_5A2440.
+        if (cmd == "SET_GLOBAL_LAND_BALANCE") {
+            if (a.size() < 2 || a[0].n < 0 || a[0].n >= 16) return false;
+            g_land_balance[a[0].n] = a[1].f;
+            return true;
+        }
+        // case 102: (day, night, dusk) -> sub_529470.
+        if (cmd == "SET_NIGHTTIME") {
+            if (a.size() < 3) return false;
+            SetNighttime(a[0].f, a[1].f, a[2].f);
+            return true;
+        }
         // case 42: (pos, type, ...floats). ponytail: scale = arg2, angle = arg4,
         // as the viewer always read them; sub_5C3710's own use of the five
         // floats is not translated yet.

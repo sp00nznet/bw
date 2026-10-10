@@ -17,6 +17,8 @@
 #include <black/Terrain.h>
 #include <black/Town.h>
 #include <black/Flock.h>
+#include <black/Tree.h>
+#include <black/Villager.h>
 #include <black/FireFly.h>
 #include <black/LHRandom.h>
 #include <black/GClimate.h>
@@ -1328,6 +1330,40 @@ int main() {
         std::snprintf(msg, sizeof msg, "Land 2's town spells: town 1 Fire %d Nature %d Food %d Wood %d, town 2 Heal %d",
                       held(t1, 1), held(t1, 13), held(t1, 14), held(t1, 21), held(t2, 10));
         CHECK(held(t1, 1) && held(t1, 13) && held(t1, 14) && held(t1, 21) && held(t2, 10), msg);
+        // Case 86: town 9 is boosted away from abodes and civic buildings.
+        Town* t9 = loaded ? level::FindTown(w2, 9) : nullptr;
+        std::snprintf(msg, sizeof msg, "Land 2's desire boosts: town 9 Abodes %.2f, Civic_Buildings %.2f",
+                      t9 ? t9->desire.boost[5] : 0.0f, t9 ? t9->desire.boost[6] : 0.0f);
+        CHECK(t9 && t9->desire.boost[5] == -0.75f && t9->desire.boost[6] == -0.75f, msg);
+    }
+
+    // Land 3: forest 19 and its trees (cases 26 / 28), the town villager
+    // (case 16), congregation position (6), belief caps (4, not clamped),
+    // land balance (93) and nighttime (102).
+    {
+        level::World w3;
+        std::string err3;
+        const bool loaded = level::Load((root + "Land3.txt").c_str(), w3, &err3);
+        Forest* f19 = nullptr;
+        for (Forest* f : w3.forests) if (f->id == 19) f19 = f;
+        int in19 = 0;
+        Villager* tv = nullptr;
+        for (const level::Spawned& sp : w3.objects) {
+            if (sp.command == "CREATE_NEW_TREE" && f19 && static_cast<Tree*>(sp.obj)->forest == f19) ++in19;
+            if (sp.command == "CREATE_TOWN_VILLAGER" && !tv) tv = static_cast<Villager*>(sp.obj);
+        }
+        Town* t0 = loaded ? level::FindTown(w3, 0) : nullptr;
+        Town* t1 = loaded ? level::FindTown(w3, 1) : nullptr;
+        const int p2 = 1;  // PLAYER_TWO
+        std::string left;
+        for (const auto& u : w3.unhandled) left += " " + u.first;
+        std::snprintf(msg, sizeof msg, "Land 3: forest 19 with %d trees, town villager in town 1: %d, town 0 congregates at %.0f,%.0f, town 1 cap %.1f, balance[6] %.4f, night %.3f; unhandled:%s",
+                      in19, tv && tv->GetTown() == t1, t0 ? MetresOf(t0->congregation_pos.x) : 0.0f, t0 ? MetresOf(t0->congregation_pos.z) : 0.0f,
+                      t1 ? t1->belief.belief_in_player_max[p2] : 0.0f, g_land_balance[6], Nighttime().night, left.c_str());
+        CHECK(f19 && in19 == 65 && tv && tv->GetTown() == t1 && t0 && std::fabs(MetresOf(t0->congregation_pos.x) - 3100.0f) < 0.01f &&
+              t1->belief.belief_in_player_max[p2] == 2.0f && std::fabs(g_land_balance[6] - 2.03252f) < 1e-5f &&
+              Nighttime().day == 1700.0f && std::fabs(Nighttime().night - 0.083f) < 1e-6f &&
+              !w3.unhandled.count("CREATE_FOREST") && !w3.unhandled.count("CREATE_TOWN_VILLAGER") && !w3.unhandled.count("SET_TOWN_BELIEF_CAP"), msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

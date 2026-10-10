@@ -32,3 +32,11 @@ GClimate* CreateClimate(const MapCoords& pos, int type, float r1, float r2, int 
 // sub_7002A0, with id 0 the default (made if missing, as sub_7002F0 does).
 GClimate* FindClimate(int id);
 void ResetClimates();
+
+// SET_NIGHTTIME (sub_529470 -> sub_528F70): the day's length and the night
+// and dusk shares (+0x48, +0x50, +0x4C on the sky object), clamped so that
+// night <= 1 and dusk <= 1 - night.
+// ponytail: the light ramp it then builds (sub_7BD010) is not.
+struct NightTime { float day = 0.0f, night = 0.0f, dusk = 0.0f; };
+NightTime& Nighttime();
+void SetNighttime(float day, float night, float dusk);

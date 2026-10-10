@@ -56,3 +56,11 @@ char*    GClimate::GetDebugText() { return "GClimate"; }
 uint32_t GClimate::Load(GameOSFile* file) { return 0; }
 uint32_t GClimate::Save(GameOSFile* file) { return 0; }
 uint32_t GClimate::GetSaveType() { return 252; }
+
+NightTime& Nighttime() { static NightTime t; return t; }
+
+void SetNighttime(float day, float night, float dusk) {
+    if (night >= 1.0f) night = 1.0f;
+    if (dusk >= 1.0f - night) dusk = 1.0f - night;
+    Nighttime() = {day, night, dusk};
+}
