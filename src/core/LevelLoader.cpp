@@ -34,6 +34,8 @@
 #include <black/TownCentre.h>
 #include <black/Villager.h>
 #include <black/Tree.h>
+#include <black/OneOffSpellSeed.h>
+#include <black/SpellDispenser.h>
 #include <black/CitadelHeart.h>
 #include <black/MobileStatic.h>
 #include <black/WorshipSite.h>
@@ -384,6 +386,43 @@ struct Loader {
             if (!o) return false;
             for (Forest* f : w.forests)
                 if (f->id == static_cast<uint32_t>(a[0].n)) { static_cast<Tree*>(o)->forest = f; break; }
+            return true;
+        }
+        // case 84: (pos, magic name) -> sub_6C0D30: a one-off seed of the
+        // magic's seed and power-up, strength 1.
+        if (cmd == "CREATE_ONE_SHOT_SPELL_PU") {
+            if (a.size() < 2 || !ParsePos(a[0].s, x, z)) return false;
+            const int m = ByName(infodat::DETAIL_MAGIC_EFFECT_INFO, 42, 52, a[1].s);
+            const int s = m > 0 && m < 42 ? SeedOfMagic(m) : -1;
+            if (s < 0 || s > 29) return false;
+            OneOffSpellSeed* o = CreateOneOffSpellSeed(MapCoordsFromMetres(x, z, GetTerrainHeightAt(x, z)), s, SeedPowerUp(s, m), 1.0f);
+            if (o) w.objects.push_back({o, cmd, a[1].s, s});
+            return o != nullptr;
+        }
+        // case 90: (town, pos, abode name, magic name, angle, scale, recharge)
+        // -> sub_6B9840: a SpellDispenser abode of the town (by id, else the
+        // nearest), giving that magic; made active (it dispenses at once),
+        // then the recharge is the level's, and 0 leaves it inactive.
+        // ponytail: vslot 581 after creation is not called.
+        if (cmd == "CREATE_SPELL_DISPENSER") {
+            if (a.size() < 7 || !ParsePos(a[1].s, x, z)) return false;
+            Town* town = FindTown(w, static_cast<uint32_t>(a[0].n));
+            if (!town) {
+                float best = 0.0f;
+                for (Town* c : w.towns) {
+                    const float d = std::hypot(MetresOf(c->coords.x) - x, MetresOf(c->coords.z) - z);
+                    if (!town || d < best) { town = c; best = d; }
+                }
+            }
+            const int m = ByName(infodat::DETAIL_MAGIC_EFFECT_INFO, 42, 52, a[3].s);
+            Object* o = Make(ENTITY_CAT_ABODE, cmd, x, z, a[4].f, a[5].f, -1, a[2].s);
+            auto* d = o && o->IsSpellDispenser() ? static_cast<SpellDispenser*>(o) : nullptr;
+            if (!d || !town) return false;
+            d->JoinTown(town);
+            d->magic = m < 0 ? 42u : static_cast<uint32_t>(m);
+            d->SetActive(true);
+            d->recharge = static_cast<uint32_t>(std::lround(a[6].f));
+            if (!d->recharge) d->SetActive(false);
             return true;
         }
         // case 19: (pos, heart type, player, angle*1000, scale*1000) -> sub_44EAF0:

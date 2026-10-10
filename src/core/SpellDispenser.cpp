@@ -3,6 +3,8 @@
 // Cross-referenced with bw1-decomp (v1.20)
 
 #include <black/SpellDispenser.h>
+#include <black/OneOffSpellSeed.h>
+#include <black/WorshipSite.h>
 
 void SpellDispenser::ToBeDeleted(int /*param*/) {
     // Original at 0x007228a0 — complex
@@ -60,4 +62,23 @@ void SpellDispenser::CallVirtualFunctionsForCreation(const MapCoords& coords) {
 bool SpellDispenser::IsSpellSeedReturnPoint() const {
     // Original at 0x007226e0: returns true
     return true;
+}
+
+void SpellDispenser::SetActive(bool on) {
+    active = on ? 1u : 0u;
+    if (on) Dispense();
+}
+
+// v1.0 adds 1.2 x the building's height (vslot 267, sub_5EA4F0: its
+// collision mesh's +40 x 2 x scale). ponytail: we have no collision mesh, so
+// the seed sits at the dispenser's own height.
+MapCoords SpellDispenser::DispensePos() const { return coords; }
+
+// The seed of the dispenser's magic, with the magic's power-up, strength 1.
+// ponytail: the effect it plays there (sub_5EFC00, type 9) is not.
+OneOffSpellSeed* SpellDispenser::Dispense() {
+    const int s = SeedOfMagic(static_cast<int>(magic));
+    seed = s < 0 ? nullptr : CreateOneOffSpellSeed(DispensePos(), s, SeedPowerUp(s, static_cast<int>(magic)), 1.0f);
+    if (seed) turns = 0;
+    return seed;
 }

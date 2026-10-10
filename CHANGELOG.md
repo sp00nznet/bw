@@ -6,6 +6,8 @@ history before this file lives in the README's batch log and `git log`.
 ## Unreleased
 
 ### Fixed
+- SpellDispenser was 0xC4 bytes (the vendor's); v1.0's is 0xDC, with its timer, recharge,
+  seed, active flag and magic after the Abode part.
 - GET_INFLUENCE was registered twice; the later host-side version, with the wrong pop order,
   overrode v1.0's. Only v1.0's remains.
 - GET_INFLUENCE popped its player first and always answered 0; v1.0's pops the position,
@@ -44,6 +46,8 @@ history before this file lives in the README's batch log and `git log`.
   `MakeFunctional`), turning the list into a cycle; v1.0's `Built` only counts it.
 
 ### Added
+- Spell dispensers and one-off spell seeds (CREATE_SPELL_DISPENSER, CREATE_ONE_SHOT_SPELL_PU).
+  Every command in the six campaign land scripts is now handled.
 - Rival temples: CREATE_CITADEL gives a player a citadel with a finished heart and
   CREATE_WORSHIP_SITE finishes its worship site for a tribe (Lands 2, 3 and 5).
 - Eight level commands from Lands 2–5: CREATE_FOREST (with trees joining their forest),

@@ -143,6 +143,9 @@ static_assert(sizeof(WorshipSite) == 0x128, "WorshipSite size mismatch");
 // seed holding a magic as base or power-up (+296..+304), or -1.
 int SeedBase(int seed);
 int SeedOfMagic(int magic);
+// sub_6C1930: -1 when the magic is the seed's own (+292), else which of its
+// three power-ups (+296..304) it is; -1 when neither.
+int SeedPowerUp(int seed, int magic);
 static_assert(offsetof(WorshipSite, towns) == 0xA4 && offsetof(WorshipSite, slot) == 0x110, "sub_703AC0");
 static_assert(offsetof(WorshipSite, worshippers) == 0xD4 && offsetof(WorshipSite, mana) == 0xF0 &&
               offsetof(WorshipSite, worship_rate) == 0x104 && offsetof(WorshipSite, field_0x114) == 0x114, "sub_7047E0");

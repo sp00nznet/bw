@@ -18,6 +18,8 @@
 #include <black/Town.h>
 #include <black/Flock.h>
 #include <black/Tree.h>
+#include <black/OneOffSpellSeed.h>
+#include <black/SpellDispenser.h>
 #include <black/Villager.h>
 #include <black/FireFly.h>
 #include <black/LHRandom.h>
@@ -1383,6 +1385,22 @@ int main() {
                       c != nullptr, c && c->heart ? c->heart->percent_built : -1.0f, c ? c->Power() : 0.0f, sites, built, left.c_str());
         CHECK(c && c->heart && c->heart->percent_built == 1.0f && c->Power() > 0.0f && sites == 4 && built == 4 &&
               !w5.unhandled.count("CREATE_CITADEL") && !w5.unhandled.count("CREATE_WORSHIP_SITE"), msg);
+
+        // Case 90: the Norse dispenser gives Fire's second power-up, has
+        // already made its seed and recharges in 600 turns; case 84: two
+        // one-off Water seeds (the seed's own magic, power-up -1).
+        SpellDispenser* disp = nullptr;
+        int water = 0;
+        for (const level::Spawned& sp : w5.objects) {
+            if (sp.command == "CREATE_SPELL_DISPENSER" && !disp) disp = static_cast<SpellDispenser*>(sp.obj);
+            if (sp.command == "CREATE_ONE_SHOT_SPELL_PU" && static_cast<OneOffSpellSeed*>(sp.obj)->powerup == -1) ++water;
+        }
+        const int fire_seed = SeedOfMagic(1);
+        std::snprintf(msg, sizeof msg, "Land 5's dispenser: magic %u, active %u, recharge %u, seed %d power-up %d (Fire's seed %d); %d one-off Water seeds; unhandled:%s",
+                      disp ? disp->magic : 0, disp ? disp->active : 0, disp ? disp->recharge : 0, disp && disp->seed ? disp->seed->seed : -1,
+                      disp && disp->seed ? disp->seed->powerup : -9, fire_seed, water, left.c_str());
+        CHECK(disp && disp->active && disp->recharge == 600 && disp->seed && disp->seed->seed == fire_seed && disp->seed->powerup == 1 &&
+              disp->GetTown() && water == 2 && w5.unhandled.empty(), msg);
     }
 
     printf(g_fail ? "\n%d FAILED\n" : "\nall passed\n", g_fail);

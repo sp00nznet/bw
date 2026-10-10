@@ -11,6 +11,7 @@
 #include <black/Wonder.h>
 #include <black/Graveyard.h>
 #include <black/TownCentre.h>
+#include <black/SpellDispenser.h>
 #include <black/Field.h>
 #include <black/Forest.h>
 #include <black/BigForest.h>
@@ -32,6 +33,7 @@
 #include <black/InfoDat.h>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 
 extern GMap* g_map;
 
@@ -123,6 +125,13 @@ static Abode* NewAbodeFor(const GObjectInfo* info) {
     case 256:  return new Wonder();
     case 516:  return new Graveyard();
     case 1028: return new TownCentre();
+    case 0x2004: {  // sub_6B96A0: the recharge is info +428 rounded
+        auto* d = new SpellDispenser();
+        float r = 0.0f;
+        if (info) std::memcpy(&r, reinterpret_cast<const char*>(info) + 428, 4);
+        d->recharge = static_cast<uint32_t>(std::lround(r));
+        return d;
+    }
     default:   return new Abode();
     }
 }

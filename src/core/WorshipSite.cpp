@@ -212,6 +212,11 @@ int32_t SeedInt(int seed, int off) {
 }  // namespace
 
 int SeedBase(int seed) { return SeedInt(seed, 292); }  // seed +292 (sub_6C1980(-1))
+int SeedPowerUp(int seed, int magic) {
+    if (SeedInt(seed, 292) == magic) return -1;
+    for (int i = 0; i < 3; ++i) if (SeedInt(seed, 296 + 4 * i) == magic) return i;
+    return -1;
+}
 int SeedOfMagic(int magic) {                           // sub_6C1A50 / sub_6C1A20
     for (int s = 0; s < 30; ++s)
         for (int off : {292, 296, 300, 304})

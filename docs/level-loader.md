@@ -102,6 +102,16 @@ The handlers index the info arrays directly, and every base and stride matches
   villager reaction (`sub_67EFC0`, type 19).
 - v1.0's `MapCoords` y is the height above the land (a stream point is stored as land
   height + y); ours carry the altitude itself, so the loader adds the land's height.
+- **CREATE_ONE_SHOT_SPELL_PU** (case 84, `sub_6C0D30`): `(pos, magic)`, a
+  `OneOffSpellSeed` (MOBILE_OBJECT_INFO[25]) of the magic's seed and power-up
+  (`sub_6C1930`: −1 for the seed's own magic, else 0..2), strength 1.
+- **CREATE_SPELL_DISPENSER** (case 90, `sub_6B9840`): `(town, pos, abode, magic, angle,
+  scale, recharge)`. Abode type 0x2004 is a `SpellDispenser` (v1.0 0xDC bytes; the
+  vendor's 0xC4 was short) whose recharge starts at info +428 (300). The level sets its
+  magic, activates it (`sub_6B9F90`, which dispenses a one-off seed at once,
+  `sub_6B9AF0`), then sets the recharge; 0 deactivates it. The seed sits at the
+  building's base: v1.0 lifts it by 1.2 × the collision mesh's height, which we lack.
+  The dispenser's recharge loop (its Process) is not translated yet.
 - **CREATE_CITADEL** (case 19, `sub_44EAF0`): `(pos, heart type, player, angle×1000,
   scale×1000)`. A new citadel for the player (`sub_44E400`) and its heart, whole, at
   scale 1 (the fifth argument is not read), which raises the citadel's power by 125 and
@@ -136,8 +146,11 @@ The handlers index the info arrays directly, and every base and stride matches
 
 ## Not translated yet
 
-Land 1 has 2,342 commands and all of them are handled; `test_level` lists any that
-are not. Known departures from the original:
+Every command in the six campaign scripts (Land1..Land5, LandT) is handled; `test_level`
+loads Lands 1, 2, 3 and 5 and lists any that are not. The skirmish scripts
+(`Playgrounds/*`) and the old `comp.txt` / `demo2.txt` still use a few more (creatures
+from file, game messages, fireflies, storms, scaffolds, CREATE_ANIMAL,
+CREATE_TOWN_FIELD). Known departures from the original:
 
 - **The creates are not the original's constructors.** The objects are our classes,
   built with `new`, with the arguments set that the handler passes. The constructor and

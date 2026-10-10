@@ -6,6 +6,8 @@
 // Complex methods at 0x0072a4xx-0x0072acxx.
 
 #include <black/OneOffSpellSeed.h>
+#include <black/InfoDat.h>
+#include <black/LHVMObjects.h>
 
 // ============================================================================
 // Overrides of Base virtuals
@@ -169,4 +171,19 @@ uint32_t OneOffSpellSeed::GetPhysicsConstantsType() {
 size_t OneOffSpellSeed::SaveObject(LHOSFile* /*param1*/, const MapCoords* /*param2*/) {
     // Original at 0x0072ab80 — complex
     return 0;
+}
+
+// ponytail: the MobileObject constructor (sub_5C2320) is reduced to the
+// position, record and scale; vslot 406 is not called.
+OneOffSpellSeed* CreateOneOffSpellSeed(const MapCoords& at, int seed, int powerup, float strength) {
+    if (seed < 0 || seed > 29) return nullptr;
+    auto* s = new OneOffSpellSeed();
+    s->coords = at;
+    s->info = static_cast<GObjectInfo*>(const_cast<void*>(infodat::Element(infodat::DETAIL_MOBILE_OBJECT_INFO, 25)));
+    s->scale = 1.0f;
+    s->seed = seed;
+    s->powerup = powerup;
+    s->strength = strength;
+    lhvm::RegisterObject(s);
+    return s;
 }
